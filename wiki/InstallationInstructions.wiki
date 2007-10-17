@@ -6,7 +6,7 @@ This page contains brief instructions for installing and running the prerelease 
 
 These sketch instructions presume that you're reasonably familiar with Java, Ant, CLASSPATHs, etc. If not, you might struggle a bit. Better documentation will hopefully follow sometime soon.
 
-= Prerequisites =
+== Prerequisites ==
 
  * Make sure that you have Apache Lucene running and that the lucene core and lucene demo files are included in your CLASSPATH.
 
@@ -19,7 +19,7 @@ These sketch instructions presume that you're reasonably familiar with Java, Ant
 
  * Feel free to check out the source code from svn and build using `ant`.
  * Optionally, you can unpack the jar distribution using `jar -xvf semanticvectors-0.8.jar` and compile by running `ant` in the trunk directory.
- * Make sure that either the resulting `build/classes` directory or `build\*.jar` file is in your CLASSPATH.
+ * Make sure that either the resulting `build/classes` directory or `build/*.jar` file is in your CLASSPATH.
 
 == To Build and Search a Model ==
 
