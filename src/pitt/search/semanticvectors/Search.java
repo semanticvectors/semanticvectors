@@ -49,7 +49,7 @@ public class Search{
 	    + "\nUsage: java pitt.search.semanticvectors [-q queryvectorfile]"
 	    + "\n                                        [-s search_vector_file]"
 	    + "\n                                        [-l path_to_lucene_index]"
-	    + "\n                                      <QUERYTERMS>"
+	    + "\n                                        <QUERYTERMS>"
 	    + "\n-q argument must precede -s argument if they differ;"
 	    + "\n    otherwise -s will default to -q."
 	    + "\nIf no query or search file is given, default will be"
