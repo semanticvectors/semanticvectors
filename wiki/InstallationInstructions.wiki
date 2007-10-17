@@ -1,0 +1,28 @@
+#summary Installation guide for semantic vectors package.
+
+= Summary =
+
+This page contains brief instructions for installing and running the prerelease version (0.8) of the Semantic Vectors package from the University of Pittsburgh.
+
+These sketch instructions presume that you're reasonably familiar with Java, Ant, CLASSPATHs, etc. If not, you might struggle a bit. Better documentation will hopefully follow sometime soon.
+
+= Prerequisites =
+
+ * Make sure that you have Apache Lucene running and that the lucene core and lucene demo files are included in your CLASSPATH.
+
+== To Install from Jar Distribution ==
+
+ * Download the semanticvectors-0.8.jar distribution from this site.
+ * Add the file (including full path) to your CLASSPATH.
+
+== To Build from Source ==
+
+ * Feel free to check out the source code from svn and build using `ant`.
+ * Optionally, you can unpack the jar distribution using `jar -xvf semanticvectors-0.8.jar` and compile by running `ant` in the trunk directory.
+ * Make sure that either the resulting `build/classes` directory or `build\*.jar` file is in your CLASSPATH.
+
+== To Build and Search a Model ==
+
+ * Create a Lucene index using the Lucene demo, by running `java org.apache.lucene.demo.IndexFiles` on the directory containing your corpus.
+ * Create term and document vectors by running `java pitt.search.semanticvectors.BuildIndex`.
+ * To search the resulting model, run `java pitt.search.semanticvectors.Search QUERYTERMS`.
