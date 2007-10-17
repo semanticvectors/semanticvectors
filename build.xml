@@ -1,0 +1,54 @@
+<project name="pitt semantic vectors" default="build-all" basedir=".">
+
+  <property name="version" value="0.8"/>
+
+  <property name="basedir" value="."/>
+  <property name="srcdir" value="${basedir}/src"/>
+  <property name="docdir" value="${basedir}/doc"/>  
+  <property name="builddir" value="${basedir}/build"/>
+  <property name="buildclassesdir" value="${builddir}/classes"/>
+  <property name="distdir" value="${basedir}/dist"/>
+
+  <target name="init">
+    <mkdir dir="${docdir}"/>
+    <mkdir dir="${builddir}"/>
+    <mkdir dir="${buildclassesdir}"/>
+    <mkdir dir="${distdir}"/>
+  </target>
+
+  <target name="compile" depends="init">
+    <javac srcdir="${srcdir}"
+	   destdir="${buildclassesdir}"
+	   debug="on"
+	   />
+  </target>
+
+  <target name="doc" depends="init">
+    <javadoc sourcepath="${srcdir}"
+	     packagenames="pitt.search.semanticvectors"
+	     destdir="${docdir}"
+	     author="true"
+	     use="true"
+	     />
+  </target>
+
+  <target name="dist" depends="init">
+    <jar destfile="${distdir}/semanticvectors-${version}.jar">
+      <fileset dir="${basedir}">
+	<include name="**/*.class"/>
+	<include name="**/*.java"/>
+	<include name="build.xml"/>
+      </fileset>
+    </jar>
+  </target>
+
+  <target name="clean" depends="init">
+    <delete dir="${builddir}"/>
+    <delete dir="${docdir}"/>
+    <delete dir="${distdir}"/>
+  </target>
+
+<!-- build all -->
+   <target name="build-all" depends="compile, doc, dist"/>
+
+</project>
