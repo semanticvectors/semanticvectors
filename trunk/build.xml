@@ -1,6 +1,6 @@
 <project name="pitt semantic vectors" default="build-all" basedir=".">
 
-  <property name="version" value="0.8"/>
+  <property name="version" value="0.8.2"/>
 
   <property name="basedir" value="."/>
   <property name="srcdir" value="${basedir}/src"/>
@@ -32,14 +32,22 @@
 	     />
   </target>
 
-  <target name="dist" depends="init">
-    <jar destfile="${distdir}/semanticvectors-${version}.jar">
-      <fileset dir="${basedir}">
-	<include name="**/*.class"/>
+  <target name="jardist" depends="init">
+    <jar destfile="${builddir}/semanticvectors-${version}.jar" 
+	 basedir="${buildclassesdir}"/>
+  </target>
+
+  <target name="srcdist" depends="init">
+    <tar destfile="${distdir}/semanticvectors-${version}.tar">
+      <tarfileset dir="${basedir}">
 	<include name="**/*.java"/>
+	<include name="**/*.class"/>
+	<include name="**/*.html"/>
 	<include name="build.xml"/>
-      </fileset>
-    </jar>
+      </tarfileset>
+    </tar>
+    <gzip zipfile="${distdir}/semanticvectors-${version}.tar.gz" 
+          src="${distdir}/semanticvectors-${version}.tar"/>
   </target>
 
   <target name="clean" depends="init">
@@ -49,6 +57,6 @@
   </target>
 
 <!-- build all -->
-   <target name="build-all" depends="compile, doc, dist"/>
+   <target name="build-all" depends="compile, doc, jardist, srcdist"/>
 
 </project>
