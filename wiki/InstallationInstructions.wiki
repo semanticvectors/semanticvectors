@@ -26,3 +26,7 @@ These sketch instructions presume that you're reasonably familiar with Java, Ant
  * Create a Lucene index using the Lucene demo, by running `java org.apache.lucene.demo.IndexFiles` on the directory containing your corpus.
  * Create term and document vectors by running `java pitt.search.semanticvectors.BuildIndex`.
  * To search the resulting model, run `java pitt.search.semanticvectors.Search QUERYTERMS`.
+
+== Developer API Docs ==
+
+See http://semanticvectors.googlecode.com/svn/trunk/doc/index.html
