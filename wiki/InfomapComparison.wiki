@@ -17,3 +17,11 @@ In particular, the design of the current package was partly informed by some yea
    * The Semantic Vectors package is written entirely in Java, and its only dependency so far is Apache Lucene (and the Apache Ant build tools if you want to compile from source). Lucene is an extremely popular and well-maintained open source package, it's easy to install, and since everything's running in Java (including reading and writing the vectors from disk), we have so far had no integration problems at all. If you don't want to install Ant or compile from source, you can just download the jar distribution and provided your Java CLASSPATH points to both the Lucene and Semantic Vectors jarfiles, everything should just work.
 
 For these reasons, we recommend that new users who would are looking for a Latent Semantic Analysis package should try using Semantic Vectors, especially if they run into any trouble with Infomap-NLP.
+
+=== Infomap Coocurrence Windows and Single-File Corpora ===
+
+One important part of the design of the Infomap WordSpace models is that they use cooccurrence in a text window (e.g. of 15 words) rather than cooccurrence within a given document to build similarities. Partly for this reason, you can build an Infomap model from a corpus file that is just modelled as one long document.
+
+This isn't true of the Semantic Vectors package. Since Semantic Vectors uses a Lucene index to build its semantic model, terms will be considered as coocurring if they occur in the same document in Lucene's term document matrix.
+
+It is probably possible to configure Semantic Vectors to use Lucene's "search within k words" interface to recover something similar to this Infomap feature, but we haven't done this yet. 
