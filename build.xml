@@ -8,6 +8,7 @@
   <property name="builddir" value="${basedir}/build"/>
   <property name="buildclassesdir" value="${builddir}/classes"/>
   <property name="distdir" value="${basedir}/dist"/>
+  <property name="distname" value="semanticvectors-${version}"/>
 
   <target name="init">
     <mkdir dir="${docdir}"/>
@@ -33,21 +34,35 @@
   </target>
 
   <target name="jardist" depends="init">
-    <jar destfile="${builddir}/semanticvectors-${version}.jar" 
+    <jar destfile="${builddir}/${distname}.jar" 
 	 basedir="${buildclassesdir}"/>
   </target>
 
-  <target name="srcdist" depends="init">
-    <tar destfile="${distdir}/semanticvectors-${version}.tar">
-      <tarfileset dir="${basedir}">
+  <target name="tardist" depends="init">
+    <tar destfile="${distdir}/${distname}-src.tar">
+      <tarfileset dir="${basedir}"
+                  prefix="${distname}"
+                  preserveLeadingSlashes="true">
 	<include name="**/*.java"/>
 	<include name="**/*.class"/>
 	<include name="**/*.html"/>
 	<include name="build.xml"/>
       </tarfileset>
     </tar>
-    <gzip zipfile="${distdir}/semanticvectors-${version}.tar.gz" 
-          src="${distdir}/semanticvectors-${version}.tar"/>
+    <gzip zipfile="${distdir}/${distname}-src.tar.gz" 
+          src="${distdir}/${distname}-src.tar"/>
+  </target>
+
+  <target name="zipdist" depends="init">
+    <zip destfile="${distdir}/${distname}-src.zip">
+      <zipfileset dir="${basedir}"
+                  prefix="${distname}">
+	<include name="**/*.java"/>
+	<include name="**/*.class"/>
+	<include name="**/*.html"/>
+	<include name="build.xml"/>
+      </zipfileset>
+    </zip>
   </target>
 
   <target name="clean" depends="init">
@@ -57,6 +72,7 @@
   </target>
 
 <!-- build all -->
-   <target name="build-all" depends="compile, doc, jardist, srcdist"/>
+   <target name="build-all" 
+           depends="compile, doc, jardist, tardist, zipdist"/>
 
 </project>
