@@ -8,7 +8,7 @@ These sketch instructions presume that you're reasonably familiar with Java, Ant
 
 == Prerequisites ==
 
- * Make sure that you have Apache Lucene running and that the lucene core and lucene demo files are included in your CLASSPATH.
+ * Make sure that you have [http://lucene.apache.org/java/docs/ Apache Lucene] running and that the lucene core and lucene demo files are included in your CLASSPATH.
 
 == To Install from Jar Distribution ==
 
