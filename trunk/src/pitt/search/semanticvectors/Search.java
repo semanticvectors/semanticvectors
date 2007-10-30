@@ -37,19 +37,17 @@ package pitt.search.semanticvectors;
 
 import java.util.LinkedList;
 import java.io.IOException;
-import org.apache.lucene.index.Term;
 
 /**
  * Command line term vector search utility.
  */
 public class Search{
     public static void usage(){
-	StringBuffer sb = new StringBuffer();
-	String usageMessage = "Search class in package pitt.search.semanticvectors"
-	    + "\nUsage: java pitt.search.semanticvectors [-q queryvectorfile]"
-	    + "\n                                        [-s search_vector_file]"
-	    + "\n                                        [-l path_to_lucene_index]"
-	    + "\n                                        <QUERYTERMS>"
+	String usageMessage = "\nSearch class in package pitt.search.semanticvectors"
+	    + "\nUsage: java pitt.search.semanticvectors.Search [-q queryvectorfile]"
+	    + "\n                                               [-s search_vector_file]"
+	    + "\n                                               [-l path_to_lucene_index]"
+	    + "\n                                               <QUERYTERMS>"
 	    + "\n-q argument must precede -s argument if they differ;"
 	    + "\n    otherwise -s will default to -q."
 	    + "\nIf no query or search file is given, default will be"
@@ -98,7 +96,7 @@ public class Search{
 	    if( lucenePath != null ){
 		try{ lUtils = new LuceneUtils( lucenePath ); }
 		catch( IOException e ){
-		    System.err.println( "Couldn't open Lucene index at " + lucenePath );
+		    System.err.println("Couldn't open Lucene index at " + lucenePath);
 		}
 	    }
 	    if( lUtils == null ){
@@ -106,35 +104,17 @@ public class Search{
 				   + "so all query terms will have same weight.");
 	    }
 
-	    float[] queryVec = new float[ObjectVector.vecLength];
-	    float[] tmpVec = new float[ObjectVector.vecLength];
-	    float weight = 1;
-
-	    for( int i = 0; i < ObjectVector.vecLength; ++i ){
-		queryVec[i] = 0;
+	    // This takes the slice of args from argc to end, joined
+	    // into a single string: there may be a more elegant way
+	    // of doing this.
+	    String queryString = "";
+	    for (int j = 0; j < args.length - argc; ++j) {
+		queryString += args[j + argc] + " ";
 	    }
-
-	    for( int j=argc; j<args.length; j++ ){
-		tmpVec = vecReader.getVector(args[j]);
-
-		// try to get term weight; assume field is "contents"
-		if( lUtils != null ){
-		    weight = lUtils.getGlobalTermWeight( new Term ("contents", args[j] ) );
-		}
-		else{ weight = 1; }
-
-		if(tmpVec != null){
-		    System.err.println("Got vector for " + args[j] +
-				       ", using term weight " + weight);
-		    for (int i = 0; i < ObjectVector.vecLength; ++i) {
-			queryVec[i] += tmpVec[i];
-		    }
-		}
-		else{ System.err.println("No vector for " + args[j]); }
-	    }
-
-	    queryVec = VectorUtils.normalize(queryVec);
-
+	    // Now get the query vector for these terms.
+	    float[] queryVec = CompoundVectorBuilder.getQueryVector(vecReader,
+								    lUtils,
+								    queryString);
 	    System.err.print("Searching term vectors ... ");
 
 	    /* reopen vector store if search vectors are different from query vectors */ 

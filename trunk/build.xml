@@ -1,6 +1,6 @@
 <project name="pitt semantic vectors" default="build-all" basedir=".">
 
-  <property name="version" value="0.8.2"/>
+  <property name="version" value="0.8.3"/>
 
   <property name="basedir" value="."/>
   <property name="srcdir" value="${basedir}/src"/>
