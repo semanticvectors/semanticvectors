@@ -71,7 +71,6 @@ public class Search{
 	String lucenePath = null;
 	LuceneUtils lUtils = null;
 	int argc = 0;
-	
 
 	// parse command-line args
 	while( args[argc].substring(0, 1).equals("-") ){
@@ -103,8 +102,8 @@ public class Search{
 		}
 	    }
 	    if( lUtils == null ){
-		System.err.println("No Lucene Utils for query term weighting;"
-				   + "all query terms will have same weight.");
+		System.err.println("No Lucene index for query term weighting, "
+				   + "so all query terms will have same weight.");
 	    }
 
 	    float[] queryVec = new float[ObjectVector.vecLength];
@@ -125,7 +124,7 @@ public class Search{
 		else{ weight = 1; }
 
 		if(tmpVec != null){
-		    System.err.println("Got vector for " + args[j] + 
+		    System.err.println("Got vector for " + args[j] +
 				       ", using term weight " + weight);
 		    for (int i = 0; i < ObjectVector.vecLength; ++i) {
 			queryVec[i] += tmpVec[i];
