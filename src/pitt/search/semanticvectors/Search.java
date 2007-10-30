@@ -42,6 +42,21 @@ import java.io.IOException;
  * Command line term vector search utility.
  */
 public class Search{
+    /**
+     * Prints the following usage message:
+     * <br> Search class in package pitt.search.semanticvectors
+     * <br> Usage: java pitt.search.semanticvectors.Search [-q queryvectorfile]
+     * <br>                                                [-s search_vector_file]
+     * <br>                                                [-l path_to_lucene_index]
+     * <br>                                                &lt;QUERYTERMS&gt;
+     * <br> -q argument must precede -s argument if they differ;
+     * <br>     otherwise -s will default to -q.
+     * <br> If no query or search file is given, default will be
+     * <br>     termvectors.bin in local directory.
+     * <br> -l argument my be used to get term weights from
+     * <br>     term frequency, doc frequency, etc. in lucene index.
+     * <br> &lt;QUERYTERMS&gt; should be a list of words, separated by spaces.
+     */
     public static void usage(){
 	String usageMessage = "\nSearch class in package pitt.search.semanticvectors"
 	    + "\nUsage: java pitt.search.semanticvectors.Search [-q queryvectorfile]"
