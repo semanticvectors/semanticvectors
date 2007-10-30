@@ -42,13 +42,24 @@ import java.io.IOException;
  * Command line utility for creating semantic vector indexes.
  */
 public class BuildIndex{
-    /* change these and recompile if you want to play with them */
+    /* Change these and recompile if you want to play with them. */
     static final int seedLength = 20;
     static final int minFreq = 10;
 
+    /**
+     * Prints the following usage message: 
+     * <br> BuildIndex class in package pitt.search.semanticvectors
+     * <br> Usage: java pitt.search.semanticvectors.BuildIndex PATH_TO_LUCENE_INDEX
+     * <br> BuildIndex creates files termvectors.bin and docvectors.bin in local directory.
+     * <br> Other parameters that can be changed include vector length,
+     * <br>     (number of dimensions), seed length (number of non-zero
+     * <br>     entries in basic vectors), and minimum term frequency.
+     * <br> To change these you need to edit BuildIndex.java or ObjectVector.java
+     * <br>     and recompile."
+     */
     public static void usage(){
 	String usageMessage = "\nBuildIndex class in package pitt.search.semanticvectors"
-	    + "\nUsage: java pitt.search.semanticvectors PATH_TO_LUCENE_INDEX"
+	    + "\nUsage: java pitt.search.semanticvectors.BuildIndex PATH_TO_LUCENE_INDEX"
 	    + "\nBuildIndex creates files termvectors.bin and docvectors.bin in local directory."
 	    + "\nOther parameters that can be changed include vector length,"
 	    + "\n    (number of dimensions), seed length (number of non-zero"
