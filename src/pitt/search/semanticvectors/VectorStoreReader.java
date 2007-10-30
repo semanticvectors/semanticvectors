@@ -52,7 +52,7 @@ than the native java.io.DataOutputStream
 */
 public class VectorStoreReader implements VectorStore {
     private IndexInput indexInput;
-    
+
     public VectorStoreReader ( String vectorFile ) throws IOException {
 	MMapDirectory dir = new MMapDirectory();
 	indexInput = dir.openInput(vectorFile);
@@ -75,7 +75,7 @@ public class VectorStoreReader implements VectorStore {
      */
     public float[] getVector( Object desiredObject ){
 	System.err.print("Seeking vector for ... " + desiredObject + " ... ");
-	try{	   
+	try{
 	    indexInput.seek(0);
 	    while( indexInput.getFilePointer() < indexInput.length()-1 ){
 		if( indexInput.readString().equals(desiredObject) ){
@@ -129,5 +129,3 @@ public class VectorStoreReader implements VectorStore {
 	}
     }
 }
-
-
