@@ -39,7 +39,9 @@ potentatially interested licensors. This project can be found at
 installed, and the Lucene classes must be available in your CLASSPATH.
 
 <p> Further documentation and links to articles on Random Projection
-and related techniques can be found at ...
+and related techniques can be found at the package download site,
+<a href="http://code.google.com/p/semanticvectors">
+http://code.google.com/p/semanticvectors</a>.
 
 @author Dominic Widdows, in collaboration with Kathleen Ferraro and
 the University of Pittsburgh.
