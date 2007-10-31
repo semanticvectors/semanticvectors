@@ -46,21 +46,27 @@ individual words or lists of words. For example, if your vectorfile
 is the (default) termvectors.bin, you should be able to run
 comparisons like 
 
-<br>java pitt.search.semanticvectors.CompareTerms "blue" "red green"</br> 
+<br>
+<code>java pitt.search.semanticvectors.CompareTerms "blue" "red green"
+</code>
 
+<br> 
 which will give you the cosine similarity of the "blue"
 vector with the sum of the "red" and "green" vectors.
  */
 public class CompareTerms{
     /**
      * Prints the following usage message: 
+     * <code>
      * <br> CompareTerms class in package pitt.search.semanticvectors 
      * <br> Usage: java pitt.search.semanticvectors.CompareTerms [-v vectorfile]
      * <br>                                                      [-l path_to_lucene_index]
-     * <br>                                         &lt;QUERYTERMS1&gt; &lt;QUERYTERMS2&gt;
+     * <br>                                         "&lt;QUERYTERMS1&gt;" "&lt;QUERYTERMS2&gt;"
      * <br>-l argument may be used to get term weights from
      * <br>term frequency, doc frequency, etc. in lucene index.
-     * <br>&lt;QUERYTERMS1,2&gt; should be lists of words, separated by spaces.
+     * <br>"&lt;QUERYTERMS1,2&gt;" should be lists of words, separated by spaces.
+     * <br> The quotes are mandatory unless you are comparing two single words.
+     * </code>
      */
 
     public static void usage(){
@@ -70,13 +76,15 @@ public class CompareTerms{
 	    + "\n                                        \"<QUERYTERMS1>\" \"<QUERYTERMS2>\""
 	    + "\n-l argument may be used to get term weights from"
 	    + "\n    term frequency, doc frequency, etc. in lucene index."
-	    + "\n<QUERYTERMS1,2> should be lists of words, separated by spaces.";
+	    + "\n<QUERYTERMS1,2> should be lists of words, separated by spaces."
+	    + "\nThe quotes are mandatory unless you are comparing two single words.";
 	System.out.println(usageMessage);
 	System.exit(-1);
     }
 
     /**
      * Main function for command line use.
+     * @param args See usage();
      */
     public static void main( String[] args ){
 	if( args.length == 0 ){
