@@ -44,6 +44,7 @@ import java.io.IOException;
 public class Search{
     /**
      * Prints the following usage message:
+     * <code>
      * <br> Search class in package pitt.search.semanticvectors
      * <br> Usage: java pitt.search.semanticvectors.Search [-q queryvectorfile]
      * <br>                                                [-s search_vector_file]
@@ -56,6 +57,7 @@ public class Search{
      * <br> -l argument my be used to get term weights from
      * <br>     term frequency, doc frequency, etc. in lucene index.
      * <br> &lt;QUERYTERMS&gt; should be a list of words, separated by spaces.
+     * </code>
      */
     public static void usage(){
 	String usageMessage = "\nSearch class in package pitt.search.semanticvectors"
@@ -74,6 +76,10 @@ public class Search{
 	System.exit(-1);
     }
 
+    /**
+     * Takes a user's query, creates a query vector, and searches a vector store.
+     * @param args See usage();
+     */
     public static void main( String[] args ){
 	if( args.length == 0 ){
 	    usage();

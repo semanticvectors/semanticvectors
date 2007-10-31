@@ -48,6 +48,7 @@ public class BuildIndex{
 
     /**
      * Prints the following usage message: 
+     * <code>
      * <br> BuildIndex class in package pitt.search.semanticvectors
      * <br> Usage: java pitt.search.semanticvectors.BuildIndex PATH_TO_LUCENE_INDEX
      * <br> BuildIndex creates files termvectors.bin and docvectors.bin in local directory.
@@ -55,7 +56,8 @@ public class BuildIndex{
      * <br>     (number of dimensions), seed length (number of non-zero
      * <br>     entries in basic vectors), and minimum term frequency.
      * <br> To change these you need to edit BuildIndex.java or ObjectVector.java
-     * <br>     and recompile."
+     * <br>     and recompile.
+     * </code>
      */
     public static void usage(){
 	String usageMessage = "\nBuildIndex class in package pitt.search.semanticvectors"
@@ -69,6 +71,11 @@ public class BuildIndex{
 	System.out.println(usageMessage);
 	System.exit(-1);
     }
+
+    /**
+     * Builds term vector and document vector stores from a Lucene index.
+     * @param args See usage();
+     */
 
     public static void main( String[] args ){
 	if( !(args.length == 1 ) ){
