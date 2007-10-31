@@ -1,0 +1,18 @@
+#summary Release Log
+
+=== Release 0.8.4 ===
+
+2007-10-30
+
+At the request of one research user, added the `CompareTerms` class and command line interface to enable term-term comparison. Also refactored query vector generation, adding the `CompoundVectorBuilder` class which both `Search` and `CompareTerms` use.
+
+Also improved javadoc.
+
+User reported that everything worked - again good news.
+
+=== Release 0.8.2 ===
+
+2007-10-25
+
+This was the first public release of the software. 
+There were about a dozen downloads, and so far so good - no bug reports at all!
