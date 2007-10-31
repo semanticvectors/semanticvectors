@@ -31,3 +31,4 @@ These sketch instructions presume that you're reasonably familiar with Java, Ant
 == Developer API Docs ==
 
 See http://semanticvectors.googlecode.com/svn/trunk/doc/index.html
+Some useful information may be found in the ReleaseLogs.
