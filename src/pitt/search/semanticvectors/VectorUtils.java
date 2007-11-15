@@ -79,49 +79,4 @@ public class VectorUtils{
 	}
 	return tmpVec;
     }
-
-
-    /**
-     * @param queryVector the query vector: method will search for vectors closest to this
-     * @param vecEnum the enumeration of ObjectVectors that will be searched
-     * @param numResults the number of results / length of the result list
-     */
-    public static LinkedList getNearestNeighbors(float[] queryVector,
-						 Enumeration<ObjectVector> vecEnum, 
-						 int numResults){
-	LinkedList<SearchResult> results = new LinkedList();
-
-	float score, threshold = -1;
-
-	while (vecEnum.hasMoreElements()) {
-	    /* initialize result list */
-	    if (results.size() == 0) {
-		ObjectVector firstElement = vecEnum.nextElement();
-		score = scalarProduct(queryVector, firstElement.getVector());
-		results.add(new SearchResult(score, firstElement));
-		continue;
-	    }
-
-	    /* test this element */
-	    ObjectVector testElement = vecEnum.nextElement();
-	    score = scalarProduct (queryVector, testElement.getVector());
-	    if (score > threshold) {
-		boolean added = false;
-		for (int i = 0; i < results.size(); i++) {
-		    /* add to list if this is right place */
-		    if (score > results.get(i).getScore() && added==false) {
-			results.add(i, new SearchResult(score, testElement));
-			added = true;
-		    }
-		}
-		/* prune list if reached numResults */
-		if (results.size() > numResults) {
-		    results.removeLast();
-		    threshold = results.getLast().getScore();
-		}
-	    }
-	}		
-	return results;
-    }
-
 }

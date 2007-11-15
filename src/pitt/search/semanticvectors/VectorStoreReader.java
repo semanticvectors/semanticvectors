@@ -53,7 +53,7 @@ than the native java.io.DataOutputStream
 public class VectorStoreReader implements VectorStore {
     private IndexInput indexInput;
 
-    public VectorStoreReader ( String vectorFile ) throws IOException {
+    public VectorStoreReader (String vectorFile) throws IOException {
 	MMapDirectory dir = new MMapDirectory();
 	indexInput = dir.openInput(vectorFile);
     }
