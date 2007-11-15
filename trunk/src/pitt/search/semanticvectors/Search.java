@@ -138,14 +138,17 @@ public class Search{
 								    queryString);
 	    System.err.print("Searching term vectors ... ");
 
-	    /* reopen vector store if search vectors are different from query vectors */ 
+	    // Reopen vector store if search vectors are different from query vectors.
 	    if( queryFile != searchFile ){
 		System.err.println("Opening file of vectors to search ...");
 		vecReader = new VectorStoreReader(searchFile);
 	    }
-	    vecReader.getAllVectors();
+
+	    // Create VectorSearcher and search for nearest neighbors.
+	    VectorSearcher.VectorSearcherCosine vecSearcher =
+		new VectorSearcher.VectorSearcherCosine(vecReader);
 	    LinkedList<SearchResult> results = 
-		VectorUtils.getNearestNeighbors(queryVec, vecReader.getAllVectors(), 20);
+		vecSearcher.getNearestNeighbors(queryVec, 20);
 
 	    System.err.println("Search output follows ...");
 	    for (SearchResult result: results) {

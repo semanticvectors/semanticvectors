@@ -66,8 +66,8 @@
   </target>
 
   <target name="clean" depends="init">
+    <!-- Do not delete ${docdir} since this is part of svn tree -->
     <delete dir="${builddir}"/>
-    <delete dir="${docdir}"/>
     <delete dir="${distdir}"/>
   </target>
 
