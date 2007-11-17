@@ -63,7 +63,7 @@ public class VectorUtils{
      * Returns the normalized version of a vector, i.e. same direction, unit length.
      * @param vec Vector whose normalized version is requested.
      */
-    public static float[] normalize(float[] vec){
+    public static float[] getNormalizedVector(float[] vec){
 	float norm = 0;
 	int i;
 	float[] tmpVec = new float[vec.length];
@@ -78,5 +78,69 @@ public class VectorUtils{
 	    tmpVec[i] = tmpVec[i]/norm;
 	}
 	return tmpVec;
+    }
+
+    /** 
+     * Returns the normalized version of a 2 tensor, i.e. an array of arrays of floats.
+     */
+    public static float[][] getNormalizedTensor(float[][] tensor){
+	int dim = tensor[0].length;
+	float[][] normedTensor = new float[dim][dim];
+	float norm = (float)Math.sqrt(getInnerProduct(tensor, tensor));
+	for(int i=0; i<dim; ++i){
+	    for(int j=0; j<dim; ++j){
+		normedTensor[i][j] = tensor[i][j]/norm;
+	    }
+	}
+	return normedTensor;
+    }	
+
+    /**
+     * Returns a 2-tensor which is the outer product of 2 vectors.
+     */
+    public static float[][] getOuterProduct(float[] vec1, float[] vec2){
+	int dim = vec1.length;
+	float[][] outProd = new float[dim][dim];
+	for(int i=0; i<dim; ++i){
+	    for(int j=0; j<dim; ++j){
+		outProd[i][j] = vec1[i] * vec2[j];
+	    }
+	}
+	return outProd;
+    }
+
+    /**
+     * Returns the inner product of two tensors.
+     */
+    public static float getInnerProduct(float[][] ten1, float[][]ten2){
+	float result = 0;
+	int dim = ten1[0].length;
+	for(int i=0; i<dim; ++i){
+	    for(int j=0; j<dim; ++j){
+		result += ten1[i][j] * ten2[j][i];
+	    }
+	}
+	return result;
+    }
+
+    /**
+     * Returns the convolution of two vectors; see Plate, 
+     * Holographic Reduced Represenation, p. 76.
+     */
+    public static float[] getConvolution(float[] vec1, float[] vec2){
+	int dim = vec1.length;
+	float[] conv = new float[2*dim - 1];
+	for(int i=0; i < dim; ++i){
+	    conv[i] = 0;
+	    conv[conv.length - 1 - i] = 0;
+	    for(int j=0; j<=i; ++j){
+		// Count each pair of diagonals.
+		conv[i] += vec1[i-j] * vec2[j];
+		if ( i != dim-1 ) { // Avoid counting lead diagonal twice.
+		    conv[conv.length - 1 - i] = vec1[dim-1-i+j] * vec2[dim-1-j];
+		}
+	    }
+	}
+	return VectorUtils.getNormalizedVector(conv);
     }
 }

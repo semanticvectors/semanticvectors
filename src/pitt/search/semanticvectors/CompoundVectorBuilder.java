@@ -45,7 +45,7 @@ public class CompoundVectorBuilder {
 	    else{ System.err.println("No vector for " + queryTerms[j]); }
 	}
 
-	queryVec = VectorUtils.normalize(queryVec);
+	queryVec = VectorUtils.getNormalizedVector(queryVec);
 	return queryVec;
     }    
 }

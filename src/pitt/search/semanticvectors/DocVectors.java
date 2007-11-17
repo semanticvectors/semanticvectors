@@ -115,7 +115,7 @@ public class DocVectors implements VectorStore {
 
 	for( i=0; i<numDocs; i++ ){
 	    String docPath = indexReader.document(i).getField("path").stringValue();
-	    float[] docVec = VectorUtils.normalize(docMatrix[i]);
+	    float[] docVec = VectorUtils.getNormalizedVector(docMatrix[i]);
 	    docVectors.put( docPath, new ObjectVector(docPath, docVec) );
 	}
     }
@@ -128,62 +128,4 @@ public class DocVectors implements VectorStore {
     public Enumeration getAllVectors(){
 	return docVectors.elements();
     }
-
 }    
-
-    /*
-
-	// iterate through an enumeration of terms and create docVector table
-	System.err.println("Creating doc vectors (iterating over terms) ...");
-	TermEnum terms = indexReader.terms();
-	int tc=0;
-	while( terms.next() ){
-
-	    if( ( tc % 10000 == 0 ) || ( tc < 10000 && tc % 1000 == 0 ) ){
-		System.err.print(tc + " ... ");
-	    }
-	    tc++;
-
-	    Term term = terms.term();
-	    float[] termVector = new float[ObjectVector.vecLength];
-
-	    try{ termVector = termVectorData.getVector(term.text()); }
-	    catch( NullPointerException e ) { continue; }
-
-	    int docFreq = indexReader.docFreq(term);
-	    float idf = (float) Math.log( (numDocs+1) / docFreq );
-	
-	    TermDocs tDocs = indexReader.termDocs(term);
-	    while( tDocs.next() ){
-		String docPath = indexReader.document(tDocs.doc()).getField("path").stringValue();
-		float[] docVector = new float[ObjectVector.vecLength];
-
-		try{ docVector = docVectors.get(docPath).getVector(); }
-		catch( NullPointerException e ) { 
-		    for( i=0; i<ObjectVector.vecLength; i++ ){
-			docVector[i] = 0;
-		    }
-		}
- 
-		int tdFreq = tDocs.freq();
-		float tfidf = tdFreq * idf;
-		for( i=0; i<ObjectVector.vecLength; i++ ){
-		    docVector[i] += tfidf * termVector[i];
-		}
-		docVectors.put(docPath, new ObjectVector(docPath, docVector));
-	    }
-	}
-	System.err.println("\nCreated " + docVectors.size() + " term vectors ...");
-
-	// normalize all vectors 
-	System.err.println("normalizing document vectors ...");
-	Enumeration<ObjectVector> docEnum = docVectors.elements();
-	while( docEnum.hasMoreElements() ){
-	    ObjectVector docObjectVector = docEnum.nextElement(); 
-	    float[] docVector = docObjectVector.getVector();
-	    docVector = VectorUtils.normalize(docVector);
-	    docObjectVector.setVector(docVector);
-	}
-    }
-
-*/

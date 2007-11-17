@@ -107,7 +107,7 @@ public class TermVectorsFromLucene implements VectorStore {
 		    termVector[i] += freq*basicDocVectors[doc][i];
 		}
 	    }
-	    termVector = VectorUtils.normalize(termVector);
+	    termVector = VectorUtils.getNormalizedVector(termVector);
 	    termVectors.put(term.text(), new ObjectVector(term.text(), termVector));
 	}
 	System.err.println("\nCreated " + termVectors.size() + " term vectors ...");
