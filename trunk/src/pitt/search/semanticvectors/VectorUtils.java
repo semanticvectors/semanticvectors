@@ -59,7 +59,7 @@ public class VectorUtils{
 	return result;
     }
 
-    /** 
+    /**
      * Returns the normalized version of a vector, i.e. same direction, unit length.
      * @param vec Vector whose normalized version is requested.
      */
@@ -67,7 +67,7 @@ public class VectorUtils{
 	float norm = 0;
 	int i;
 	float[] tmpVec = new float[vec.length];
-	for( i=0; i<vec.length; i++ ){ 
+	for( i=0; i<vec.length; i++ ){
 	    tmpVec[i] = vec[i];
 	}
 	for( i=0; i<tmpVec.length; i++ ){
@@ -80,7 +80,7 @@ public class VectorUtils{
 	return tmpVec;
     }
 
-    /** 
+    /**
      * Returns the normalized version of a 2 tensor, i.e. an array of arrays of floats.
      */
     public static float[][] getNormalizedTensor(float[][] tensor){
@@ -93,7 +93,7 @@ public class VectorUtils{
 	    }
 	}
 	return normedTensor;
-    }	
+    }
 
     /**
      * Returns a 2-tensor which is the outer product of 2 vectors.
@@ -124,7 +124,7 @@ public class VectorUtils{
     }
 
     /**
-     * Returns the convolution of two vectors; see Plate, 
+     * Returns the convolution of two vectors; see Plate,
      * Holographic Reduced Represenation, p. 76.
      */
     public static float[] getConvolution(float[] vec1, float[] vec2){

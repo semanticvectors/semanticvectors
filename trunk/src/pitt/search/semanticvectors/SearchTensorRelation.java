@@ -40,13 +40,13 @@ import java.io.IOException;
 import org.apache.lucene.index.Term;
 
 /**
- * Command line tensor relation search utility. 
+ * Command line tensor relation search utility.
  */
 public class SearchTensorRelation{
     /**
-     * Prints the following usage message: 
+     * Prints the following usage message:
      * <code>
-     * <br> CompareTerms class in package pitt.search.semanticvectors 
+     * <br> SearchTensorRelation class in package pitt.search.semanticvectors
      * <br> Usage: java pitt.search.semanticvectors.SearchTensorRelation [-q query_vector_file]
      * <br>           [-s search_vector_file]"
      * <br>           [-l path_to_lucene_index]
@@ -54,20 +54,20 @@ public class SearchTensorRelation{
      * <br>-l argument may be used to get term weights from
      * <br>term frequency, doc frequency, etc. in lucene index.
      * <br>"&lt;QUERYTERMS1,2,3&gt;" should be lists of words, separated by spaces.
-     * <br> The quotes are mandatory unless you are comparing two single words.
+     * <br> The quotes are mandatory unless each argument is a single word.
      * </code>
      */
 
     public static void usage(){
 	String usageMessage = "CompareTerms class in package pitt.search.semanticvectors"
-	    + "\nUsage: java pitt.search.semanticvectors.CompareTerms [-q query_vector_file]"
+	    + "\nUsage: java pitt.search.semanticvectors.SearchTensorRelation [-q query_vector_file]"
 	    + "\n              [-s search_vector_file]"
 	    + "\n              [-l path_to_lucene_index]"
 	    + "\n              \"<QUERYTERMS1>\" \"<QUERYTERMS2>\" \"<QUERYTERMS3>\""
 	    + "\n-l argument may be used to get term weights from"
 	    + "\n    term frequency, doc frequency, etc. in lucene index."
 	    + "\n<QUERYTERMS1,2,3> should be lists of words, separated by spaces."
-	    + "\nThe quotes are mandatory unless you are comparing two single words.";
+	    + "\nThe quotes are mandatory unless each argument is a single word.";
 	System.out.println(usageMessage);
 	System.exit(-1);
     }
@@ -107,7 +107,7 @@ public class SearchTensorRelation{
 
 	if (args.length - argc != 3) {
 	    System.err.println("After parsing command line options there must be " +
-			       "exactly three queryterm expressions, two for seeding " + 
+			       "exactly three queryterm expressions, two for seeding " +
 			       "tensor relation and one for searching.");
 	    usage();
 	}
@@ -142,7 +142,7 @@ public class SearchTensorRelation{
 	    // Create VectorSearcher and search for nearest neighbors.
 	    VectorSearcher.VectorSearcherTensorSim vecSearcher =
 		new VectorSearcher.VectorSearcherTensorSim(vecReader, rel1, rel2);
-	    LinkedList<SearchResult> results = 
+	    LinkedList<SearchResult> results =
 		vecSearcher.getNearestNeighbors(queryVec, 20);
 
 	    System.err.println("Search output follows ...");
