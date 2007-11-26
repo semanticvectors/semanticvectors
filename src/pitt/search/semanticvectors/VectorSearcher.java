@@ -51,6 +51,9 @@ abstract public class VectorSearcher{
     }
 
     /**
+     * This nearest neighbor search is implemented in the main abstract VectorSearcher
+     * class: this enables all subclasses to reuse the search whatever scoring method
+     * they implement.
      * @param queryVector the query vector: method will search for vectors closest to this
      * @param numResults the number of results / length of the result list
      */
@@ -58,7 +61,7 @@ abstract public class VectorSearcher{
 	LinkedList<SearchResult> results = new LinkedList();
 	float score, threshold = -1;
 
-	Enumeration<ObjectVector> vecEnum = vecReader.getAllVectors(); 
+	Enumeration<ObjectVector> vecEnum = vecReader.getAllVectors();
 
 	while (vecEnum.hasMoreElements()) {
 	    // Initialize result list if just starting.
@@ -87,7 +90,7 @@ abstract public class VectorSearcher{
 		    threshold = results.getLast().getScore();
 		}
 	    }
-	}		
+	}
 	return results;
     }
 
@@ -106,7 +109,7 @@ abstract public class VectorSearcher{
     /**
      * Class for searching a vector store using tensor product similarity.
      * The class takes a seed relation (r1, r2), and a fixed test term s1.
-     * The similarity for a search term s2 is then ten(r1, r2) * ten(s1, s2). 
+     * The similarity for a search term s2 is then ten(r1, r2) * ten(s1, s2).
      */
     static public class VectorSearcherTensorSim extends VectorSearcher {
 	private float[][] relTensor;
@@ -116,7 +119,7 @@ abstract public class VectorSearcher{
 	 * Creates a relation tensor from rel1 and rel2, which query / test vectors
 	 * will be compared with.
 	 */
-	public VectorSearcherTensorSim(VectorStoreReader vecReader, 
+	public VectorSearcherTensorSim(VectorStoreReader vecReader,
 				    float[] rel1, float[] rel2) {
 	    super(vecReader);
 	    relTensor = VectorUtils.getOuterProduct(rel1, rel2);
@@ -124,8 +127,8 @@ abstract public class VectorSearcher{
 
 	/**
 	 * @param queryVector Target vector for searching.
-	 * @param testVector Vector being tested. 
-	 * Scores are hopefully high when the relationship between queryVector 
+	 * @param testVector Vector being tested.
+	 * Scores are hopefully high when the relationship between queryVector
 	 * and testVector is analogoues to the relationship between rel1 and rel2.
 	 */
 	public float getScore(float[] queryVector, float[] testVector) {
@@ -145,15 +148,15 @@ abstract public class VectorSearcher{
 	 * Creates a relation convolution from rel1 and rel2, which query / test vectors
 	 * will be compared with.
 	 */
-	public VectorSearcherConvolutionSim(VectorStoreReader vecReader, 
+	public VectorSearcherConvolutionSim(VectorStoreReader vecReader,
 					    float[] rel1, float[] rel2) {
 	    super(vecReader);
 	    relConvolution = VectorUtils.getConvolution(rel1, rel2);
 	}
 	/**
 	 * @param queryVector Target vector for searching.
-	 * @param testVector Vector being tested. 
-	 * Scores are hopefully high when the relationship between queryVector 
+	 * @param testVector Vector being tested.
+	 * Scores are hopefully high when the relationship between queryVector
 	 * and testVector is analogoues to the relationship between rel1 and rel2.
 	 */
 	public float getScore(float[] queryVector, float[] testVector) {
