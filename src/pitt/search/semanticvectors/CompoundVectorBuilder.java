@@ -39,7 +39,7 @@ public class CompoundVectorBuilder {
 		System.err.println("Got vector for " + queryTerms[j] + 
 				   ", using term weight " + weight);
 		for (int i = 0; i < ObjectVector.vecLength; ++i) {
-		    queryVec[i] += tmpVec[i];
+		    queryVec[i] += tmpVec[i] * weight;
 		}
 	    }
 	    else{ System.err.println("No vector for " + queryTerms[j]); }
