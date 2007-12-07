@@ -35,11 +35,12 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package pitt.search.semanticvectors;
 
-import org.apache.lucene.index.*;
 import java.util.Hashtable;
 import java.util.Random;
 import java.util.Enumeration;
 import java.io.IOException;
+import org.apache.lucene.index.*;
+import org.apache.lucene.analysis.standard.StandardAnalyzer;
 
 /** 
  * Implementation of vector store that creates term vectors by
@@ -61,7 +62,12 @@ public class TermVectorsFromLucene implements VectorStore {
     public TermVectorsFromLucene( String indexDir, int seedLength, int minFreq ) throws IOException {
 	this.seedLength = seedLength;
 	this.minFreq = minFreq;
+
+	IndexModifier modifier = new IndexModifier(indexDir, new StandardAnalyzer(), false);
+	modifier.optimize();
+	modifier.close();
 	indexReader = IndexReader.open(indexDir);
+
 	int i;
 	termVectors = new Hashtable();
 	random = new Random();
