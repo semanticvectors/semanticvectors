@@ -73,11 +73,13 @@ public class TermVectorsFromLucene implements VectorStore {
 	random = new Random();
 
 	/* create basic doc vectors */	
-	float[][] basicDocVectors = new float[indexReader.numDocs()][ObjectVector.vecLength];
+	short[][] basicDocVectors = new short[indexReader.numDocs()][ObjectVector.vecLength];
 	System.err.println("Populating basic doc vector table ...");
+	
+	
 	for( i=0; i<indexReader.numDocs(); i++ ){
-	    basicDocVectors[i] = generateRandomVector();
-	}	
+        basicDocVectors[i] = generateRandomVector(seedLength);            
+    }    
 
 	/* iterate through an enumeration of terms and create termVector table*/
 	System.err.println("Creating term vectors ...");
@@ -109,9 +111,15 @@ public class TermVectorsFromLucene implements VectorStore {
 	    while( tDocs.next() ){
 		int doc = tDocs.doc();
 		int freq = tDocs.freq();
-		for( i=0; i<ObjectVector.vecLength; i++ ){
-		    termVector[i] += freq*basicDocVectors[doc][i];
-		}
+
+		/* add random vector (in condensed (signed index + 1) representation) to term vector
+		 * by adding -1 or +1 to the location (index - 1) according to the sign of the index*/
+		
+		for( i=0; i< seedLength; i++ ){
+            short index = basicDocVectors[doc][i];
+            termVector[Math.abs(index)-1] += freq*Math.signum(index);
+            }
+		
 	    }
 	    termVector = VectorUtils.getNormalizedVector(termVector);
 	    termVectors.put(term.text(), new ObjectVector(term.text(), termVector));
@@ -153,37 +161,44 @@ public class TermVectorsFromLucene implements VectorStore {
 	return true;
     }
 
+    
     /**
-     * generates a basic sparse vector (dimension = ObjectVector.vecLength) 
-     * with mainly zeros and some 1 and -1 entries (seedLength of each)
-     */ 
-    private float[] generateRandomVector(){
-	float[] randVector = new float[ObjectVector.vecLength];
-	for(int i=0; i<ObjectVector.vecLength; i++){
-	    randVector[i]=0;
-	}
+     * generates a basic sparse vector (dimension = ObjectVector.vecLength)
+     * with mainly zeros and some 1 and -1 entries (seedLength/2 of each)
+     * each vector is an array of length seedLength containing 1+ the index of a non-zero
+     * value, signed according to whether this is a + or -1 e.g.
+     * +20 would indicate a +1 in position 19, +1 would indicate a +1 in position 0
+     * -20 would indicate a -1 in position 19, -1 would indicate a -1 in position 0
+     */
+    
+    protected short[] generateRandomVector(int seedlength){
+    boolean[] randVector = new boolean[ObjectVector.vecLength];
+    short[] randIndex = new short[seedlength];
 
-	int testPlace, entryCount = 0;
 
-	/* put in +1 entries */
-	while(entryCount < seedLength ){
-	    testPlace = random.nextInt(ObjectVector.vecLength);
-	    if( randVector[testPlace] == 0 ){
-		randVector[testPlace] = 1;
-		entryCount++;
-	    }
-	}
+    int testPlace, entryCount = 0;
 
-	/* put in -1 entries */
-	entryCount = 0;
-	while(entryCount < seedLength ){
-	    testPlace = random.nextInt(ObjectVector.vecLength);
-	    if( randVector[testPlace] == 0 ){
-		randVector[testPlace] = -1;
-		entryCount++;
-	    }
-	}
-
-	return randVector;
+    /* put in +1 entries */
+    while(entryCount < seedLength/2 ){
+        testPlace = random.nextInt(ObjectVector.vecLength);
+        if( !randVector[testPlace]){
+        randVector[testPlace] = true;
+        randIndex[entryCount] = new Integer(testPlace+1).shortValue();
+        entryCount++;
+        }
     }
+
+    /* put in -1 entries */
+    while(entryCount < seedLength ){
+        testPlace = random.nextInt (ObjectVector.vecLength);
+        if( !randVector[testPlace]){
+        randVector[testPlace] = true;
+        randIndex[entryCount] = new Integer((1+testPlace)*-1).shortValue();
+        entryCount++;
+        }
+    }
+
+    return randIndex;
+    }
+
 } 
