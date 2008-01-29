@@ -157,8 +157,8 @@ public class TermVectorsFromLucene implements VectorStore {
   }
 
   /**
-   * filters out non-alphabetic terms and those of low frequency
-   * it might be a good idea to factor this out as a separate component
+   * Filters out non-alphabetic terms and those of low frequency
+   * it might be a good idea to factor this out as a separate component.
    * @param term Term to be filtered.
    */
   private boolean termFilter ( Term term ) throws IOException {
@@ -185,13 +185,13 @@ public class TermVectorsFromLucene implements VectorStore {
 
 
   /**
-   * generates a basic sparse vector (dimension = ObjectVector.vecLength)
+   * Generates a basic sparse vector (dimension = ObjectVector.vecLength)
    * with mainly zeros and some 1 and -1 entries (seedLength/2 of each)
    * each vector is an array of length seedLength containing 1+ the index of a non-zero
-   * value, signed according to whether this is a + or -1 e.g.
+   * value, signed according to whether this is a + or -1.
    *
-   * +20 would indicate a +1 in position 19, +1 would indicate a +1 in position 0
-   * -20 would indicate a -1 in position 19, -1 would indicate a -1 in position 0
+   * e.g. +20 would indicate a +1 in position 19, +1 would indicate a +1 in position 0
+   *      -20 would indicate a -1 in position 19, -1 would indicate a -1 in position 0
    *
    * The extra offset of +1 is because position 0 would be unsigned,
    * and would therefore be wasted. Consequently we've chosen to make

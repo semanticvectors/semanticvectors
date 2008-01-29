@@ -72,7 +72,7 @@ public class VectorStoreWriter{
 	    MMapDirectory dir = new MMapDirectory();
 	    IndexOutput outputStream = dir.createOutput(vectorFile);
 	    float[] tmpVector = new float[ObjectVector.vecLength];
-	    
+
 	    int counter = 0;
 	    System.err.println("About to write vectors to file " + vectorFile);
 	    while (vecEnum.hasMoreElements()) {
@@ -96,4 +96,4 @@ public class VectorStoreWriter{
 	    return false;
 	}
     }
-}    
+}
