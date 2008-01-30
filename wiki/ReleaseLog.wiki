@@ -1,5 +1,15 @@
 #summary Release Log
 
+=== Release 1.2 ===
+
+2008-01-30
+
+The main improvement is the redesign of TermVectorsFromLucene to use a sparse representation for the basic document vectors (basicDocVectors). These are now represented by arrays of short int values which list the non-zero +1 and -1 entries in a basicDocVector. The term vector building routine in the main constructor, and the generateRandomVector method, have been refactored accordingly. 
+
+This change gives a major reduction in memory requirements, in one practical example reducing the RAM requirement from 7.3G to 1.1G for the corpus. It also speeds things up
+further and should maintain the same memory requirement regardless of
+vector length as long as seed length stays constant. Many thanks to Trevor Cohen for these  improvements.
+
 === Release 1.0 ===
 
 The main new feature is the refactoring of the search code to use an abstract `VectorSearcher` class. This implements the main nearest neighbor search, but leaves the scoring function unspecified. This enables developers to quickly test new scoring methods.
