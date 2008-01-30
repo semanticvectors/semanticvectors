@@ -47,9 +47,8 @@ ObjectVectors and ii. an enumeration of all the vectors.
 */
 
 public interface VectorStore{
-    
     /**
-     * @param object the object whose vector you want to look up 
+     * @param object the object whose vector you want to look up
      * @return a vector (of floats)
      */
     public float[] getVector(Object object);

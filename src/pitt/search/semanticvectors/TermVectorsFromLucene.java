@@ -58,13 +58,17 @@ public class TermVectorsFromLucene implements VectorStore {
   private Random random;
   private int minFreq;
 
+  /**
+   * @return The object's indexReader.
+   */
   public IndexReader getIndexReader(){ return this.indexReader; }
 
   /**
    * This constructs all the basic random document vectors and creates
    * term vectors from these.
    * @param indexDir directory containing Lucene index.
-   * @param seedLength number of +1 or -1 entries in basic vectors.
+   * @param seedLength number of +1 or -1 entries in basic
+   * vectors. Should be even to give same number of each.
    * @param minFreq the minimum term frequency for a term to be indexed.
    */
   public TermVectorsFromLucene( String indexDir, int seedLength, int minFreq ) throws IOException {
@@ -91,7 +95,7 @@ public class TermVectorsFromLucene implements VectorStore {
 
 
     for (int i = 0; i < indexReader.numDocs(); i++) {
-      basicDocVectors[i] = generateRandomVector(seedLength);
+      basicDocVectors[i] = generateRandomVector();
     }
 
     /* iterate through an enumeration of terms and create termVector table*/
@@ -189,41 +193,41 @@ public class TermVectorsFromLucene implements VectorStore {
    * with mainly zeros and some 1 and -1 entries (seedLength/2 of each)
    * each vector is an array of length seedLength containing 1+ the index of a non-zero
    * value, signed according to whether this is a + or -1.
-   *
-   * e.g. +20 would indicate a +1 in position 19, +1 would indicate a +1 in position 0
-   *      -20 would indicate a -1 in position 19, -1 would indicate a -1 in position 0
-   *
+   * <br>
+   * e.g. +20 would indicate a +1 in position 19, +1 would indicate a +1 in position 0.
+   *      -20 would indicate a -1 in position 19, -1 would indicate a -1 in position 0.
+   * <br>
    * The extra offset of +1 is because position 0 would be unsigned,
    * and would therefore be wasted. Consequently we've chosen to make
    * the code slightly more complicated to make the implementation
    * slightly more space efficient.
    *
-   * @param seedLength The (combined) number of +1 and -1 entries to create.
-   *                   seedLength should be an even number so that we can have the same
-   *                   number of +1 and -1 entries.
+   * @return Sparse representation of basic ternary vector. Array of
+   * short signed integers, indices to the array locations where a
+   * +/-1 entry is located.
    */
-  protected short[] generateRandomVector(int seedlength){
+  protected short[] generateRandomVector() {
     boolean[] randVector = new boolean[ObjectVector.vecLength];
-    short[] randIndex = new short[seedlength];
+    short[] randIndex = new short[this.seedLength];
 
     int testPlace, entryCount = 0;
 
     /* put in +1 entries */
-    while(entryCount < seedLength/2 ){
+    while(entryCount < this.seedLength / 2 ){
       testPlace = random.nextInt(ObjectVector.vecLength);
       if( !randVector[testPlace]){
         randVector[testPlace] = true;
-        randIndex[entryCount] = new Integer(testPlace+1).shortValue();
+        randIndex[entryCount] = new Integer(testPlace + 1).shortValue();
         entryCount++;
       }
     }
 
     /* put in -1 entries */
-    while(entryCount < seedLength ){
+    while(entryCount < this.seedLength ){
       testPlace = random.nextInt (ObjectVector.vecLength);
       if( !randVector[testPlace]){
         randVector[testPlace] = true;
-        randIndex[entryCount] = new Integer((1+testPlace)*-1).shortValue();
+        randIndex[entryCount] = new Integer((1 + testPlace) * -1).shortValue();
         entryCount++;
       }
     }
