@@ -10,6 +10,8 @@ This change gives a major reduction in memory requirements, in one practical exa
 further and should maintain the same memory requirement regardless of
 vector length as long as seed length stays constant. Many thanks to Trevor Cohen for these  improvements.
 
+Unfortunately Dominic accidentally left an old copy of TermVectorsFromLucene.java in the main directory from which this version was bundled, and only noticed this inclusion after the package was shipped. Please ignore / delete this file.
+
 === Release 1.0 ===
 
 2007-11-29
