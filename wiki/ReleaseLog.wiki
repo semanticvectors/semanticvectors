@@ -12,6 +12,8 @@ vector length as long as seed length stays constant. Many thanks to Trevor Cohen
 
 === Release 1.0 ===
 
+2007-11-29
+
 The main new feature is the refactoring of the search code to use an abstract `VectorSearcher` class. This implements the main nearest neighbor search, but leaves the scoring function unspecified. This enables developers to quickly test new scoring methods.
 
 Scoring methods implemented so far include cosine similarity and two product similarities, tensor and convolution. (This has led us to realize some features of tensor product similarity which should have been mathematically obvious.)
