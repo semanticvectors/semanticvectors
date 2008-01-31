@@ -130,8 +130,8 @@ public class SearchTensorRelation{
 	    }
 
 	    float[] rel1 = CompoundVectorBuilder.getQueryVector(vecReader, lUtils, args[argc]);
-	    float[] rel2 = CompoundVectorBuilder.getQueryVector(vecReader, lUtils, args[argc+1]);
-	    float[] queryVec = CompoundVectorBuilder.getQueryVector(vecReader, lUtils, args[argc+2]);
+	    float[] rel2 = CompoundVectorBuilder.getQueryVector(vecReader, lUtils, args[argc + 1]);
+	    float[] queryVec = CompoundVectorBuilder.getQueryVector(vecReader, lUtils, args[argc + 2]);
 
 	    // Reopen vector store if search vectors are different from query vectors.
 	    if( queryFile != searchFile ){
