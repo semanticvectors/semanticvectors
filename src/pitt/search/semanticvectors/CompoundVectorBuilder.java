@@ -42,7 +42,8 @@ import org.apache.lucene.index.Term;
  * This class contains methods for manipulating queries, e.g., taking
  * a list of queryterms and producing a (possibly weighted) aggregate
  * query vector. In the fullness of time this will hopefully include
- * parsing and building querres that include basic (quantum) logical operations.
+ * parsing and building queries that include basic (quantum) logical operations.
+ * So far these basic operations include negation of one or more terms.
  */
 public class CompoundVectorBuilder {
 
@@ -64,6 +65,7 @@ public class CompoundVectorBuilder {
      * @param vecReader The vector store reader to use.
      * @param lUtils Lucene utilities for getting term weights.
      * @param queryString Query expression, e.g., from command line.
+     *        If the term NOT is used in queryString, terms after that will be negated.
      * @return queryVector, an array of floats representing the user's query.
      */
     public static float[] getQueryVector(VectorStore vecReader,
@@ -87,7 +89,7 @@ public class CompoundVectorBuilder {
      * by adding together vectors retrieved from vector store.
      * @param queryTerms String array of query terms to look up.
      */
-    private float[] getAdditiveQueryVector(String[] queryTerms) {
+    protected float[] getAdditiveQueryVector(String[] queryTerms) {
 	float[] queryVec = new float[ObjectVector.vecLength];
 	float[] tmpVec = new float[ObjectVector.vecLength];
 	float weight = 1;
@@ -124,8 +126,11 @@ public class CompoundVectorBuilder {
      * @param queryTerms List of positive and negative terms.
      * @param split Position in this list of the NOT mark: terms
      * before this are positive, those after this are negative.
+     * @return Single query vector, the sum of the positive terms,
+     * projected to be orthogonal to all negative terms.
+     * @see VectorUtils#orthogonalizeVectors
      */
-    private float[] getNegatedQueryVector(String[] queryTerms, int split) {
+    protected float[] getNegatedQueryVector(String[] queryTerms, int split) {
 	int numNegativeTerms = queryTerms.length - split - 1;
 	int numPositiveTerms = split;
 	System.err.println("Numer of negative terms: " + numNegativeTerms);

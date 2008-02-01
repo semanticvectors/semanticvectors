@@ -57,6 +57,7 @@ public class Search{
    * <br> -l argument my be used to get term weights from
    * <br>     term frequency, doc frequency, etc. in lucene index.
    * <br> &lt;QUERYTERMS&gt; should be a list of words, separated by spaces.
+   * <br> If the term NOT is used, terms after that will be negated.
    * </code>
    */
   public static void usage(){
@@ -71,7 +72,8 @@ public class Search{
         + "\n    termvectors.bin in local directory."
         + "\n-l argument is needed if to get term weights from"
         + "\n    term frequency, doc frequency, etc. in lucene index."
-        + "\n<QUERYTERMS> should be a list of words, separated by spaces.";
+        + "\n<QUERYTERMS> should be a list of words, separated by spaces."
+        + "\n    If the term NOT is used, terms after that will be negated.";
     System.out.println(usageMessage);
     System.exit(-1);
   }
