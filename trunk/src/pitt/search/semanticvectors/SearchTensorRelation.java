@@ -41,6 +41,8 @@ import org.apache.lucene.index.Term;
 
 /**
  * Command line tensor relation search utility.
+ * Individual search terms are constructed using the same syntax as in Search class.
+ * @see Search
  */
 public class SearchTensorRelation{
     /**
@@ -55,9 +57,11 @@ public class SearchTensorRelation{
      * <br>term frequency, doc frequency, etc. in lucene index.
      * <br>"&lt;QUERYTERMS1,2,3&gt;" should be lists of words, separated by spaces.
      * <br> The quotes are mandatory unless each argument is a single word.
+     * <br> If the term NOT is used in one of the lists, subsequent terms in 
+     * <br> that list will be negated.
      * </code>
+     * @see Search
      */
-
     public static void usage(){
 	String usageMessage = "CompareTerms class in package pitt.search.semanticvectors"
 	    + "\nUsage: java pitt.search.semanticvectors.SearchTensorRelation [-q query_vector_file]"
@@ -67,7 +71,9 @@ public class SearchTensorRelation{
 	    + "\n-l argument may be used to get term weights from"
 	    + "\n    term frequency, doc frequency, etc. in lucene index."
 	    + "\n<QUERYTERMS1,2,3> should be lists of words, separated by spaces."
-	    + "\nThe quotes are mandatory unless each argument is a single word.";
+	    + "\nThe quotes are mandatory unless each argument is a single word."
+	    + "\nIf the term NOT is used in one of the lists, subsequent terms in"
+	    + "\nthat list will be negated (as in Search class).";
 	System.out.println(usageMessage);
 	System.exit(-1);
     }

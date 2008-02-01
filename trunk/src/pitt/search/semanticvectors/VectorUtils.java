@@ -126,7 +126,7 @@ public class VectorUtils{
 
     /**
      * Returns the convolution of two vectors; see Plate,
-     * Holographic Reduced Represenation, p. 76.
+     * Holographic Reduced Representation, p. 76.
      */
     public static float[] getConvolution(float[] vec1, float[] vec2){
 	int dim = vec1.length;
