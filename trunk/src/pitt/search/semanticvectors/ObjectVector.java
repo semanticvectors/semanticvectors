@@ -45,7 +45,7 @@ public class ObjectVector{
     /**
      * Number of dimensions used throughout the package. 
      */
-    public static final int vecLength = 200;
+    public static int vecLength = 200;
 
     private Object object;
     private float[] vector;

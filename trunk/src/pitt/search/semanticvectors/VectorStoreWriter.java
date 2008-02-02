@@ -75,6 +75,8 @@ public class VectorStoreWriter{
 
 	    int counter = 0;
 	    System.err.println("About to write vectors to file " + vectorFile);
+	    outputStream.writeString("dimensions");
+	    outputStream.writeInt(Float.floatToIntBits(ObjectVector.vecLength));
 	    while (vecEnum.hasMoreElements()) {
 		if ((counter % 10000 == 0) || (counter < 10000 && counter % 1000 == 0)) {
 		    System.err.print(counter + " ... ");
