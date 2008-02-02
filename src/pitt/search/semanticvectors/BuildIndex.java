@@ -43,8 +43,8 @@ import java.io.IOException;
  */
 public class BuildIndex{
     /* Change these and recompile if you want to play with them. */
-    static final int seedLength = 20;
-    static final int minFreq = 10;
+    static int seedLength = 20;
+    static int minFreq = 10;
 
     /**
      * Prints the following usage message: 
@@ -66,8 +66,11 @@ public class BuildIndex{
 	    + "\nOther parameters that can be changed include vector length,"
 	    + "\n    (number of dimensions), seed length (number of non-zero"
 	    + "\n    entries in basic vectors), and minimum term frequency."
-	    + "\nTo change these you need to edit BuildIndex.java or ObjectVector.java"
-	    + "\n    and recompile.";
+	    + "\nTo change these use the command line arguments "
+	    + "\n  -d [number of dimensions]  and"
+	    + "\n  -s [seed length]"
+	    + "\n  -m [minimum term frequency";
+	   
 	System.out.println(usageMessage);
 	System.exit(-1);
     }
@@ -78,14 +81,44 @@ public class BuildIndex{
      */
 
     public static void main( String[] args ){
-	if( !(args.length == 1 ) ){
+	 	boolean wellformed = false;
+    if (args.length == 1) wellformed = true;
+    else if (args.length % 2 ==0) wellformed = false;
+    else 
+    {for (int x = 0; x < args.length-1; x+=2)
+    { String pa = args[x];
+   
+   
+      String ar = args[x+1];
+
+      if (pa.equalsIgnoreCase("-d")) 
+      {try {ObjectVector.vecLength = Integer.parseInt(ar);	
+            wellformed = true;
+      } catch (NumberFormatException e) {System.out.println(ar + " is not a number"); usage();}}
+      else if (pa.equalsIgnoreCase("-s")) 
+      {try { seedLength = Integer.parseInt(ar);  
+             if (seedLength > ObjectVector.vecLength) {System.out.println("Seed length cannot be greater than vector length"); usage();}
+             else wellformed = true;
+      } catch (NumberFormatException e) {System.out.println(ar + " is not a number"); usage();}}
+      else if (pa.equalsIgnoreCase("-m")) 
+      {try { minFreq = Integer.parseInt(ar);  
+             if (minFreq < 0) {System.out.println("Minimum frequency cannot be less than zero"); usage();}
+             else wellformed = true;
+      } catch (NumberFormatException e) {System.out.println(ar + " is not a number"); usage();}}
+  
+    }
+    }
+    
+    if (!wellformed){
 	    usage();
 	}
 
-	String luceneIndex = args[0];
+	String luceneIndex = args[args.length-1];
 	String termFile = "termvectors.bin";
 	String docFile = "docvectors.bin";
-	
+	System.out.println("seedLength = "+seedLength);
+	System.out.println("Vector length = "+ObjectVector.vecLength);
+	System.out.println("Minimum frequency = "+minFreq);
 	try{
 	    TermVectorsFromLucene vecStore = 
 		new TermVectorsFromLucene(luceneIndex, seedLength, minFreq);
@@ -99,5 +132,4 @@ public class BuildIndex{
 	catch( IOException e ){
 	    e.printStackTrace();
 	}
-    }
-}
+    }}

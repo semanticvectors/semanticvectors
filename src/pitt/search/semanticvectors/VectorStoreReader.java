@@ -39,6 +39,7 @@ import java.util.Enumeration;
 import java.io.*;
 import org.apache.lucene.store.*;
 import java.lang.Float;
+import java.util.StringTokenizer;
 
 /**
 This class provides methods for reading a VectorStore from disk. <p>
@@ -56,11 +57,24 @@ public class VectorStoreReader implements VectorStore {
     public VectorStoreReader (String vectorFile) throws IOException {
 	MMapDirectory dir = new MMapDirectory();
 	indexInput = dir.openInput(vectorFile);
+	try{String test = indexInput.readString();
+	    if ((test.equalsIgnoreCase("dimensions"))) 
+	    { ObjectVector.vecLength = Math.round(Float.intBitsToFloat(indexInput.readInt()));
+	      System.out.println("Dimensions = "+ObjectVector.vecLength); 
+	    }
+	    else {System.out.println("No file header for file "+vectorFile);
+	    	  System.out.println("Attempting to process with vector length "+ObjectVector.vecLength);
+	    }
+	}catch (IOException e) {System.out.println("Cannot read "+vectorFile+"\n"+e.getMessage());}
+
     }
 
     public Enumeration getAllVectors(){
 	try{
 	    indexInput.seek(0);
+		indexInput.readString();
+		indexInput.readInt();
+
 	}
 	catch( IOException e ){
 	    e.printStackTrace();
@@ -77,9 +91,14 @@ public class VectorStoreReader implements VectorStore {
 	System.err.print("Seeking vector for ... " + desiredObject + " ... ");
 	try{
 	    indexInput.seek(0);
+	indexInput.readString();
+	indexInput.readInt();
+
+	    
 	    while( indexInput.getFilePointer() < indexInput.length()-1 ){
 		if( indexInput.readString().equals(desiredObject) ){
-		    System.err.println("Found it ...");
+	
+			System.err.println("Found it ...");
 		    float[] vector = new float[ObjectVector.vecLength];
 		    for( int i=0; i<ObjectVector.vecLength; i++ ){
 			vector[i] = Float.intBitsToFloat(indexInput.readInt());
