@@ -87,7 +87,7 @@ public class Search{
       usage();
     }
 
-    String queryFile = "termvectors.bin"; // default value
+    String queryFile = "termvectors.bin";  // default value
     String searchFile = "termvectors.bin"; // default value
     String lucenePath = null;
     LuceneUtils lUtils = null;
@@ -108,7 +108,10 @@ public class Search{
         lucenePath = args[argc + 1];
         argc += 2;
       }
-      else{ usage(); }
+      else{ 
+	  System.out.println("The following option is not recognized: " + args[argc]);
+	  usage();
+      }
     }
 
     /* reading and searching test */
