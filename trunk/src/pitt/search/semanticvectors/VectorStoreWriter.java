@@ -75,25 +75,29 @@ public class VectorStoreWriter{
 
 	    int counter = 0;
 	    System.err.println("About to write vectors to file " + vectorFile);
+
+	    /* Write header giving number of dimensions for all vectors. */
 	    outputStream.writeString("dimensions");
 	    outputStream.writeInt(Float.floatToIntBits(ObjectVector.vecLength));
+
+	    /* Write each vector. */
 	    while (vecEnum.hasMoreElements()) {
 		if ((counter % 10000 == 0) || (counter < 10000 && counter % 1000 == 0)) {
 		    System.err.print(counter + " ... ");
 		}
-		counter++;
+		++counter;
 		ObjectVector objectVector = vecEnum.nextElement();
 		outputStream.writeString(objectVector.getObject().toString());
 		tmpVector = objectVector.getVector();
-		for( int i=0; i<ObjectVector.vecLength; i++ ){
-		    outputStream.writeInt( Float.floatToIntBits(tmpVector[i]) );
+		for (int i=0; i < ObjectVector.vecLength; ++i) {
+		    outputStream.writeInt(Float.floatToIntBits(tmpVector[i]));
 		}
 	    }
 	    System.err.println("Finished writing vectors.");
 	    outputStream.close();
 	    return true;
 	}
-	catch( Exception e ){
+	catch (Exception e) {
 	    e.printStackTrace();
 	    return false;
 	}
