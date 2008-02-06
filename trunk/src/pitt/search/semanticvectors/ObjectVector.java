@@ -43,9 +43,9 @@ package pitt.search.semanticvectors;
  */
 public class ObjectVector{
     /**
-     * Number of dimensions used throughout the package. 
+     * Number of dimensions used throughout the package.
      */
-    public static int vecLength;
+    public static int vecLength = 200;
 
     private Object object;
     private float[] vector;

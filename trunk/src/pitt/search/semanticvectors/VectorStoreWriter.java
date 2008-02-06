@@ -77,8 +77,8 @@ public class VectorStoreWriter{
 	    System.err.println("About to write vectors to file " + vectorFile);
 
 	    /* Write header giving number of dimensions for all vectors. */
-	    outputStream.writeString("dimensions");
-	    outputStream.writeInt(Float.floatToIntBits(ObjectVector.vecLength));
+	    outputStream.writeString("-dimensions");
+	    outputStream.writeInt(ObjectVector.vecLength);
 
 	    /* Write each vector. */
 	    while (vecEnum.hasMoreElements()) {
