@@ -66,9 +66,14 @@
   </target>
 
   <target name="clean" depends="init">
-    <!-- Do not delete ${docdir} since this is part of svn tree -->
     <delete dir="${builddir}"/>
     <delete dir="${distdir}"/>
+    <!-- Only delete html files from ${docdir} since this is part of svn tree -->
+    <delete>	
+      <fileset dir="${docdir}">
+        <include name="**/*.html"/>
+      </fileset>
+    </delete>
   </target>
 
 <!-- build all -->
