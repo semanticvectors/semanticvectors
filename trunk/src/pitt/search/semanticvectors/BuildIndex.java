@@ -47,7 +47,7 @@ public class BuildIndex{
     static int minFreq = 10;
 
     /**
-     * Prints the following usage message: 
+     * Prints the following usage message:
      * <code>
      * <br> BuildIndex class in package pitt.search.semanticvectors
      * <br> Usage: java pitt.search.semanticvectors.BuildIndex PATH_TO_LUCENE_INDEX
@@ -58,7 +58,7 @@ public class BuildIndex{
      * <br> To change these use the following command line arguments:
      * <br> -d [number of dimensions]
      * <br> -s [seed length]
-     * <br> -m [minimum term frequency
+     * <br> -m [minimum term frequency]
      * </code>
      */
     public static void usage(){
@@ -71,87 +71,87 @@ public class BuildIndex{
 	    + "\nTo change these use the command line arguments "
 	    + "\n  -d [number of dimensions]"
 	    + "\n  -s [seed length]"
-	    + "\n  -m [minimum term frequency";
-	   
+	    + "\n  -m [minimum term frequency]";
+
 	System.out.println(usageMessage);
 	System.exit(-1);
     }
 
     /**
      * Builds term vector and document vector stores from a Lucene index.
-     * @param args 
+     * @param args
      * @see BuildIndex#usage
      */
     public static void main (String[] args) {
-	boolean wellformed = false;
+	boolean wellFormed = false;
 	/* If only one argument, it should be the path to Lucene index. */
 	if (args.length == 1) {
-	    wellformed = true;
+	    wellFormed = true;
 	}
 	/* If there is an even number of arguments, there's a problem. */
 	else if (args.length % 2 == 0) {
-	    wellformed = false;
+	    wellFormed = false;
 	}
 	/* Parse command line arguments. */
 	else {
-	    for (int x = 0; x < args.length-1; x += 2) { 
+	    for (int x = 0; x < args.length-1; x += 2) {
 		String pa = args[x];
 		String ar = args[x+1];
 
 		/* Get number of dimensions. */
 		if (pa.equalsIgnoreCase("-d")) {
 		    try {
-			ObjectVector.vecLength = Integer.parseInt(ar);	
-			wellformed = true;
+			ObjectVector.vecLength = Integer.parseInt(ar);
+			wellFormed = true;
 		    } catch (NumberFormatException e) {
-			System.out.println(ar + " is not a number"); usage();
+			System.err.println(ar + " is not a number"); usage();
 		    }
 		}
 		/* Get seedlength. */
 		else if (pa.equalsIgnoreCase("-s")) {
 		    try {
-			seedLength = Integer.parseInt(ar);  
+			seedLength = Integer.parseInt(ar);
 			if (seedLength > ObjectVector.vecLength) {
-			    System.out.println("Seed length cannot be greater than vector length");
+			    System.err.println("Seed length cannot be greater than vector length");
 			    usage();
 			}
-			else wellformed = true;
+			else wellFormed = true;
 		    } catch (NumberFormatException e) {
-			System.out.println(ar + " is not a number"); usage();
+			System.err.println(ar + " is not a number"); usage();
 		    }
 		}
 		/* Get minimum term frequency. */
 		else if (pa.equalsIgnoreCase("-m")) {
 		    try {
-			minFreq = Integer.parseInt(ar);  
+			minFreq = Integer.parseInt(ar);
 			if (minFreq < 0) {
-			    System.out.println("Minimum frequency cannot be less than zero");
+			    System.err.println("Minimum frequency cannot be less than zero");
 			    usage();
 			}
-			else wellformed = true;
+			else wellFormed = true;
 		    } catch (NumberFormatException e) {
-			System.out.println(ar + " is not a number"); usage();
+			System.err.println(ar + " is not a number"); usage();
 		    }
 		}
 		/* All other arguments are unknown. */
 		else {
-		    System.out.println("Unknown command line option: " + pa);
+		    System.err.println("Unknown command line option: " + pa);
 		    usage();
 		}
 	    }
 	}
-        if (!wellformed) {
+        if (!wellFormed) {
 	    usage();
 	}
 
 	String luceneIndex = args[args.length-1];
 	String termFile = "termvectors.bin";
 	String docFile = "docvectors.bin";
-	System.out.println("seedLength = "+seedLength);
-	System.out.println("Vector length = "+ObjectVector.vecLength);
-	System.out.println("Minimum frequency = "+minFreq);
+	System.err.println("seedLength = "+seedLength);
+	System.err.println("Vector length = "+ObjectVector.vecLength);
+	System.err.println("Minimum frequency = "+minFreq);
 	try{
-	    TermVectorsFromLucene vecStore = 
+	    TermVectorsFromLucene vecStore =
 		new TermVectorsFromLucene(luceneIndex, seedLength, minFreq);
 	    VectorStoreWriter vecWriter = new VectorStoreWriter();
 	    System.err.println("Writing term vectors to " + termFile);
