@@ -9,24 +9,26 @@ These sketch instructions presume that you're reasonably familiar with Java, Ant
 
 == Prerequisites ==
 
- * Make sure that you have [http://lucene.apache.org/java/docs/ Apache Lucene] running and that the lucene core and lucene demo files are included in your CLASSPATH.
+ * Make sure that you have [http://lucene.apache.org/java/docs/ Apache Lucene] running and that the lucene core and lucene demo files are included in your `CLASSPATH`.
 
 == To Install from Jar Distribution ==
 
- * Download the semanticvectors-0.8.jar distribution from this site.
- * Add the file (including full path) to your CLASSPATH.
+ * Download the most recent `semanticvectors-*.*.jar` distribution from this site.
+ * Add the file (including full path) to your `CLASSPATH`.
 
 == To Build from Source ==
 
+ * Download the most recent `semanticvectors-*.*.tar.gz` or `semanticvectors-*.*.zip` archive and expand the archive (using `tar -zxvf` or `unzip`).
  * Feel free to check out the source code from svn and build using `ant`.
- * Optionally, you can unpack the jar distribution using `jar -xvf semanticvectors-0.8.jar` and compile by running `ant` in the trunk directory.
- * Make sure that either the resulting `build/classes` directory or `build/*.jar` file is in your CLASSPATH.
+ * Optionally, you can unpack the jar distribution using `jar -xvf semanticvectors-*.*.jar` and compile by running `ant` in the trunk directory.
+ * Make sure that either the resulting `build/classes` directory or `build/*.jar` file is in your `CLASSPATH`.
 
 == To Build and Search a Model ==
 
  * Create a Lucene index using the Lucene demo, by running `java org.apache.lucene.demo.IndexFiles` on the directory containing your corpus.
  * Create term and document vectors by running `java pitt.search.semanticvectors.BuildIndex`.
  * To search the resulting model, run `java pitt.search.semanticvectors.Search QUERYTERMS`.
+ * If the upper case term `NOT` appears in your `QUERYTERMS`, semanticvectors will add the terms preceding the `NOT` term and negate all the terms after it. See VectorNegation.
  * To compare two concepts, run `java pitt.search.semanticvectors.CompareTerms "QUERYTERMS1" "QUERYTERMS2"`.
 
 == Developer API Docs ==
