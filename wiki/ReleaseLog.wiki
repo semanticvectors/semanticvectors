@@ -1,4 +1,15 @@
 #summary Release Log
+#labels Phase-Implementation
+
+=== Release 1.4 ===
+
+2008-02-08
+
+Two main improvements.
+
+   # Setting of dimensions, seedlength and minimum term frequency all done using command line arguments (see BuildIndex). Number of dimensions is now stored in a small header for vector files created by VectorStoreWriter, and this is read by VectorStoreReader. If absent, VectorStoreReader tries the default value (200) or failing that, dies and tells you to rebuild indexes. So there is some backwards compatibility with indexes made with older versions of the software, but some indexes will need to be rebuilt. Thanks to Trevor Cohen for most of these improvements.
+
+   # Query building code is now equipped with negation, supporting the same functionality as Infomap-NLP. CompoundQueryBuilder parses queries and sees if they have a "NOT" term in them, VectorUtils has the function for orthogonalizing these query sets.
 
 === Release 1.2 ===
 
