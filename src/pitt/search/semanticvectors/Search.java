@@ -108,8 +108,8 @@ public class Search{
         lucenePath = args[argc + 1];
         argc += 2;
       }
-      else{ 
-	  System.out.println("The following option is not recognized: " + args[argc]);
+      else{
+	  System.err.println("The following option is not recognized: " + args[argc]);
 	  usage();
       }
     }

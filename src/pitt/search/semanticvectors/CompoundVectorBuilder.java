@@ -137,9 +137,9 @@ public class CompoundVectorBuilder {
 	System.err.println("Numer of positive terms: " + numPositiveTerms);
 	ArrayList<float[]> vectorList = new ArrayList();
 	for (int i = 1; i <= numNegativeTerms; ++i) {
-	    float[] tmpVector = vecReader.getVector(queryTerms[split + i]); 
+	    float[] tmpVector = vecReader.getVector(queryTerms[split + i]);
 	    if (tmpVector != null) {
-		vectorList.add(tmpVector); 
+		vectorList.add(tmpVector);
 	    }
 	}
 	String[] positiveTerms = new String[numPositiveTerms];
