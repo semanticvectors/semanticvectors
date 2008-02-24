@@ -90,7 +90,7 @@ public class TermVectorsFromLucene implements VectorStore {
     random = new Random();
 
     /* create basic doc vectors */
-    short[][] basicDocVectors = new short[indexReader.numDocs()][ObjectVector.vecLength];
+    short[][] basicDocVectors = new short[indexReader.numDocs()][seedLength];
     System.err.println("Populating basic doc vector table ...");
 
 
