@@ -4,6 +4,7 @@
 
   <property name="basedir" value="."/>
   <property name="srcdir" value="${basedir}/src"/>
+  <property name="testdir" value="${basedir}/test"/>
   <property name="docdir" value="${basedir}/doc"/>  
   <property name="builddir" value="${basedir}/build"/>
   <property name="buildclassesdir" value="${builddir}/classes"/>
@@ -19,6 +20,13 @@
 
   <target name="compile" depends="init">
     <javac srcdir="${srcdir}"
+	   destdir="${buildclassesdir}"
+	   debug="on"
+	   />
+  </target>
+
+  <target name="compile-test" depends="init">
+    <javac srcdir="${testdir}"
 	   destdir="${buildclassesdir}"
 	   debug="on"
 	   />
@@ -78,6 +86,6 @@
 
 <!-- build all -->
    <target name="build-all" 
-           depends="compile, doc, jardist, tardist, zipdist"/>
+           depends="compile, compile-test, doc, jardist, tardist, zipdist"/>
 
 </project>

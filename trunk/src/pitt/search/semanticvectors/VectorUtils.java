@@ -39,6 +39,7 @@ import java.lang.Math;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.Enumeration;
+import java.util.Random;
 
 /**
  * This class provides a basic vector methods, e.g., cosine measure, normalization,
@@ -54,8 +55,8 @@ public class VectorUtils{
      */
     public static float scalarProduct(float[] vec1, float[] vec2){
 	float result = 0;
-	for( int i=0; i<vec1.length; i++ ){
-	    result += vec1[i]*vec2[i];
+	for (int i=0; i < vec1.length; i++) {
+	    result += vec1[i] * vec2[i];
 	}
 	return result;
     }
@@ -182,4 +183,51 @@ public class VectorUtils{
 	}
 	return true;
     }
+
+  /**
+   * Generates a basic sparse vector (dimension = ObjectVector.vecLength)
+   * with mainly zeros and some 1 and -1 entries (seedLength/2 of each)
+   * each vector is an array of length seedLength containing 1+ the index of a non-zero
+   * value, signed according to whether this is a + or -1.
+   * <br>
+   * e.g. +20 would indicate a +1 in position 19, +1 would indicate a +1 in position 0.
+   *      -20 would indicate a -1 in position 19, -1 would indicate a -1 in position 0.
+   * <br>
+   * The extra offset of +1 is because position 0 would be unsigned,
+   * and would therefore be wasted. Consequently we've chosen to make
+   * the code slightly more complicated to make the implementation
+   * slightly more space efficient.
+   *
+   * @return Sparse representation of basic ternary vector. Array of
+   * short signed integers, indices to the array locations where a
+   * +/-1 entry is located.
+   */
+    public static short[] generateRandomVector(int seedLength, Random random) {
+    boolean[] randVector = new boolean[ObjectVector.vecLength];
+    short[] randIndex = new short[seedLength];
+
+    int testPlace, entryCount = 0;
+
+    /* put in +1 entries */
+    while(entryCount < seedLength / 2 ){
+      testPlace = random.nextInt(ObjectVector.vecLength);
+      if( !randVector[testPlace]){
+        randVector[testPlace] = true;
+        randIndex[entryCount] = new Integer(testPlace + 1).shortValue();
+        entryCount++;
+      }
+    }
+
+    /* put in -1 entries */
+    while(entryCount < seedLength ){
+      testPlace = random.nextInt (ObjectVector.vecLength);
+      if( !randVector[testPlace]){
+        randVector[testPlace] = true;
+        randIndex[entryCount] = new Integer((1 + testPlace) * -1).shortValue();
+        entryCount++;
+      }
+    }
+    return randIndex;
+  }
 }
+

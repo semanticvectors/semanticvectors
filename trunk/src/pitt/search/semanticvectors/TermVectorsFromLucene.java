@@ -36,8 +36,8 @@
 package pitt.search.semanticvectors;
 
 import java.util.Hashtable;
-import java.util.Random;
 import java.util.Enumeration;
+import java.util.Random;
 import java.io.IOException;
 import org.apache.lucene.index.*;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
@@ -52,187 +52,173 @@ import org.apache.lucene.analysis.standard.StandardAnalyzer;
  */
 public class TermVectorsFromLucene implements VectorStore {
 
-  private Hashtable<String, ObjectVector> termVectors;
-  private IndexReader indexReader;
-  private int seedLength;
-  private Random random;
-  private int minFreq;
+		private Hashtable<String, ObjectVector> termVectors;
+		private IndexReader indexReader;
+		//		private int seedLength;
+		private String[] fieldsToIndex;
+		private int minFreq;
+		private short[][] basicDocVectors;
 
-  /**
-   * @return The object's indexReader.
-   */
-  public IndexReader getIndexReader(){ return this.indexReader; }
+		/**
+		 * @return The object's indexReader.
+		 */
+		public IndexReader getIndexReader(){ return this.indexReader; }
 
-  /**
-   * This constructs all the basic random document vectors and creates
-   * term vectors from these.
-   * @param indexDir directory containing Lucene index.
-   * @param seedLength number of +1 or -1 entries in basic
-   * vectors. Should be even to give same number of each.
-   * @param minFreq the minimum term frequency for a term to be indexed.
-   */
-  public TermVectorsFromLucene( String indexDir, int seedLength, int minFreq ) throws IOException {
-    this.seedLength = seedLength;
-    this.minFreq = minFreq;
+		/**
+		 * @return The object's basicDocVectors.
+		 */
+		public short[][] getBasicDocVectors(){ return this.basicDocVectors; }
 
-    /* This small section uses an IndexModifier to make sure that the
-     * Lucene index is optimized to use continguous integers as
-     * identifiers, otherwise exceptions can occur if document id's
-     * are greater than indexReader.numDocs().
-     */
-    IndexModifier modifier = new IndexModifier(indexDir, new StandardAnalyzer(), false);
-    modifier.optimize();
-    modifier.close();
+		/**
+		 * @param indexDir Directory containing Lucene index.
+		 * @param seedLength Number of +1 or -1 entries in basic
+		 * vectors. Should be even to give same number of each.
+		 * @param minFreq The minimum term frequency for a term to be indexed.
+		 * @param basicDocVectors The table of basic document
+		 * vectors. Null is an acceptable value, in which case the
+		 * constructor will build this table.
+		 * @param fieldsToIndex These fields will be indexed. If null, all fields will be indexed.
+		 */
+		public TermVectorsFromLucene(String indexDir,
+																 int seedLength,
+																 int minFreq, 
+																 short[][] basicDocVectors,
+																 String[] fieldsToIndex) 
+				throws IOException {
+				this.minFreq = minFreq;
+				this.fieldsToIndex = fieldsToIndex;
+				/* This small preprocessing step uses an IndexModifier to make
+				 * sure that the Lucene index is optimized to use contiguous
+				 * integers as identifiers, otherwise exceptions can occur if
+				 * document id's are greater than indexReader.numDocs().
+				 */
+				IndexModifier modifier = new IndexModifier(indexDir, new StandardAnalyzer(), false);
+				modifier.optimize();
+				modifier.close();
 
-    /* Now we're ready to start gathering the things we need. */
-    indexReader = IndexReader.open(indexDir);
-    termVectors = new Hashtable();
-    random = new Random();
+				/* Create the basic document vectors. */
+				indexReader = IndexReader.open(indexDir);
+				Random random = new Random();
 
-    /* create basic doc vectors */
-    short[][] basicDocVectors = new short[indexReader.numDocs()][seedLength];
-    System.err.println("Populating basic doc vector table ...");
+				/* Check that basicDocVectors is the right size */
+				if (basicDocVectors != null) {
+						if (basicDocVectors.length != indexReader.numDocs()) {
+								System.err.println("Wrong number of basicDocVectors passed into constructor ...");
+								// TODO (dwiddows): Not sure if there is a better exception to throw ...
+								throw new IOException();
+						}
+				} else {
+						/* Create basic doc vector table */
+						System.err.println("Populating basic doc vector table, number of vectors: " +
+															 indexReader.numDocs());
+						basicDocVectors = new short[indexReader.numDocs()][seedLength];
+						for (int i = 0; i < indexReader.numDocs(); i++) {
+								basicDocVectors[i] = VectorUtils.generateRandomVector(seedLength, random);
+						}
+				}
 
+				termVectors = new Hashtable();
 
-    for (int i = 0; i < indexReader.numDocs(); i++) {
-      basicDocVectors[i] = generateRandomVector();
-    }
+				/* iterate through an enumeration of terms and create termVector table*/
+				System.err.println("Creating term vectors ...");
+				TermEnum terms = indexReader.terms();
+				int tc = 0;
+				while(terms.next()){
+						tc++;
+				}
+				System.err.println("There are " + tc + " terms (and " + indexReader.numDocs() + " docs)");
 
-    /* iterate through an enumeration of terms and create termVector table*/
-    System.err.println("Creating term vectors ...");
-    TermEnum terms = indexReader.terms();
-    int tc = 0;
-    while(terms.next()){
-      tc++;
-    }
-    System.err.println("There are " + tc + " terms (and " + indexReader.numDocs() + " docs)");
+				tc = 0;
+				terms = indexReader.terms();
+				while (terms.next()) {
+						/* output progress counter */
+						if (( tc % 10000 == 0 ) || ( tc < 10000 && tc % 1000 == 0 )) {
+								System.err.print(tc + " ... ");
+						}
+						tc++;
 
-    tc = 0;
-    terms = indexReader.terms();
-    while( terms.next() ){
-      /* output progress counter */
-      if( ( tc % 10000 == 0 ) || ( tc < 10000 && tc % 1000 == 0 ) ){
-        System.err.print(tc + " ... ");
-      }
-      tc++;
+						Term term = terms.term();
 
-      Term term = terms.term();
-      /* skip terms that don't pass the filter */
-      if( !termFilter(terms.term()) ){
-        continue;
-      }
+						/* skip terms that don't pass the filter */
+						if (!termFilter(terms.term())) {
+								continue;
+						}
 
-      /* initialize new termVector */
-      float[] termVector = new float[ObjectVector.vecLength];
-      for (int i = 0; i < ObjectVector.vecLength; i++) {
-        termVector[i]=0;
-      }
+						/* initialize new termVector */
+						float[] termVector = new float[ObjectVector.vecLength];
+						for (int i = 0; i < ObjectVector.vecLength; i++) {
+								termVector[i]=0;
+						}
 
-      TermDocs tDocs = indexReader.termDocs(term);
-      while( tDocs.next() ){
-        int doc = tDocs.doc();
-        int freq = tDocs.freq();
+						TermDocs tDocs = indexReader.termDocs(term);
+						while( tDocs.next() ){
+								int doc = tDocs.doc();
+								int freq = tDocs.freq();
 
-        /* add random vector (in condensed (signed index + 1)
-         * representation) to term vector by adding -1 or +1 to the
-         * location (index - 1) according to the sign of the index.
-         * (The -1 and +1 are necessary because there is no signed
-         * version of 0, so we'd have no way of telling that the
-         * zeroth position in the array should be plus or minus 1.)
-         * See also generateRandomVector method below.
-         */
-        for ( int i = 0; i < seedLength; i++ ){
-          short index = basicDocVectors[doc][i];
-          termVector[Math.abs(index) - 1] += freq * Math.signum(index);
-        }
-      }
-      termVector = VectorUtils.getNormalizedVector(termVector);
-      termVectors.put(term.text(), new ObjectVector(term.text(), termVector));
-    }
-    System.err.println("\nCreated " + termVectors.size() + " term vectors ...");
-  }
+								/* add random vector (in condensed (signed index + 1)
+								 * representation) to term vector by adding -1 or +1 to the
+								 * location (index - 1) according to the sign of the index.
+								 * (The -1 and +1 are necessary because there is no signed
+								 * version of 0, so we'd have no way of telling that the
+								 * zeroth position in the array should be plus or minus 1.)
+								 * See also generateRandomVector method below.
+								 */
+								for ( int i = 0; i < seedLength; i++ ){
+										short index = basicDocVectors[doc][i];
+										termVector[Math.abs(index) - 1] += freq * Math.signum(index);
+								}
+						}
+						termVector = VectorUtils.getNormalizedVector(termVector);
+						termVectors.put(term.text(), new ObjectVector(term.text(), termVector));
+				}
+				System.err.println("\nCreated " + termVectors.size() + " term vectors ...");
+		}
 
-  public float[] getVector(Object term){
-    return termVectors.get(term).getVector();
-  }
+		public float[] getVector(Object term){
+				return termVectors.get(term).getVector();
+		}
 
-  public Enumeration getAllVectors(){
-    return termVectors.elements();
-  }
+		public Enumeration getAllVectors(){
+				return termVectors.elements();
+		}
 
-  /**
-   * Filters out non-alphabetic terms and those of low frequency
-   * it might be a good idea to factor this out as a separate component.
-   * @param term Term to be filtered.
-   */
-  private boolean termFilter ( Term term ) throws IOException {
-    /* character filter */
-    String termText = term.text();
-    for( int i=0; i<termText.length(); i++ ){
-      if( !Character.isLetter(termText.charAt(i)) ){
-        return false;
-      }
-    }
+		/**
+		 * Filters out non-alphabetic terms and those of low frequency
+		 * it might be a good idea to factor this out as a separate component.
+		 * @param term Term to be filtered.
+		 */
+		private boolean termFilter (Term term) throws IOException {
+				/* Field filter. */
+				if (this.fieldsToIndex != null) {
+						boolean desiredField = false;
+						for (int i = 0; i < fieldsToIndex.length; ++i) {
+								if (term.field().equals(fieldsToIndex[i])) {
+										desiredField = true;
+								}
+						}
+						if (desiredField == false) {
+								return false;
+						}
+				}
 
-    /* freqency filter */
-    int freq = 0;
-    TermDocs tDocs = indexReader.termDocs(term);
-    while( tDocs.next() ){
-      freq += tDocs.freq();
-    }
-    if( freq < minFreq ){
-      return false;
-    }
+				/* character filter */
+				String termText = term.text();
+				for( int i=0; i<termText.length(); i++ ){
+						if( !Character.isLetter(termText.charAt(i)) ){
+								return false;
+						}
+				}
 
-    return true;
-  }
+				/* freqency filter */
+				int freq = 0;
+				TermDocs tDocs = indexReader.termDocs(term);
+				while( tDocs.next() ){
+						freq += tDocs.freq();
+				}
+				if( freq < minFreq ){
+						return false;
+				}
 
-
-  /**
-   * Generates a basic sparse vector (dimension = ObjectVector.vecLength)
-   * with mainly zeros and some 1 and -1 entries (seedLength/2 of each)
-   * each vector is an array of length seedLength containing 1+ the index of a non-zero
-   * value, signed according to whether this is a + or -1.
-   * <br>
-   * e.g. +20 would indicate a +1 in position 19, +1 would indicate a +1 in position 0.
-   *      -20 would indicate a -1 in position 19, -1 would indicate a -1 in position 0.
-   * <br>
-   * The extra offset of +1 is because position 0 would be unsigned,
-   * and would therefore be wasted. Consequently we've chosen to make
-   * the code slightly more complicated to make the implementation
-   * slightly more space efficient.
-   *
-   * @return Sparse representation of basic ternary vector. Array of
-   * short signed integers, indices to the array locations where a
-   * +/-1 entry is located.
-   */
-  protected short[] generateRandomVector() {
-    boolean[] randVector = new boolean[ObjectVector.vecLength];
-    short[] randIndex = new short[this.seedLength];
-
-    int testPlace, entryCount = 0;
-
-    /* put in +1 entries */
-    while(entryCount < this.seedLength / 2 ){
-      testPlace = random.nextInt(ObjectVector.vecLength);
-      if( !randVector[testPlace]){
-        randVector[testPlace] = true;
-        randIndex[entryCount] = new Integer(testPlace + 1).shortValue();
-        entryCount++;
-      }
-    }
-
-    /* put in -1 entries */
-    while(entryCount < this.seedLength ){
-      testPlace = random.nextInt (ObjectVector.vecLength);
-      if( !randVector[testPlace]){
-        randVector[testPlace] = true;
-        randIndex[entryCount] = new Integer((1 + testPlace) * -1).shortValue();
-        entryCount++;
-      }
-    }
-
-    return randIndex;
-  }
-
+				return true;
+		}
 }
