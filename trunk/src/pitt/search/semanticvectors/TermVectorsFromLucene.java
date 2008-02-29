@@ -54,7 +54,7 @@ public class TermVectorsFromLucene implements VectorStore {
 
 		private Hashtable<String, ObjectVector> termVectors;
 		private IndexReader indexReader;
-		//		private int seedLength;
+		private int seedLength;
 		private String[] fieldsToIndex;
 		private int minFreq;
 		private short[][] basicDocVectors;
@@ -87,6 +87,8 @@ public class TermVectorsFromLucene implements VectorStore {
 				throws IOException {
 				this.minFreq = minFreq;
 				this.fieldsToIndex = fieldsToIndex;
+				this.seedLength = seedLength;
+				
 				/* This small preprocessing step uses an IndexModifier to make
 				 * sure that the Lucene index is optimized to use contiguous
 				 * integers as identifiers, otherwise exceptions can occur if
@@ -102,6 +104,7 @@ public class TermVectorsFromLucene implements VectorStore {
 
 				/* Check that basicDocVectors is the right size */
 				if (basicDocVectors != null) {
+						this.basicDocVectors = basicDocVectors;
 						if (basicDocVectors.length != indexReader.numDocs()) {
 								System.err.println("Wrong number of basicDocVectors passed into constructor ...");
 								// TODO (dwiddows): Not sure if there is a better exception to throw ...
@@ -111,9 +114,9 @@ public class TermVectorsFromLucene implements VectorStore {
 						/* Create basic doc vector table */
 						System.err.println("Populating basic doc vector table, number of vectors: " +
 															 indexReader.numDocs());
-						basicDocVectors = new short[indexReader.numDocs()][seedLength];
+						this.basicDocVectors = new short[indexReader.numDocs()][seedLength];
 						for (int i = 0; i < indexReader.numDocs(); i++) {
-								basicDocVectors[i] = VectorUtils.generateRandomVector(seedLength, random);
+								this.basicDocVectors[i] = VectorUtils.generateRandomVector(seedLength, random);
 						}
 				}
 
@@ -164,7 +167,7 @@ public class TermVectorsFromLucene implements VectorStore {
 								 * See also generateRandomVector method below.
 								 */
 								for ( int i = 0; i < seedLength; i++ ){
-										short index = basicDocVectors[doc][i];
+										short index = this.basicDocVectors[doc][i];
 										termVector[Math.abs(index) - 1] += freq * Math.signum(index);
 								}
 						}

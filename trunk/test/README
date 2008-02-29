@@ -1,0 +1,12 @@
+This directory should eventually contain tests of as many as possible
+of the classes in the src tree. In general, the tests for class
+foo in the src tree should be in a parallel class fooTest, e.g., the
+file test/pitt/search/semanticvectors/VectorUtilsTest.java contains
+the tests for the class defined in
+src/pitt/search/semanticvectors/VectorUtils.java
+
+Unfortunately the test suite was added long after the semanticvectors
+package shipped, so we are playing catchup with adding tests as an
+afterthought. Please consider adding tests to existing code a high
+priority. Sooner or later we will probably make a rule that no new
+code is to be added without tests.

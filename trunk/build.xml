@@ -85,7 +85,10 @@
   </target>
 
 <!-- build all -->
+<!-- does not build and run tests, so that dependency on junit is not
+     required for all users. If you're a serious developer, please
+     install junit, and compile and run the tests as well. -->
    <target name="build-all" 
-           depends="compile, compile-test, doc, jardist, tardist, zipdist"/>
+           depends="compile, doc, jardist, tardist, zipdist"/>
 
 </project>

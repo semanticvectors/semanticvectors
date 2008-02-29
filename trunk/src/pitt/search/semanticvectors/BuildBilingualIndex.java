@@ -143,8 +143,10 @@ public class BuildBilingualIndex{
 						// vecWriter.WriteVectors(docFile1, docVectors);
 
 						short[][] basicDocVectors = vecStore1.getBasicDocVectors();
+						System.out.println("Keeping basic doc vectors, number: " + basicDocVectors.length);
 						TermVectorsFromLucene vecStore2 =
-								new TermVectorsFromLucene(luceneIndex, seedLength, minFreq, basicDocVectors, fields2);
+								new TermVectorsFromLucene(luceneIndex, seedLength, minFreq, 
+																					basicDocVectors, fields2);
 						System.err.println("Writing term vectors to " + termFile2);
 						vecWriter.WriteVectors(termFile2, vecStore2);
 						// docVectors = new DocVectors(vecStore2);
