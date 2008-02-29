@@ -18,19 +18,18 @@ You have to do this carefully. You will need two directories, called LANG1 and L
 This design was influenced partly by the europarl corpus, see http://www.statmt.org/europarl/
 
 To create a set of input corpora from the europarl files:
-# Download the corpus from the above link
-# Run the preprocessing script that ships with the corpus, e.g., `sentence-align-corpus.perl en fr` (it's a perl script, you will need perl for this).
-# Now copy and run the [http://code.google.com/p/semanticvectors/source/browse/trunk/scripts/europarl/chapters-as-files-align.perl
- chapter alignment script] from the SemanticVectors scripts directory.
-# This should create a new directory for you in the `aligned-chapters` directory, e.g., `aligned-chapters/en-fr`, with the two directories `en` and `fr` with parallel contents.
+ # Download the corpus from the above link
+ # Run the preprocessing script that ships with the corpus, e.g., `sentence-align-corpus.perl en fr` (it's a perl script, you will need perl for this).
+ # Now copy and run the [http://code.google.com/p/semanticvectors/source/browse/trunk/scripts/europarl/chapters-as-files-align.perl chapter alignment script] from the SemanticVectors scripts directory.
+ # This should create a new directory for you in the `aligned-chapters` directory, e.g., `aligned-chapters/en-fr`, with the two directories `en` and `fr` with parallel contents.
 
 == Building a Model ==
 
 Once you have a corpus prepared, `cd` to the directory containing the two directories containing the parallel files.
 
 Now (having compiled the SemanticVectors source, having this and Lucene in your `classpath`, etc.,
-# Run `java pitt.search.lucene.IndexBilingualFiles LANG1 LANG2`
-# Now run `java pitt.search.semanticvectors.BuildBilingualIndex index LANG1 LANG2`
+ # Run `java pitt.search.lucene.IndexBilingualFiles LANG1 LANG2`
+ # Now run `java pitt.search.semanticvectors.BuildBilingualIndex index LANG1 LANG2`
 
 This should give you a model that you can now search. 
 
@@ -39,5 +38,3 @@ To test the basic Lucene index, try running `java pitt.search.lucene.LuceneSearc
 To test the bilingual semantic vector search, try running `java pitt.search.semanticvectors.Search -q termvectors_LANG1.bin -s termvectors_LANG2.bin QUERYTERMS`.
 
 Good luck!
-
-
