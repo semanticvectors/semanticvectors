@@ -31,6 +31,10 @@ These sketch instructions presume that you're reasonably familiar with Java, Ant
  * If the upper case term `NOT` appears in your `QUERYTERMS`, semanticvectors will add the terms preceding the `NOT` term and negate all the terms after it. See VectorNegation.
  * To compare two concepts, run `java pitt.search.semanticvectors.CompareTerms "QUERYTERMS1" "QUERYTERMS2"`.
 
+== Bilingual Models ==
+
+For instructions on building a bilingual model from a parallel corpus, see BilingualModels.
+
 == Developer API Docs ==
 
 See http://semanticvectors.googlecode.com/svn/trunk/doc/index.html
