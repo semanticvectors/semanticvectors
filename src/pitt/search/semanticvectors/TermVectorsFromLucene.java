@@ -39,6 +39,7 @@ import java.util.Hashtable;
 import java.util.Enumeration;
 import java.util.Random;
 import java.io.IOException;
+import java.lang.RuntimeException;
 import org.apache.lucene.index.*;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 
@@ -70,6 +71,11 @@ public class TermVectorsFromLucene implements VectorStore {
 		public short[][] getBasicDocVectors(){ return this.basicDocVectors; }
 
 		/**
+		 * @return The object's basicDocVectors.
+		 */
+		public String[] getFieldsToIndex(){ return this.fieldsToIndex; }
+
+		/**
 		 * @param indexDir Directory containing Lucene index.
 		 * @param seedLength Number of +1 or -1 entries in basic
 		 * vectors. Should be even to give same number of each.
@@ -84,7 +90,7 @@ public class TermVectorsFromLucene implements VectorStore {
 																 int minFreq, 
 																 short[][] basicDocVectors,
 																 String[] fieldsToIndex) 
-				throws IOException {
+				throws IOException, RuntimeException {
 				this.minFreq = minFreq;
 				this.fieldsToIndex = fieldsToIndex;
 				this.seedLength = seedLength;
@@ -106,9 +112,8 @@ public class TermVectorsFromLucene implements VectorStore {
 				if (basicDocVectors != null) {
 						this.basicDocVectors = basicDocVectors;
 						if (basicDocVectors.length != indexReader.numDocs()) {
-								System.err.println("Wrong number of basicDocVectors passed into constructor ...");
-								// TODO (dwiddows): Not sure if there is a better exception to throw ...
-								throw new IOException();
+								throw new RuntimeException("Wrong number of basicDocVectors " +
+																					 "passed into constructor ...");
 						}
 				} else {
 						/* Create basic doc vector table */
@@ -116,7 +121,8 @@ public class TermVectorsFromLucene implements VectorStore {
 															 indexReader.numDocs());
 						this.basicDocVectors = new short[indexReader.numDocs()][seedLength];
 						for (int i = 0; i < indexReader.numDocs(); i++) {
-								this.basicDocVectors[i] = VectorUtils.generateRandomVector(seedLength, random);
+								this.basicDocVectors[i] =
+										VectorUtils.generateRandomVector(seedLength, random);
 						}
 				}
 

@@ -12,7 +12,7 @@ import java.util.LinkedList;
 import java.io.IOException;
 
 /**
- * Command line utility for creating semantic vector indexes.
+ * Command line utility for creating bilingual semantic vector indexes.
  */
 public class BuildBilingualIndex{
     // These can be modified with command line arguments.
@@ -24,7 +24,7 @@ public class BuildBilingualIndex{
      * <code>
      * <br> BuildBilingualIndex class in package pitt.search.semanticvectors
      * <br> Usage: java pitt.search.semanticvectors.BuildBilingualIndex PATH_TO_LUCENE_INDEX LANG1 LANG2
-     * <br> BuildIndex creates files termvectors_LANG*.bin and docvectors_LANG*.bin,
+     * <br> BuildBilingualIndex creates files termvectors_LANGn.bin and docvectors_LANGn.bin,
      * <br> in local directory, where LANG1 and LANG2 are obtained from fields in index.
      * <br> Other parameters that can be changed include vector length,
      * <br>     (number of dimensions), seed length (number of non-zero
@@ -36,9 +36,10 @@ public class BuildBilingualIndex{
      * </code>
      */
     public static void usage(){
-				String usageMessage = "\nBuildIndex class in package pitt.search.semanticvectors"
-						+ "\nUsage: java pitt.search.semanticvectors.BuildIndex PATH_TO_LUCENE_INDEX LANG1 LANG2"
-						+ "\nBuildBilingaulIndex creates files termvectors_LANG*.bin and docvectors_LANG*.bin,"
+				String usageMessage = "\nBuildBilingualIndex class in package pitt.search.semanticvectors"
+						+ "\nUsage: java pitt.search.semanticvectors.BuildBilingualIndex "
+						+ "PATH_TO_LUCENE_INDEX LANG1 LANG2"
+						+ "\nBuildBilingualIndex creates files termvectors_LANGn.bin and docvectors_LANGn.bin,"
 						+ "\nin local directory, where LANG1 and LANG2 are obtained from fields in index."
 						+ "\nOther parameters that can be changed include vector length,"
 						+ "\n    (number of dimensions), seed length (number of non-zero"
@@ -55,7 +56,7 @@ public class BuildBilingualIndex{
     /**
      * Builds term vector and document vector stores from a Lucene index.
      * @param args
-     * @see BuildIndex#usage
+     * @see BuildBilingualIndex#usage
      */
     public static void main (String[] args) {
 				boolean wellFormed = false;
@@ -138,9 +139,9 @@ public class BuildBilingualIndex{
 						VectorStoreWriter vecWriter = new VectorStoreWriter();
 						System.err.println("Writing term vectors to " + termFile1);
 						vecWriter.WriteVectors(termFile1, vecStore1);
-						// DocVectors docVectors = new DocVectors(vecStore1);
-						// System.err.println("Writing doc vectors to " + docFile1);
-						// vecWriter.WriteVectors(docFile1, docVectors);
+						DocVectors docVectors = new DocVectors(vecStore1);
+						System.err.println("Writing doc vectors to " + docFile1);
+						vecWriter.WriteVectors(docFile1, docVectors);
 
 						short[][] basicDocVectors = vecStore1.getBasicDocVectors();
 						System.out.println("Keeping basic doc vectors, number: " + basicDocVectors.length);
@@ -149,9 +150,9 @@ public class BuildBilingualIndex{
 																					basicDocVectors, fields2);
 						System.err.println("Writing term vectors to " + termFile2);
 						vecWriter.WriteVectors(termFile2, vecStore2);
-						// docVectors = new DocVectors(vecStore2);
-						// System.err.println("Writing doc vectors to " + docFile2);
-						// vecWriter.WriteVectors(docFile2, docVectors);
+						docVectors = new DocVectors(vecStore2);
+						System.err.println("Writing doc vectors to " + docFile2);
+						vecWriter.WriteVectors(docFile2, docVectors);
 				}
 				catch (IOException e) {
 						e.printStackTrace();

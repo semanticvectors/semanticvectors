@@ -147,12 +147,13 @@ public class BuildIndex{
 				String luceneIndex = args[args.length-1];
 				String termFile = "termvectors.bin";
 				String docFile = "docvectors.bin";
-				System.err.println("seedLength = "+seedLength);
-				System.err.println("Vector length = "+ObjectVector.vecLength);
-				System.err.println("Minimum frequency = "+minFreq);
+				String[] fieldsToIndex = {"contents"};
+				System.err.println("seedLength = " + seedLength);
+				System.err.println("Vector length = " + ObjectVector.vecLength);
+				System.err.println("Minimum frequency = " + minFreq);
 				try{
 						TermVectorsFromLucene vecStore =
-								new TermVectorsFromLucene(luceneIndex, seedLength, minFreq, null, null);
+								new TermVectorsFromLucene(luceneIndex, seedLength, minFreq, null, fieldsToIndex);
 						VectorStoreWriter vecWriter = new VectorStoreWriter();
 						System.err.println("Writing term vectors to " + termFile);
 						vecWriter.WriteVectors(termFile, vecStore);
