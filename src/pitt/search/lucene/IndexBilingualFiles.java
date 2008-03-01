@@ -47,7 +47,13 @@ import org.apache.lucene.document.DateTools;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 
-/** Index all text files under a directory. */
+/** 
+ * Index pairs of bilingual texts in a parallel corpus.  See <a
+ * href="http://code.google.com/p/semanticvectors/wiki/BilingualModels">
+ * http://code.google.com/p/semanticvectors/wiki/BilingualModels</a>
+ * for more thorough documentation of preparation of corpora and
+ * creation of models.
+ */
 public class IndexBilingualFiles {
     File INDEX_DIR;
     String LANGUAGE1;
