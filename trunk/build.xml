@@ -25,12 +25,20 @@
 	   />
   </target>
 
-  <target name="compile-test" depends="init">
+	<!-- Compile and run tests. -->
+	<!-- Tests do not currently ship with standard distributions; to
+	     compile and run tests, check out test/ dir from the svn repository.
+	     You will also need to install junit (www.junit.org) -->
+  <target name="compile-tests" depends="init">
     <javac srcdir="${testdir}"
 	   destdir="${buildclassesdir}"
 	   debug="on"
 	   />
   </target>
+
+	<target name="run-tests" depends="compile-tests">
+		<java classname="pitt.search.semanticvectors.RunTests"/>
+	</target>
 
   <target name="doc" depends="init">
     <javadoc sourcepath="${srcdir}"
@@ -50,11 +58,9 @@
     <tar destfile="${distdir}/${distname}-src.tar">
       <tarfileset dir="${basedir}"
                   prefix="${distname}"
-                  preserveLeadingSlashes="true">
-	<include name="**/*.java"/>
-	<include name="**/*.class"/>
-	<include name="**/*.html"/>
-	<include name="build.xml"/>
+                  preserveLeadingSlashes="true"
+									includes="src/">
+				<include name="build.xml"/>
       </tarfileset>
     </tar>
     <gzip zipfile="${distdir}/${distname}-src.tar.gz" 
@@ -64,11 +70,9 @@
   <target name="zipdist" depends="init">
     <zip destfile="${distdir}/${distname}-src.zip">
       <zipfileset dir="${basedir}"
-                  prefix="${distname}">
-	<include name="**/*.java"/>
-	<include name="**/*.class"/>
-	<include name="**/*.html"/>
-	<include name="build.xml"/>
+                  prefix="${distname}"
+									includes="src/">
+				<include name="build.xml"/>
       </zipfileset>
     </zip>
   </target>
@@ -76,7 +80,8 @@
   <target name="clean" depends="init">
     <delete dir="${builddir}"/>
     <delete dir="${distdir}"/>
-    <!-- Only delete html files from ${docdir} since this is part of svn tree -->
+    <!-- Only delete html files from ${docdir} - don't delete
+         directories since this is part of svn tree -->
     <delete>	
       <fileset dir="${docdir}">
         <include name="**/*.html"/>
@@ -84,10 +89,8 @@
     </delete>
   </target>
 
-<!-- build all -->
-<!-- does not build and run tests, so that dependency on junit is not
-     required for all users. If you're a serious developer, please
-     install junit, and compile and run the tests as well. -->
+<!-- Build all -->
+<!-- Does not compile and run tests (see compile-tests target above). -->
    <target name="build-all" 
            depends="compile, doc, jardist, tardist, zipdist"/>
 
