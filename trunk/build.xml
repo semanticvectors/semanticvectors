@@ -42,7 +42,7 @@
 
   <target name="doc" depends="init">
     <javadoc sourcepath="${srcdir}"
-	     packagenames="pitt.search.semanticvectors"
+	     packagenames="pitt.search.semanticvectors,pitt.search.lucene"
 	     destdir="${docdir}"
 	     author="true"
 	     use="true"
