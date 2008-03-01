@@ -28,7 +28,7 @@ These sketch instructions presume that you're reasonably familiar with Java, Ant
  * Create a Lucene index using the Lucene demo, by running `java org.apache.lucene.demo.IndexFiles` on the directory containing your corpus.
  * Create term and document vectors by running `java pitt.search.semanticvectors.BuildIndex`.
  * To search the resulting model, run `java pitt.search.semanticvectors.Search QUERYTERMS`.
- * If the upper case term `NOT` appears in your `QUERYTERMS`, semanticvectors will add the terms preceding the `NOT` term and negate all the terms after it. See VectorNegation.
+ * If the upper case term `NOT` appears in your `QUERYTERMS`, the query parser will add the terms preceding the `NOT` term and negate all the terms after it. See VectorNegation.
  * To compare two concepts, run `java pitt.search.semanticvectors.CompareTerms "QUERYTERMS1" "QUERYTERMS2"`.
 
 == Bilingual Models ==
