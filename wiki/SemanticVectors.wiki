@@ -1,0 +1,3 @@
+#summary Redirect to main SemanticVectors project page.
+
+See http://code.google.com/p/semanticvectors
