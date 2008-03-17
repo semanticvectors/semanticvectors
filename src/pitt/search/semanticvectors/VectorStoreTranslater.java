@@ -37,10 +37,16 @@ import java.io.IOException;
 
 /**
  * Class providing command-line interface for transforming vector
- * store to / from text.
+ * store between the optimized Lucene format and plain text.
  */
 public class VectorStoreTranslater {
 
+		/**
+		 * Prints the following usage message:
+		 * <br> VectorStoreTranslater class in pitt.search.semanticvectors
+		 * <br> Usage: java pitt.search.semanticvector.VectorStoreTranslater -option INFILE OUTFILE"
+		 * <br> -option can be: -lucenetotext or -texttolucene"
+		 */
   public static void usage() {
     String usageMessage = "VectorStoreTranslater class in pitt.search.semanticvectors"
         + "\nUsage: java pitt.search.semanticvector.VectorStoreTranslater -option INFILE OUTFILE"
@@ -51,13 +57,14 @@ public class VectorStoreTranslater {
 
   private enum Options { LUCENE_TO_TEXT, TEXT_TO_LUCENE }
 
+		/**
+		 * Command line method for performing index translation.
+		 * @see #usage
+		 */
   public static void main(String[] args) {
     // Parse command line args.
     if (args.length != 3) {
       System.err.println("You gave " + args.length + " arguments ...");
-      for (String arg: args) {
-        System.err.println(arg);
-      }
       usage();
     }
     Options option = null;
@@ -68,6 +75,7 @@ public class VectorStoreTranslater {
     String infile = args[1];
     String outfile = args[2];
 
+		// Convert Lucene-style index to plain text.
     if (option == Options.LUCENE_TO_TEXT) {
       try {
         VectorStoreReader vecReader = new VectorStoreReader(infile);
@@ -80,6 +88,7 @@ public class VectorStoreTranslater {
       }
     }
 
+		// Convert plain text index to Lucene-style.
     if (option == Options.TEXT_TO_LUCENE) {
       try {
         VectorStoreReaderText vecReader = new VectorStoreReaderText(infile);
