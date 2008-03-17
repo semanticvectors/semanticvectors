@@ -53,181 +53,181 @@ import org.apache.lucene.analysis.standard.StandardAnalyzer;
  */
 public class TermVectorsFromLucene implements VectorStore {
 
-		private Hashtable<String, ObjectVector> termVectors;
-		private IndexReader indexReader;
-		private int seedLength;
-		private String[] fieldsToIndex;
-		private int minFreq;
-		private short[][] basicDocVectors;
+  private Hashtable<String, ObjectVector> termVectors;
+  private IndexReader indexReader;
+  private int seedLength;
+  private String[] fieldsToIndex;
+  private int minFreq;
+  private short[][] basicDocVectors;
 
-		/**
-		 * @return The object's indexReader.
-		 */
-		public IndexReader getIndexReader(){ return this.indexReader; }
+  /**
+   * @return The object's indexReader.
+   */
+  public IndexReader getIndexReader(){ return this.indexReader; }
 
-		/**
-		 * @return The object's basicDocVectors.
-		 */
-		public short[][] getBasicDocVectors(){ return this.basicDocVectors; }
+  /**
+   * @return The object's basicDocVectors.
+   */
+  public short[][] getBasicDocVectors(){ return this.basicDocVectors; }
 
-		/**
-		 * @return The object's basicDocVectors.
-		 */
-		public String[] getFieldsToIndex(){ return this.fieldsToIndex; }
+  /**
+   * @return The object's basicDocVectors.
+   */
+  public String[] getFieldsToIndex(){ return this.fieldsToIndex; }
 
-		/**
-		 * @param indexDir Directory containing Lucene index.
-		 * @param seedLength Number of +1 or -1 entries in basic
-		 * vectors. Should be even to give same number of each.
-		 * @param minFreq The minimum term frequency for a term to be indexed.
-		 * @param basicDocVectors The table of basic document
-		 * vectors. Null is an acceptable value, in which case the
-		 * constructor will build this table.
-		 * @param fieldsToIndex These fields will be indexed. If null, all fields will be indexed.
-		 */
-		public TermVectorsFromLucene(String indexDir,
-																 int seedLength,
-																 int minFreq, 
-																 short[][] basicDocVectors,
-																 String[] fieldsToIndex) 
-				throws IOException, RuntimeException {
-				this.minFreq = minFreq;
-				this.fieldsToIndex = fieldsToIndex;
-				this.seedLength = seedLength;
-				
-				/* This small preprocessing step uses an IndexModifier to make
-				 * sure that the Lucene index is optimized to use contiguous
-				 * integers as identifiers, otherwise exceptions can occur if
-				 * document id's are greater than indexReader.numDocs().
-				 */
-				IndexModifier modifier = new IndexModifier(indexDir, new StandardAnalyzer(), false);
-				modifier.optimize();
-				modifier.close();
+  /**
+   * @param indexDir Directory containing Lucene index.
+   * @param seedLength Number of +1 or -1 entries in basic
+   * vectors. Should be even to give same number of each.
+   * @param minFreq The minimum term frequency for a term to be indexed.
+   * @param basicDocVectors The table of basic document
+   * vectors. Null is an acceptable value, in which case the
+   * constructor will build this table.
+   * @param fieldsToIndex These fields will be indexed. If null, all fields will be indexed.
+   */
+  public TermVectorsFromLucene(String indexDir,
+                               int seedLength,
+                               int minFreq,
+                               short[][] basicDocVectors,
+                               String[] fieldsToIndex)
+      throws IOException, RuntimeException {
+    this.minFreq = minFreq;
+    this.fieldsToIndex = fieldsToIndex;
+    this.seedLength = seedLength;
 
-				/* Create the basic document vectors. */
-				indexReader = IndexReader.open(indexDir);
-				Random random = new Random();
+    /* This small preprocessing step uses an IndexModifier to make
+     * sure that the Lucene index is optimized to use contiguous
+     * integers as identifiers, otherwise exceptions can occur if
+     * document id's are greater than indexReader.numDocs().
+     */
+    IndexModifier modifier = new IndexModifier(indexDir, new StandardAnalyzer(), false);
+    modifier.optimize();
+    modifier.close();
 
-				/* Check that basicDocVectors is the right size */
-				if (basicDocVectors != null) {
-						this.basicDocVectors = basicDocVectors;
-						if (basicDocVectors.length != indexReader.numDocs()) {
-								throw new RuntimeException("Wrong number of basicDocVectors " +
-																					 "passed into constructor ...");
-						}
-				} else {
-						/* Create basic doc vector table */
-						System.err.println("Populating basic doc vector table, number of vectors: " +
-															 indexReader.numDocs());
-						this.basicDocVectors = new short[indexReader.numDocs()][seedLength];
-						for (int i = 0; i < indexReader.numDocs(); i++) {
-								this.basicDocVectors[i] =
-										VectorUtils.generateRandomVector(seedLength, random);
-						}
-				}
+    /* Create the basic document vectors. */
+    indexReader = IndexReader.open(indexDir);
+    Random random = new Random();
 
-				termVectors = new Hashtable();
+    /* Check that basicDocVectors is the right size */
+    if (basicDocVectors != null) {
+      this.basicDocVectors = basicDocVectors;
+      if (basicDocVectors.length != indexReader.numDocs()) {
+        throw new RuntimeException("Wrong number of basicDocVectors " +
+                                   "passed into constructor ...");
+      }
+    } else {
+      /* Create basic doc vector table */
+      System.err.println("Populating basic doc vector table, number of vectors: " +
+                         indexReader.numDocs());
+      this.basicDocVectors = new short[indexReader.numDocs()][seedLength];
+      for (int i = 0; i < indexReader.numDocs(); i++) {
+        this.basicDocVectors[i] =
+            VectorUtils.generateRandomVector(seedLength, random);
+      }
+    }
 
-				/* iterate through an enumeration of terms and create termVector table*/
-				System.err.println("Creating term vectors ...");
-				TermEnum terms = indexReader.terms();
-				int tc = 0;
-				while(terms.next()){
-						tc++;
-				}
-				System.err.println("There are " + tc + " terms (and " + indexReader.numDocs() + " docs)");
+    termVectors = new Hashtable();
 
-				tc = 0;
-				terms = indexReader.terms();
-				while (terms.next()) {
-						/* output progress counter */
-						if (( tc % 10000 == 0 ) || ( tc < 10000 && tc % 1000 == 0 )) {
-								System.err.print(tc + " ... ");
-						}
-						tc++;
+    /* iterate through an enumeration of terms and create termVector table*/
+    System.err.println("Creating term vectors ...");
+    TermEnum terms = indexReader.terms();
+    int tc = 0;
+    while(terms.next()){
+      tc++;
+    }
+    System.err.println("There are " + tc + " terms (and " + indexReader.numDocs() + " docs)");
 
-						Term term = terms.term();
+    tc = 0;
+    terms = indexReader.terms();
+    while (terms.next()) {
+      /* output progress counter */
+      if (( tc % 10000 == 0 ) || ( tc < 10000 && tc % 1000 == 0 )) {
+        System.err.print(tc + " ... ");
+      }
+      tc++;
 
-						/* skip terms that don't pass the filter */
-						if (!termFilter(terms.term())) {
-								continue;
-						}
+      Term term = terms.term();
 
-						/* initialize new termVector */
-						float[] termVector = new float[ObjectVector.vecLength];
-						for (int i = 0; i < ObjectVector.vecLength; i++) {
-								termVector[i]=0;
-						}
+      /* skip terms that don't pass the filter */
+      if (!termFilter(terms.term())) {
+        continue;
+      }
 
-						TermDocs tDocs = indexReader.termDocs(term);
-						while( tDocs.next() ){
-								int doc = tDocs.doc();
-								int freq = tDocs.freq();
+      /* initialize new termVector */
+      float[] termVector = new float[ObjectVector.vecLength];
+      for (int i = 0; i < ObjectVector.vecLength; i++) {
+        termVector[i]=0;
+      }
 
-								/* add random vector (in condensed (signed index + 1)
-								 * representation) to term vector by adding -1 or +1 to the
-								 * location (index - 1) according to the sign of the index.
-								 * (The -1 and +1 are necessary because there is no signed
-								 * version of 0, so we'd have no way of telling that the
-								 * zeroth position in the array should be plus or minus 1.)
-								 * See also generateRandomVector method below.
-								 */
-								for ( int i = 0; i < seedLength; i++ ){
-										short index = this.basicDocVectors[doc][i];
-										termVector[Math.abs(index) - 1] += freq * Math.signum(index);
-								}
-						}
-						termVector = VectorUtils.getNormalizedVector(termVector);
-						termVectors.put(term.text(), new ObjectVector(term.text(), termVector));
-				}
-				System.err.println("\nCreated " + termVectors.size() + " term vectors ...");
-		}
+      TermDocs tDocs = indexReader.termDocs(term);
+      while( tDocs.next() ){
+        int doc = tDocs.doc();
+        int freq = tDocs.freq();
 
-		public float[] getVector(Object term){
-				return termVectors.get(term).getVector();
-		}
+        /* add random vector (in condensed (signed index + 1)
+         * representation) to term vector by adding -1 or +1 to the
+         * location (index - 1) according to the sign of the index.
+         * (The -1 and +1 are necessary because there is no signed
+         * version of 0, so we'd have no way of telling that the
+         * zeroth position in the array should be plus or minus 1.)
+         * See also generateRandomVector method below.
+         */
+        for ( int i = 0; i < seedLength; i++ ){
+          short index = this.basicDocVectors[doc][i];
+          termVector[Math.abs(index) - 1] += freq * Math.signum(index);
+        }
+      }
+      termVector = VectorUtils.getNormalizedVector(termVector);
+      termVectors.put(term.text(), new ObjectVector(term.text(), termVector));
+    }
+    System.err.println("\nCreated " + termVectors.size() + " term vectors ...");
+  }
 
-		public Enumeration getAllVectors(){
-				return termVectors.elements();
-		}
+  public float[] getVector(Object term){
+    return termVectors.get(term).getVector();
+  }
 
-		/**
-		 * Filters out non-alphabetic terms and those of low frequency
-		 * it might be a good idea to factor this out as a separate component.
-		 * @param term Term to be filtered.
-		 */
-		private boolean termFilter (Term term) throws IOException {
-				/* Field filter. */
-				if (this.fieldsToIndex != null) {
-						boolean desiredField = false;
-						for (int i = 0; i < fieldsToIndex.length; ++i) {
-								if (term.field().equals(fieldsToIndex[i])) {
-										desiredField = true;
-								}
-						}
-						if (desiredField == false) {
-								return false;
-						}
-				}
+  public Enumeration getAllVectors(){
+    return termVectors.elements();
+  }
 
-				/* character filter */
-				String termText = term.text();
-				for( int i=0; i<termText.length(); i++ ){
-						if( !Character.isLetter(termText.charAt(i)) ){
-								return false;
-						}
-				}
+  /**
+   * Filters out non-alphabetic terms and those of low frequency
+   * it might be a good idea to factor this out as a separate component.
+   * @param term Term to be filtered.
+   */
+  private boolean termFilter (Term term) throws IOException {
+    /* Field filter. */
+    if (this.fieldsToIndex != null) {
+      boolean desiredField = false;
+      for (int i = 0; i < fieldsToIndex.length; ++i) {
+        if (term.field().equals(fieldsToIndex[i])) {
+          desiredField = true;
+        }
+      }
+      if (desiredField == false) {
+        return false;
+      }
+    }
 
-				/* freqency filter */
-				int freq = 0;
-				TermDocs tDocs = indexReader.termDocs(term);
-				while( tDocs.next() ){
-						freq += tDocs.freq();
-				}
-				if( freq < minFreq ){
-						return false;
-				}
+    /* character filter */
+    String termText = term.text();
+    for( int i=0; i<termText.length(); i++ ){
+      if( !Character.isLetter(termText.charAt(i)) ){
+        return false;
+      }
+    }
 
-				return true;
-		}
+    /* freqency filter */
+    int freq = 0;
+    TermDocs tDocs = indexReader.termDocs(term);
+    while( tDocs.next() ){
+      freq += tDocs.freq();
+    }
+    if( freq < minFreq ){
+      return false;
+    }
+
+    return true;
+  }
 }
