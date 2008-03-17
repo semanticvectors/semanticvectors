@@ -43,11 +43,11 @@ import java.util.Enumeration;
  * Class for searching vector stores using different scoring functions.
  */
 abstract public class VectorSearcher{
-    private VectorStoreReader vecReader;
+    private VectorStore vecStore;
     abstract float getScore(float[] queryVector, float[] testVector);
 
-    public VectorSearcher(VectorStoreReader vecReader) {
-	this.vecReader = vecReader;
+    public VectorSearcher(VectorStore vecStore) {
+	this.vecStore = vecStore;
     }
 
     /**
@@ -61,7 +61,7 @@ abstract public class VectorSearcher{
 	LinkedList<SearchResult> results = new LinkedList();
 	float score, threshold = -1;
 
-	Enumeration<ObjectVector> vecEnum = vecReader.getAllVectors();
+	Enumeration<ObjectVector> vecEnum = vecStore.getAllVectors();
 
 	while (vecEnum.hasMoreElements()) {
 	    // Initialize result list if just starting.
@@ -98,8 +98,8 @@ abstract public class VectorSearcher{
      * Class for searching a vector store using cosine similarity.
      */
     static public class VectorSearcherCosine extends VectorSearcher {
-	public VectorSearcherCosine(VectorStoreReader vecReader) {
-	    super(vecReader);
+	public VectorSearcherCosine(VectorStore vecStore) {
+	    super(vecStore);
 	}
 	public float getScore(float[] queryVector, float[] testVector) {
 	    return VectorUtils.scalarProduct(queryVector, testVector);
@@ -119,9 +119,9 @@ abstract public class VectorSearcher{
 	 * Creates a relation tensor from rel1 and rel2, which query / test vectors
 	 * will be compared with.
 	 */
-	public VectorSearcherTensorSim(VectorStoreReader vecReader,
+	public VectorSearcherTensorSim(VectorStore vecStore,
 				    float[] rel1, float[] rel2) {
-	    super(vecReader);
+	    super(vecStore);
 	    relTensor = VectorUtils.getOuterProduct(rel1, rel2);
 	}
 
@@ -148,9 +148,9 @@ abstract public class VectorSearcher{
 	 * Creates a relation convolution from rel1 and rel2, which query / test vectors
 	 * will be compared with.
 	 */
-	public VectorSearcherConvolutionSim(VectorStoreReader vecReader,
+	public VectorSearcherConvolutionSim(VectorStore vecStore,
 					    float[] rel1, float[] rel2) {
-	    super(vecReader);
+	    super(vecStore);
 	    relConvolution = VectorUtils.getConvolution(rel1, rel2);
 	}
 	/**

@@ -44,9 +44,10 @@ import java.util.StringTokenizer;
 /**
    This class provides methods for reading a VectorStore from a textfile.<p>
 
-   The textfile should start with an optional header line, "-dimensions|N".
+   The textfile should start with an optional header line, 
+	 "<code>-dimensions|N</code>".<br>
    All subsequent lines should be of the form <br>
-   String|Num1|Num2|...|NumN <p>
+   <code>String|Num1|Num2|...|NumN</code><p>
 
    The serialization currently presumes that the object (in the ObjectVectors)
    should be serialized as a String. <p>
@@ -120,9 +121,9 @@ public class VectorStoreReaderText implements VectorStore {
   }
 
   /**
-   * given an object, get its corresponding vector <br>
-   * this implementation only works for string objects so far <br>
-   * @param desiredObject - the string you're searching for
+   * Given an object, get its corresponding vector <br>
+   * This implementation only works for string objects so far <br>
+   * @param desiredObject - the string identifying the object being searched for.
    */
   public float[] getVector(Object desiredObject) {
     System.err.print("Seeking vector for ... " + desiredObject + " ... ");

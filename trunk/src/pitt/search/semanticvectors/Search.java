@@ -119,13 +119,13 @@ public class Search{
       VectorStoreReader vecReader = new VectorStoreReader(queryFile);
       System.err.println("Opening query vector store from file: " + queryFile);
 
-      if( lucenePath != null ){
-        try{ lUtils = new LuceneUtils( lucenePath ); }
-        catch( IOException e ){
+      if (lucenePath != null) {
+        try { lUtils = new LuceneUtils(lucenePath); }
+        catch (IOException e) {
           System.err.println("Couldn't open Lucene index at " + lucenePath);
         }
       }
-      if( lUtils == null ){
+      if (lUtils == null) {
         System.err.println("No Lucene index for query term weighting, "
                            + "so all query terms will have same weight.");
       }
@@ -135,7 +135,7 @@ public class Search{
       // of doing this.
       String queryString = "";
       for (int j = 0; j < args.length - argc; ++j) {
-	  queryString += args[j + argc] + " ";
+					queryString += args[j + argc] + " ";
       }
 
       // Now get the query vector for these terms.
@@ -145,7 +145,7 @@ public class Search{
       System.err.print("Searching term vectors ... ");
 
       // Reopen vector store if search vectors are different from query vectors.
-      if( queryFile != searchFile ){
+      if (queryFile != searchFile) {
         System.err.println("Opening file of vectors to search ...");
         vecReader = new VectorStoreReader(searchFile);
       }
