@@ -1,6 +1,15 @@
 #summary Release Log
 #labels Phase-Implementation
 
+=== Release 1.6 ===
+
+2008-03-18
+
+   # Bilingual models implemented - see BilingualModels.
+   # Plain text interchange format and tools implemented - see VectorStoreFormats.
+   # `build.xml` changed so that the source distributions ship with just `src/` directory and build file: the rest is automatically generated and there seems to be no good reason for taking any more bandwidth.
+   # Beginnings of a testing suite have been created. Tests don't ship with the main package, and should be checked out by developers from svn.
+
 === Release 1.4 ===
 
 2008-02-08
