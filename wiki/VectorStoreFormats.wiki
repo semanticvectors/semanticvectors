@@ -16,7 +16,7 @@ Each vector is output on a single line, of the form
 `string_object_name|num_1|num_2|...|num_n`
 where `n` is the number of dimensions stored in `ObjectVector.vecLength`.
 
-The plain text indexes are bigger (e.g., the index for the bible termvectors is ~6.7M) and noticeably slower for searching. Nonetheless, the implementation does satisfy the VectorStore interface, so they can be used just like the optimized Lucene indexes. However, if you care about space and time, you'll probably want to translate such indexes using the translation tool described below.
+The plain text indexes are bigger (e.g., the index for the bible termvectors is ~6.7M) and noticeably slower for searching. Nonetheless, the implementation does satisfy the [http://semanticvectors.googlecode.com/svn/trunk/doc/pitt/search/semanticvectors/VectorStore.html VectorStore] interface, so they can be used just like the optimized Lucene indexes. However, if you care about space and time, you'll probably want to translate such indexes using the translation tool described below.
 
 === Header Information ===
 
