@@ -12,7 +12,7 @@ The format is read by the [http://semanticvectors.googlecode.com/svn/trunk/doc/p
 
 === Plain Text Format ===
 
-Also created by the [http://semanticvectors.googlecode.com/svn/trunk/doc/pitt/search/semanticvectors/VectorStoreWriterText.html VectorStoreWriter] class, this was implemented mainly to enable vector stores to be input from and output to a plain text format for exchanging data with other environments (e.g., sending SemanticVectors data out for analysis in Matlab).
+Also created by the [http://semanticvectors.googlecode.com/svn/trunk/doc/pitt/search/semanticvectors/VectorStoreWriter.html VectorStoreWriter] class, this was implemented mainly to enable vector stores to be input from and output to a plain text format for exchanging data with other environments (e.g., sending SemanticVectors data out for analysis in Matlab).
 
 Each vector is output on a single line, of the form
 `string_object_name|num_1|num_2|...|num_n`
