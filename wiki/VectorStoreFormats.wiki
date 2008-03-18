@@ -8,7 +8,7 @@ As of version 1.6, the SemanticVectors package has the option of storing vectors
 
 Created by the [http://semanticvectors.googlecode.com/svn/trunk/doc/pitt/search/semanticvectors/VectorStoreWriter.html VectorStoreWriter] class, this is the default used by the SemanticVectors package. Lucene's I/O routines are very fast, and the indexes are quite small (e.g., the termvectors.bin index for the King James Bible corpus is ~2.8M).
 
-The format is read by the http://semanticvectors.googlecode.com/svn/trunk/doc/pitt/search/semanticvectors/VectorStoreReader.html VectorStoreReader] class
+The format is read by the [http://semanticvectors.googlecode.com/svn/trunk/doc/pitt/search/semanticvectors/VectorStoreReader.html VectorStoreReader] class
 
 === Plain Text Format ===
 
