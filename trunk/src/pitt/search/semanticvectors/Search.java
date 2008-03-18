@@ -93,7 +93,7 @@ public class Search{
     LuceneUtils lUtils = null;
     int argc = 0;
 
-    // parse command-line args
+    // Parse command-line arguments.
     while( args[argc].substring(0, 1).equals("-") ){
       if( args[argc].equals("-q") ){
         queryFile = args[argc + 1];
@@ -114,9 +114,12 @@ public class Search{
       }
     }
 
-    /* reading and searching test */
+    // Open vector stores, build query and search for neighbors.
     try{
-      VectorStoreReader vecReader = new VectorStoreReader(queryFile);
+			// Default VectorStore implementation is (Lucene) VectorStoreReader.
+      // To use plain text index format, change "VectorStoreReader" here and below
+      // to "VectorStoreReaderText".
+      VectorStore vecReader = new VectorStoreReader(queryFile);
       System.err.println("Opening query vector store from file: " + queryFile);
 
       if (lucenePath != null) {
