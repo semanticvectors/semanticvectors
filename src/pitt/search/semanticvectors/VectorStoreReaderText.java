@@ -90,7 +90,7 @@ public class VectorStoreReaderText implements VectorStore {
     }
   }
 
-  public Enumeration getAllVectors(){
+  public Enumeration getAllVectors() {
     try{
       this.inBuf = new BufferedReader(new FileReader (vectorFileText));
       if (hasHeader) {
