@@ -1,6 +1,18 @@
 #summary Release Log
 #labels Phase-Implementation
 
+Even-numbered versions are releases. Odd-numbered versions are in development. It follows that the most recent code and the `build.xml` file in the SVN repository is always odd-numbered.
+
+=== Version 1.7 ===
+
+Many changes have been made for Oxford presentation and SemanticVectors paper. 
+   # Tensors refactored
+   # `SearchPlane` added for disjunctions
+   # `BuildModel` added because it's a better name.
+   # The most significant structural change is to `VectorSearcher.getScore()`. This no longer takes a `queryVector` and `testVector`: the query statements are now built into the state of the `VectorSearcher`, and only a `testVector` is needed for `getScore()`.
+
+Much cleanup needs to be done before shipping version 1.8., but these will be good changes.
+
 === Release 1.6 ===
 
 2008-03-18
