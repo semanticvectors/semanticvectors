@@ -47,97 +47,102 @@ import java.lang.NullPointerException;
  * Implementation of vector store that collects doc vectors by
  * iterating through all the terms in a term vector store and
  * incrementing document vectors for each of the documents containing
- * that term.
- *  
+ * that term. <br>
+ *
+ * TODO(widdows): This is a memory expensive implementation: it
+ * creates both a document matrix (for quick population) and then a
+ * document hashtable (to send to the VectorStoreWriter). This is a
+ * poor design and should be refactored. <br>
+ *
  * @param termVectorData Has all the information needed to create doc vectors.
  */
 public class DocVectors implements VectorStore {
 
-    private Hashtable<String, ObjectVector> docVectors;
-    private TermVectorsFromLucene termVectorData;
-    private IndexReader indexReader;
+	private Hashtable<String, ObjectVector> docVectors;
+	private TermVectorsFromLucene termVectorData;
+	private IndexReader indexReader;
 
-		/**
-		 * Constructor that gets everything it needs from a TermVectorsFromLucene object.
-		 */
-    public DocVectors (TermVectorsFromLucene termVectorData) throws IOException {
-				this.termVectorData = termVectorData;
-				this.indexReader = termVectorData.getIndexReader();
-				this.docVectors = new Hashtable();
+	/**
+	 * Constructor that gets everything it needs from a
+	 * TermVectorsFromLucene object.
+	 */
+	public DocVectors (TermVectorsFromLucene termVectorData) throws IOException {
+		this.termVectorData = termVectorData;
+		this.indexReader = termVectorData.getIndexReader();
+		this.docVectors = new Hashtable();
 	
-				System.err.println("Initializing document matrix ...");
-				float[][] docMatrix = new float[indexReader.numDocs()][ObjectVector.vecLength];
-				for (int i=0; i < indexReader.numDocs(); ++i) {
+		System.err.println("Initializing document matrix ...");
+		float[][] docMatrix = new float[indexReader.numDocs()][ObjectVector.vecLength];
+		for (int i=0; i < indexReader.numDocs(); ++i) {
+			for (int j = 0; j < ObjectVector.vecLength; ++j) {
+				docMatrix[i][j] = 0;
+			}
+		}
+
+		System.out.println("Building document vectors ...");
+		Enumeration<ObjectVector> termEnum = termVectorData.getAllVectors();
+
+		try {
+			int dc = 0;
+			while (termEnum.hasMoreElements()) {
+				/* output progress counter */
+				if ((dc % 10000 == 0) || (dc < 10000 && dc % 1000 == 0)) {
+					System.err.print(dc + " ... ");
+				}
+				dc++;
+
+				ObjectVector termVectorObject = termEnum.nextElement();
+				float[] termVector = termVectorObject.getVector();
+				String word = (String)termVectorObject.getObject();
+				int docNum;
+
+				// go through checking terms for each fieldName
+				for (String fieldName: termVectorData.getFieldsToIndex()) {
+					Term term = new Term(fieldName, word);
+					// get any docs for this term
+					TermDocs td = indexReader.termDocs(term);
+					while (td.next()) {
+						docNum = td.doc();
+						// add vector from this term, taking freq into account
 						for (int j = 0; j < ObjectVector.vecLength; ++j) {
-								docMatrix[i][j] = 0;
+							docMatrix[docNum][j] += td.freq() * termVector[j];
 						}
+					}
 				}
+			}
+		}
+		catch (IOException e) { // catches from indexReader.
+			e.printStackTrace();
+		}
 
-				System.out.println("Building document vectors ...");
-				Enumeration<ObjectVector> termEnum = termVectorData.getAllVectors();
+		System.err.println("\nCreated document matrix ... transforming to hashtable ...");
 
-				try {
-						int dc = 0;
-						while (termEnum.hasMoreElements()) {
-								/* output progress counter */
-								if ((dc % 10000 == 0) || (dc < 10000 && dc % 1000 == 0)) {
-										System.err.print(dc + " ... ");
-								}
-								dc++;
+		int dc = 0;
+		for (int i = 0; i < indexReader.numDocs(); ++i) {
+			/* output progress counter */
+			if ((dc % 10000 == 0) || (dc < 10000 && dc % 1000 == 0)) {
+				System.err.print(dc + " ... ");
+			}
+			dc++;
+			String docName;
+			if (indexReader.document(i).getField("path") != null) {
+				docName = indexReader.document(i).getField("path").stringValue();
+			} else {
+				// For bilingual docs, we index "filename" not "path",
+				// since there are two system paths, one for each
+				// language. So if there was no "path", get the "filename".
+				docName = indexReader.document(i).getField("filename").stringValue();
+			}
+			float[] docVec = VectorUtils.getNormalizedVector(docMatrix[i]);
+			docVectors.put(docName, new ObjectVector(docName, docVec));
+		}
+	}
 
-								ObjectVector termVectorObject = termEnum.nextElement();
-								float[] termVector = termVectorObject.getVector();
-								String word = (String)termVectorObject.getObject();
-								int docNum;
+	public float[] getVector(Object path){
+		return docVectors.get(path).getVector();
+	}
 
-								// go through checking terms for each fieldName
-								for (String fieldName: termVectorData.getFieldsToIndex()) {
-										Term term = new Term(fieldName, word);
-										// get any docs for this term
-										TermDocs td = indexReader.termDocs(term);
-										while (td.next()) {
-												docNum = td.doc();
-												// add vector from this term, taking freq into account
-												for (int j = 0; j < ObjectVector.vecLength; ++j) {
-														docMatrix[docNum][j] += td.freq() * termVector[j];
-												}
-										}
-								}
-						}
-				}
-				catch (IOException e) { // catches from indexReader.
-						e.printStackTrace();
-				}
-
-				System.err.println("\nCreated document matrix ... writing to disk ...");
-
-				int dc = 0;
-				for (int i = 0; i < indexReader.numDocs(); ++i) {
-						/* output progress counter */
-						if ((dc % 10000 == 0) || (dc < 10000 && dc % 1000 == 0)) {
-								System.err.print(dc + " ... ");
-						}
-						dc++;
-						String docName;
-						if (indexReader.document(i).getField("path") != null) {
-								 docName = indexReader.document(i).getField("path").stringValue();
-						} else {
-						// For bilingual docs, we index "filename" not "path",
-						// since there are two system paths, one for each
-						// language. So if there was no "path", get the "filename".
-								docName = indexReader.document(i).getField("filename").stringValue();
-						}
-						float[] docVec = VectorUtils.getNormalizedVector(docMatrix[i]);
-						docVectors.put(docName, new ObjectVector(docName, docVec));
-				}
-    }
-
-
-    public float[] getVector(Object path){
-				return docVectors.get(path).getVector();
-    }
-
-    public Enumeration getAllVectors(){
-				return docVectors.elements();
-    }
+	public Enumeration getAllVectors(){
+		return docVectors.elements();
+	}
 }    
