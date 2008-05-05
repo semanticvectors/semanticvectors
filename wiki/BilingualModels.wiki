@@ -6,6 +6,8 @@
 
 This is new functionality and is still somewhat bleeding-edge. Expect to have to put some effort in to get this to work.
 
+In particular, there have been problems getting the Europarl data unzipped and aligned on Windows platforms, and some unforeseen word-splitting at accented characters on Windows. We are working on trying to find and document solutions to these problems.
+
 == Background ==
 
 If you have a corpus of parallel documents, you can use this to build a bilingual model.
