@@ -61,15 +61,26 @@ public class CompoundVectorBuilder {
 
 	/**
 	 * Method gets a query vector from a query string, i.e., a
-	 * space-separated list of queryterms. The method is static and
-	 * creates its own CompoundVectorBuilder.  This enables client
-	 * code just to call "getQueryVector" without creating an object
-	 * first, though this may be slightly less efficient for multiple
-	 * calls.
+	 * space-separated list of queryterms.
+	 */
+	 public static float[] getQueryVectorFromString(VectorStore vecReader,
+																									LuceneUtils lUtils,
+																									String queryString) {
+		 String[] queryTerms = queryString.split("\\s");
+		 return getQueryVector(vecReader, lUtils, queryTerms);
+	 }
+
+	/**
+	 * Method gets a query vector from an array of query terms. The
+	 * method is static and creates its own CompoundVectorBuilder.  This
+	 * enables client code just to call "getQueryVector" without
+	 * creating an object first, though this may be slightly less
+	 * efficient for multiple calls.
 	 * @param vecReader The vector store reader to use.
 	 * @param lUtils Lucene utilities for getting term weights.
-	 * @param queryString Query expression, e.g., from command line.
-	 *        If the term NOT is used in queryString, terms after that will be negated.
+	 * @param queryTerms Query expression, e.g., from command line.  If
+	 *        the term NOT appears in queryTerms, terms after that will
+	 *        be negated.
 	 * @return queryVector, an array of floats representing the user's query.
 	 */
 	public static float[] getQueryVector(VectorStore vecReader,

@@ -49,6 +49,7 @@ public class Search {
 	static String queryFile = "termvectors.bin";
 	static String searchFile = "";
 	static String lucenePath = null;
+	static VectorStore queryVecReader, searchVecReader;
 	static boolean textIndex = false; 
 	static LuceneUtils lUtils = null;
 	static SearchType searchType = SearchType.SUM;
@@ -60,13 +61,13 @@ public class Search {
    * <br> Usage: java pitt.search.semanticvectors.Search [-q query_vector_file]
    * <br>                                                [-s search_vector_file]
    * <br>                                                [-l path_to_lucene_index]
+	 * <br>                                                [-searchtype TYPE]
    * <br>                                                &lt;QUERYTERMS&gt;
-   * <br> -q argument must precede -s argument if they differ;
-   * <br>     otherwise -s will default to -q.
    * <br> If no query or search file is given, default will be
    * <br>     termvectors.bin in local directory.
    * <br> -l argument my be used to get term weights from
    * <br>     term frequency, doc frequency, etc. in lucene index.
+	 * <br> -searchtype can be one of SUM, SUBSPACE, MAXSIM, TENSOR, CONVOLUTION
    * <br> &lt;QUERYTERMS&gt; should be a list of words, separated by spaces.
    * <br> If the term NOT is used, terms after that will be negated.
    * </code>
@@ -76,6 +77,7 @@ public class Search {
 			+ "\nUsage: java pitt.search.semanticvectors.Search [-q query_vector_file]"
 			+ "\n                                               [-s search_vector_file]"
 			+ "\n                                               [-l path_to_lucene_index]"
+			+ "\n                                               [-searchtype TYPE]"
 			+ "\n                                               <QUERYTERMS>"
 			+ "\n-q argument must precede -s argument if they differ;"
 			+ "\n    otherwise -s will default to -q."
@@ -83,6 +85,7 @@ public class Search {
 			+ "\n    termvectors.bin in local directory."
 			+ "\n-l argument is needed if to get term weights from"
 			+ "\n    term frequency, doc frequency, etc. in lucene index."
+			+ "\n-searchtype can be one of SUM, SUBSPACE, MAXSIM, TENSOR, CONVOLUTION"
 			+ "\n<QUERYTERMS> should be a list of words, separated by spaces."
 			+ "\n    If the term NOT is used, terms after that will be negated.";
     System.out.println(usageMessage);
@@ -92,14 +95,16 @@ public class Search {
   /**
    * Takes a user's query, creates a query vector, and searches a vector store.
    * @param args See usage();
+	 * @param numResults Number of search results to be returned in a ranked list.
+	 * @return Linked list containing <code>numResults</code> search results.
    */
-  public static void main (String[] args) {
+  public static LinkedList<SearchResult> RunSearch (String[] args, int numResults) {
 		/** 
-		 * This main function has four main stages:
+		 * The RunSearch function has four main stages:
 		 * i. Parse command line arguments.
 		 * ii. Open corresponding vector and lucene indexes.
 		 * iii. Based on search type, build query vector and perform search.
-		 * iv. Print out results to STDOUT. (Everything else prints to STDERR.)
+		 * iv. Return LinkedList of results, usually for main() to print out.
 		 *
 		 * Stage iii. is a large switch statement, that depends on the searchType.
 		 *
@@ -138,7 +143,7 @@ public class Search {
 			// lead to the most complex implementational differences later.
 			else if (args[argc].equals("-searchtype")) {
 				String searchTypeString = args[argc + 1];
-				searchTypeString.toLowerCase();
+				searchTypeString = searchTypeString.toLowerCase();
 				if (searchTypeString.equals("sum")) {
 					searchType = SearchType.SUM;
 				}
@@ -185,7 +190,6 @@ public class Search {
     try {
 			// Default VectorStore implementation is (Lucene) VectorStoreReader.
       System.err.println("Opening query vector store from file: " + queryFile);
-			VectorStore queryVecReader, searchVecReader;
 			if (textIndex) { queryVecReader = new VectorStoreReaderText(queryFile); }
 			else { queryVecReader = new VectorStoreReader(queryFile); }
 
@@ -208,6 +212,10 @@ public class Search {
           System.err.println("Couldn't open Lucene index at " + lucenePath);
         }
       }
+		}
+    catch (IOException e) {
+      e.printStackTrace();
+    }
 
       // This takes the slice of args from argc to end.
       String queryTerms[] = new String[args.length - argc];
@@ -215,9 +223,8 @@ public class Search {
 				queryTerms[j] = args[j + argc];
       }
 
-			LinkedList<SearchResult> results = new LinkedList();
-
 			VectorSearcher vecSearcher;
+			LinkedList<SearchResult> results = new LinkedList();
 			// Stage iii. Perform search according to which searchType was selected.
 			// Most options have corresponding dedicated VectorSearcher subclasses.
 			switch(searchType) {
@@ -229,8 +236,9 @@ public class Search {
 																									searchVecReader,
 																									lUtils,
 																									queryTerms);
-				System.err.print("Searching term vectors ... ");
-				results = vecSearcher.getNearestNeighbors(20);
+				System.err.print("Searching term vectors, searchtype SUM ... ");
+				results = vecSearcher.getNearestNeighbors(numResults);
+				break;
 
 			// Tensor product.
 			case TENSOR:
@@ -240,22 +248,80 @@ public class Search {
 																										 searchVecReader,
 																										 lUtils,
 																										 queryTerms);
-				System.err.print("Searching term vectors ... ");
-				results = vecSearcher.getNearestNeighbors(20);
-				
-			}
+				System.err.print("Searching term vectors, searchtype TENSOR ... ");
+				results = vecSearcher.getNearestNeighbors(numResults);
+				break;
 			
-			// Stage iv. Print out results.
-			System.err.println("Search output follows ...");
-			for (SearchResult result: results) {
+			// Convolution product.
+			case CONVOLUTION:
+				// Create VectorSearcher and search for nearest neighbors.
+				vecSearcher =
+					new VectorSearcher.VectorSearcherConvolutionSim(queryVecReader,
+																													searchVecReader,
+																													lUtils,
+																													queryTerms);
+				System.err.print("Searching term vectors, searchtype CONVOLUTION ... ");
+				results = vecSearcher.getNearestNeighbors(numResults);
+				break;
+
+			// Quantum disjunction / subspace similarity.
+			case SUBSPACE:
+				// Create VectorSearcher and search for nearest neighbors.
+				vecSearcher =
+					new VectorSearcher.VectorSearcherSubspaceSim(queryVecReader,
+																											 searchVecReader,
+																											 lUtils,
+																											 queryTerms);
+				System.err.print("Searching term vectors, searchtype SUBSPACE ... ");
+				results = vecSearcher.getNearestNeighbors(numResults);
+				break;
+
+			// Quantum disjunction / subspace similarity.
+			case MAXSIM:
+				// Create VectorSearcher and search for nearest neighbors.
+				vecSearcher =
+					new VectorSearcher.VectorSearcherMaxSim(queryVecReader,
+																									searchVecReader,
+																									lUtils,
+																									queryTerms);
+				System.err.print("Searching term vectors, searchtype MAXSIM ... ");
+				results = vecSearcher.getNearestNeighbors(numResults);
+				break;
+
+			default:
+				System.err.println("Search type unrecognized ...");
+				results = new LinkedList();
+			}
+		return results;
+	}
+
+	/**
+	 * Search wrapper that returns the list of ObjectVectors.
+	 */
+	public static ObjectVector[] getSearchResultVectors(String[] args, int numResults) { 
+		LinkedList<SearchResult> results = Search.RunSearch(args, numResults);
+		ObjectVector[] resultsList = new ObjectVector[results.size()];
+		for (int i = 0; i < results.size(); ++i) {
+			String term = ((ObjectVector)results.get(i).getObject()).getObject().toString();
+			System.err.println(term);
+			float[] tmpVector = searchVecReader.getVector(term);
+			resultsList[i] = new ObjectVector(term, tmpVector);
+		}
+		return resultsList;
+	}
+
+  /**
+   * Takes a user's query, creates a query vector, and searches a vector store.
+   * @param args See usage();
+   */
+  public static void main (String[] args) {
+		int numResults = 20;
+		LinkedList<SearchResult> results = RunSearch(args, numResults);
+		// Print out results.
+		System.err.println("Search output follows ...");
+		for (SearchResult result: results) {
 				System.out.println(result.getScore() + ":" +
 													 ((ObjectVector)result.getObject()).getObject().toString());
-			}
-
-
-    }
-    catch (IOException e){
-      e.printStackTrace();
-    }
-  }
+		}
+	}
 }

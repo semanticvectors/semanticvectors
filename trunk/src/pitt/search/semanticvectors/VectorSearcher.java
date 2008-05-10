@@ -42,7 +42,7 @@ import java.util.Enumeration;
 
 /**
  * Class for searching vector stores using different scoring functions.
- `* Each VectorSearcher implements a particular scoring function which is 
+ * Each VectorSearcher implements a particular scoring function which is 
  * normally query dependent, so each query needs its own VectorSearcher.
  */
 abstract public class VectorSearcher{
@@ -56,9 +56,16 @@ abstract public class VectorSearcher{
 	 */
 	public abstract float getScore(float[] testVector);
 
+
+	/**
+	 * Performs basic initialization; subclasses should normally call super() to use this.
+	 * @param queryVecStore Vector store to use for query generation.
+	 * @param searchVecStore The vector store to search.
+	 * @param luceneUtils LuceneUtils object to use for query weighting. (May be null.)
+	 */
 	public VectorSearcher(VectorStore queryVecStore,
 												VectorStore searchVecStore,
-												LuceneUtils lucenUtils) {
+												LuceneUtils luceneUtils) {
 		this.queryVecStore = queryVecStore;
 		this.searchVecStore = searchVecStore;
 		this.luceneUtils = luceneUtils;
@@ -121,6 +128,13 @@ abstract public class VectorSearcher{
 	static public class VectorSearcherCosine extends VectorSearcher {
 		float[] queryVector;
 
+		/**
+		 * @param queryVecStore Vector store to use for query generation.
+		 * @param searchVecStore The vector store to search.
+		 * @param luceneUtils LuceneUtils object to use for query weighting. (May be null.)
+		 * @param queryTerms Terms that will be parsed into a query
+		 * expression. 
+		 */
 		public VectorSearcherCosine(VectorStore queryVecStore,
 																VectorStore searchVecStore,
 																LuceneUtils luceneUtils,
@@ -149,8 +163,12 @@ abstract public class VectorSearcher{
 		private float[][] trainingTensor;
 		private float[] partnerVector;
 		/**
+		 * @param queryVecStore Vector store to use for query generation.
 		 * @param searchVecStore The vector store to search.
-		 * test vector to form a tensor product for comparison.
+		 * @param luceneUtils LuceneUtils object to use for query weighting. (May be null.)
+		 * @param queryTerms Terms that will be parsed into a query
+		 * expression. TODO(dwiddows): Document appropriate structure of
+		 * queryTerms.
 		 */
 		public VectorSearcherTensorSim(VectorStore queryVecStore,
 																	 VectorStore searchVecStore,
@@ -210,97 +228,169 @@ abstract public class VectorSearcher{
 			return VectorUtils.getInnerProduct(this.trainingTensor, testTensor);
 		}
 	}
-}
+
 	/**
-	 * Like VectorSearcherTensorSim, but uses convolution product.
-	 *
-	 static public class VectorSearcherConvolutionSim extends VectorSearcher {
-	 private float[] relConvolution;
-	 private float[] partnerVector;
-	 /**
-	 * @param searchVecStore The vector store to search.
-	 * @param relTensor The tensor being used for
-	 * comparison. This is turned into a convolution product
-	 * internally, but passed in as a tensor to keep the same
-	 * interface as VectorSearcherTensorSim.
-	 * @param partnerVector The vector that will be paired with the
-	 * test vector to form a convolution product for comparison.
-	 *
-	 public VectorSearcherConvolutionSim(VectorStore searchVecStore,
-	 float[][] relTensor,
-	 float[] partnerVector) {
-	 super(searchVecStore);
-	 this.relConvolution = VectorUtils.getConvolutionFromTensor(relTensor);
-	 this.partnerVector = partnerVector;
-	 }
+	 * Class for searching a vector store using convolution similarity.
+	 * Interface is similar to that for VectorSearcherTensorSim.
+	 */
+	static public class VectorSearcherConvolutionSim extends VectorSearcher {
+		private float[] trainingConvolution;
+		private float[] partnerVector;
+		/**
+		 * @param queryVecStore Vector store to use for query generation.
+		 * @param searchVecStore The vector store to search.
+		 * @param luceneUtils LuceneUtils object to use for query weighting. (May be null.)
+		 * @param queryTerms Terms that will be parsed into a query
+		 * expression. TODO(dwiddows): Document appropriate structure of
+		 * queryTerms.
+		 */
+		public VectorSearcherConvolutionSim(VectorStore queryVecStore,
+																				VectorStore searchVecStore,
+																				LuceneUtils luceneUtils,
+																				String[] queryTerms) {
+			super(queryVecStore, searchVecStore, luceneUtils);
+			this.trainingConvolution = new float[2 * ObjectVector.vecLength - 1];
+			for (int i = 0; i < 2 * ObjectVector.vecLength - 1; ++i) {
+				this.trainingConvolution[i] = 0;
+			}
 
-	 /**
-	 * @param testVector Vector being tested.
-	 *
-	 public float getScore(float[] testVector) {
-	 float[] testConvolution =
-	 VectorUtils.getConvolutionFromVectors(this.partnerVector, testVector);
-	 return VectorUtils.scalarProduct(this.relConvolution, testConvolution);
-	 }
+			// Collect tensor training relations.
+			int i = 0;
+			while (queryTerms[i].indexOf("~") > 0) {
+				System.err.println("Training pair: " + queryTerms[i]);
+				String[] trainingTerms = queryTerms[i].split("~");
+				if (trainingTerms.length != 2) {
+					System.err.println("Tensor training terms must be pairs split by individual"
+														 + " '~' character. Error with: '" + queryTerms[i] + "'");
+				}
+				float[] trainingVec1 = queryVecStore.getVector(trainingTerms[0]);
+				float[] trainingVec2 = queryVecStore.getVector(trainingTerms[1]);
+				if (trainingVec1 != null && trainingVec2 != null) {
+					float[] trainingPair =
+						VectorUtils.getConvolutionFromVectors(trainingVec1, trainingVec2);
+					for (int j = 0; j < 2 * ObjectVector.vecLength - 1; ++j) {
+						this.trainingConvolution[j] += trainingPair[j];
+					}
+				}
+				++i;
+			}
 
-	 /**
-	 * @param rel1 Part of training relation.
-	 * @param rel2 Part of training relation.
-	 * Creates a relation convolution from rel1 and rel2, which query / test vectors
-	 * will be compared with.
-	 *
-	 public VectorSearcherConvolutionSim(VectorStore searchVecStore,
-	 float[] rel1, float[] rel2,
-	 float[] partnerVector) {
-	 super(searchVecStore);
-	 // TODO (widdows): This isn't space efficient but permits entanglement.
-	 // Should implement entangled sum for this to work, though.
-	 float[][] relTensor = VectorUtils.getOuterProduct(rel1, rel2);
-	 this.relConvolution = VectorUtils.getConvolutionFromTensor(relTensor);
-	 this.partnerVector = partnerVector;
-	 }
-	 }
+			// Check to see that we got a non-zero training tensor before moving on.
+			if (VectorUtils.isZeroVector(trainingConvolution)) {
+				System.err.println("Convolution training relation is zero ... no results.");
+				System.exit(-1);
+			}
+			this.trainingConvolution = VectorUtils.getNormalizedVector(trainingConvolution);
 
+			String[] partnerTerms = new String[queryTerms.length - i];
+			for (int j = 0; j < queryTerms.length - i; ++j) {
+				partnerTerms[j] = queryTerms[i + j];
+			}
+			this.partnerVector = CompoundVectorBuilder.getQueryVector(queryVecStore,
+																																luceneUtils,
+																																partnerTerms);
+			if (VectorUtils.isZeroVector(this.partnerVector)) {
+				System.err.println("Query vector is zero ... no results.");
+				System.exit(-1);
+			}
+		}
+		
+		/**
+		 * @param testVector Vector being tested.
+		 * Scores are hopefully high when the relationship between queryVector
+		 * and testVector is analogoues to the relationship between rel1 and rel2.
+		 */
+		public float getScore(float[] testVector) {
+			float[] testConvolution =
+				VectorUtils.getConvolutionFromVectors(this.partnerVector, testVector);
+			testConvolution = VectorUtils.getNormalizedVector(testConvolution);
+			return VectorUtils.scalarProduct(this.trainingConvolution, testConvolution);
+		}
+	}
 
-	 /**
+	/**
 	 * Class for searching a vector store using quantum disjunction similarity.
-	 *
-	 static public class VectorSearcherPlane extends VectorSearcher {
-	 private ArrayList<float[]> disjunctSpace;
-	 /**
-	 * @param searchVecStore The vector store to search.
-	 * @param queryString The string to parse into a subspace.
-	 *
-	 public VectorSearcherPlane(VectorStore searchVecStore,
-	 String queryString) {
-	 super(searchVecStore);
-	 this.disjunctSpace = new ArrayList();
+	 */	 
+	static public class VectorSearcherSubspaceSim extends VectorSearcher {
+		private ArrayList<float[]> disjunctSpace;
+		/**
+		 * @param queryVecStore Vector store to use for query generation.
+		 * @param searchVecStore The vector store to search.
+		 * @param luceneUtils LuceneUtils object to use for query weighting. (May be null.)
+		 * @param queryTerms Terms that will be parsed and used to generate a query subspace.
+		 */
+		public VectorSearcherSubspaceSim(VectorStore queryVecStore,
+																		 VectorStore searchVecStore,
+																		 LuceneUtils luceneUtils,
+																		 String[] queryTerms) {
+			super(queryVecStore, searchVecStore, luceneUtils);
+			this.disjunctSpace = new ArrayList();
 
-	 System.out.println(queryString);
-	 String[] queryTerms = queryString.split(" ");
-	 for (int i = 0; i < queryTerms.length; ++i) {
-	 System.out.println("\t" + queryTerms[i]);
-	 float[] tmpVector = vecStore.getVector(queryTerms[i]);
-	 if (tmpVector != null) {
-	 this.disjunctSpace.add(tmpVector);
-	 }
-	 }
-	 VectorUtils.orthogonalizeVectors(this.disjunctSpace);
-	 }
+			for (int i = 0; i < queryTerms.length; ++i) {
+				System.out.println("\t" + queryTerms[i]);
+				float[] tmpVector = queryVecStore.getVector(queryTerms[i]);
+				if (tmpVector != null) {
+					this.disjunctSpace.add(tmpVector);
+				}
+			}
+			VectorUtils.orthogonalizeVectors(this.disjunctSpace);
+		}
 
-	 /**
-	 * @param testVector Vector being tested.
-	 *
-	 * Scoring works by taking scalar product with disjunctSpace
-	 * (which must by now be represented using an orthogonal basis).
-	 *
-	 public float getScore(float[] testVector) {
-	 float score = 0;
-	 for (int i = 0; i < disjunctSpace.size(); ++i) {
-	 score += VectorUtils.scalarProduct(this.disjunctSpace.get(i), testVector);
-	 }
-	 return score;
-	 }
-	 }
-	 }
-	*/
+		/**
+		 * Scoring works by taking scalar product with disjunctSpace
+		 * (which must by now be represented using an orthogonal basis).
+		 * @param testVector Vector being tested.
+		 */
+		public float getScore(float[] testVector) {
+			float score = 0;
+			for (int i = 0; i < disjunctSpace.size(); ++i) {
+				score += VectorUtils.scalarProduct(this.disjunctSpace.get(i), testVector);
+			}
+			return score;
+		}
+	}
+
+	/**
+	 * Class for searching a vector store using minimum distance similarity.
+	 */	 
+	static public class VectorSearcherMaxSim extends VectorSearcher {
+		private ArrayList<float[]> disjunctVectors;
+		/**
+		 * @param queryVecStore Vector store to use for query generation.
+		 * @param searchVecStore The vector store to search.
+		 * @param luceneUtils LuceneUtils object to use for query weighting. (May be null.)
+		 * @param queryTerms Terms that will be parsed and used to generate a query subspace.
+		 */
+		public VectorSearcherMaxSim(VectorStore queryVecStore,
+																VectorStore searchVecStore,
+																LuceneUtils luceneUtils,
+																String[] queryTerms) {
+			super(queryVecStore, searchVecStore, luceneUtils);
+			this.disjunctVectors = new ArrayList();
+
+			for (int i = 0; i < queryTerms.length; ++i) {
+				float[] tmpVector = queryVecStore.getVector(queryTerms[i]);
+				if (tmpVector != null) {
+					this.disjunctVectors.add(tmpVector);
+				}
+			}
+		}
+
+		/**
+		 * Scoring works by taking scalar product with disjunctSpace
+		 * (which must by now be represented using an orthogonal basis).
+		 * @param testVector Vector being tested.
+		 */
+		public float getScore(float[] testVector) {
+			float score = -1;
+			float max_score = -1;
+			for (int i = 0; i < disjunctVectors.size(); ++i) {
+				score = VectorUtils.scalarProduct(this.disjunctVectors.get(i), testVector);
+				if (score > max_score) {
+					max_score = score;
+				}
+			}
+			return max_score;
+		}
+	}
+}
