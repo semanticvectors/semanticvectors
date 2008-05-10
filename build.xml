@@ -29,7 +29,7 @@
 	<!-- Tests do not currently ship with standard distributions; to
 	     compile and run tests, check out test/ dir from the svn repository.
 	     You will also need to install junit (www.junit.org) -->
-  <target name="compile-tests" depends="init">
+  <target name="compile-tests" depends="compile">
     <javac srcdir="${testdir}"
 	   destdir="${buildclassesdir}"
 	   debug="on"

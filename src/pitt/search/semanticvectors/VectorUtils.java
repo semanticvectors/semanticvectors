@@ -47,6 +47,13 @@ import java.util.Random;
  */
 public class VectorUtils{
 
+	static void printVector(float[] vector) {
+		for (int i = 0; i < vector.length; ++i) {
+			System.out.print(vector[i] + " ");
+		}
+		System.out.println();
+	}
+
 	/**
 	 * Check whether a vector is all zeros.
 	 */
@@ -92,6 +99,37 @@ public class VectorUtils{
 		}
 		return result;
 	}
+
+
+	/* Euclidean distance metric */
+	public static float euclideanDistance(float[] vec1, float[] vec2){
+		float distance=0;
+		for( int i=0; i<vec1.length; i++ ){
+	    distance += (vec1[i]-vec2[i])*(vec1[i]-vec2[i]);
+		}
+		return (float)Math.sqrt(distance);
+	}
+
+	/**
+	 * Get nearest vector from list of candidates. 
+	 * @param vector The vector whose nearest neighbor is to be found.
+	 * @param candidates The list of vectors from whoe the nearest is to be chosen.
+	 * @return Integer value referencing the position in the candidate list of the nearest vector.
+	 */
+	public static int getNearestVector(float[] vector, float[][] candidates) {
+		int nearest = 0;
+		float minDist = euclideanDistance( vector, candidates[0] );
+		float thisDist = minDist;
+		for( int i=1; i<candidates.length; i++ ){
+	    thisDist = euclideanDistance( vector, candidates[i] );
+	    if(thisDist < minDist ){
+				minDist = thisDist;
+				nearest = i;
+	    }
+		}
+		return nearest;
+	}
+
 
 	/**
 	 * Returns the normalized version of a vector, i.e. same direction,
@@ -146,7 +184,7 @@ public class VectorUtils{
 	}
 
 	/** 
-	 * Returns te sum of two tensors.  
+	 * Returns the sum of two tensors.  
 	 */
 	public static float[][]	getTensorSum(float[][] ten1, float[][] ten2) {
 		int dim = ten1[0].length;
@@ -199,9 +237,9 @@ public class VectorUtils{
 	 * Returns the convolution of two vectors; see Plate,
 	 * Holographic Reduced Representation, p. 76.
 	 */
-	public static float[] getConvolutionFromVectors(float[] vec1, float[] vec2){
+	public static float[] getConvolutionFromVectors(float[] vec1, float[] vec2) {
 		int dim = vec1.length;
-		float[] conv = new float[2*dim - 1];
+		float[] conv = new float[2 * dim - 1];
 		for (int i = 0; i < dim; ++i) {
 	    conv[i] = 0;
 	    conv[conv.length - 1 - i] = 0;
@@ -228,7 +266,7 @@ public class VectorUtils{
 	 * negation function to give an vector for
 	 * vectors[last] NOT (vectors[0] OR ... OR vectors[last - 1].
 	 *
-	 * @param vectors Array of vectors (which are themselves arrays of
+	 * @param vectors ArrayList of vectors (which are themselves arrays of
 	 * floats) to be orthogonalized in place.
 	 */
 	public static boolean orthogonalizeVectors(ArrayList<float[]> vectors) {
@@ -249,7 +287,7 @@ public class VectorUtils{
 					kthVector[i] -= dotProduct * jthVector[i];
 				}
 	    }
-			/* normalize the vector we're working on */
+			/* Normalize the vector we're working on. */
 			vectors.set(k, getNormalizedVector(kthVector));
 		}
 		return true;
