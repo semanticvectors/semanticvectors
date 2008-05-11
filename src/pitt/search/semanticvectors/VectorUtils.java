@@ -118,11 +118,11 @@ public class VectorUtils{
 	 */
 	public static int getNearestVector(float[] vector, float[][] candidates) {
 		int nearest = 0;
-		float minDist = euclideanDistance( vector, candidates[0] );
+		float minDist = euclideanDistance(vector, candidates[0]);
 		float thisDist = minDist;
-		for( int i=1; i<candidates.length; i++ ){
-	    thisDist = euclideanDistance( vector, candidates[i] );
-	    if(thisDist < minDist ){
+		for (int i = 1; i < candidates.length; ++i) {
+	    thisDist = euclideanDistance(vector, candidates[i]);
+	    if (thisDist < minDist) {
 				minDist = thisDist;
 				nearest = i;
 	    }
