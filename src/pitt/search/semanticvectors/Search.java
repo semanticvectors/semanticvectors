@@ -114,12 +114,20 @@ public class Search {
 		 * lead to errors. So the trade-off is to make the code more
 		 * complex and the usage simpler.
 		 */
-
     if (args.length == 0) {
       usage();
     }
 
     int argc = 0;
+
+		// Lower case all arguments: this is standard policy for
+		// now. Please don't write internal code that depends on this
+		// assumption, in case we want to change this.  Fixes issue 4,
+		// http://code.google.com/p/semanticvectors/issues/detail?id=4
+		// though there could be better solutions. DW, version 1.7.
+		for (int i = 0; i < args.length; ++i) {
+			args[i]= args[i].toLowerCase();
+		}
 
     // Stage i. Parse all the command-line arguments.
     while (args[argc].substring(0, 1).equals("-")) {
