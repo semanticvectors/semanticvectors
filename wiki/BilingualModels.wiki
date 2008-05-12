@@ -6,7 +6,7 @@
 
 This is new functionality and is still somewhat bleeding-edge. Expect to have to put some effort in to get this to work.
 
-In particular, there have been problems getting the Europarl data unzipped and aligned on Windows platforms, and some unforeseen word-splitting at accented characters on Windows. We are working on trying to find and document solutions to these problems.
+In particular, there have been problems getting the Europarl data unzipped and aligned on Windows platforms, and some unforeseen word-splitting at accented characters on Windows. In addition, the scripts for generating the Europarl data have not worked for us on Windows yet. Rather than spend more time on this at the moment, current users have switched to Unix / Linux style systems (see [http://groups.google.com/group/semanticvectors/browse_thread/thread/7a4d301913a3fc72 this thread]). If this solution doesn't work for you, please contact us.
 
 == Background ==
 
