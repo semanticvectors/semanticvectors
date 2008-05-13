@@ -35,8 +35,8 @@
 
 package pitt.search.semanticvectors;
 
-import java.util.LinkedList;
 import java.io.IOException;
+import java.util.LinkedList;
 
 /**
  * Command line term vector search utility.
@@ -131,6 +131,11 @@ public class Search {
 
     // Stage i. Parse all the command-line arguments.
     while (args[argc].substring(0, 1).equals("-")) {
+			// If the args list is now too short, this is an error.
+			if (args.length - argc <= 2) {
+				usage();
+			}
+
       if (args[argc].equals("-q")) {
         queryFile = args[argc + 1];
         argc += 2;
@@ -225,81 +230,81 @@ public class Search {
       e.printStackTrace();
     }
 
-      // This takes the slice of args from argc to end.
-      String queryTerms[] = new String[args.length - argc];
-      for (int j = 0; j < args.length - argc; ++j) {
-				queryTerms[j] = args[j + argc];
-      }
-
-			VectorSearcher vecSearcher;
-			LinkedList<SearchResult> results = new LinkedList();
-			// Stage iii. Perform search according to which searchType was selected.
-			// Most options have corresponding dedicated VectorSearcher subclasses.
-			switch(searchType) {
+		// This takes the slice of args from argc to end.
+		String queryTerms[] = new String[args.length - argc];
+		for (int j = 0; j < args.length - argc; ++j) {
+			queryTerms[j] = args[j + argc];
+		}
+		
+		VectorSearcher vecSearcher;
+		LinkedList<SearchResult> results = new LinkedList();
+		// Stage iii. Perform search according to which searchType was selected.
+		// Most options have corresponding dedicated VectorSearcher subclasses.
+		switch(searchType) {
 			// Simplest option, vector sum for composition, with possible negation.
-			case SUM:
-				// Create VectorSearcher and search for nearest neighbors.
-				vecSearcher =
-					new VectorSearcher.VectorSearcherCosine(queryVecReader,
-																									searchVecReader,
-																									lUtils,
-																									queryTerms);
-				System.err.print("Searching term vectors, searchtype SUM ... ");
-				results = vecSearcher.getNearestNeighbors(numResults);
-				break;
+		case SUM:
+			// Create VectorSearcher and search for nearest neighbors.
+			vecSearcher =
+				new VectorSearcher.VectorSearcherCosine(queryVecReader,
+																								searchVecReader,
+																								lUtils,
+																								queryTerms);
+			System.err.print("Searching term vectors, searchtype SUM ... ");
+			results = vecSearcher.getNearestNeighbors(numResults);
+			break;
 
 			// Tensor product.
-			case TENSOR:
-				// Create VectorSearcher and search for nearest neighbors.
-				vecSearcher =
-					new VectorSearcher.VectorSearcherTensorSim(queryVecReader,
+		case TENSOR:
+			// Create VectorSearcher and search for nearest neighbors.
+			vecSearcher =
+				new VectorSearcher.VectorSearcherTensorSim(queryVecReader,
+																									 searchVecReader,
+																									 lUtils,
+																									 queryTerms);
+			System.err.print("Searching term vectors, searchtype TENSOR ... ");
+			results = vecSearcher.getNearestNeighbors(numResults);
+			break;
+			
+			// Convolution product.
+		case CONVOLUTION:
+			// Create VectorSearcher and search for nearest neighbors.
+			vecSearcher =
+				new VectorSearcher.VectorSearcherConvolutionSim(queryVecReader,
+																												searchVecReader,
+																												lUtils,
+																												queryTerms);
+			System.err.print("Searching term vectors, searchtype CONVOLUTION ... ");
+			results = vecSearcher.getNearestNeighbors(numResults);
+			break;
+
+			// Quantum disjunction / subspace similarity.
+		case SUBSPACE:
+			// Create VectorSearcher and search for nearest neighbors.
+			vecSearcher =
+				new VectorSearcher.VectorSearcherSubspaceSim(queryVecReader,
 																										 searchVecReader,
 																										 lUtils,
 																										 queryTerms);
-				System.err.print("Searching term vectors, searchtype TENSOR ... ");
-				results = vecSearcher.getNearestNeighbors(numResults);
-				break;
-			
-			// Convolution product.
-			case CONVOLUTION:
-				// Create VectorSearcher and search for nearest neighbors.
-				vecSearcher =
-					new VectorSearcher.VectorSearcherConvolutionSim(queryVecReader,
-																													searchVecReader,
-																													lUtils,
-																													queryTerms);
-				System.err.print("Searching term vectors, searchtype CONVOLUTION ... ");
-				results = vecSearcher.getNearestNeighbors(numResults);
-				break;
+			System.err.print("Searching term vectors, searchtype SUBSPACE ... ");
+			results = vecSearcher.getNearestNeighbors(numResults);
+			break;
 
 			// Quantum disjunction / subspace similarity.
-			case SUBSPACE:
-				// Create VectorSearcher and search for nearest neighbors.
-				vecSearcher =
-					new VectorSearcher.VectorSearcherSubspaceSim(queryVecReader,
-																											 searchVecReader,
-																											 lUtils,
-																											 queryTerms);
-				System.err.print("Searching term vectors, searchtype SUBSPACE ... ");
-				results = vecSearcher.getNearestNeighbors(numResults);
-				break;
+		case MAXSIM:
+			// Create VectorSearcher and search for nearest neighbors.
+			vecSearcher =
+				new VectorSearcher.VectorSearcherMaxSim(queryVecReader,
+																								searchVecReader,
+																								lUtils,
+																								queryTerms);
+			System.err.print("Searching term vectors, searchtype MAXSIM ... ");
+			results = vecSearcher.getNearestNeighbors(numResults);
+			break;
 
-			// Quantum disjunction / subspace similarity.
-			case MAXSIM:
-				// Create VectorSearcher and search for nearest neighbors.
-				vecSearcher =
-					new VectorSearcher.VectorSearcherMaxSim(queryVecReader,
-																									searchVecReader,
-																									lUtils,
-																									queryTerms);
-				System.err.print("Searching term vectors, searchtype MAXSIM ... ");
-				results = vecSearcher.getNearestNeighbors(numResults);
-				break;
-
-			default:
-				System.err.println("Search type unrecognized ...");
-				results = new LinkedList();
-			}
+		default:
+			System.err.println("Search type unrecognized ...");
+			results = new LinkedList();
+		}
 		return results;
 	}
 
@@ -311,7 +316,6 @@ public class Search {
 		ObjectVector[] resultsList = new ObjectVector[results.size()];
 		for (int i = 0; i < results.size(); ++i) {
 			String term = ((ObjectVector)results.get(i).getObject()).getObject().toString();
-			System.err.println(term);
 			float[] tmpVector = searchVecReader.getVector(term);
 			resultsList[i] = new ObjectVector(term, tmpVector);
 		}
@@ -328,8 +332,8 @@ public class Search {
 		// Print out results.
 		System.err.println("Search output follows ...");
 		for (SearchResult result: results) {
-				System.out.println(result.getScore() + ":" +
-													 ((ObjectVector)result.getObject()).getObject().toString());
+			System.out.println(result.getScore() + ":" +
+												 ((ObjectVector)result.getObject()).getObject().toString());
 		}
 	}
 }

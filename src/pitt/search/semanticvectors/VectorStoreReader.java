@@ -57,7 +57,7 @@ public class VectorStoreReader implements VectorStore {
 
   public VectorStoreReader (String vectorFile) throws IOException {
     MMapDirectory dir = new MMapDirectory();
-    indexInput = dir.openInput(vectorFile);
+    this.indexInput = dir.openInput(vectorFile);
     try {
       /* Read number of dimensions from header information. */
       String test = indexInput.readString();
@@ -65,7 +65,7 @@ public class VectorStoreReader implements VectorStore {
       if ((test.equalsIgnoreCase("-dimensions"))) {
         ObjectVector.vecLength = indexInput.readInt();
         System.err.println("Dimensions = " + ObjectVector.vecLength);
-        hasHeader = true;
+        this.hasHeader = true;
       }
       else {
         System.err.println("No file header for file " + vectorFile +
@@ -73,7 +73,7 @@ public class VectorStoreReader implements VectorStore {
                            ObjectVector.vecLength +
                            "\nIf this fails, consider rebuilding indexes - existing " +
                            "ones were probably created with old version of software.");
-        hasHeader = false;
+        this.hasHeader = false;
       }
     } catch (IOException e) {
       System.out.println("Cannot read file: " + vectorFile + "\n" + e.getMessage());
@@ -98,9 +98,9 @@ public class VectorStoreReader implements VectorStore {
    * given an object, get its corresponding vector <br>
    * this implementation only works for string objects so far <br>
    * @param desiredObject - the string you're searching for
+	 * @return vector from the VectorStore, or null if not found. 
    */
   public float[] getVector(Object desiredObject) {
-    System.err.print("Seeking vector for ... " + desiredObject + " ... ");
     try {
       indexInput.seek(0);
       if (hasHeader) {
@@ -109,7 +109,6 @@ public class VectorStoreReader implements VectorStore {
       }
       while (indexInput.getFilePointer() < indexInput.length() - 1) {
         if (indexInput.readString().equals(desiredObject)) {
-          System.err.println("Found it ...");
           float[] vector = new float[ObjectVector.vecLength];
           for( int i=0; i<ObjectVector.vecLength; i++ ){
             vector[i] = Float.intBitsToFloat(indexInput.readInt());
@@ -124,7 +123,7 @@ public class VectorStoreReader implements VectorStore {
     catch (IOException e) {
       e.printStackTrace();
     }
-    System.err.println("Didn't find it ...");
+    System.err.println("Didn't find vector for '" + desiredObject + "'");
     return null;
   }
 
