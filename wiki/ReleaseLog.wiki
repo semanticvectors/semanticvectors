@@ -3,15 +3,17 @@
 
 Even-numbered versions are releases. Odd-numbered versions are in development. It follows that the most recent code and the `build.xml` file in the SVN repository is always odd-numbered.
 
-=== Version 1.7 ===
+=== Version 1.7 (devel) ===
 
-Many changes have been made for Oxford presentation and SemanticVectors paper. 
-   # Tensors refactored
-   # `SearchPlane` added for disjunctions
-   # `BuildModel` added because it's a better name.
-   # The most significant structural change is to `VectorSearcher.getScore()`. This no longer takes a `queryVector` and `testVector`: the query statements are now built into the state of the `VectorSearcher`, and only a `testVector` is needed for `getScore()`.
+Many changes have been made, initially for the Oxford presentation and SemanticVectors paper, and clustering for the UPitt collaboration.
 
-Much cleanup needs to be done before shipping version 1.8., but these will be good changes.
+   # `VectorSearcher.java` and `Search.java` classes have been significantly refactored.
+      # The separate `VectorSearcher` implementations (Sum, Tensor, etc.) now do a lot more of the query parsing and initialization work.
+      # `VectorSearcher.getScore()` no longer takes a `queryVector` and `testVector`: the query statements are now built into the state of the `VectorSearcher`, and only a `testVector` is needed for `getScore()`.
+      # A command-line option `-searchtype` enables the user to state a value which tells `Search.java` which kind of VectorSearcher to create.
+      # The Tensor and Convolution options take their training relations as tilde separated pairs, e.g., `java pitt.search.semanticvectors.Search -searchtype tensor abraham~sarah joseph~mary ahab`. (Ideally this would give the top result `jezebel`, but doesn't ...)
+   # Clustering functionality is provided by `ClusterResults.java`. Clustering is done after search, there is as yet no interface for providing a list of terms to get vectors for and cluster, though this would be easy to do.
+   # Also, a `BuildModel` class has been added - I'd like to deprecate `BuildIndex` in favour of `BuildModel` to avoid confusion with Lucene indexing.
 
 === Release 1.6 ===
 
