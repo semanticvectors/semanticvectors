@@ -41,8 +41,6 @@ import java.util.LinkedList;
 import java.util.Enumeration;
 import java.util.Random;
 
-import static org.junit.Assert.*;
-
 /**
  * This class provides standard vector methods, e.g., cosine measure,
  * normalization, tensor utils.
@@ -305,14 +303,6 @@ public class VectorUtils{
 	    }
 			/* Normalize the vector we're working on. */
 			vectors.set(k, getNormalizedVector(kthVector));
-		}
-
-		for (int i = 0; i < vectors.size(); ++i) {
-			assertEquals(1.0, VectorUtils.scalarProduct(vectors.get(i), vectors.get(i)), 0.0001);
-			for (int j = i + 1; j < vectors.size(); ++j) {
-				assertEquals(0.0, VectorUtils.scalarProduct(vectors.get(i), vectors.get(j)), 0.0001);
-			}
-			assertEquals(1.0, VectorUtils.getSumScalarProduct(vectors.get(i), vectors), 0.0001);
 		}
 
 		return true;
