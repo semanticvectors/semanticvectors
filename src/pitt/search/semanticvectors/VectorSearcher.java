@@ -124,16 +124,16 @@ abstract public class VectorSearcher{
 
 	/**
 	 * Class for searching a vector store using cosine similarity.
+	 * Takes a sum of positive query terms and optionally negates some terms.
 	 */
 	static public class VectorSearcherCosine extends VectorSearcher {
 		float[] queryVector;
-
 		/**
 		 * @param queryVecStore Vector store to use for query generation.
 		 * @param searchVecStore The vector store to search.
 		 * @param luceneUtils LuceneUtils object to use for query weighting. (May be null.)
 		 * @param queryTerms Terms that will be parsed into a query
-		 * expression. 
+		 * expression. If the string "NOT" appears, terms after this will be negated.
 		 */
 		public VectorSearcherCosine(VectorStore queryVecStore,
 																VectorStore searchVecStore,
@@ -148,6 +148,7 @@ abstract public class VectorSearcher{
 				System.exit(-1);
 			}
 		}
+
 		public float getScore(float[] testVector) {
 	    return VectorUtils.scalarProduct(this.queryVector, testVector);
 		}
@@ -342,11 +343,7 @@ abstract public class VectorSearcher{
 		 * @param testVector Vector being tested.
 		 */
 		public float getScore(float[] testVector) {
-			float score = 0;
-			for (int i = 0; i < disjunctSpace.size(); ++i) {
-				score += VectorUtils.scalarProduct(this.disjunctSpace.get(i), testVector);
-			}
-			return score;
+			return VectorUtils.getSumScalarProduct(testVector, disjunctSpace);
 		}
 	}
 
