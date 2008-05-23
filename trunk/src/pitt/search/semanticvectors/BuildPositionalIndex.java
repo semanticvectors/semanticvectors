@@ -42,7 +42,7 @@ import java.io.IOException;
  * Command line utility for creating semantic vector indexes using the sliding context window approach
  * 
  */
-public class BuildIPositionalndex{
+public class BuildPositionalndex{
     /* These can now be modified with command line arguments */
     static int seedLength = 20;
     static int minFreq = 10;
