@@ -42,7 +42,7 @@ import java.io.IOException;
  * Command line utility for creating semantic vector indexes using the sliding context window approach
  * 
  */
-public class BuildPositionalndex{
+public class BuildPositionalIndex{
     /* These can now be modified with command line arguments */
     static int seedLength = 20;
     static int minFreq = 10;
@@ -64,7 +64,7 @@ public class BuildPositionalndex{
      * </code>
      */
     public static void usage(){
-				String usageMessage = "\nBuilPositionaldIndex class in package pitt.search.semanticvectors"
+				String usageMessage = "\nBuildPositionalIndex class in package pitt.search.semanticvectors"
 						+ "\nUsage: java pitt.search.semanticvectors.BuildPositionalIndex PATH_TO_LUCENE_INDEX"
 						+ "\nBuildPositionalIndex creates file termtermvectors.bin  in local directory."
 						+ "\nOther parameters that can be changed include vector length,"
@@ -86,7 +86,7 @@ public class BuildPositionalndex{
     /**
      * Builds term vector stores from a Lucene index - this index must contain TermPositionVectors.
      * @param args
-     * @see BuildIPositionalndex#usage
+     * @see BuildPositionalIndex#usage
      */
     public static void main (String[] args) {
 				boolean wellFormed = false;
