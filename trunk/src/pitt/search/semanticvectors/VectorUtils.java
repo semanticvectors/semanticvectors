@@ -48,10 +48,11 @@ import java.util.Random;
 public class VectorUtils{
 
 	static void printVector(float[] vector) {
-		for (int i = 0; i < vector.length; ++i) {
-			System.out.print(vector[i] + " ");
+		for (int i = 0; i < vector.length - 1; ++i) {
+			System.out.print(vector[i] + "|");
 		}
-		System.out.println();
+		// Print last coordinate followed by newline, not "|".
+		System.out.println(vector[vector.length - 1]);
 	}
 
 	/**

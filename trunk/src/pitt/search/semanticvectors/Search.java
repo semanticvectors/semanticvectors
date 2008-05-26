@@ -42,7 +42,7 @@ import java.util.LinkedList;
  * Command line term vector search utility.
  */
 public class Search {
-	public enum SearchType { SUM, SUBSPACE, MAXSIM, TENSOR, CONVOLUTION } 
+	public enum SearchType { SUM, SUBSPACE, MAXSIM, TENSOR, CONVOLUTION, PRINTQUERY } 
 
 	// Experimenting with class-level static variables to enable several
 	// methods to use this state. Initialize each with default values.
@@ -67,7 +67,7 @@ public class Search {
    * <br>     termvectors.bin in local directory.
    * <br> -l argument my be used to get term weights from
    * <br>     term frequency, doc frequency, etc. in lucene index.
-	 * <br> -searchtype can be one of SUM, SUBSPACE, MAXSIM, TENSOR, CONVOLUTION
+	 * <br> -searchtype can be one of SUM, SUBSPACE, MAXSIM, TENSOR, CONVOLUTION, PRINTQUERY
    * <br> &lt;QUERYTERMS&gt; should be a list of words, separated by spaces.
    * <br> If the term NOT is used, terms after that will be negated.
    * </code>
@@ -85,7 +85,7 @@ public class Search {
 			+ "\n    termvectors.bin in local directory."
 			+ "\n-l argument is needed if to get term weights from"
 			+ "\n    term frequency, doc frequency, etc. in lucene index."
-			+ "\n-searchtype can be one of SUM, SUBSPACE, MAXSIM, TENSOR, CONVOLUTION"
+			+ "\n-searchtype can be one of SUM, SUBSPACE, MAXSIM, TENSOR, CONVOLUTION, PRINTQUERY"
 			+ "\n<QUERYTERMS> should be a list of words, separated by spaces."
 			+ "\n    If the term NOT is used, terms after that will be negated.";
     System.out.println(usageMessage);
@@ -154,6 +154,8 @@ public class Search {
 			}
 			// The most complicated option is the search type: this will
 			// lead to the most complex implementational differences later.
+			// It would be nice if this behavior could be generated
+			// automatically from the entries in the enum.
 			else if (args[argc].equals("-searchtype")) {
 				String searchTypeString = args[argc + 1];
 				searchTypeString = searchTypeString.toLowerCase();
@@ -174,6 +176,9 @@ public class Search {
 				}
 				else if (searchTypeString.equals("convolution")) {
 					searchType = SearchType.CONVOLUTION;
+				}
+				else if (searchTypeString.equals("printquery")) {
+					searchType = SearchType.PRINTQUERY;
 				}
 				// Unrecognized search type.
 				else {
@@ -289,7 +294,7 @@ public class Search {
 			results = vecSearcher.getNearestNeighbors(numResults);
 			break;
 
-			// Quantum disjunction / subspace similarity.
+			// Ranks by maximum similarity with any of the query terms.
 		case MAXSIM:
 			// Create VectorSearcher and search for nearest neighbors.
 			vecSearcher =
@@ -300,6 +305,14 @@ public class Search {
 			System.err.print("Searching term vectors, searchtype MAXSIM ... ");
 			results = vecSearcher.getNearestNeighbors(numResults);
 			break;
+
+			// Simply prints out the query vector: doesn't do any searching.
+		case PRINTQUERY:
+			float[] queryVector = CompoundVectorBuilder.getQueryVector(queryVecReader,
+																																 lUtils,
+																																 queryTerms);
+			VectorUtils.printVector(queryVector);
+			System.exit(1);
 
 		default:
 			System.err.println("Search type unrecognized ...");
