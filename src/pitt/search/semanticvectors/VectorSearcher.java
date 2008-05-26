@@ -80,7 +80,7 @@ abstract public class VectorSearcher{
 	 * argument.
 	 * @param numResults the number of results / length of the result list.
 	 */
-	public LinkedList getNearestNeighbors(int numResults){
+	public LinkedList getNearestNeighbors(int numResults) {
 		LinkedList<SearchResult> results = new LinkedList();
 		float score, threshold = -1;
 
@@ -98,6 +98,15 @@ abstract public class VectorSearcher{
 	    // Test this element.
 	    ObjectVector testElement = vecEnum.nextElement();
 	    score = getScore(testElement.getVector());
+
+			// This is a way of using the Lucene Index to get term and
+			// document frequency information to reweight all results. It
+			// seems to be good at moving excessively common terms further
+			// down the results. Note that using this means that scores
+			// returned are no longer just cosine similarities.
+			if (this.luceneUtils != null) {
+				score = score * luceneUtils.getGlobalTermWeightFromString((String) testElement.getObject());
+			}
 
 	    if (score > threshold) {
 				boolean added = false;

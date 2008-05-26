@@ -40,7 +40,11 @@ import java.util.Enumeration;
 import java.util.Random;
 import java.io.IOException;
 import java.lang.RuntimeException;
-import org.apache.lucene.index.*;
+import org.apache.lucene.index.IndexModifier;
+import org.apache.lucene.index.IndexReader;
+import org.apache.lucene.index.Term;
+import org.apache.lucene.index.TermDocs;
+import org.apache.lucene.index.TermEnum;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 
 /**
