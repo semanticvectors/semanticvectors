@@ -1,5 +1,5 @@
 /**
-	 Copyright (c) 2007, University of Pittsburgh
+	 Copyright (c) 2008, University of Pittsburgh
 
 	 All rights reserved.
 
@@ -39,8 +39,8 @@ import java.util.LinkedList;
 import java.io.IOException;
 
 /**
- * Command line utility for creating semantic vector indexes using the sliding context window approach
- * 
+ * Command line utility for creating semantic vector indexes using the
+ * sliding context window approach (see work on HAL, and by Shutze).
  */
 public class BuildPositionalIndex{
 	/* These can now be modified with command line arguments */
@@ -61,6 +61,7 @@ public class BuildPositionalIndex{
 	 * <br> -d [number of dimensions]
 	 * <br> -s [seed length]
 	 * <br> -m [minimum term frequency]
+	 * <br> -w [window size]
 	 * </code>
 	 */
 	public static void usage(){
@@ -77,7 +78,6 @@ public class BuildPositionalIndex{
 			+ "\n  -s [seed length]"
 			+ "\n  -m [minimum term frequency]"
 			+ "\n  -w [window size]";
-			
 
 		System.out.println(usageMessage);
 		System.exit(-1);
@@ -144,7 +144,8 @@ public class BuildPositionalIndex{
 					try {
 						windowLength = Integer.parseInt(ar);
 						if ((windowLength <= 2) |  (windowLength %2 == 0)  ) {
-							System.err.println("Windowlength must be an odd number (to accommodate a central focus term) larger than 2");
+							System.err.println("Windowlength must be an odd number " + 
+																 "(to accommodate a central focus term), larger than 2");
 							usage();
 						}
 						else wellFormed = true;

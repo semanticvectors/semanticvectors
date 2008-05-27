@@ -7,7 +7,10 @@ import java.io.IOException;
 import java.util.Date;
 
 /** Index all text files under a directory. This class makes minor
- * modifications to org.apache.lucene.demos.IndexFiles */
+ * modifications to <code>org.apache.lucene.demos.IndexFiles</code>
+ * using a new document handler. 
+ * @see FilePositionDoc
+ */
 public class IndexFilePositions {
   
   private IndexFilePositions() {}
@@ -24,7 +27,7 @@ public class IndexFilePositions {
     }
     if (INDEX_DIR.exists()) {
 			System.out.println(INDEX_DIR.getAbsolutePath());
-    	System.out.println("Cannot save index to '" +INDEX_DIR+ "' directory, please delete it first");
+    	System.out.println("Cannot save index to '" + INDEX_DIR + "' directory, please delete it first");
 			System.exit(1);
 		}
     try {
