@@ -35,6 +35,10 @@ These sketch instructions presume that you're reasonably familiar with Java, Ant
 
 For instructions on building a bilingual model from a parallel corpus, see BilingualModels.
 
+== Positional Indexes ==
+
+For instructions on building an index based on term positions, see PositionalIndexes.
+
 == Vector Store Formats ==
 
 The SemanticVectors package currently (as of version 1.6) supports two different vector store formats, a plain text format and an optimized format created by the Lucene I/O packages. For more information including format translation utilities, see VectorStoreFormats.
