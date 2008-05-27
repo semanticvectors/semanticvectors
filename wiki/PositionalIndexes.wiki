@@ -1,0 +1,24 @@
+#summary Information on Positional Indexes - what they are, how to build them.
+
+= Positional Indexes =
+
+The basic SemanticVectors indexes do not take into account word positions within a document: they are just created from a basic term document matrix.
+
+Positional indexes, by contrast, iterated over the contents of a document and index terms according to which other terms they occur near. This "sliding context window" approach was pioneered by Hinrich Schutze in the Infomap Project, and by Lund and Burgess in developing the HAL model (Hyperspace Analogue to Language).
+
+== Building Positional Indexes ==
+
+The process is similar to that for building the basic semantic vector indexes (see InstallationInstructions). There are two stages: building a Lucene index, and building a SemanticVector index from this. However, each stage is slightly different from the basic approach.
+
+  # To build the initial Lucene index, arrange your files in a directory as before and use the command `java pitt.search.lucene.IndexFilePositions [PATH_TO_FILES]`. This will (by default) create a Lucene index _with positional offset data_ in the directory `index`.
+
+  # To build a semantic vectors index from this, use the command `java pitt.search.semanticvectors.BuildPositionalIndex` just as you would use the command `java pitt.search.semanticvectors.BuildIndex`. The only difference is that you can give an extra `-w` argument giving the size of the window to consider, and that the program by default outputs a file called `termtermvectors.bin`, to distinguish this from the standard `termvectors.bin`.
+
+== Pros and Cons ==
+
+So far, both positional and bag-of-words indexes have produced different and interesting results (some of which we may get round to documenting here). 
+
+The process for building positional vector indexes is longer than that for building basic indexes: the time complexity for basic indexes scales in the length of the corpus, whereas the complexity for positional indexes scales in the length of the corpus and the size of the context window.
+
+Lucene positional indexes (as built using `IndexFilePositions` can also be used to build basic SemanticVector indexes, so they are more flexible in general. However, they do take more space on disk.
+ 
