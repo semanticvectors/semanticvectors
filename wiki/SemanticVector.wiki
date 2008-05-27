@@ -1,0 +1,3 @@
+#summary Simple redirect SemanticVector -> SemanticVectors
+
+See SemanticVectors.
