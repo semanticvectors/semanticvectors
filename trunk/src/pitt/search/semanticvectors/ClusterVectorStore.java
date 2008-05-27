@@ -38,6 +38,13 @@ package pitt.search.semanticvectors;
 import java.lang.Integer;
 import java.util.Enumeration;
 
+/**
+ * This class is used for performing kMeans clustering on an entire
+ * vector store.  It presumes thae the vector store to be clustered is
+ * represented in a file in text format (since it's unlikely that
+ * you'd want to try this on large files anyway.
+ * @see ClusterResults 
+ */
 public class ClusterVectorStore {
 	public static void usage() {
 		String message = "ClusterVectorStore class for clustering an entire (text) vector store.";
