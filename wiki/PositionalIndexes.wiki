@@ -13,6 +13,8 @@ The process is similar to that for building the basic semantic vector indexes (s
   # To build the initial Lucene index, arrange your files in a directory as before and use the command `java pitt.search.lucene.IndexFilePositions [PATH_TO_FILES]`. This will (by default) create a Lucene index _with positional offset data_ in the directory `index`.
 
   # To build a semantic vectors index from this, use the command `java pitt.search.semanticvectors.BuildPositionalIndex` just as you would use the command `java pitt.search.semanticvectors.BuildIndex`. The only difference is that you can give an extra `-w` argument giving the size of the window to consider, and that the program by default outputs a file called `termtermvectors.bin`, to distinguish this from the standard `termvectors.bin`.
+ 
+  # The '-w' argument specifies the size of a symmetrical sliding context window, including the focus term at its center. For example, with '-w 3' BuildPositionalIndex will use as its context a sliding window of size 3, including the focus term and the terms immediately to the left and right of it. Consequently, the '-w' argument must always be an odd number.  
 
 == Pros and Cons ==
 
