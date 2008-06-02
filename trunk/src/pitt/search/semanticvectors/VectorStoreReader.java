@@ -95,8 +95,8 @@ public class VectorStoreReader implements VectorStore {
   }
 
   /**
-   * given an object, get its corresponding vector <br>
-   * this implementation only works for string objects so far <br>
+   * Given an object, get its corresponding vector <br>
+   * This implementation only works for string objects so far <br>
    * @param desiredObject - the string you're searching for
 	 * @return vector from the VectorStore, or null if not found. 
    */
@@ -134,7 +134,7 @@ public class VectorStoreReader implements VectorStore {
   public class VectorEnumeration implements Enumeration {
     IndexInput indexInput;
 
-    public VectorEnumeration(IndexInput indexInput){
+    public VectorEnumeration(IndexInput indexInput) {
       this.indexInput = indexInput;
     }
 
