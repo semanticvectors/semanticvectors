@@ -159,12 +159,12 @@ public class TermVectorsFromLucene implements VectorStore {
 
       /* initialize new termVector */
       float[] termVector = new float[ObjectVector.vecLength];
-      for (int i = 0; i < ObjectVector.vecLength; i++) {
-        termVector[i]=0;
+      for (int i = 0; i < ObjectVector.vecLength; ++i) {
+        termVector[i] = 0;
       }
 
       TermDocs tDocs = indexReader.termDocs(term);
-      while( tDocs.next() ){
+      while (tDocs.next()) {
         int doc = tDocs.doc();
         int freq = tDocs.freq();
 

@@ -53,10 +53,12 @@ public class CompoundVectorBuilder {
 	public CompoundVectorBuilder (VectorStore vecReader, LuceneUtils lUtils) {
 		this.vecReader = vecReader;
 		this.lUtils = lUtils;
+		/*
 		if (lUtils == null) {
 			System.err.println("No Lucene index for query term weighting, "
 												 + "so all query terms will have same weight.");
 		}
+		*/
 	}
 
 	/**
@@ -121,8 +123,8 @@ public class CompoundVectorBuilder {
 	    else{ weight = 1; }
 
 	    if (tmpVec != null) {
-				System.err.println("Got vector for " + queryTerms[j] +
-													 ", using term weight " + weight);
+				//System.err.println("Got vector for " + queryTerms[j] +
+				//									 ", using term weight " + weight);
 				for (int i = 0; i < ObjectVector.vecLength; ++i) {
 					queryVec[i] += tmpVec[i] * weight;
 				}

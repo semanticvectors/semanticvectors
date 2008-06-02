@@ -159,6 +159,7 @@ abstract public class VectorSearcher{
 		}
 
 		public float getScore(float[] testVector) {
+			//testVector = VectorUtils.getNormalizedVector(testVector);
 	    return VectorUtils.scalarProduct(this.queryVector, testVector);
 		}
 	}
