@@ -173,7 +173,7 @@ public class BuildIndex{
 			// Create doc vectors.
 			DocVectors docVectors = new DocVectors(vecStore);
 
-			for (int i = 0; i < trainingCycles; ++i) {
+			for (int i = 1; i < trainingCycles; ++i) {
 				VectorStore newBasicDocVectors = vecStore.getBasicDocVectors();
 				System.err.println("\nRetraining with learned document vectors ...");
 				vecStore = new TermVectorsFromLucene(luceneIndex,
@@ -186,7 +186,7 @@ public class BuildIndex{
 
 			String termFile = "termvectors.bin";
 			String docFile = "docvectors.bin";
-			if (trainingCycles > 0) {
+			if (trainingCycles > 1) {
 				termFile = "termvectors" + trainingCycles + ".bin";
 				docFile = "docvectors" + trainingCycles + ".bin";
 			}
