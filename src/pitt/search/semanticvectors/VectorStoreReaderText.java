@@ -147,8 +147,21 @@ public class VectorStoreReaderText implements VectorStore {
     System.err.println("Didn't find it ...");
     return null;
   }
-
-  /**
+		
+	/**
+	 * Trivial (costly) implementation of getNumVectors that iterates and counts vectors.
+	 */
+	public int getNumVectors() {
+		Enumeration allVectors = this.getAllVectors();
+		int i = 0;
+		while (allVectors.hasMoreElements()) {
+			allVectors.nextElement();
+			++i;
+		}
+		return i;
+	}
+  
+	/**
    * Implements the hasMoreElements() and nextElement() methods
    * to give Enumeration interface from store in VectorTextFile.
    */

@@ -35,6 +35,7 @@
 
 package pitt.search.semanticvectors;
 
+import java.lang.Integer;
 import java.lang.Math;
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -141,14 +142,14 @@ public class VectorUtils{
 		float norm = 0;
 		int i;
 		float[] tmpVec = new float[vec.length];
-		for( i=0; i<vec.length; i++ ){
+		for (i = 0; i < vec.length; ++i) {
 	    tmpVec[i] = vec[i];
 		}
-		for( i=0; i<tmpVec.length; i++ ){
+		for (i = 0; i < tmpVec.length; ++i) {
 	    norm += tmpVec[i]*tmpVec[i];
 		}
 		norm = (float)Math.sqrt(norm);
-		for( i=0; i<tmpVec.length; i++ ){
+		for (i = 0; i < tmpVec.length; ++i) {
 	    tmpVec[i] = tmpVec[i]/norm;
 		}
 		return tmpVec;
@@ -334,9 +335,9 @@ public class VectorUtils{
     int testPlace, entryCount = 0;
 
     /* put in +1 entries */
-    while(entryCount < seedLength / 2 ){
+    while (entryCount < seedLength / 2) {
       testPlace = random.nextInt(ObjectVector.vecLength);
-      if( !randVector[testPlace]){
+      if (!randVector[testPlace]) {
         randVector[testPlace] = true;
         randIndex[entryCount] = new Integer(testPlace + 1).shortValue();
         entryCount++;
@@ -344,9 +345,9 @@ public class VectorUtils{
     }
 
     /* put in -1 entries */
-    while(entryCount < seedLength ){
+    while (entryCount < seedLength) {
       testPlace = random.nextInt (ObjectVector.vecLength);
-      if( !randVector[testPlace]){
+      if (!randVector[testPlace]) {
         randVector[testPlace] = true;
         randIndex[entryCount] = new Integer((1 + testPlace) * -1).shortValue();
         entryCount++;
@@ -355,5 +356,105 @@ public class VectorUtils{
 		
     return randIndex;
   }
+
+	/**
+	 * Given an array of floats, return an array of indices to the n largest values.
+	 */
+	public static short[] getNLargestPositions(float[] values, int numResults) {
+		// TODO(dwiddows): Find some apprpriate "CHECK" function to use here.
+		if (numResults > values.length) {
+			System.err.println("Asking for highest " + numResults 
+												 + " entries out of only " + values.length);
+			System.exit(-1);
+		}
+
+		LinkedList<Integer> largestPositions = new LinkedList<Integer>();
+		
+		// Initialize result list if just starting.
+		largestPositions.add(new Integer(0));
+		float threshold = values[0];
+
+		for (int i = 0; i < values.length; ++i) {
+	    if (values[i] > threshold || largestPositions.size() < numResults) {
+				boolean added = false;
+				for (int j = 0; j < largestPositions.size(); ++j) {
+					// Add to list if this is right place.
+					if (values[i] > values[largestPositions.get(j).intValue()] && added == false) {
+						largestPositions.add(j, new Integer(i));
+						added = true;
+					}
+				}
+				// Prune list if there are already numResults.
+				if (largestPositions.size() > numResults) {
+					largestPositions.removeLast();
+					threshold = values[largestPositions.getLast().intValue()];
+				} else {
+					if (added == false) {
+						largestPositions.add(new Integer(i));
+					}
+				}
+	    }
+		}
+
+		// CHECK
+		if (largestPositions.size() != numResults) {
+			System.err.println("We have " + largestPositions.size() 
+												 + " results. Expecting " + numResults);			System.exit(-1);
+		}
+		Object[] intArray = largestPositions.toArray();
+		short[] results = new short[numResults];
+		for (int i = 0; i < numResults; ++i) {
+			results[i] = ((Integer)intArray[i]).shortValue();
+		}
+		return results;
+	}
+
+	/**
+	 * Take a vector of floats and simplify by quantizing to a sparse format. Lossy.
+	 */
+	public static short[] floatVectorToSparseVector(float[] floatVector, int seedLength) {
+		// TODO(dwiddows): Find some appropriate "CHECK" function to use here.
+		if (seedLength > floatVector.length) {
+			System.err.println("Asking sparse form of length " + seedLength + 
+												 " from float vector of length " + floatVector.length);
+			System.exit(-1);
+		}
+
+		short[] topN = getNLargestPositions(floatVector, seedLength/2);
+
+		float[] inverseVector = new float[floatVector.length];
+		for (int i = 0; i < floatVector.length; ++i) {
+			inverseVector[i] = -1 * floatVector[i];
+		}
+		short[] lowN = getNLargestPositions(inverseVector, seedLength/2);
+
+		short[] sparseVector = new short[seedLength];
+		for (int i = 0; i < seedLength/2; ++i) {
+			sparseVector[i] = new Integer(topN[i] + 1).shortValue();
+			sparseVector[seedLength/2 + i] = new Integer(-1 * (lowN[i] + 1)).shortValue();
+		}
+		return sparseVector;
+	}
+
+	/**
+	 * Translate sparse format (listing of offsets) into full float vector.
+	 * The random vector is in condensed (signed index + 1)
+	 * representation, and is converted to a full float vector by adding -1 or +1 to the
+	 * location (index - 1) according to the sign of the index.
+	 * (The -1 and +1 are necessary because there is no signed
+	 * version of 0, so we'd have no way of telling that the
+	 * zeroth position in the array should be plus or minus 1.)
+	 */
+	public static float[] sparseVectorToFloatVector(short[] sparseVector, int dimension) {
+		float[] output = new float[dimension];
+		for (int i = 0; i < dimension; ++i) {
+			output[i] = 0;
+		}
+		for (int i = 0; i < sparseVector.length; ++i) {
+			output[Math.abs(sparseVector[i]) - 1] = Math.signum(sparseVector[i]);
+		}
+		return output;
+	}
+
 }
 

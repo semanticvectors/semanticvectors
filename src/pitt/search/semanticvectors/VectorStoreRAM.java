@@ -53,10 +53,14 @@ import java.util.StringTokenizer;
 	 @see VectorStoreReader
    @see ObjectVector
 **/
-public class VectorStoreReaderRAMCache implements VectorStore {
+public class VectorStoreRAM implements VectorStore {
 	private Hashtable<Object, ObjectVector> objectVectors;
 
-  public VectorStoreReaderRAMCache (String vectorFile) throws IOException {
+	// Default constructor.
+	public VectorStoreRAM() {};
+
+	// Initialization routine.
+  public void InitFromFile (String vectorFile) throws IOException {
 		VectorStoreReader vectorReaderDisk = new VectorStoreReader(vectorFile);
 		Enumeration<ObjectVector> vectorEnumeration = vectorReaderDisk.getAllVectors();
     objectVectors = new Hashtable<Object, ObjectVector>();
@@ -72,6 +76,10 @@ public class VectorStoreReaderRAMCache implements VectorStore {
   public Enumeration getAllVectors() {
     return this.objectVectors.elements();
   }
+
+	public int getNumVectors() {
+		return this.objectVectors.size();
+	}
 
   /**
    * Given an object, get its corresponding vector <br>

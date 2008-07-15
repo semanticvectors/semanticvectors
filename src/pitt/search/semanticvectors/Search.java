@@ -42,7 +42,7 @@ import java.util.LinkedList;
  * Command line term vector search utility.
  */
 public class Search {
-	public enum SearchType { SUM, SUBSPACE, MAXSIM, TENSOR, CONVOLUTION, PRINTQUERY } 
+	public enum SearchType { SUM, SPARSESUM, SUBSPACE, MAXSIM, TENSOR, CONVOLUTION, PRINTQUERY } 
 
 	// Experimenting with class-level static variables to enable several
 	// methods to use this state. Initialize each with default values.
@@ -67,7 +67,8 @@ public class Search {
    * <br>     termvectors.bin in local directory.
    * <br> -l argument my be used to get term weights from
    * <br>     term frequency, doc frequency, etc. in lucene index.
-	 * <br> -searchtype can be one of SUM, SUBSPACE, MAXSIM, TENSOR, CONVOLUTION, PRINTQUERY
+	 * <br> -searchtype can be one of SUM, SPARSESUM, SUBSPACE, MAXSIM,
+	 * <br> TENSOR, CONVOLUTION, PRINTQUERY
    * <br> &lt;QUERYTERMS&gt; should be a list of words, separated by spaces.
    * <br> If the term NOT is used, terms after that will be negated.
    * </code>
@@ -85,7 +86,8 @@ public class Search {
 			+ "\n    termvectors.bin in local directory."
 			+ "\n-l argument is needed if to get term weights from"
 			+ "\n    term frequency, doc frequency, etc. in lucene index."
-			+ "\n-searchtype can be one of SUM, SUBSPACE, MAXSIM, TENSOR, CONVOLUTION, PRINTQUERY"
+			+ "\n-searchtype can be one of SUM, SPARSESUM, SUBSPACE, MAXSIM,"
+			+ "\n                          TENSOR, CONVOLUTION, PRINTQUERY"
 			+ "\n<QUERYTERMS> should be a list of words, separated by spaces."
 			+ "\n    If the term NOT is used, terms after that will be negated.";
     System.out.println(usageMessage);
@@ -125,8 +127,11 @@ public class Search {
 		// assumption, in case we want to change this.  Fixes issue 4,
 		// http://code.google.com/p/semanticvectors/issues/detail?id=4
 		// though there could be better solutions. DW, version 1.7.
-		for (int i = 0; i < args.length; ++i) {
-			args[i]= args[i].toLowerCase();
+		if (true) {  // Wanted this to be easily removed.
+			for (int i = 0; i < args.length; ++i) {
+				System.err.println("Lowercasing term: " + args[i]);
+				args[i] = args[i].toLowerCase();
+			}
 		}
 
     // Stage i. Parse all the command-line arguments.
@@ -161,6 +166,9 @@ public class Search {
 				searchTypeString = searchTypeString.toLowerCase();
 				if (searchTypeString.equals("sum")) {
 					searchType = SearchType.SUM;
+				}
+				if (searchTypeString.equals("sparsesum")) {
+					searchType = SearchType.SPARSESUM;
 				}
 				else if (searchTypeString.equals("subspace")) {
 					searchType = SearchType.SUBSPACE;
@@ -213,10 +221,6 @@ public class Search {
 
       // Open second vector store if search vectors are different from query vectors.
       if (queryFile == searchFile) {
-				// TODO(dwiddows, comments welcome): Check if this
-				// unnecessarily duplicates resources; I think it's just a
-				// reference and therefore more or less free, but I don't know
-				// with Java.
 				searchVecReader = queryVecReader;
 			} else {
         System.err.println("Opening search vector store from file: " + searchFile);
@@ -254,6 +258,20 @@ public class Search {
 																								searchVecReader,
 																								lUtils,
 																								queryTerms);
+			System.err.print("Searching term vectors, searchtype SUM ... ");
+			results = vecSearcher.getNearestNeighbors(numResults);
+			break;
+
+			// Option for quantizing to sparse vectors before
+			// comparing. This is for experimental purposes to see how much
+			// we lose by compressing to a sparse bit vector.
+		case SPARSESUM:
+			// Create VectorSearcher and search for nearest neighbors.
+			vecSearcher =
+				new VectorSearcher.VectorSearcherCosineSparse(queryVecReader,
+																											searchVecReader,
+																											lUtils,
+																											queryTerms);
 			System.err.print("Searching term vectors, searchtype SUM ... ");
 			results = vecSearcher.getNearestNeighbors(numResults);
 			break;

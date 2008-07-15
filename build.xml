@@ -25,21 +25,6 @@
 	   />
   </target>
 
-	<!-- Compile and run tests. -->
-	<!-- Tests do not currently ship with standard distributions; to
-	     compile and run tests, check out test/ dir from the svn repository.
-	     You will also need to install junit (www.junit.org) -->
-  <target name="compile-tests" depends="compile">
-    <javac srcdir="${testdir}"
-	   destdir="${buildclassesdir}"
-	   debug="on"
-	   />
-  </target>
-
-	<target name="run-tests" depends="compile-tests">
-		<java classname="pitt.search.semanticvectors.RunTests"/>
-	</target>
-
   <target name="doc" depends="init">
     <javadoc sourcepath="${srcdir}"
 	     packagenames="pitt.search.semanticvectors,pitt.search.lucene"
@@ -88,6 +73,21 @@
       </fileset>
     </delete>
   </target>
+
+	<!-- Compile and run tests. -->
+	<!-- Tests do not currently ship with standard distributions; to
+	     compile and run tests, check out test dir from the svn repository.
+	     You will also need to install junit (www.junit.org) -->
+  <target name="compile-tests" depends="compile">
+    <javac srcdir="${testdir}"
+	   destdir="${buildclassesdir}"
+	   debug="on"
+	   />
+  </target>
+
+	<target name="run-tests" depends="compile-tests">
+		<java classname="pitt.search.semanticvectors.RunTests"/>
+	</target>
 
 <!-- Build all -->
 <!-- Does not compile and run tests (see compile-tests target above). -->

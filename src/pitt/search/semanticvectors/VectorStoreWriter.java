@@ -54,13 +54,13 @@ import java.lang.Float;
  * implementation of vecLength and writers holds up in practice.
  * @see ObjectVector
  */
-public class VectorStoreWriter{
+public class VectorStoreWriter {
 
   /**
    * Empty constructor method to give you a notional "instance" from which to call
    * class methods.
    */
-  public VectorStoreWriter(){}
+  public VectorStoreWriter() {}
 
   /**
    * @param vectorFile The name of the file to write to

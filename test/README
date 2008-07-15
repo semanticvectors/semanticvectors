@@ -5,6 +5,11 @@ file test/pitt/search/semanticvectors/VectorUtilsTest.java contains
 the tests for the class defined in
 src/pitt/search/semanticvectors/VectorUtils.java
 
+Test classes need to be registered with the appropriate package test
+runner to be executed, e.g., the class names for all the tests for
+the package pitt.search.semanticvectors must be added to 
+test/pitt/search/semanticvectors/RunTests.java
+
 Unfortunately the test suite was added long after the semanticvectors
 package shipped, so we are playing catchup with adding tests as an
 afterthought. Please consider adding tests to existing code a high

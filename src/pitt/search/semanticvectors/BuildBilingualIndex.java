@@ -103,47 +103,47 @@ public class BuildBilingualIndex{
     /* Parse command line arguments. */
     else {
       for (int x = 0; x < args.length-1; x += 2) {
-        String pa = args[x];
-        String ar = args[x+1];
+        String option = args[x];
+        String value = args[x+1];
 
         /* Get number of dimensions. */
-        if (pa.equalsIgnoreCase("-d")) {
+        if (option.equalsIgnoreCase("-d")) {
           try {
-            ObjectVector.vecLength = Integer.parseInt(ar);
+            ObjectVector.vecLength = Integer.parseInt(value);
             wellFormed = true;
           } catch (NumberFormatException e) {
-            System.err.println(ar + " is not a number"); usage();
+            System.err.println(value + " is not a number"); usage();
           }
         }
         /* Get seedlength. */
-        else if (pa.equalsIgnoreCase("-s")) {
+        else if (option.equalsIgnoreCase("-s")) {
           try {
-            seedLength = Integer.parseInt(ar);
+            seedLength = Integer.parseInt(value);
             if (seedLength > ObjectVector.vecLength) {
               System.err.println("Seed length cannot be greater than vector length");
               usage();
             }
             else wellFormed = true;
           } catch (NumberFormatException e) {
-            System.err.println(ar + " is not a number"); usage();
+            System.err.println(value + " is not a number"); usage();
           }
         }
         /* Get minimum term frequency. */
-        else if (pa.equalsIgnoreCase("-m")) {
+        else if (option.equalsIgnoreCase("-m")) {
           try {
-            minFreq = Integer.parseInt(ar);
+            minFreq = Integer.parseInt(value);
             if (minFreq < 0) {
               System.err.println("Minimum frequency cannot be less than zero");
               usage();
             }
             else wellFormed = true;
           } catch (NumberFormatException e) {
-            System.err.println(ar + " is not a number"); usage();
+            System.err.println(value + " is not a number"); usage();
           }
         }
         /* All other arguments are unknown. */
         else {
-          System.err.println("Unknown command line option: " + pa);
+          System.err.println("Unknown command line option: " + option);
           usage();
         }
       }
@@ -175,8 +175,8 @@ public class BuildBilingualIndex{
       System.err.println("Writing doc vectors to " + docFile1);
       vecWriter.WriteVectors(docFile1, docVectors);
 
-      short[][] basicDocVectors = vecStore1.getBasicDocVectors();
-      System.out.println("Keeping basic doc vectors, number: " + basicDocVectors.length);
+      VectorStore basicDocVectors = vecStore1.getBasicDocVectors();
+      System.out.println("Keeping basic doc vectors, number: " + basicDocVectors.getNumVectors());
       TermVectorsFromLucene vecStore2 =
           new TermVectorsFromLucene(luceneIndex, seedLength, minFreq, 
                                     basicDocVectors, fields2);

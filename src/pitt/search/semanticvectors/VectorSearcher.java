@@ -105,7 +105,8 @@ abstract public class VectorSearcher{
 			// down the results. Note that using this means that scores
 			// returned are no longer just cosine similarities.
 			if (this.luceneUtils != null) {
-				score = score * luceneUtils.getGlobalTermWeightFromString((String) testElement.getObject());
+				score = score *
+					luceneUtils.getGlobalTermWeightFromString((String) testElement.getObject());
 			}
 
 	    if (score > threshold) {
@@ -163,6 +164,50 @@ abstract public class VectorSearcher{
 	    return VectorUtils.scalarProduct(this.queryVector, testVector);
 		}
 	}
+
+	/**
+	 * Class for searching a vector store using sparse cosine similarity.
+	 * Takes a sum of positive query terms and optionally negates some terms.
+	 */
+	static public class VectorSearcherCosineSparse extends VectorSearcher {
+		float[] queryVector;
+		/**
+		 * @param queryVecStore Vector store to use for query generation.
+		 * @param searchVecStore The vector store to search.
+		 * @param luceneUtils LuceneUtils object to use for query weighting. (May be null.)
+		 * @param queryTerms Terms that will be parsed into a query
+		 * expression. If the string "NOT" appears, terms after this will be negated.
+		 */
+		public VectorSearcherCosineSparse(VectorStore queryVecStore,
+																			VectorStore searchVecStore,
+																			LuceneUtils luceneUtils,
+																			String[] queryTerms) {
+	    super(queryVecStore, searchVecStore, luceneUtils);
+			float[] fullQueryVector = CompoundVectorBuilder.getQueryVector(queryVecStore,
+																																		 luceneUtils,
+																																		 queryTerms);
+
+			if (VectorUtils.isZeroVector(fullQueryVector)) {
+				System.err.println("Query vector is zero ... no results.");
+				System.exit(-1);
+			}
+
+			short[] sparseQueryVector =
+				VectorUtils.floatVectorToSparseVector(fullQueryVector, 20);
+			this.queryVector = 
+				VectorUtils.sparseVectorToFloatVector(sparseQueryVector, ObjectVector.vecLength);
+		}
+
+		public float getScore(float[] testVector) {
+			//testVector = VectorUtils.getNormalizedVector(testVector);
+			short[] sparseTestVector =
+				VectorUtils.floatVectorToSparseVector(testVector, 40);
+			testVector = 
+				VectorUtils.sparseVectorToFloatVector(sparseTestVector, ObjectVector.vecLength);
+	    return VectorUtils.scalarProduct(this.queryVector, testVector);
+		}
+	}
+
 
 	/**
 	 * Class for searching a vector store using tensor product
