@@ -194,7 +194,7 @@ public class BuildIndex{
 			System.err.println("Writing term vectors to " + termFile);
 			vecWriter.WriteVectors(termFile, vecStore);
 			System.err.println("Writing doc vectors to " + docFile);
-			vecWriter.WriteVectors("docvectors.bin", docVectors);
+			vecWriter.WriteVectors(docFile, docVectors);
 		}
 		catch (IOException e) {
 			e.printStackTrace();

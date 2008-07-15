@@ -127,7 +127,7 @@ public class Search {
 		// assumption, in case we want to change this.  Fixes issue 4,
 		// http://code.google.com/p/semanticvectors/issues/detail?id=4
 		// though there could be better solutions. DW, version 1.7.
-		if (true) {  // Wanted this to be easily removed.
+		if (false) {  // Wanted this to be easily removed.
 			for (int i = 0; i < args.length; ++i) {
 				System.err.println("Lowercasing term: " + args[i]);
 				args[i] = args[i].toLowerCase();
