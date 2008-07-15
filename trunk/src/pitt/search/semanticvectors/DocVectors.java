@@ -70,7 +70,8 @@ public class DocVectors implements VectorStore {
 		this.termVectorData = termVectorData;
 		this.indexReader = termVectorData.getIndexReader();
 		this.docVectors = new Hashtable();
-	
+
+		// TODO(dwiddows): Change to VectorStoreSparseRAM implementation.
 		System.err.println("Initializing document matrix ...");
 		float[][] docMatrix = new float[indexReader.numDocs()][ObjectVector.vecLength];
 		for (int i=0; i < indexReader.numDocs(); ++i) {
@@ -144,5 +145,9 @@ public class DocVectors implements VectorStore {
 
 	public Enumeration getAllVectors(){
 		return docVectors.elements();
+	}
+
+	public int getNumVectors() {
+		return this.docVectors.size();
 	}
 }    

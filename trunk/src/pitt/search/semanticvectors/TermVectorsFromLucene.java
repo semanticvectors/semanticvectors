@@ -62,7 +62,7 @@ public class TermVectorsFromLucene implements VectorStore {
   private int seedLength;
   private String[] fieldsToIndex;
   private int minFreq;
-  private short[][] basicDocVectors;
+  private VectorStore basicDocVectors;
 
   /**
    * @return The object's indexReader.
@@ -72,10 +72,10 @@ public class TermVectorsFromLucene implements VectorStore {
   /**
    * @return The object's basicDocVectors.
    */
-  public short[][] getBasicDocVectors(){ return this.basicDocVectors; }
+  public VectorStore getBasicDocVectors(){ return this.basicDocVectors; }
 
   /**
-   * @return The object's basicDocVectors.
+   * @return The list of Lucene fields that are to be indexed.
    */
   public String[] getFieldsToIndex(){ return this.fieldsToIndex; }
 
@@ -84,15 +84,15 @@ public class TermVectorsFromLucene implements VectorStore {
    * @param seedLength Number of +1 or -1 entries in basic
    * vectors. Should be even to give same number of each.
    * @param minFreq The minimum term frequency for a term to be indexed.
-   * @param basicDocVectors The table of basic document
-   * vectors. Null is an acceptable value, in which case the
-   * constructor will build this table.
+   * @param basicDocVectors The store of basic document vectors. Null
+   * is an acceptable value, in which case the constructor will build
+   * this table. If non-null, the identifiers must correspond to the Lucene doc numbers.
    * @param fieldsToIndex These fields will be indexed. If null, all fields will be indexed.
    */
   public TermVectorsFromLucene(String indexDir,
                                int seedLength,
                                int minFreq,
-                               short[][] basicDocVectors,
+                               VectorStore basicDocVectors,
                                String[] fieldsToIndex)
       throws IOException, RuntimeException {
     this.minFreq = minFreq;
@@ -108,29 +108,27 @@ public class TermVectorsFromLucene implements VectorStore {
     modifier.optimize();
     modifier.close();
 
-    /* Create the basic document vectors. */
     indexReader = IndexReader.open(indexDir);
-    Random random = new Random();
 
-    /* Check that basicDocVectors is the right size */
+    // Check that basicDocVectors is the right size.
     if (basicDocVectors != null) {
       this.basicDocVectors = basicDocVectors;
-      if (basicDocVectors.length != indexReader.numDocs()) {
+			System.out.println("Reusing basic doc vectors; number of documents: "
+												 + basicDocVectors.getNumVectors());
+      if (basicDocVectors.getNumVectors() != indexReader.numDocs()) {
         throw new RuntimeException("Wrong number of basicDocVectors " +
                                    "passed into constructor ...");
       }
     } else {
-      /* Create basic doc vector table */
-      System.err.println("Populating basic doc vector table, number of vectors: " +
+      // Create basic doc vectors in vector store.
+      System.err.println("Populating basic sparse doc vector store, number of vectors: " +
                          indexReader.numDocs());
-      this.basicDocVectors = new short[indexReader.numDocs()][seedLength];
-      for (int i = 0; i < indexReader.numDocs(); i++) {
-        this.basicDocVectors[i] =
-            VectorUtils.generateRandomVector(seedLength, random);
-      }
-    }
+      VectorStoreSparseRAM randomBasicDocVectors = new VectorStoreSparseRAM();
+			randomBasicDocVectors.CreateRandomVectors(indexReader.numDocs(), this.seedLength);
+			this.basicDocVectors = randomBasicDocVectors;
+		}
 
-    termVectors = new Hashtable();
+    termVectors = new Hashtable<String, ObjectVector>();
 
     /* iterate through an enumeration of terms and create termVector table*/
     System.err.println("Creating term vectors ...");
@@ -165,20 +163,12 @@ public class TermVectorsFromLucene implements VectorStore {
 
       TermDocs tDocs = indexReader.termDocs(term);
       while (tDocs.next()) {
-        int doc = tDocs.doc();
+        String docID = Integer.toString(tDocs.doc());
+				float[] docVector = this.basicDocVectors.getVector(docID);
         int freq = tDocs.freq();
-
-        /* add random vector (in condensed (signed index + 1)
-         * representation) to term vector by adding -1 or +1 to the
-         * location (index - 1) according to the sign of the index.
-         * (The -1 and +1 are necessary because there is no signed
-         * version of 0, so we'd have no way of telling that the
-         * zeroth position in the array should be plus or minus 1.)
-         * See also generateRandomVector method below.
-         */
-        for ( int i = 0; i < seedLength; i++ ){
-          short index = this.basicDocVectors[doc][i];
-          termVector[Math.abs(index) - 1] += freq * Math.signum(index);
+				
+        for (int i = 0; i < ObjectVector.vecLength; ++i) {
+          termVector[i] += freq * docVector[i];
         }
       }
       termVector = VectorUtils.getNormalizedVector(termVector);
@@ -187,13 +177,17 @@ public class TermVectorsFromLucene implements VectorStore {
     System.err.println("\nCreated " + termVectors.size() + " term vectors ...");
   }
 
-  public float[] getVector(Object term){
+  public float[] getVector(Object term) {
     return termVectors.get(term).getVector();
   }
 
-  public Enumeration getAllVectors(){
+  public Enumeration getAllVectors() {
     return termVectors.elements();
   }
+
+	public int getNumVectors() {
+		return termVectors.size();
+	}
 
   /**
    * Filters out non-alphabetic terms and those of low frequency

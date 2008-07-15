@@ -264,6 +264,10 @@ public class TermTermVectorsFromLucene implements VectorStore {
     return termVectors.elements();
   }
 	
+	public int getNumVectors() {
+		return termVectors.size();
+	}
+
   /**
    * Filters out non-alphabetic terms and those of low frequency
    * it might be a good idea to factor this out as a separate component.

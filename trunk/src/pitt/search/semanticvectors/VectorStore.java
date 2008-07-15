@@ -46,7 +46,7 @@ import java.util.LinkedList;
 	 @see ObjectVector
 */
 
-public interface VectorStore{
+public interface VectorStore {
 
 	/**
 	 * @param object the object whose vector you want to look up
@@ -55,7 +55,12 @@ public interface VectorStore{
 	public float[] getVector(Object object);
 
 	/**
-	 * @return an enumeration of all the object vectors in the store
+	 * @return an enumeration of all the object vectors in the store.
 	 */
 	public Enumeration<ObjectVector> getAllVectors();
+
+	/**
+	 * @return a count of the number of vectors in the store.
+	 */
+	public int getNumVectors();
 }

@@ -110,7 +110,7 @@ public class VectorStoreReader implements VectorStore {
       while (indexInput.getFilePointer() < indexInput.length() - 1) {
         if (indexInput.readString().equals(desiredObject)) {
           float[] vector = new float[ObjectVector.vecLength];
-          for( int i=0; i<ObjectVector.vecLength; i++ ){
+          for (int i = 0; i < ObjectVector.vecLength; ++i) {
             vector[i] = Float.intBitsToFloat(indexInput.readInt());
           }
           return vector;
@@ -127,6 +127,19 @@ public class VectorStoreReader implements VectorStore {
     return null;
   }
 
+	/**
+	 * Trivial (costly) implementation of getNumVectors that iterates and counts vectors.
+	 */
+	public int getNumVectors() {
+		Enumeration allVectors = this.getAllVectors();
+		int i = 0;
+		while (allVectors.hasMoreElements()) {
+			allVectors.nextElement();
+			++i;
+		}
+		return i;
+	}
+
   /**
    * Implements the hasMoreElements() and nextElement() methods
    * to give Enumeration interface from store on disk.
@@ -134,7 +147,7 @@ public class VectorStoreReader implements VectorStore {
   public class VectorEnumeration implements Enumeration {
     IndexInput indexInput;
 
-    public VectorEnumeration(IndexInput indexInput) {
+    public VectorEnumeration (IndexInput indexInput) {
       this.indexInput = indexInput;
     }
 
@@ -151,7 +164,7 @@ public class VectorStoreReader implements VectorStore {
           vector[i] = Float.intBitsToFloat(indexInput.readInt());
         }
       }
-      catch( IOException e ){
+      catch (IOException e) {
         e.printStackTrace();
       }
       return new ObjectVector(object, vector);

@@ -41,6 +41,7 @@ public class VectorUtilsTest {
 
 	@Test
     public void testScalarProduct() {
+		System.err.println("\nRunning tests for VectorUtilsTest");
 		float[] vec1 = new float[] {1, 1, 0};
 		float[] vec2 = new float[] {1, 0, 1};
 		assertEquals(1.0, VectorUtils.scalarProduct(vec1, vec2), 0.0001);
@@ -68,7 +69,48 @@ public class VectorUtilsTest {
 		}
 	}
 
+	@Test
+		public void testGetNLargestPositions() {
+		float[] floatVector = {2.3f, 0.1f, -1.0f};
+		short[] largest1 = VectorUtils.getNLargestPositions(floatVector, 1);
+		assertEquals(1, largest1.length);
+		assertEquals(0, largest1[0]);
+	}
+
+	@Test
+		public void testGetNLargestPositions2() {
+		float[] floatVector2 = {1.0f, 2.3f, 0.1f, -1.0f};
+		short[] largest2 = VectorUtils.getNLargestPositions(floatVector2, 2);
+		assertEquals(2, largest2.length);
+		assertEquals(1, largest2[0]);
+		assertEquals(0, largest2[1]);
+	}
+
+	@Test
+		public void testFloatVectorToSparseVector() {
+		float[] floatVector = {1.0f, 2.3f, 0.1f, -1.0f};
+		short[] sparseVector = VectorUtils.floatVectorToSparseVector(floatVector, 2);
+		assertEquals(2, sparseVector.length);
+		assertEquals(2, sparseVector[0]);
+		assertEquals(-4, sparseVector[1]);
+
+		float[] floatVector2 = {1.0f, 2.3f, 0.1f, -1.0f, 0f, 0f, 0f, 0f};
+		sparseVector = VectorUtils.floatVectorToSparseVector(floatVector, 4);
+		assertEquals(4, sparseVector.length);
+		assertEquals(2, sparseVector[0]);
+		assertEquals(-4, sparseVector[2]);
+	}
+
+	@Test
+		public void testSparseVectorToFloatVector() {
+		short[] sparseVector = {2, -4};
+		float[] floatVector = VectorUtils.sparseVectorToFloatVector(sparseVector, 4);
+		assertEquals(4, floatVector.length);
+		assertEquals(1, floatVector[1], 0.0001);
+		assertEquals(-1, floatVector[3], 0.0001);
+	}
+
 	public static void main(String args[]) {
-		org.junit.runner.JUnitCore.main("pitt.search.semanticvectors.VectorUtilsTest");
+
 	}
 }
