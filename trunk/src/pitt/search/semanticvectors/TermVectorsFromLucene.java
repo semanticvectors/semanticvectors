@@ -132,7 +132,7 @@ public class TermVectorsFromLucene implements VectorStore {
 
     /* iterate through an enumeration of terms and create termVector table*/
     System.err.println("Creating term vectors ...");
-    TermEnum terms = indexReader.terms();
+    TermEnum terms = this.indexReader.terms();
     int tc = 0;
     while(terms.next()){
       tc++;
@@ -195,7 +195,7 @@ public class TermVectorsFromLucene implements VectorStore {
    * @param term Term to be filtered.
    */
   private boolean termFilter (Term term) throws IOException {
-    /* Field filter. */
+    // Field filter.
     if (this.fieldsToIndex != null) {
       boolean desiredField = false;
       for (int i = 0; i < fieldsToIndex.length; ++i) {
@@ -208,21 +208,21 @@ public class TermVectorsFromLucene implements VectorStore {
       }
     }
 
-    /* character filter */
+    // Character filter.
     String termText = term.text();
-    for( int i=0; i<termText.length(); i++ ){
-      if( !Character.isLetter(termText.charAt(i)) ){
+    for (int i = 0; i < termText.length(); ++i) {
+      if (!Character.isLetter(termText.charAt(i))) {
         return false;
       }
     }
 
-    /* freqency filter */
+    // Freqency filter.
     int freq = 0;
     TermDocs tDocs = indexReader.termDocs(term);
-    while( tDocs.next() ){
+    while (tDocs.next()) {
       freq += tDocs.freq();
     }
-    if( freq < minFreq ){
+    if (freq < minFreq) {
       return false;
     }
 

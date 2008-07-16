@@ -173,7 +173,7 @@ public class BuildBilingualIndex{
       vecWriter.WriteVectors(termFile1, vecStore1);
       DocVectors docVectors = new DocVectors(vecStore1);
       System.err.println("Writing doc vectors to " + docFile1);
-      vecWriter.WriteVectors(docFile1, docVectors);
+      vecWriter.WriteVectors(docFile1, docVectors.makeWriteableVectorStore());
 
       VectorStore basicDocVectors = vecStore1.getBasicDocVectors();
       System.out.println("Keeping basic doc vectors, number: " + basicDocVectors.getNumVectors());
@@ -184,7 +184,7 @@ public class BuildBilingualIndex{
       vecWriter.WriteVectors(termFile2, vecStore2);
       docVectors = new DocVectors(vecStore2);
       System.err.println("Writing doc vectors to " + docFile2);
-      vecWriter.WriteVectors(docFile2, docVectors);
+      vecWriter.WriteVectors(docFile2, docVectors.makeWriteableVectorStore());
     }
     catch (IOException e) {
       e.printStackTrace();

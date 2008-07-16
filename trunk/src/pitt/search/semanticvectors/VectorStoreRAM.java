@@ -57,21 +57,28 @@ public class VectorStoreRAM implements VectorStore {
 	private Hashtable<Object, ObjectVector> objectVectors;
 
 	// Default constructor.
-	public VectorStoreRAM() {};
+	public VectorStoreRAM() {
+    this.objectVectors = new Hashtable<Object, ObjectVector>();
+	};
 
 	// Initialization routine.
   public void InitFromFile (String vectorFile) throws IOException {
 		VectorStoreReader vectorReaderDisk = new VectorStoreReader(vectorFile);
 		Enumeration<ObjectVector> vectorEnumeration = vectorReaderDisk.getAllVectors();
-    objectVectors = new Hashtable<Object, ObjectVector>();
 		
 		System.err.println("Reading vectors from store on disk into memory cache  ...");
 		while (vectorEnumeration.hasMoreElements()) {
 			ObjectVector objectVector = vectorEnumeration.nextElement();
-			objectVectors.put(objectVector.getObject().toString(), objectVector);
+			this.objectVectors.put(objectVector.getObject().toString(), objectVector);
 		}
 		System.err.println("Cached " + objectVectors.size() + " vectors.");
   }
+
+	// Add a single vector.
+	public void addVector(Object key, float[] vector) {
+		ObjectVector objectVector = new ObjectVector(key, vector);
+		this.objectVectors.put(key, objectVector);
+	}
 
   public Enumeration getAllVectors() {
     return this.objectVectors.elements();

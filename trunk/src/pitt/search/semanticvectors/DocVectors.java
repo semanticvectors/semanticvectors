@@ -37,11 +37,12 @@ package pitt.search.semanticvectors;
 
 import org.apache.lucene.index.*;
 import org.apache.lucene.document.Field;
+import java.io.IOException;
+import java.lang.Integer;
+import java.lang.NullPointerException;
 import java.util.Hashtable;
 import java.util.Random;
 import java.util.Enumeration;
-import java.io.IOException;
-import java.lang.NullPointerException;
 
 /** 
  * Implementation of vector store that collects doc vectors by
@@ -58,7 +59,7 @@ import java.lang.NullPointerException;
  */
 public class DocVectors implements VectorStore {
 
-	private Hashtable<String, ObjectVector> docVectors;
+	private VectorStoreRAM docVectors;
 	private TermVectorsFromLucene termVectorData;
 	private IndexReader indexReader;
 
@@ -69,17 +70,19 @@ public class DocVectors implements VectorStore {
 	public DocVectors (TermVectorsFromLucene termVectorData) throws IOException {
 		this.termVectorData = termVectorData;
 		this.indexReader = termVectorData.getIndexReader();
-		this.docVectors = new Hashtable();
+		this.docVectors = new VectorStoreRAM();
 
-		// TODO(dwiddows): Change to VectorStoreSparseRAM implementation.
-		System.err.println("Initializing document matrix ...");
-		float[][] docMatrix = new float[indexReader.numDocs()][ObjectVector.vecLength];
-		for (int i=0; i < indexReader.numDocs(); ++i) {
+		// Intialize doc vector store.
+		System.err.println("Initializing document vector store ...");
+		for (int i = 0; i < indexReader.numDocs(); ++i) {
+			float[] docVector = new float[ObjectVector.vecLength];
 			for (int j = 0; j < ObjectVector.vecLength; ++j) {
-				docMatrix[i][j] = 0;
+				docVector[j] = 0;
 			}
+			this.docVectors.addVector(Integer.toString(i), docVector);
 		}
 
+		// Create doc vectors, iterating over terms.
 		System.out.println("Building document vectors ...");
 		Enumeration<ObjectVector> termEnum = termVectorData.getAllVectors();
 
@@ -95,18 +98,18 @@ public class DocVectors implements VectorStore {
 				ObjectVector termVectorObject = termEnum.nextElement();
 				float[] termVector = termVectorObject.getVector();
 				String word = (String)termVectorObject.getObject();
-				int docNum;
 
-				// go through checking terms for each fieldName
+				// Go through checking terms for each fieldName.
 				for (String fieldName: termVectorData.getFieldsToIndex()) {
 					Term term = new Term(fieldName, word);
-					// get any docs for this term
-					TermDocs td = indexReader.termDocs(term);
+					// Get any docs for this term.
+					TermDocs td = this.indexReader.termDocs(term);
 					while (td.next()) {
-						docNum = td.doc();
-						// add vector from this term, taking freq into account
+						String docID = Integer.toString(td.doc());
+						// Add vector from this term, taking freq into account.
+						float[] docVector = this.docVectors.getVector(docID);
 						for (int j = 0; j < ObjectVector.vecLength; ++j) {
-							docMatrix[docNum][j] += td.freq() * termVector[j];
+							docVector[j] += td.freq() * termVector[j];
 						}
 					}
 				}
@@ -116,38 +119,52 @@ public class DocVectors implements VectorStore {
 			e.printStackTrace();
 		}
 
-		System.err.println("\nCreated document matrix ... transforming to hashtable ...");
-
+		System.err.println("\nNormalizing doc vectors ...");
 		int dc = 0;
 		for (int i = 0; i < indexReader.numDocs(); ++i) {
-			/* output progress counter */
-			if ((dc % 10000 == 0) || (dc < 10000 && dc % 1000 == 0)) {
-				System.err.print(dc + " ... ");
-			}
-			dc++;
-			String docName;
-			if (indexReader.document(i).getField("path") != null) {
-				docName = indexReader.document(i).getField("path").stringValue();
-			} else {
-				// For bilingual docs, we index "filename" not "path",
-				// since there are two system paths, one for each
-				// language. So if there was no "path", get the "filename".
-				docName = indexReader.document(i).getField("filename").stringValue();
-			}
-			float[] docVec = VectorUtils.getNormalizedVector(docMatrix[i]);
-			docVectors.put(docName, new ObjectVector(docName, docVec));
+			float[] docVector = this.docVectors.getVector(Integer.toString(i));
+			docVector = VectorUtils.getNormalizedVector(docVector);
+			this.docVectors.addVector(Integer.toString(i), docVector);
 		}
 	}
 
-	public float[] getVector(Object path){
-		return docVectors.get(path).getVector();
+	/**
+	 * Create a version of the vector store indexes by path / filename rather than Lucene ID.
+	 */
+	public VectorStore makeWriteableVectorStore() {
+		VectorStoreRAM outputVectors = new VectorStoreRAM();
+
+		for (int i = 0; i < this.indexReader.numDocs(); ++i) {
+			String docName;
+			try {
+				if (this.indexReader.document(i).getField("path") != null) {
+					docName = this.indexReader.document(i).getField("path").stringValue();
+				} else {
+					// For bilingual docs, we index "filename" not "path",
+					// since there are two system paths, one for each
+					// language. So if there was no "path", get the "filename".
+					docName = this.indexReader.document(i).getField("filename").stringValue();
+				}
+				float[] docVector = this.docVectors.getVector(Integer.toString(i));
+				outputVectors.addVector(docName, docVector);
+			} catch (CorruptIndexException e) {
+				e.printStackTrace();
+			} catch (IOException e) {
+				e.printStackTrace();
+			} 
+		}
+		return outputVectors;
 	}
 
-	public Enumeration getAllVectors(){
-		return docVectors.elements();
+	public float[] getVector(Object id) {
+		return this.docVectors.getVector(id);
+	}
+
+	public Enumeration getAllVectors() {
+		return this.docVectors.getAllVectors();
 	}
 
 	public int getNumVectors() {
-		return this.docVectors.size();
+		return this.docVectors.getNumVectors();
 	}
 }    
