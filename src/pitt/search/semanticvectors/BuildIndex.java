@@ -184,6 +184,9 @@ public class BuildIndex{
 				docVectors = new DocVectors(vecStore);
 			}
 
+			// At end of training, convert document vectors from ID keys to pathname keys.
+			VectorStore writeableDocVectors = docVectors.makeWriteableVectorStore();
+
 			String termFile = "termvectors.bin";
 			String docFile = "docvectors.bin";
 			if (trainingCycles > 1) {
@@ -194,7 +197,7 @@ public class BuildIndex{
 			System.err.println("Writing term vectors to " + termFile);
 			vecWriter.WriteVectors(termFile, vecStore);
 			System.err.println("Writing doc vectors to " + docFile);
-			vecWriter.WriteVectors(docFile, docVectors);
+			vecWriter.WriteVectors(docFile, writeableDocVectors);
 		}
 		catch (IOException e) {
 			e.printStackTrace();
