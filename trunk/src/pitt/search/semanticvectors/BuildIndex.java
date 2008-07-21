@@ -39,6 +39,8 @@ import java.util.Enumeration;
 import java.util.LinkedList;
 import java.io.IOException;
 
+import pitt.search.semanticvectors.IncrementalDocVectors;
+
 /**
  * Command line utility for creating semantic vector indexes.
  */
@@ -166,6 +168,9 @@ public class BuildIndex{
 		System.err.println("seedLength = " + seedLength);
 		System.err.println("Vector length = " + ObjectVector.vecLength);
 		System.err.println("Minimum frequency = " + minFreq);
+		String termFile = "termvectors.bin";
+		String docFile = "docvectors.bin";
+		
 		try{
 			TermVectorsFromLucene vecStore =
 				new TermVectorsFromLucene(luceneIndex, seedLength, minFreq, null, fieldsToIndex);
@@ -173,6 +178,10 @@ public class BuildIndex{
 			// Create doc vectors.
 			DocVectors docVectors = new DocVectors(vecStore);
 
+			//build docvectors using per-document statistics from positional index if available
+			//IncrementalDocVectors idocVectors = new IncrementalDocVectors(vecStore, "incremental_"+docFile);
+			
+			
 			for (int i = 1; i < trainingCycles; ++i) {
 				VectorStore newBasicDocVectors = vecStore.getBasicDocVectors();
 				System.err.println("\nRetraining with learned document vectors ...");
@@ -187,8 +196,8 @@ public class BuildIndex{
 			// At end of training, convert document vectors from ID keys to pathname keys.
 			VectorStore writeableDocVectors = docVectors.makeWriteableVectorStore();
 
-			String termFile = "termvectors.bin";
-			String docFile = "docvectors.bin";
+			
+		
 			if (trainingCycles > 1) {
 				termFile = "termvectors" + trainingCycles + ".bin";
 				docFile = "docvectors" + trainingCycles + ".bin";
