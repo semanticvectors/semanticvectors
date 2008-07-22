@@ -39,8 +39,6 @@ import java.util.Enumeration;
 import java.util.LinkedList;
 import java.io.IOException;
 
-import pitt.search.semanticvectors.IncrementalDocVectors;
-
 /**
  * Command line utility for creating semantic vector indexes.
  */
@@ -178,8 +176,11 @@ public class BuildIndex{
 			// Create doc vectors.
 			DocVectors docVectors = new DocVectors(vecStore);
 
-			//build docvectors using per-document statistics from positional index if available
-			//IncrementalDocVectors idocVectors = new IncrementalDocVectors(vecStore, "incremental_"+docFile);
+			// An alternative for collections with many documents is to
+			// build docvectors using per-document statistics from positional
+			// index if available. To do this, use:
+			IncrementalDocVectors idocVectors =
+				new IncrementalDocVectors(vecStore, "incremental_"+docFile);
 			
 			
 			for (int i = 1; i < trainingCycles; ++i) {
