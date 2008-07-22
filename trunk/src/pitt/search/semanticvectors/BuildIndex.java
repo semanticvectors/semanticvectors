@@ -47,6 +47,7 @@ public class BuildIndex{
 	static int seedLength = 20;
 	static int minFreq = 10;
 	static int trainingCycles = 1;
+	static boolean docsIncremental = false;
 
 	/**
 	 * Prints the following usage message:
@@ -56,12 +57,15 @@ public class BuildIndex{
 	 * <br> BuildIndex creates files termvectors.bin and docvectors.bin in local directory.
 	 * <br> Other parameters that can be changed include vector length,
 	 * <br>     (number of dimensions), seed length (number of non-zero
-	 * <br>     entries in basic vectors), and minimum term frequency.
+	 * <br>     entries in basic vectors), minimum term frequency,
+	 * <br>     and number of iterative training cycles).
 	 * <br> To change these use the following command line arguments:
 	 * <br> -d [number of dimensions]
 	 * <br> -s [seed length]
 	 * <br> -m [minimum term frequency]
 	 * <br> -tc [training cycles]
+	 * <br> -docs [incremental|inmemory] Switch between building doc vectors incrementally"
+	 * <br>       or all in memory to be reused (default case).
 	 * </code>
 	 */
 	public static void usage(){
@@ -70,13 +74,15 @@ public class BuildIndex{
 			+ "\nBuildIndex creates files termvectors.bin and docvectors.bin in local directory."
 			+ "\nOther parameters that can be changed include vector length,"
 			+ "\n    (number of dimensions), seed length (number of non-zero"
-			+ "\n    entries in basic vectors), and minimum term frequency."
+			+ "\n    entries in basic vectors), minimum term frequency,"
+			+ "\n    and number of iterative training cycles)."
 			+ "\nTo change these use the command line arguments "
 			+ "\n  -d [number of dimensions]"
 			+ "\n  -s [seed length]"
 			+ "\n  -m [minimum term frequency]"
-			+ "\n  -tc [training cycles]";
-
+			+ "\n  -tc [training cycles]"
+			+ "\n  -docs [incremental|inmemory] Switch between building doc vectors incrementally"
+			+ "\n        or all in memory to be reused (default case).";
 		System.out.println(usageMessage);
 		System.exit(-1);
 	}
@@ -150,6 +156,19 @@ public class BuildIndex{
 						System.err.println(ar + " is not a number."); usage();
 					}
 				}
+				/* Get method for building doc vectors */
+				else if (pa.equalsIgnoreCase("-docs")) {
+					if (ar.equals("incremental")) {
+						docsIncremental = true;
+						wellFormed = true;
+					} else if (ar.equals("inmemory")) {
+						docsIncremental = false;
+						wellFormed = true;
+					} else {
+						System.err.println("Option '" + ar + "' is unrecognized for -docs flag.");
+						usage();
+					}
+				}
 				/* All other arguments are unknown. */
 				else {
 					System.err.println("Unknown command line option: " + pa);
@@ -173,41 +192,37 @@ public class BuildIndex{
 			TermVectorsFromLucene vecStore =
 				new TermVectorsFromLucene(luceneIndex, seedLength, minFreq, null, fieldsToIndex);
 
-			// Create doc vectors.
-			DocVectors docVectors = new DocVectors(vecStore);
-
-			// An alternative for collections with many documents is to
-			// build docvectors using per-document statistics from positional
-			// index if available. To do this, use:
-			IncrementalDocVectors idocVectors =
-				new IncrementalDocVectors(vecStore, "incremental_"+docFile);
-			
-			
-			for (int i = 1; i < trainingCycles; ++i) {
-				VectorStore newBasicDocVectors = vecStore.getBasicDocVectors();
-				System.err.println("\nRetraining with learned document vectors ...");
-				vecStore = new TermVectorsFromLucene(luceneIndex,
-																						 seedLength,
-																						 minFreq,
-																						 newBasicDocVectors,
-																						 fieldsToIndex);
-				docVectors = new DocVectors(vecStore);
+			// Create doc vectors and write vectors to disk.
+			if (docsIncremental == true) {
+				VectorStoreWriter vecWriter = new VectorStoreWriter();
+				System.err.println("Writing term vectors to " + termFile);
+				IncrementalDocVectors idocVectors =
+					new IncrementalDocVectors(vecStore, "incremental_"+docFile);
+			} else {
+				DocVectors docVectors = new DocVectors(vecStore);			
+				for (int i = 1; i < trainingCycles; ++i) {
+					VectorStore newBasicDocVectors = vecStore.getBasicDocVectors();
+					System.err.println("\nRetraining with learned document vectors ...");
+					vecStore = new TermVectorsFromLucene(luceneIndex,
+																							 seedLength,
+																							 minFreq,
+																							 newBasicDocVectors,
+																							 fieldsToIndex);
+					docVectors = new DocVectors(vecStore);
+				}
+				// At end of training, convert document vectors from ID keys to pathname keys.
+				VectorStore writeableDocVectors = docVectors.makeWriteableVectorStore();
+				
+				if (trainingCycles > 1) {
+					termFile = "termvectors" + trainingCycles + ".bin";
+					docFile = "docvectors" + trainingCycles + ".bin";
+				}
+				VectorStoreWriter vecWriter = new VectorStoreWriter();
+				System.err.println("Writing term vectors to " + termFile);
+				vecWriter.WriteVectors(termFile, vecStore);
+				System.err.println("Writing doc vectors to " + docFile);
+				vecWriter.WriteVectors(docFile, writeableDocVectors);
 			}
-
-			// At end of training, convert document vectors from ID keys to pathname keys.
-			VectorStore writeableDocVectors = docVectors.makeWriteableVectorStore();
-
-			
-		
-			if (trainingCycles > 1) {
-				termFile = "termvectors" + trainingCycles + ".bin";
-				docFile = "docvectors" + trainingCycles + ".bin";
-			}
-			VectorStoreWriter vecWriter = new VectorStoreWriter();
-			System.err.println("Writing term vectors to " + termFile);
-			vecWriter.WriteVectors(termFile, vecStore);
-			System.err.println("Writing doc vectors to " + docFile);
-			vecWriter.WriteVectors(docFile, writeableDocVectors);
 		}
 		catch (IOException e) {
 			e.printStackTrace();
