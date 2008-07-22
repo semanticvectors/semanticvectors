@@ -272,7 +272,7 @@ public class Search {
 																											searchVecReader,
 																											lUtils,
 																											queryTerms);
-			System.err.print("Searching term vectors, searchtype SUM ... ");
+			System.err.print("Searching term vectors, searchtype SPARSESUM ... ");
 			results = vecSearcher.getNearestNeighbors(numResults);
 			break;
 
