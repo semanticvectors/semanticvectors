@@ -166,7 +166,7 @@ public class BuildPositionalIndex {
 
 		String luceneIndex = args[args.length-1];
 		String termFile = "termtermvectors.bin";
-		String docFile = "incremental_docvectors.bin";
+		String docFile = "docvectors.bin";
 		String[] fieldsToIndex = {"contents"};
 		System.err.println("seedLength = " + seedLength);
 		System.err.println("Vector length = " + ObjectVector.vecLength);
@@ -178,6 +178,8 @@ public class BuildPositionalIndex {
 			VectorStoreWriter vecWriter = new VectorStoreWriter();
 			System.err.println("Writing term vectors to " + termFile);
 			vecWriter.WriteVectors(termFile, vecStore);
+			IncrementalDocVectors docVectors = new IncrementalDocVectors(vecStore, "incremental_"+docFile, luceneIndex, fieldsToIndex);	
+
 		}
 		catch (IOException e) {
 			e.printStackTrace();
