@@ -64,20 +64,14 @@ public class TermVectorsFromLucene implements VectorStore {
   private int minFreq;
   private VectorStore basicDocVectors;
 
-  /**
-   * @return The object's indexReader.
-   */
-  public IndexReader getIndexReader(){ return this.indexReader; }
+
 
   /**
    * @return The object's basicDocVectors.
    */
   public VectorStore getBasicDocVectors(){ return this.basicDocVectors; }
 
-  /**
-   * @return The list of Lucene fields that are to be indexed.
-   */
-  public String[] getFieldsToIndex(){ return this.fieldsToIndex; }
+
 
   /**
    * @param indexDir Directory containing Lucene index.
