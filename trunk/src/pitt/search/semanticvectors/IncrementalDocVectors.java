@@ -50,19 +50,26 @@ import org.apache.lucene.store.MMapDirectory;
  */
 public class IncrementalDocVectors {
 
-	private TermVectorsFromLucene termVectorData;
+	private VectorStore termVectorData;
 	private IndexReader indexReader;
-
+	private String[] fieldsToIndex;
+	
 	/**
 	 * Constructor that gets everything it needs from a
 	 * TermVectorsFromLucene object and writes to a named file.
 	 * @param termVectorData Has all the information needed to create doc vectors.
 	 * @param vectorFile Filename for the document vectors
+	 * @param indexDir Directory of the Lucene Index used to generate termVectorData
+	 * @param fieldsToIndex String[] containing fields indexed when generating termVectorData
 	 */
-	public IncrementalDocVectors (TermVectorsFromLucene termVectorData, String vectorFile)
+	public IncrementalDocVectors(VectorStore termVectorData, String vectorFile, String indexDir, String[] fieldsToIndex)
+	
 		throws IOException {
 		this.termVectorData = termVectorData;
-		this.indexReader = termVectorData.getIndexReader();
+		this.indexReader = IndexReader.open(indexDir);
+		this.fieldsToIndex = fieldsToIndex;
+	
+	
 
 		/* Check that the Lucene index contains Term Positions */
 		java.util.Collection fields_with_positions =
@@ -111,7 +118,7 @@ public class IncrementalDocVectors {
 
 			float[] docVector = new float[ObjectVector.vecLength];
 
-			for (String fieldName: termVectorData.getFieldsToIndex()) {
+			for (String fieldName: fieldsToIndex) {
 				TermPositionVector vex =
 					(TermPositionVector) indexReader.getTermFreqVector(dc, fieldName);
 
