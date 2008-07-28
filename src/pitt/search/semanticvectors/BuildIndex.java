@@ -196,8 +196,11 @@ public class BuildIndex{
 			if (docsIncremental == true) {
 				VectorStoreWriter vecWriter = new VectorStoreWriter();
 				System.err.println("Writing term vectors to " + termFile);
+				vecWriter.WriteVectors(termFile, vecStore);
 				IncrementalDocVectors idocVectors =
-					new IncrementalDocVectors(vecStore, "incremental_"+docFile);
+					new IncrementalDocVectors(vecStore, "incremental_"+docFile, luceneIndex, fieldsToIndex);
+		
+					
 			} else {
 				DocVectors docVectors = new DocVectors(vecStore);			
 				for (int i = 1; i < trainingCycles; ++i) {
