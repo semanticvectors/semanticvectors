@@ -14,14 +14,25 @@ Several other options are available: these fall broadly into the categories of f
 
 The simplest way to find out more about these arguments is to run `java pitt.search.semanticvectors.Search` with no arguments, which will result in a basic usage message being written to the console. All changes to interface of Search.java should be reflected in the [http://semanticvectors.googlecode.com/svn/trunk/doc/pitt/search/semanticvectors/Search.html#usage() usage function].
 
-===File Arguments===
+==File Arguments==
 
 The Search program needs a file to look up vectors to form the query, and a file to search through vectors to find nearest neighbors. By default, these are the same file (`termvectors.bin`), but it's sometimes useful to have different files -- for example, to use term vectors to look up nearby documents, or to use terms from one language to look up neighbors from another (see BilingualModels).
 
-To change the file from which the queries are built, use the `-q` option. to change the file from which search results are found, user the `-s` option. 
+To change the file from which the queries are built, use the `-q` option. to change the file from which search results are found, use the `-s` option. 
+
+See also VectorStoreFormats for a description of the formats that are supported for reading vectors from disk.
+
+==Search Type Arguments==
+
+The available search types are chosen using the `-searchtype` argument. The available search types are listed in an enumeration and documented at http://semanticvectors.googlecode.com/svn/trunk/doc/pitt/search/semanticvectors/Search.SearchType.html
+
+Most of these options correspond directly to implementations of the 
+[http://semanticvectors.googlecode.com/svn/trunk/doc/pitt/search/semanticvectors/VectorSearcher.html VectorSearcher] class.
 
 CONVOLUTION
           Similar to TENSOR, product similarity that trains by taking ordered pairs of terms, a target query term, and searches for the term whose convolution product with the target term gives the largest similarity with training convolution.
+
+
 MAXSIM
           "Closest disjunction" - get vectors for each query term, score by measuring distance to each term and taking the minimum.
 PRINTQUERY
