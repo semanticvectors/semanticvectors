@@ -4,4 +4,31 @@
 
 As the SemanticVectors package grows more sophisticated, the options for building and searching semantic vector indexes have grown more complex. The command line interface for all of these options is still all through [http://semanticvectors.googlecode.com/svn/trunk/doc/pitt/search/semanticvectors/Search.html Search.java], which is by now quite complex but still (we hope) fairly usable and  maintainable.
 
-The purpose of this Wiki page is to document some of the search options in a slightly friendlier fashion: however, if any gradual discrepancies arise between this Wiki page and the code / javadoc in the svn repository, the repository should be regarded as more authoritative.
+The purpose of this Wiki page is to document some of the search options in a slightly friendlier fashion: however, if any gradual discrepancies arise between this Wiki page and the code / javadoc in the svn repository, the svn repository should be regarded as more authoritative.
+
+==Basic Searching==
+
+Searching is performed using the command `java pitt.search.semanticvectors.Search QUERYARGS`, as documented in the InstallationInstructions. If none of the special command line arguments are given, the default behavior is to presume that the arguments given are all query terms to be looked up in a vector file called `termvectors.bin`. The query vector will be produced by adding up the vectors for all query terms, and the search will be performed using the cosine similarity measure.
+
+Several other options are available: these fall broadly into the categories of file arguments (where to find the vectors and what formats to expect), search types (how to combine several terms into a single query expression), and query terms (which terms to look up and use as query terms).
+
+The simplest way to find out more about these arguments is to run `java pitt.search.semanticvectors.Search` with no arguments, which will result in a basic usage message being written to the console. All changes to interface of Search.java should be reflected in the [http://semanticvectors.googlecode.com/svn/trunk/doc/pitt/search/semanticvectors/Search.html#usage() usage function].
+
+===File Arguments===
+
+
+
+CONVOLUTION
+          Similar to TENSOR, product similarity that trains by taking ordered pairs of terms, a target query term, and searches for the term whose convolution product with the target term gives the largest similarity with training convolution.
+MAXSIM
+          "Closest disjunction" - get vectors for each query term, score by measuring distance to each term and taking the minimum.
+PRINTQUERY
+          Build an additive query vector (as with SUM and print out the query vector for debugging.
+SPARSESUM
+          Build a query as with SUM option, but quantize to sparse vectors before taking scalar product at search time.
+SUBSPACE
+          "Quantum disjunction" - get vectors for each query term, create a representation for the subspace spanned by these vectors, and score by measuring cosine similarity with this subspace.
+SUM
+          Default option - build a query by adding together (weighted) vectors for each of the query terms, and search using cosine similarity.
+TENSOR
+          A product similarity that trains by taking ordered pairs of terms, a target query term, and searches for the term whose tensor product with the target term gives the largest similarity with training tensor.
