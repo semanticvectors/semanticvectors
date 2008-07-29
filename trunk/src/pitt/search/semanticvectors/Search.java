@@ -42,7 +42,65 @@ import java.util.LinkedList;
  * Command line term vector search utility.
  */
 public class Search {
-	public enum SearchType { SUM, SPARSESUM, SUBSPACE, MAXSIM, TENSOR, CONVOLUTION, PRINTQUERY } 
+
+	/**
+	 * List of different types of searches that can be performed. Most
+	 * involve processing combinations of vectors in different ways, in
+	 * building a query expression, scoring candidates against these
+	 * query expressions, or both. Most options here correspond directly
+	 * to a particular subclass of <code>VectorSearcher</code>
+   * @see VectorSearcher
+	 */
+	public enum SearchType { 
+		/**
+		 * Default option - build a query by adding together (weighted)
+		 * vectors for each of the query terms, and search using cosine
+		 * similarity.
+		 * @see VectorSearcher.VectorSearcherCosine
+		 */
+		SUM,
+	  /**
+		 * Build a query as with <code>SUM</code> option, but quantize to
+     * sparse vectors before taking scalar product at search time.
+     * This can be used to give a guide to how much smilarities are
+     * changed by only using the most significant coordinates of a
+     * vector.
+		 * @see VectorSearcher.VectorSearcherCosineSparse
+		 */
+		SPARSESUM,
+		/**
+		 * "Quantum disjunction" - get vectors for each query term, create a
+		 * representation for the subspace spanned by these vectors, and
+		 * score by measuring cosine similarity with this subspace.
+		 * @see VectorSearcher.VectorSearcherSubspaceSim
+		 */
+		SUBSPACE, 
+		/**
+		 * "Closest disjunction" - get vectors for each query term, score
+		 * by measuring distance to each term and taking the minimum.
+		 * @see VectorSearcher.VectorSearcherMaxSim
+		 */
+		MAXSIM,
+		/**
+		 * A product similarity that trains by taking ordered pairs of
+		 * terms, a target query term, and searches for the term whose tensor
+		 * product with the target term gives the largest similarity with training tensor.
+		 * @see VectorSearcher.VectorSearcherTensorSim
+		 */
+		TENSOR,
+		/**
+		 * Similar to <code>TENSOR</code>, product similarity that trains
+		 * by taking ordered pairs of terms, a target query term, and
+		 * searches for the term whose convolution product with the target
+		 * term gives the largest similarity with training convolution.
+		 * @see VectorSearcher.VectorSearcherConvolutionSim
+		 */
+		CONVOLUTION, 
+		/**
+		 * Build an additive query vector (as with <code>SUM</code> and
+		 * print out the query vector for debugging.
+		 */
+		PRINTQUERY }
 
 	// Experimenting with class-level static variables to enable several
 	// methods to use this state. Initialize each with default values.
