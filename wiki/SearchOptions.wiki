@@ -16,7 +16,9 @@ The simplest way to find out more about these arguments is to run `java pitt.sea
 
 ===File Arguments===
 
-The Search program needs a file to look up vectors to form the query, and a file to search through vectors to find nearest neighbors. By default, these are the same file, but it's sometimes useful to have different files -- for example, to use term vectors to look up nearby documents, or to use terms from one language to look up neighbors from another (see BilingualModels).
+The Search program needs a file to look up vectors to form the query, and a file to search through vectors to find nearest neighbors. By default, these are the same file (`termvectors.bin`), but it's sometimes useful to have different files -- for example, to use term vectors to look up nearby documents, or to use terms from one language to look up neighbors from another (see BilingualModels).
+
+To change the file from which the queries are built, use the `-q` option. to change the file from which search results are found, user the `-s` option. 
 
 CONVOLUTION
           Similar to TENSOR, product similarity that trains by taking ordered pairs of terms, a target query term, and searches for the term whose convolution product with the target term gives the largest similarity with training convolution.
