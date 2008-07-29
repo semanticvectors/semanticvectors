@@ -287,23 +287,23 @@ public class VectorUtils{
 	 */
 	public static boolean orthogonalizeVectors(ArrayList<float[]> vectors) {
 		vectors.set(0, getNormalizedVector(vectors.get(0)));
-		/* Go up through vectors in turn, parameterized by k */
+		// Go up through vectors in turn, parameterized by k.
 		for (int k = 0; k < vectors.size(); ++k) {
 	    float[] kthVector = vectors.get(k);
 	    if (kthVector.length != ObjectVector.vecLength) {
 				System.err.println("In orthogonalizeVector: not all vectors have required dimension.");
 				return false;
 	    }
-	    /* Go up to vector k, parameterized by j. */
+	    // Go up to vector k, parameterized by j.
 	    for (int j = 0; j < k; ++j) {
 				float[] jthVector = vectors.get(j);
 				float dotProduct = scalarProduct(kthVector, jthVector);
-				/* Subtract relevant amount from kth vector. */
+				// Subtract relevant amount from kth vector.
 				for (int i = 0; i < ObjectVector.vecLength; ++i) {
 					kthVector[i] -= dotProduct * jthVector[i];
 				}
 	    }
-			/* Normalize the vector we're working on. */
+			// Normalize the vector we're working on.
 			vectors.set(k, getNormalizedVector(kthVector));
 		}
 

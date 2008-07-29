@@ -262,6 +262,8 @@ abstract public class VectorSearcher{
 			}
 			this.trainingTensor = VectorUtils.getNormalizedTensor(trainingTensor);
 
+			// This is an explicit way of taking a slice of the last i
+			// terms. There may be a quicker way of doing this.
 			String[] partnerTerms = new String[queryTerms.length - i];
 			for (int j = 0; j < queryTerms.length - i; ++j) {
 				partnerTerms[j] = queryTerms[i + j];
@@ -388,7 +390,11 @@ abstract public class VectorSearcher{
 
 			for (int i = 0; i < queryTerms.length; ++i) {
 				System.out.println("\t" + queryTerms[i]);
-				float[] tmpVector = queryVecStore.getVector(queryTerms[i]);
+				// There may be compound disjuncts, e.g., "A NOT B" as a single argument.
+				String[] tmpTerms = queryTerms[i].split("\\s");
+				float[] tmpVector = CompoundVectorBuilder.getQueryVector(queryVecStore,
+																																 luceneUtils,
+																																 tmpTerms);
 				if (tmpVector != null) {
 					this.disjunctSpace.add(tmpVector);
 				}
@@ -425,7 +431,11 @@ abstract public class VectorSearcher{
 			this.disjunctVectors = new ArrayList();
 
 			for (int i = 0; i < queryTerms.length; ++i) {
-				float[] tmpVector = queryVecStore.getVector(queryTerms[i]);
+				// There may be compound disjuncts, e.g., "A NOT B" as a single argument.
+				String[] tmpTerms = queryTerms[i].split("\\s");
+				float[] tmpVector = CompoundVectorBuilder.getQueryVector(queryVecStore,
+																																 luceneUtils,
+																																 tmpTerms);
 				if (tmpVector != null) {
 					this.disjunctVectors.add(tmpVector);
 				}

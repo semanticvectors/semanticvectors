@@ -58,12 +58,12 @@ public class IncrementalDocVectors {
 	 * Constructor that gets everything it needs from a
 	 * TermVectorsFromLucene object and writes to a named file.
 	 * @param termVectorData Has all the information needed to create doc vectors.
-	 * @param vectorFile Filename for the document vectors
 	 * @param indexDir Directory of the Lucene Index used to generate termVectorData
 	 * @param fieldsToIndex String[] containing fields indexed when generating termVectorData
+	 * @param vectorFile Filename for the document vectors
 	 */
-	public IncrementalDocVectors(VectorStore termVectorData, String vectorFile, String indexDir, String[] fieldsToIndex)
-	
+	public IncrementalDocVectors(VectorStore termVectorData, String indexDir,
+															 String[] fieldsToIndex, String vectorFile)
 		throws IOException {
 		this.termVectorData = termVectorData;
 		this.indexReader = IndexReader.open(indexDir);

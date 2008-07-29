@@ -198,7 +198,7 @@ public class BuildIndex{
 				System.err.println("Writing term vectors to " + termFile);
 				vecWriter.WriteVectors(termFile, vecStore);
 				IncrementalDocVectors idocVectors =
-					new IncrementalDocVectors(vecStore, "incremental_"+docFile, luceneIndex, fieldsToIndex);
+					new IncrementalDocVectors(vecStore, luceneIndex, fieldsToIndex, "incremental_"+docFile);
 		
 					
 			} else {

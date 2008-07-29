@@ -178,7 +178,8 @@ public class BuildPositionalIndex {
 			VectorStoreWriter vecWriter = new VectorStoreWriter();
 			System.err.println("Writing term vectors to " + termFile);
 			vecWriter.WriteVectors(termFile, vecStore);
-			IncrementalDocVectors docVectors = new IncrementalDocVectors(vecStore, "incremental_"+docFile, luceneIndex, fieldsToIndex);	
+			IncrementalDocVectors docVectors =
+				new IncrementalDocVectors(vecStore, luceneIndex, fieldsToIndex, "incremental_"+docFile);	
 
 		}
 		catch (IOException e) {
