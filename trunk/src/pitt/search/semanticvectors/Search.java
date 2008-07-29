@@ -225,7 +225,7 @@ public class Search {
 				if (searchTypeString.equals("sum")) {
 					searchType = SearchType.SUM;
 				}
-				if (searchTypeString.equals("sparsesum")) {
+				else if (searchTypeString.equals("sparsesum")) {
 					searchType = SearchType.SPARSESUM;
 				}
 				else if (searchTypeString.equals("subspace")) {
