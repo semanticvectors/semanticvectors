@@ -213,7 +213,7 @@ abstract public class VectorSearcher{
 	 * Class for searching a vector store using tensor product
 	 * similarity.  The class takes a seed tensor as a training
 	 * example. This tensor should be entangled (a superposition of
-	 * several individual products A * B) for non-trivial reslults.
+	 * several individual products A * B) for non-trivial results.
 	 */
 	static public class VectorSearcherTensorSim extends VectorSearcher {
 		private float[][] trainingTensor;
@@ -223,8 +223,10 @@ abstract public class VectorSearcher{
 		 * @param searchVecStore The vector store to search.
 		 * @param luceneUtils LuceneUtils object to use for query weighting. (May be null.)
 		 * @param queryTerms Terms that will be parsed into a query
-		 * expression. TODO(dwiddows): Document appropriate structure of
-		 * queryTerms.
+		 * expression. This should be a list of one or more
+		 * tilde-separated training pairs, e.g., <code>paris~france
+		 * berlin~germany</code> followed by a list of one or more search
+		 * terms, e.g., <code>london birmingham</code>.
 		 */
 		public VectorSearcherTensorSim(VectorStore queryVecStore,
 																	 VectorStore searchVecStore,
@@ -276,7 +278,7 @@ abstract public class VectorSearcher{
 		/**
 		 * @param testVector Vector being tested.
 		 * Scores are hopefully high when the relationship between queryVector
-		 * and testVector is analogoues to the relationship between rel1 and rel2.
+		 * and testVector is analogous to the relationship between rel1 and rel2.
 		 */
 		public float getScore(float[] testVector) {
 			float[][] testTensor =
@@ -297,8 +299,10 @@ abstract public class VectorSearcher{
 		 * @param searchVecStore The vector store to search.
 		 * @param luceneUtils LuceneUtils object to use for query weighting. (May be null.)
 		 * @param queryTerms Terms that will be parsed into a query
-		 * expression. TODO(dwiddows): Document appropriate structure of
-		 * queryTerms.
+		 * expression. This should be a list of one or more
+		 * tilde-separated training pairs, e.g., <code>paris~france
+		 * berlin~germany</code> followed by a list of one or more search
+		 * terms, e.g., <code>london birmingham</code>.
 		 */
 		public VectorSearcherConvolutionSim(VectorStore queryVecStore,
 																				VectorStore searchVecStore,
