@@ -57,9 +57,9 @@ public class ClusterResults {
 
 		System.out.println("Initializing clusters ...");
 
-		// Initialize cluster mappings in a round-robin fashion.
-		for (int i = 0; i < objectVectors.length; ++i) { 
-			clusterMappings[i] = i % numClusters;
+		// Initialize cluster mappings randomly.
+		for (int i = 0; i < objectVectors.length; ++i) {
+			clusterMappings[i] = Math.abs(rand.nextInt()) % numClusters;
 		}
 
 		System.out.println("Iterating k-means assignment ...");
@@ -113,9 +113,9 @@ public class ClusterResults {
 	 */
 	public static void usage(){
 		String usageMessage = "\nClusterResults class in package pitt.search.semanticvectors"
-			+ "\nUsage: java pitt.search.semanticvectors.BuildIndex -results [number of search results]"
-			+ "\n                                                   -clusters [number of clusters]"
-			+ "\n                                                   <SEARCH ARGS>"
+			+ "\nUsage: java pitt.search.semanticvectors.ClusterResults -results [number of search results]"
+			+ "\n                                                       -clusters [number of clusters]"
+			+ "\n                                                       <SEARCH ARGS>"
 			+ "\nwhere SEARCH ARGS is an expression passed to Search class.";
 		System.out.println(usageMessage);
 		System.exit(-1);
@@ -133,6 +133,7 @@ public class ClusterResults {
 		// Parse query args. Make sure you put the two clustering
 		// arguments before any of the search arguments.
     int argc = 0;
+		if (args.length < 5) { usage(); }
     while (args[argc].substring(0, 1).equals("-")) {
       if (args[argc].equals("-clusters")) {
         numClusters = Integer.parseInt(args[argc + 1]);
