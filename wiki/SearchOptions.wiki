@@ -29,26 +29,136 @@ The available search types are chosen using the `-searchtype` argument. The avai
 Most of these options correspond directly to implementations of the 
 [http://semanticvectors.googlecode.com/svn/trunk/doc/pitt/search/semanticvectors/VectorSearcher.html VectorSearcher] class.
 
+Note that the options (like all command line options at the moment) are case insensitive.
+
+All of the examples below are generated from the default `termvectors.bin` file derived from the King James Bible corpus.
 
 ===SUM===
 Default option - build a query by adding together (weighted) vectors for each of the query terms, and search using cosine similarity.
 
+Example:
+
+{{{
+$ java pitt.search.semanticvectors.Search -searchtype sum abraham isaac
+Opening query vector store from file: termvectors.bin
+Dimensions = 200
+Searching term vectors, searchtype SUM ... Search output follows ...
+0.8739137:abraham
+0.8739133:isaac
+0.57702935:rebekah
+0.5297739:bethuel
+0.4821766:digged
+0.4661227:gerar
+...
+}}}
+
+
 ===SPARSESUM===
 Build a query as with SUM option, but quantize to sparse vectors before taking scalar product at search time.
+
+Example:
+{{{
+$ java pitt.search.semanticvectors.Search -searchtype sparsesum abraham isaac
+Opening query vector store from file: termvectors.bin
+Dimensions = 200
+Searching term vectors, searchtype SPARSESUM ... Search output follows ...
+16.0:abraham
+15.0:isaac
+10.0:bethuel
+10.0:rebekah
+8.0:room
+8.0:stopped
+...
+}}}
+
+(Careful readers may note that these are scalar products, not cosine similarities, i.e., the scores are not normalized. This is another story, feel free to write to the group if you're interested.)
 
 ===SUBSPACE===
 "Quantum disjunction" - get vectors for each query term, create a representation for the subspace spanned by these vectors, and score by measuring cosine similarity with this subspace.
 
+Example:
+{{{
+$ java pitt.search.semanticvectors.Search -searchtype subspace abraham isaac
+Opening query vector store from file: termvectors.bin
+Dimensions = 200
+Searching term vectors, searchtype SUBSPACE ... Search output follows ...
+1.3770361:isaac
+1.0000002:abraham
+0.89358807:rebekah
+0.73906654:gerar
+0.7289439:digged
+0.7102588:bethuel
+...
+}}}
+
+Careful readers will note that there is something wrong with these scores - they should never go above 1. I have been unable to track down the source of this problem, the unit tests for the orthogonalization VectorUtils all work just fine. Any help with this problem would be much appreciated.
+
 ===MAXSIM===
 "Closest disjunction" - get vectors for each query term, score by measuring distance to each term and taking the minimum.
 
+Example:
+{{{
+$ java pitt.search.semanticvectors.Search -searchtype maxsim abraham isaac
+Opening query vector store from file: termvectors.bin
+Dimensions = 200
+Searching term vectors, searchtype MAXSIM ... Search output follows ...
+1.0000002:isaac
+1.0:abraham
+0.6413876:sarah
+0.64067477:rebekah
+0.5391283:gerar
+0.51310706:digged
+...
+}}}
+
 ===TENSOR===
 A product similarity that trains by taking ordered pairs of terms, a target query term, and searches for the term whose tensor product with the target term gives the largest similarity with training tensor.
+
+The queryterms  should be a list of one or more tilde-separated training pairs, e.g., `paris~france berlin~germany` followed by a list of one or more search terms, e.g., `london birmingham`.
+
+Example:
+{{{
+$ java pitt.search.semanticvectors.Search -searchtype tensor abraham~isaac jacob~joseph jesse
+Opening query vector store from file: termvectors.bin
+Dimensions = 200
+Training pair: abraham~isaac
+Training pair: jacob~joseph
+Searching term vectors, searchtype TENSOR ... Search output follows ...
+0.08903535:jacob
+0.052856527:leah
+0.052095436:rachel
+0.051172566:bilhah
+0.048837323:laban
+0.04426618:speckled
+...
+}}}
+
+In an ideal world, this product would be designed to find the item that stands in the same relation to _jesse_ that _isaac_ stands in with respect to _abraham_ and _joseph_ stands in with respect to _jacob_, so we might hope that the model picks out _david_ (who was the most famous son of _jesse_ in the Bible). As you can see, it doesn't behave so nicely, but seems to be just finding terms related to _jacob_.
 
 ===CONVOLUTION===
 
 Similar to TENSOR, product similarity that trains by taking ordered pairs of terms, a target query term, and searches for the term whose convolution product with the target term gives the largest similarity with training convolution.
 
+Example:
+{{{
+$ java pitt.search.semanticvectors.Search -searchtype convolution abraham~isaac jacob~joseph jesse
+Opening query vector store from file: termvectors.bin
+Dimensions = 200
+Training pair: abraham~isaac
+Training pair: jacob~joseph
+Searching term vectors, searchtype CONVOLUTION ... Search output follows ...
+0.30361828:faithfulness
+0.28568172:reproached
+0.2765901:lo
+0.2596051:wondrous
+0.24092554:governors
+0.23591144:coat
+...
+}}}
+
+Results look considerably less good that the results with tensor similarity.
+
+It would be premature of course to dismiss these options as "not working", it just may be that these examples are not what they are good for.
+
 ===PRINTQUERY===
 Build an additive query vector (as with SUM and print out the query vector for debugging.
-
