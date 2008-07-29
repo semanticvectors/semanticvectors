@@ -29,19 +29,26 @@ The available search types are chosen using the `-searchtype` argument. The avai
 Most of these options correspond directly to implementations of the 
 [http://semanticvectors.googlecode.com/svn/trunk/doc/pitt/search/semanticvectors/VectorSearcher.html VectorSearcher] class.
 
-CONVOLUTION
-          Similar to TENSOR, product similarity that trains by taking ordered pairs of terms, a target query term, and searches for the term whose convolution product with the target term gives the largest similarity with training convolution.
 
+===SUM===
+Default option - build a query by adding together (weighted) vectors for each of the query terms, and search using cosine similarity.
 
-MAXSIM
-          "Closest disjunction" - get vectors for each query term, score by measuring distance to each term and taking the minimum.
-PRINTQUERY
-          Build an additive query vector (as with SUM and print out the query vector for debugging.
-SPARSESUM
-          Build a query as with SUM option, but quantize to sparse vectors before taking scalar product at search time.
-SUBSPACE
-          "Quantum disjunction" - get vectors for each query term, create a representation for the subspace spanned by these vectors, and score by measuring cosine similarity with this subspace.
-SUM
-          Default option - build a query by adding together (weighted) vectors for each of the query terms, and search using cosine similarity.
-TENSOR
-          A product similarity that trains by taking ordered pairs of terms, a target query term, and searches for the term whose tensor product with the target term gives the largest similarity with training tensor.
+===SPARSESUM===
+Build a query as with SUM option, but quantize to sparse vectors before taking scalar product at search time.
+
+===SUBSPACE===
+"Quantum disjunction" - get vectors for each query term, create a representation for the subspace spanned by these vectors, and score by measuring cosine similarity with this subspace.
+
+===MAXSIM===
+"Closest disjunction" - get vectors for each query term, score by measuring distance to each term and taking the minimum.
+
+===TENSOR===
+A product similarity that trains by taking ordered pairs of terms, a target query term, and searches for the term whose tensor product with the target term gives the largest similarity with training tensor.
+
+===CONVOLUTION===
+
+Similar to TENSOR, product similarity that trains by taking ordered pairs of terms, a target query term, and searches for the term whose convolution product with the target term gives the largest similarity with training convolution.
+
+===PRINTQUERY===
+Build an additive query vector (as with SUM and print out the query vector for debugging.
+
