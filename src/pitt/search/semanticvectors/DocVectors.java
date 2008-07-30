@@ -50,12 +50,9 @@ import java.util.Enumeration;
  * incrementing document vectors for each of the documents containing
  * that term. <br>
  *
- * TODO(widdows): This is a memory expensive implementation: it
- * creates both a document matrix (for quick population) and then a
- * document hashtable (to send to the VectorStoreWriter). This is a
- * poor design and should be refactored. <br>
- *
  * @param termVectorData Has all the information needed to create doc vectors.
+ *
+ * TODO (dwiddows): Refactor so that interface is more flexible, like IncrementalDocVectors.
  */
 public class DocVectors implements VectorStore {
 
