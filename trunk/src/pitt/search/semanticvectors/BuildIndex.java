@@ -54,35 +54,35 @@ public class BuildIndex{
 	 * <code>
 	 * <br> BuildIndex class in package pitt.search.semanticvectors
 	 * <br> Usage: java pitt.search.semanticvectors.BuildIndex PATH_TO_LUCENE_INDEX
-	 * <br> BuildIndex creates files termvectors.bin and docvectors.bin in local directory.
+	 * <br> BuildIndex creates termvectors and docvectors files in local directory.
 	 * <br> Other parameters that can be changed include vector length,
 	 * <br>     (number of dimensions), seed length (number of non-zero
 	 * <br>     entries in basic vectors), minimum term frequency,
-	 * <br>     and number of iterative training cycles).
+	 * <br>     and number of iterative training cycles.
 	 * <br> To change these use the following command line arguments:
 	 * <br> -d [number of dimensions]
 	 * <br> -s [seed length]
 	 * <br> -m [minimum term frequency]
 	 * <br> -tc [training cycles]
 	 * <br> -docs [incremental|inmemory] Switch between building doc vectors incrementally"
-	 * <br>       or all in memory to be reused (default case).
+	 * <br>       (requires positional index) or all in memory (default case).
 	 * </code>
 	 */
 	public static void usage(){
 		String usageMessage = "\nBuildIndex class in package pitt.search.semanticvectors"
 			+ "\nUsage: java pitt.search.semanticvectors.BuildIndex PATH_TO_LUCENE_INDEX"
-			+ "\nBuildIndex creates files termvectors.bin and docvectors.bin in local directory."
+			+ "\nBuildIndex creates termvectors and docvectors files in local directory."
 			+ "\nOther parameters that can be changed include vector length,"
 			+ "\n    (number of dimensions), seed length (number of non-zero"
 			+ "\n    entries in basic vectors), minimum term frequency,"
-			+ "\n    and number of iterative training cycles)."
+			+ "\n    and number of iterative training cycles."
 			+ "\nTo change these use the command line arguments "
 			+ "\n  -d [number of dimensions]"
 			+ "\n  -s [seed length]"
 			+ "\n  -m [minimum term frequency]"
 			+ "\n  -tc [training cycles]"
 			+ "\n  -docs [incremental|inmemory] Switch between building doc vectors incrementally"
-			+ "\n        or all in memory to be reused (default case).";
+			+ "\n        (requires positional index) or all in memory (default case).";
 		System.out.println(usageMessage);
 		System.exit(-1);
 	}
