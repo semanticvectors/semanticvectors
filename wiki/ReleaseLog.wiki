@@ -3,6 +3,26 @@
 
 Even-numbered versions are releases. Odd-numbered versions are in development. It follows that the most recent code and the `build.xml` file in the SVN repository is always odd-numbered.
 
+=== Version 1.12 ===
+
+*Indexing Improvements*
+
+Added IncrementalDocVectors, which enables document vectors to be built for large collections whose document vectors won't fit in memory. 
+
+Added support for training cycles, which enables vectors to be learned in several iterations by substituting learned vectors for initial random term or document vectors.
+
+*Search Improvements*
+
+Added support for -results command line flag; behavior consistent with similar usage in ClusterResults.
+
+Added much more documentation for search options.
+
+*Infrastructure Improvements*
+
+Added more vector store options (including VectorStoreSparseRAM)and refactored vector building classes to be able to use different kinds of basic vector stores as appropriate.
+
+Added VectorUtils for converting between sparse (short[]) and full (float[]) vectors.
+
 === Version 1.10 ===
 
 2008-05-27
