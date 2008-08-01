@@ -110,6 +110,7 @@ public class Search {
 	static VectorStore queryVecReader, searchVecReader;
 	static boolean textIndex = false; 
 	static LuceneUtils lUtils = null;
+	static int numResults;
 	static SearchType searchType = SearchType.SUM;
 
   /**
@@ -120,6 +121,7 @@ public class Search {
    * <br>                                                [-s search_vector_file]
    * <br>                                                [-l path_to_lucene_index]
 	 * <br>                                                [-searchtype TYPE]
+	 * <br>                                                [-results num_results]
    * <br>                                                &lt;QUERYTERMS&gt;
    * <br> If no query or search file is given, default will be
    * <br>     termvectors.bin in local directory.
@@ -137,6 +139,7 @@ public class Search {
 			+ "\n                                               [-s search_vector_file]"
 			+ "\n                                               [-l path_to_lucene_index]"
 			+ "\n                                               [-searchtype TYPE]"
+			+ "\n                                               [-results num_results]"
 			+ "\n                                               <QUERYTERMS>"
 			+ "\n-q argument must precede -s argument if they differ;"
 			+ "\n    otherwise -s will default to -q."
@@ -174,6 +177,10 @@ public class Search {
 		 * lead to errors. So the trade-off is to make the code more
 		 * complex and the usage simpler.
 		 */
+
+		// This will become overwritten if -results is passed in as a command line argument!
+		numResults = numResults;
+
     if (args.length == 0) {
       usage();
     }
@@ -209,6 +216,10 @@ public class Search {
       }
       else if (args[argc].equals("-l")) {
         lucenePath = args[argc + 1];
+        argc += 2;
+      }
+      else if (args[argc].equals("-results")) {
+        numResults = Integer.parseInt(args[argc + 1]);
         argc += 2;
       }
 			else if (args[argc].equals("-textindex")) {
@@ -416,8 +427,8 @@ public class Search {
    * @param args See usage();
    */
   public static void main (String[] args) {
-		int numResults = 20;
-		LinkedList<SearchResult> results = RunSearch(args, numResults);
+		int defaultNumResults = 20;
+		LinkedList<SearchResult> results = RunSearch(args, defaultNumResults);
 		// Print out results.
 		System.err.println("Search output follows ...");
 		for (SearchResult result: results) {
