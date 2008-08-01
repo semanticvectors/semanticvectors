@@ -19,7 +19,7 @@ Added much more documentation for search options.
 
 *Infrastructure Improvements*
 
-Added more vector store options (including VectorStoreSparseRAM)and refactored vector building classes to be able to use different kinds of basic vector stores as appropriate.
+Added more vector store options (including VectorStoreSparseRAM) and refactored vector building classes to be able to use different kinds of basic vector stores as appropriate.
 
 Added VectorUtils for converting between sparse (short[]) and full (float[]) vectors.
 
