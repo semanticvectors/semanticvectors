@@ -47,7 +47,9 @@ public class BuildPositionalIndex {
 	static int seedLength = 20;
 	static int minFreq = 10;
 	static int windowLength = 21;
-
+	static String indexType= "basic";
+	static final String[] indexTypes = {"basic","directional","permutation"};
+	
 	/**
 	 * Prints the following usage message:
 	 * <code>
@@ -62,6 +64,7 @@ public class BuildPositionalIndex {
 	 * <br> -s [seed length]
 	 * <br> -m [minimum term frequency]
 	 * <br> -w [window size]
+	 * <br> -indextype [type of index: basic (default), directional (HAL), permutation (Sahlgren 2008)
 	 * </code>
 	 */
 	public static void usage() {
@@ -77,7 +80,8 @@ public class BuildPositionalIndex {
 			+ "\n  -d [number of dimensions]"
 			+ "\n  -s [seed length]"
 			+ "\n  -m [minimum term frequency]"
-			+ "\n  -w [window size]";
+			+ "\n  -w [window size]"
+			+ "\n  -indextype [type of index: basic (default), directional (HAL), permutation (Sahlgren 2008)";
 
 		System.out.println(usageMessage);
 		System.exit(-1);
@@ -139,6 +143,19 @@ public class BuildPositionalIndex {
 						System.err.println(ar + " is not a number"); usage();
 					}
 				}
+				else if (pa.equalsIgnoreCase("-indextype")) {
+				    /* Determine index type */
+						String indexString = ar;
+						boolean validindex = false;
+				    for (int xx=0; xx < indexTypes.length; xx++)
+				    	if (indexTypes[xx].equalsIgnoreCase(indexString))
+				    	{indexType = indexTypes[xx];
+				    	 validindex = true;}
+				    	if (!validindex) {
+				    		  System.out.println("Did not recognize index type "+indexString);
+				    		  System.out.println("Building basic (sliding window, non-directional) positional index");
+				    	}
+					}
 				/* Get window size */
 				else if (pa.equalsIgnoreCase("-w")) {
 					try {
@@ -166,6 +183,7 @@ public class BuildPositionalIndex {
 
 		String luceneIndex = args[args.length-1];
 		String termFile = "termtermvectors.bin";
+		if (indexType.equalsIgnoreCase("permutation")) termFile = "permtermvectors.bin";
 		String docFile = "docvectors.bin";
 		String[] fieldsToIndex = {"contents"};
 		System.err.println("seedLength = " + seedLength);
@@ -178,9 +196,15 @@ public class BuildPositionalIndex {
 			VectorStoreWriter vecWriter = new VectorStoreWriter();
 			System.err.println("Writing term vectors to " + termFile);
 			vecWriter.WriteVectors(termFile, vecStore);
-			IncrementalDocVectors docVectors =
+			
+			/**
+			 * don't write docvectors for permuted index
+			 */
+			
+			if (!indexType.equalsIgnoreCase("permutation"))
+			{IncrementalDocVectors docVectors =
 				new IncrementalDocVectors(vecStore, luceneIndex, fieldsToIndex, "incremental_"+docFile);	
-
+			}
 		}
 		catch (IOException e) {
 			e.printStackTrace();
