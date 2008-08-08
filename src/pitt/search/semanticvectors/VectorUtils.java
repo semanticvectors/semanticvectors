@@ -42,6 +42,8 @@ import java.util.LinkedList;
 import java.util.Enumeration;
 import java.util.Random;
 
+import pitt.search.semanticvectors.ObjectVector;
+
 /**
  * This class provides standard vector methods, e.g., cosine measure,
  * normalization, tensor utils.
@@ -456,5 +458,62 @@ public class VectorUtils{
 		return output;
 	}
 
+	/**
+	 * This method implements rotation as a form of vector permutation,
+	 * as described in Sahlgren, Holst and Kanervi 2008. This supports
+	 * encoding of N-grams, as rotating random vectors serves as a convenient
+	 * alternative to random permutation
+	 * @param indexVector the sparse vector to be permuted
+	 * @param rotation the direction and number of places to rotate
+	 * @return sparse vector with permutation
+	 */
+ 
+	public static short[] permuteSparseVector (short[] indexVector, int rotation)
+	{short[] permutedVector = new short[indexVector.length];
+	 for (int x =0; x < permutedVector.length; x++)
+	 {	int max = ObjectVector.vecLength;
+	 	int newIndex = Math.abs(indexVector[x]);
+	 	int sign = Integer.signum(indexVector[x]);
+	 	//rotate vector
+	 	newIndex += rotation;
+	 	if (newIndex > max) newIndex = newIndex - max;
+	 	if (newIndex < 1) newIndex = max + newIndex;
+	 	newIndex = newIndex * sign;	
+	 	permutedVector[x] = (short) newIndex;
+	 }
+	return permutedVector;
+	}
+	
+	
+	
+	/**
+	 * This method implements rotation as a form of vector permutation,
+	 * as described in Sahlgren, Holst and Kanervi 2008. This supports
+	 * encoding of N-grams, as rotating random vectors serves as a convenient
+	 * alternative to random permutation
+	 * @param indexVector the sparse vector to be permuted
+	 * @param rotation the direction and number of places to rotate
+	 * @return  vector with permutation
+	 */
+ 
+	public static float[] permuteVector (float[] indexVector, int rotation)
+	{ 
+		//correct for unlikely possibility that rotation specified > indexVector.length
+	
+	if (Math.abs(rotation) > indexVector.length)
+		rotation = rotation % indexVector.length;	
+	
+		float[] permutedVector = new float[indexVector.length];
+	 for (int x =0; x < permutedVector.length; x++)
+	 {	int max = indexVector.length;
+	 	int newIndex = x - rotation;
+	 	if (newIndex >= max) newIndex = newIndex - max;
+	 	if (newIndex < 0) newIndex = max + newIndex;
+	 	permutedVector[x] = indexVector[newIndex];
+	 	
+	 }
+	return permutedVector;
+	}
+	
 }
 
