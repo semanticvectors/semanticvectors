@@ -1,3 +1,4 @@
+
 /**
    Copyright (c) 2007, University of Pittsburgh
 
@@ -38,6 +39,8 @@ package pitt.search.semanticvectors;
 import java.util.ArrayList;
 import org.apache.lucene.index.Term;
 
+
+
 /**
  * This class contains methods for manipulating queries, e.g., taking
  * a list of queryterms and producing a (possibly weighted) aggregate
@@ -61,6 +64,65 @@ public class CompoundVectorBuilder {
 		*/
 	}
 
+	/**
+	 * Returns a vector representation containing both content and positional information
+	 * @param queryTerms String array of query terms to look up. 
+	 * "?" denotes the query term position.
+	 *
+	 */
+	public static float[] getPermutedQueryVector(VectorStore vecReader,
+			 LuceneUtils lUtils,
+			 String[] queryTerms) {
+		float[] queryVec = new float[ObjectVector.vecLength];
+		ArrayList<float[]> permutedVecs = new ArrayList<float[]>();
+		float[] tmpVec = new float[ObjectVector.vecLength];
+		float weight = 1;
+		
+		for (int i = 0; i < ObjectVector.vecLength; ++i) {
+	    queryVec[i] = 0;
+		}
+		int queryTermPosition= -1;
+		
+		for (int j = 0; j < queryTerms.length; ++j) 
+        {if (queryTerms[j].equals("?")) 
+        	queryTermPosition = j;
+       }
+		
+		for (int j = 0; j < queryTerms.length; ++j) {
+	        if (j != queryTermPosition)
+	        {tmpVec = vecReader.getVector(queryTerms[j]);
+	        
+	        int permutation = j-queryTermPosition;
+	       
+	        
+	    // try to get term weight; assume field is "contents"
+	    if (lUtils != null) {
+				
+	    	weight = lUtils.getGlobalTermFreq(new Term("contents", queryTerms[j]));
+	    	weight = 1/weight;
+	   System.out.println("Term "+queryTerms[j]+" weight "+weight);
+	    }
+	    else{ weight = 1; }
+
+	    if (tmpVec != null) {
+	    	 tmpVec = VectorUtils.permuteVector(tmpVec.clone(), permutation);
+	    	 permutedVecs.add(VectorUtils.getNormalizedVector(tmpVec));
+					for (int i = 0; i < ObjectVector.vecLength; ++i) {
+					tmpVec[i] = tmpVec[i] * weight;
+					queryVec[i] += tmpVec[i];
+				}
+				
+	    }
+	    else{ System.err.println("No vector for " + queryTerms[j]); }
+		}
+	     }
+		queryVec = VectorUtils.getNormalizedVector(queryVec);
+		
+		return queryVec;
+		
+	}
+	
+	
 	/**
 	 * Method gets a query vector from a query string, i.e., a
 	 * space-separated list of queryterms.
