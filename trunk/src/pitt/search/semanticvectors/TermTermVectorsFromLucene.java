@@ -48,6 +48,9 @@ import org.apache.lucene.index.TermEnum;
 import org.apache.lucene.index.TermPositionVector;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 
+import pitt.search.semanticvectors.BuildPositionalIndex;
+
+
 /**
  * Implementation of vector store that creates term by term
  * cooccurence vectors by iterating through all the documents in a
@@ -67,8 +70,9 @@ public class TermTermVectorsFromLucene implements VectorStore {
   private int seedLength;
   private String[] fieldsToIndex;
   private int minFreq;
-
-
+  private boolean permute = false;
+  private boolean directional = false;
+  
   /**
    * @return The object's indexReader.
    */
@@ -108,6 +112,13 @@ public class TermTermVectorsFromLucene implements VectorStore {
     indexReader = IndexReader.open(indexDir);
     Random random = new Random();
 
+    /* Set parameters for type of index */
+    if(BuildPositionalIndex.indexType.equals("permutation"))
+    	permute = true;
+    else if(BuildPositionalIndex.indexType.equals("directional"))
+    	directional = true;
+    
+    
     /* Check that the Lucene index contains Term Positions */
     java.util.Collection fields_with_positions =
 			indexReader.getFieldNames(IndexReader.FieldOption.TERMVECTOR_WITH_POSITION);
@@ -117,6 +128,9 @@ public class TermTermVectorsFromLucene implements VectorStore {
 			System.exit(0);
 		}
 
+
+   
+    
     indexVectors = new Hashtable();
     termVectors = new Hashtable();
 
@@ -223,10 +237,20 @@ public class TermTermVectorsFromLucene implements VectorStore {
 
 					for (int w = windowstart; w < focusposn; w++)	{
 						int coterm = positions[w];
+						/*
+						 * calculate permutation required for either Sahlgren (2008) implementation
+						 * encoding word order, or encoding direction as in Burgess and Lund's HAL
+						 */
+						int permutation = w - focusposn;
+						short[] localindex =localindexvectors[coterm].clone(); 
+						if (permute) localindex = VectorUtils.permuteSparseVector(localindex, permutation);
+						else if (directional) localindex = VectorUtils.permuteSparseVector(localindex, -1);
+						
+						
 						/* docterms[coterm] contains the term in position[w] in this document */
 						if (indexVectors.containsKey(docterms[coterm])) {
 							for (int i = 0; i < seedLength; ++i) {
-								short index = localindexvectors[coterm][i];
+								short index = localindex[i];
 								localtermvectors[focusterm][Math.abs(index) - 1] +=  Math.signum(index);
 							}
 						}
@@ -234,9 +258,19 @@ public class TermTermVectorsFromLucene implements VectorStore {
 
 					for (int w = focusposn + 1; w <= windowend; w++) {
 						int coterm = positions[w];
+						/*
+						 * calculate permutation required for either Sahlgren (2008) implementation
+						 * encoding word order, or encoding direction as in Burgess and Lund's HAL
+						 */
+						int permutation = w - focusposn;
+						short[] localindex =localindexvectors[coterm].clone(); 
+						if (permute) localindex = VectorUtils.permuteSparseVector(localindex, permutation);
+						else if (directional) localindex = VectorUtils.permuteSparseVector(localindex, +1);
+						
+						
 						if (indexVectors.containsKey(docterms[coterm]))	{ 
 							for  (int i = 0; i < seedLength; ++i) {
-								short index = localindexvectors[coterm][i];
+								short index = localindex[i];
 								localtermvectors[focusterm][Math.abs(index) - 1] +=  Math.signum(index);
 							}
 						}
@@ -254,6 +288,13 @@ public class TermTermVectorsFromLucene implements VectorStore {
 			next = VectorUtils.getNormalizedVector(next);
 			temp.setVector(next);
 		}
+		
+		if (permute)
+		{String randFile = "randomvectors.bin";
+		System.err.println("\nWriting random vectors to "+randFile);
+		new IndexTermVectorsFromRandomIndex(randFile,indexVectors);
+		}
+		
 	}
 
 	public float[] getVector(Object term){
