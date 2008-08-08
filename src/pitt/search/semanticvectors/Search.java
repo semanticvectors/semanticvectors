@@ -38,6 +38,8 @@ package pitt.search.semanticvectors;
 import java.io.IOException;
 import java.util.LinkedList;
 
+import pitt.search.semanticvectors.VectorSearcher;
+
 /**
  * Command line term vector search utility.
  */
@@ -96,6 +98,17 @@ public class Search {
 		 * @see VectorSearcher.VectorSearcherConvolutionSim
 		 */
 		CONVOLUTION, 
+		/**
+		 * Based on Sahlgren (2008). Searches for the term that best matches
+		 * the position of a "?" in a sequence of terms. For example
+		 * 'martin ? king' should retrieve luther as the top ranked match
+		 * requires the index queried to contain unpermuted vectors, either
+		 * random vectors (or term vectors if these were used to build permuted
+		 * vectors - not yet implemented), and the index searched must contain
+		 * permuted vectors 
+		 **/
+		
+		 PERMUTATION,
 		/**
 		 * Build an additive query vector (as with <code>SUM</code> and
 		 * print out the query vector for debugging.
@@ -255,6 +268,8 @@ public class Search {
 				}
 				else if (searchTypeString.equals("convolution")) {
 					searchType = SearchType.CONVOLUTION;
+				}else if (searchTypeString.equals("permutation")) {
+					searchType = SearchType.PERMUTATION;
 				}
 				else if (searchTypeString.equals("printquery")) {
 					searchType = SearchType.PRINTQUERY;
@@ -394,7 +409,17 @@ public class Search {
 			System.err.print("Searching term vectors, searchtype MAXSIM ... ");
 			results = vecSearcher.getNearestNeighbors(numResults);
 			break;
-
+			
+			//permutes query vectors such that the most likely term in the position
+			//of the "?" is retrieved
+		case PERMUTATION:
+			
+			vecSearcher =
+				new VectorSearcher.VectorSearcherPerm(queryVecReader,searchVecReader,lUtils,queryTerms);	
+			System.err.print("Searching term vectors, searchtype PERMUTATION ... ");
+			results = vecSearcher.getNearestNeighbors(numResults);
+			break;
+			
 			// Simply prints out the query vector: doesn't do any searching.
 		case PRINTQUERY:
 			float[] queryVector = CompoundVectorBuilder.getQueryVector(queryVecReader,
@@ -402,7 +427,7 @@ public class Search {
 																																 queryTerms);
 			VectorUtils.printVector(queryVector);
 			System.exit(1);
-
+		
 		default:
 			System.err.println("Search type unrecognized ...");
 			results = new LinkedList();
