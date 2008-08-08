@@ -40,6 +40,11 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.Enumeration;
 
+import pitt.search.semanticvectors.LuceneUtils;
+import pitt.search.semanticvectors.VectorSearcher;
+import pitt.search.semanticvectors.VectorStore;
+import pitt.search.semanticvectors.VectorUtils;
+
 /**
  * Class for searching vector stores using different scoring functions.
  * Each VectorSearcher implements a particular scoring function which is 
@@ -458,5 +463,38 @@ abstract public class VectorSearcher{
 			}
 			return max_score;
 		}
+	
 	}
+	/**
+	 * Class for searching a permuted vector store using cosine similarity.
+	 * Uses implementation of rotation for permutation proposed by Sahlgren et al 2008
+	 * Should find the term that appears frequently in the position p relative to the
+	 * index term (i.e. sat +1 would find a term occurring frequently immediately after "sat"
+	 */
+	static public class VectorSearcherPerm extends VectorSearcher {
+		float[] theAvg;
+		
+		/**
+		 * @param queryVecStore Vector store to use for query generation.
+		 * @param searchVecStore The vector store to search.
+		 * @param luceneUtils LuceneUtils object to use for query weighting. (May be null.)
+		 * @param queryTerms Terms that will be parsed into a query
+		 * expression. If the string "?" appears, terms best fitting into this position will be returned
+		 */
+		public VectorSearcherPerm(VectorStore queryVecStore,
+																VectorStore searchVecStore,
+																LuceneUtils luceneUtils,
+																String[] queryTerms) {
+	    super(queryVecStore, searchVecStore, luceneUtils);
+			
+	   theAvg = pitt.search.semanticvectors.CompoundVectorBuilder.getPermutedQueryVector(queryVecStore,luceneUtils,queryTerms);
+    
+	 
+		}
+
+		public float getScore(float[] testVector) {
+	   return VectorUtils.scalarProduct(theAvg, testVector);
+		}
+	}
+	
 }
