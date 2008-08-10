@@ -292,7 +292,7 @@ public class TermTermVectorsFromLucene implements VectorStore {
 		if (permute)
 		{String randFile = "randomvectors.bin";
 		System.err.println("\nWriting random vectors to "+randFile);
-		new IndexTermVectorsFromRandomIndex(randFile,indexVectors);
+		new VectorStoreWriter().WriteVectors(randFile,indexVectors);
 		}
 		
 	}
