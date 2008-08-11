@@ -172,7 +172,7 @@ public class Search {
 	 * @return Linked list containing <code>numResults</code> search results.
    */
   public static LinkedList<SearchResult> RunSearch (String[] args, int numResults)
-		throws IllegalArgumentException {
+		throws IllegalArgumentException, ZeroVectorException {
 		/** 
 		 * The RunSearch function has four main stages:
 		 * i. Parse command line arguments.
@@ -443,7 +443,8 @@ public class Search {
 	/**
 	 * Search wrapper that returns the list of ObjectVectors.
 	 */
-	public static ObjectVector[] getSearchResultVectors(String[] args, int numResults) { 
+	public static ObjectVector[] getSearchResultVectors(String[] args, int numResults) 
+		throws IllegalArgumentException, ZeroVectorException { 
 		LinkedList<SearchResult> results = Search.RunSearch(args, numResults);
 		ObjectVector[] resultsList = new ObjectVector[results.size()];
 		for (int i = 0; i < results.size(); ++i) {
@@ -458,7 +459,8 @@ public class Search {
    * Takes a user's query, creates a query vector, and searches a vector store.
    * @param args See usage();
    */
-  public static void main (String[] args) throws IllegalArgumentException {
+  public static void main (String[] args)
+		throws IllegalArgumentException, ZeroVectorException {
 		int defaultNumResults = 20;
 		LinkedList<SearchResult> results = RunSearch(args, defaultNumResults);
 		// Print out results.

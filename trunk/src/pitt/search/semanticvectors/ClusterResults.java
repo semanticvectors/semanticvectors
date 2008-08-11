@@ -129,7 +129,7 @@ public class ClusterResults {
 	 * @param args
 	 * @see ClusterResults#usage
 	 */
-	public static void main (String[] args) throws IllegalArgumentException {
+	public static void main (String[] args) throws IllegalArgumentException, ZeroVectorException {
 		int numClusters = 0, numResults = 0;
 
 		// Parse query args. Make sure you put the two clustering
@@ -164,7 +164,7 @@ public class ClusterResults {
 			searchArgs[i] = args[argc + i];
 		}
 
-		// Get search results, perform clustering, and print out results.
+		// Get search results, perform clustering, and print out results.		
 		ObjectVector[] resultsVectors = Search.getSearchResultVectors(searchArgs, numResults);
 		int[] clusterMappings = kMeansCluster(resultsVectors, numClusters);
 		for (int i = 0; i < numClusters; ++i) {
