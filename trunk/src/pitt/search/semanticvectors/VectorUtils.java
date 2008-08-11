@@ -42,8 +42,6 @@ import java.util.LinkedList;
 import java.util.Enumeration;
 import java.util.Random;
 
-import pitt.search.semanticvectors.ObjectVector;
-
 /**
  * This class provides standard vector methods, e.g., cosine measure,
  * normalization, tensor utils.
@@ -61,7 +59,7 @@ public class VectorUtils{
 	/**
 	 * Check whether a vector is all zeros.
 	 */
-	static final float kTolerance = 0.0001f; 
+	static final float kTolerance = 0.0001f;
 	public static boolean isZeroVector(float[] vec) {
 		for (int i = 0; i < vec.length; ++i) {
 			if (Math.abs(vec[i]) > kTolerance) {
@@ -115,7 +113,7 @@ public class VectorUtils{
 	}
 
 	/**
-	 * Get nearest vector from list of candidates. 
+	 * Get nearest vector from list of candidates.
 	 * @param vector The vector whose nearest neighbor is to be found.
 	 * @param candidates The list of vectors from whoe the nearest is to be chosen.
 	 * @return Integer value referencing the position in the candidate list of the nearest vector.
@@ -187,8 +185,8 @@ public class VectorUtils{
 		return outProd;
 	}
 
-	/** 
-	 * Returns the sum of two tensors.  
+	/**
+	 * Returns the sum of two tensors.
 	 */
 	public static float[][]	getTensorSum(float[][] ten1, float[][] ten2) {
 		int dim = ten1[0].length;
@@ -228,7 +226,7 @@ public class VectorUtils{
 	    for (int j = 0; j <= i; ++j) {
 				// Count each pair of diagonals.
 				// TODO(widdows): There may be transpose conventions to check.
-				conv[i] += tensor[i-j][j]; 
+				conv[i] += tensor[i-j][j];
 				if (i != dim - 1) { // Avoid counting lead diagonal twice.
 					conv[conv.length - 1 - i] = tensor[dim-1-i+j][dim-1-j];
 				}
@@ -355,7 +353,7 @@ public class VectorUtils{
         entryCount++;
       }
     }
-		
+
     return randIndex;
   }
 
@@ -365,13 +363,13 @@ public class VectorUtils{
 	public static short[] getNLargestPositions(float[] values, int numResults) {
 		// TODO(dwiddows): Find some apprpriate "CHECK" function to use here.
 		if (numResults > values.length) {
-			System.err.println("Asking for highest " + numResults 
+			System.err.println("Asking for highest " + numResults
 												 + " entries out of only " + values.length);
 			System.exit(-1);
 		}
 
 		LinkedList<Integer> largestPositions = new LinkedList<Integer>();
-		
+
 		// Initialize result list if just starting.
 		largestPositions.add(new Integer(0));
 		float threshold = values[0];
@@ -400,7 +398,7 @@ public class VectorUtils{
 
 		// CHECK
 		if (largestPositions.size() != numResults) {
-			System.err.println("We have " + largestPositions.size() 
+			System.err.println("We have " + largestPositions.size()
 												 + " results. Expecting " + numResults);			System.exit(-1);
 		}
 		Object[] intArray = largestPositions.toArray();
@@ -417,7 +415,7 @@ public class VectorUtils{
 	public static short[] floatVectorToSparseVector(float[] floatVector, int seedLength) {
 		// TODO(dwiddows): Find some appropriate "CHECK" function to use here.
 		if (seedLength > floatVector.length) {
-			System.err.println("Asking sparse form of length " + seedLength + 
+			System.err.println("Asking sparse form of length " + seedLength +
 												 " from float vector of length " + floatVector.length);
 			System.exit(-1);
 		}
@@ -467,25 +465,21 @@ public class VectorUtils{
 	 * @param rotation the direction and number of places to rotate
 	 * @return sparse vector with permutation
 	 */
- 
-	public static short[] permuteSparseVector (short[] indexVector, int rotation)
-	{short[] permutedVector = new short[indexVector.length];
-	 for (int x =0; x < permutedVector.length; x++)
-	 {	int max = ObjectVector.vecLength;
-	 	int newIndex = Math.abs(indexVector[x]);
-	 	int sign = Integer.signum(indexVector[x]);
-	 	//rotate vector
-	 	newIndex += rotation;
-	 	if (newIndex > max) newIndex = newIndex - max;
-	 	if (newIndex < 1) newIndex = max + newIndex;
-	 	newIndex = newIndex * sign;	
-	 	permutedVector[x] = (short) newIndex;
-	 }
-	return permutedVector;
+	public static short[] permuteSparseVector (short[] indexVector, int rotation)	{
+		short[] permutedVector = new short[indexVector.length];
+		for (int x = 0; x < permutedVector.length; x++) {
+			int newIndex = Math.abs(indexVector[x]);
+			int sign = Integer.signum(indexVector[x]);
+			// rotate vector
+			newIndex += rotation;
+			if (newIndex > ObjectVector.vecLength) newIndex = newIndex - ObjectVector.vecLength;
+			if (newIndex < 1) newIndex = ObjectVector.vecLength + newIndex;
+			newIndex = newIndex * sign;
+			permutedVector[x] = (short) newIndex;
+		}
+		return permutedVector;
 	}
-	
-	
-	
+
 	/**
 	 * This method implements rotation as a form of vector permutation,
 	 * as described in Sahlgren, Holst and Kanervi 2008. This supports
@@ -495,25 +489,21 @@ public class VectorUtils{
 	 * @param rotation the direction and number of places to rotate
 	 * @return  vector with permutation
 	 */
- 
-	public static float[] permuteVector (float[] indexVector, int rotation)
-	{ 
-		//correct for unlikely possibility that rotation specified > indexVector.length
-	
-	if (Math.abs(rotation) > indexVector.length)
-		rotation = rotation % indexVector.length;	
-	
+
+	public static float[] permuteVector (float[] indexVector, int rotation)	{
+		// Correct for unlikely possibility that rotation specified > indexVector.length
+		if (Math.abs(rotation) > indexVector.length)
+			rotation = rotation % indexVector.length;
+
 		float[] permutedVector = new float[indexVector.length];
-	 for (int x =0; x < permutedVector.length; x++)
-	 {	int max = indexVector.length;
-	 	int newIndex = x - rotation;
-	 	if (newIndex >= max) newIndex = newIndex - max;
-	 	if (newIndex < 0) newIndex = max + newIndex;
-	 	permutedVector[x] = indexVector[newIndex];
-	 	
-	 }
-	return permutedVector;
+		for (int x = 0; x < permutedVector.length; x++) {
+			int max = indexVector.length;
+			int newIndex = x - rotation;
+			if (newIndex >= max) newIndex = newIndex - max;
+			if (newIndex < 0) newIndex = max + newIndex;
+			permutedVector[x] = indexVector[newIndex];
+		}
+		return permutedVector;
 	}
-	
 }
 
