@@ -36,6 +36,7 @@
 package pitt.search.semanticvectors;
 
 import java.io.IOException;
+import java.lang.IllegalArgumentException;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.Enumeration;
@@ -484,12 +485,17 @@ abstract public class VectorSearcher{
 		public VectorSearcherPerm(VectorStore queryVecStore,
 																VectorStore searchVecStore,
 																LuceneUtils luceneUtils,
-																String[] queryTerms) {
+																String[] queryTerms)
+			throws IllegalArgumentException {
 	    super(queryVecStore, searchVecStore, luceneUtils);
 			
-	   theAvg = pitt.search.semanticvectors.CompoundVectorBuilder.getPermutedQueryVector(queryVecStore,luceneUtils,queryTerms);
-    
-	 
+			try {
+				theAvg = pitt.search.semanticvectors.CompoundVectorBuilder.getPermutedQueryVector(
+																						           queryVecStore,luceneUtils,queryTerms);
+			} catch (IllegalArgumentException e) {
+				System.err.println("Couldn't create permutation VectorSearcher ...");
+				throw e;
+			}
 		}
 
 		public float getScore(float[] testVector) {

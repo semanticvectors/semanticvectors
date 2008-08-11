@@ -72,10 +72,14 @@ public class VectorStoreSparseRAM implements VectorStore {
 		System.err.println("Creating store of sparse vectors  ...");
 		for (int i = 0; i < numVectors; ++i) {
 			short[] sparseVector = VectorUtils.generateRandomVector(seedLength, random);
-			sparseVectors.put(Integer.toString(i), sparseVector);
+			this.sparseVectors.put(Integer.toString(i), sparseVector);
 		}
 		System.err.println("Created " + sparseVectors.size() + " sparse random vectors.");
   }
+
+	public void putVector(String key, short[] sparseVector) {
+		this.sparseVectors.put(key, sparseVector);
+	}
 
   /**
    * Given an object, get its corresponding vector <br>
@@ -91,6 +95,14 @@ public class VectorStoreSparseRAM implements VectorStore {
 			return null;
 		}
   }
+
+	/**
+	 * Returns the sparse vector without going through the float[] interface.
+	 */
+  public short[] getSparseVector(Object desiredObject) {
+		return this.sparseVectors.get(desiredObject);
+  }
+
 
 	public int getNumVectors() {
 		return this.sparseVectors.size();

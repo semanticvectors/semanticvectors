@@ -76,7 +76,7 @@ public class DocVectors implements VectorStore {
 			for (int j = 0; j < ObjectVector.vecLength; ++j) {
 				docVector[j] = 0;
 			}
-			this.docVectors.addVector(Integer.toString(i), docVector);
+			this.docVectors.putVector(Integer.toString(i), docVector);
 		}
 
 		// Create doc vectors, iterating over terms.
@@ -121,7 +121,7 @@ public class DocVectors implements VectorStore {
 		for (int i = 0; i < indexReader.numDocs(); ++i) {
 			float[] docVector = this.docVectors.getVector(Integer.toString(i));
 			docVector = VectorUtils.getNormalizedVector(docVector);
-			this.docVectors.addVector(Integer.toString(i), docVector);
+			this.docVectors.putVector(Integer.toString(i), docVector);
 		}
 	}
 
@@ -143,7 +143,7 @@ public class DocVectors implements VectorStore {
 					docName = this.indexReader.document(i).getField("filename").stringValue();
 				}
 				float[] docVector = this.docVectors.getVector(Integer.toString(i));
-				outputVectors.addVector(docName, docVector);
+				outputVectors.putVector(docName, docVector);
 			} catch (CorruptIndexException e) {
 				e.printStackTrace();
 			} catch (IOException e) {

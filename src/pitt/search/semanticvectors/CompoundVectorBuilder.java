@@ -36,10 +36,9 @@
 
 package pitt.search.semanticvectors;
 
+import java.lang.IllegalArgumentException;
 import java.util.ArrayList;
 import org.apache.lucene.index.Term;
-
-
 
 /**
  * This class contains methods for manipulating queries, e.g., taking
@@ -57,65 +56,81 @@ public class CompoundVectorBuilder {
 		this.vecReader = vecReader;
 		this.lUtils = lUtils;
 		/*
-		if (lUtils == null) {
+			if (lUtils == null) {
 			System.err.println("No Lucene index for query term weighting, "
-												 + "so all query terms will have same weight.");
-		}
+			+ "so all query terms will have same weight.");
+			}
 		*/
 	}
 
 	/**
 	 * Returns a vector representation containing both content and positional information
-	 * @param queryTerms String array of query terms to look up. 
-	 * "?" denotes the query term position.
+	 * @param queryTerms String array of query terms to look up. Expects a single "?" entry, which  
+	 * denotes the query term position. E.g., "martin ? king" might pick out "luther".
 	 *
 	 */
 	public static float[] getPermutedQueryVector(VectorStore vecReader,
-			 LuceneUtils lUtils,
-			 String[] queryTerms) {
+																							 LuceneUtils lUtils,
+																							 String[] queryTerms) throws IllegalArgumentException {
+
+		// Check basic invariant that there must be one and only one "?" in input.
+		System.out.println("Here here here ...");
+		int queryTermPosition = -1;
+		for (int j = 0; j < queryTerms.length; ++j) {
+			System.out.println("Queryterm: " + queryTerms[j]);
+			if (queryTerms[j].equals("?")) { 
+				if (queryTermPosition == -1) {
+					queryTermPosition = j;
+				} else {
+					// If we get to here, there was more than one "?" argument.
+					System.err.println("Illegal query argument: arguments to getPermutedQueryVector must " +
+														 "have only one '?' string to denote target term position.");
+					throw new IllegalArgumentException();
+				}
+			}
+		}
+		// If we get to here, there were no "?" arguments.
+		if (queryTermPosition == -1) {
+			System.err.println("Illegal query argument: arguments to getPermutedQueryVector must " +
+												 "have exactly one '?' string to denote target term position.");
+			throw new IllegalArgumentException();
+		}
+
+		// Initialize other arguments.
 		float[] queryVec = new float[ObjectVector.vecLength];
+		for (int i = 0; i < ObjectVector.vecLength; ++i) {
+			queryVec[i] = 0;
+		}
+
 		ArrayList<float[]> permutedVecs = new ArrayList<float[]>();
 		float[] tmpVec = new float[ObjectVector.vecLength];
 		float weight = 1;
 		
-		for (int i = 0; i < ObjectVector.vecLength; ++i) {
-	    queryVec[i] = 0;
-		}
-		int queryTermPosition= -1;
-		
-		for (int j = 0; j < queryTerms.length; ++j) 
-        {if (queryTerms[j].equals("?")) 
-        	queryTermPosition = j;
-       }
-		
 		for (int j = 0; j < queryTerms.length; ++j) {
-	        if (j != queryTermPosition)
-	        {tmpVec = vecReader.getVector(queryTerms[j]);
+			if (j != queryTermPosition)	{
+				tmpVec = vecReader.getVector(queryTerms[j]);
+				int permutation = j - queryTermPosition;
 	        
-	        int permutation = j-queryTermPosition;
-	       
-	        
-	    // try to get term weight; assume field is "contents"
-	    if (lUtils != null) {
-				
-	    	weight = lUtils.getGlobalTermFreq(new Term("contents", queryTerms[j]));
-	    	weight = 1/weight;
-	   System.out.println("Term "+queryTerms[j]+" weight "+weight);
-	    }
-	    else{ weight = 1; }
-
-	    if (tmpVec != null) {
-	    	 tmpVec = VectorUtils.permuteVector(tmpVec.clone(), permutation);
-	    	 permutedVecs.add(VectorUtils.getNormalizedVector(tmpVec));
-					for (int i = 0; i < ObjectVector.vecLength; ++i) {
-					tmpVec[i] = tmpVec[i] * weight;
-					queryVec[i] += tmpVec[i];
+				// try to get term weight; assume field is "contents"
+				if (lUtils != null) {
+					weight = lUtils.getGlobalTermFreq(new Term("contents", queryTerms[j]));
+					weight = 1/weight;
+					System.out.println("Term "+queryTerms[j]+" weight "+weight);
 				}
+				else{ weight = 1; }
+
+				if (tmpVec != null) {
+					tmpVec = VectorUtils.permuteVector(tmpVec.clone(), permutation);
+					permutedVecs.add(VectorUtils.getNormalizedVector(tmpVec));
+					for (int i = 0; i < ObjectVector.vecLength; ++i) {
+						tmpVec[i] = tmpVec[i] * weight;
+						queryVec[i] += tmpVec[i];
+					}
 				
-	    }
-	    else{ System.err.println("No vector for " + queryTerms[j]); }
+				}
+				else{ System.err.println("No vector for " + queryTerms[j]); }
+			}
 		}
-	     }
 		queryVec = VectorUtils.getNormalizedVector(queryVec);
 		
 		return queryVec;
@@ -127,12 +142,12 @@ public class CompoundVectorBuilder {
 	 * Method gets a query vector from a query string, i.e., a
 	 * space-separated list of queryterms.
 	 */
-	 public static float[] getQueryVectorFromString(VectorStore vecReader,
-																									LuceneUtils lUtils,
-																									String queryString) {
-		 String[] queryTerms = queryString.split("\\s");
-		 return getQueryVector(vecReader, lUtils, queryTerms);
-	 }
+	public static float[] getQueryVectorFromString(VectorStore vecReader,
+																								 LuceneUtils lUtils,
+																								 String queryString) {
+		String[] queryTerms = queryString.split("\\s");
+		return getQueryVector(vecReader, lUtils, queryTerms);
+	}
 
 	/**
 	 * Method gets a query vector from an array of query terms. The
@@ -153,10 +168,10 @@ public class CompoundVectorBuilder {
 		CompoundVectorBuilder builder = new CompoundVectorBuilder(vecReader, lUtils);
 		/* Check through args to see if we need to do negation. */
 		for (int i = 0; i < queryTerms.length; ++i) {
-	    if (queryTerms[i].equals("NOT")) {
+			if (queryTerms[i].equals("NOT")) {
 				/* If, so build negated query and return. */
 				return builder.getNegatedQueryVector(queryTerms, i);
-	    }
+			}
 		}
 		return builder.getAdditiveQueryVector(queryTerms);
 	}
@@ -172,26 +187,26 @@ public class CompoundVectorBuilder {
 		float weight = 1;
 
 		for (int i = 0; i < ObjectVector.vecLength; ++i) {
-	    queryVec[i] = 0;
+			queryVec[i] = 0;
 		}
 
 		for (int j = 0; j < queryTerms.length; ++j) {
-	    tmpVec = vecReader.getVector(queryTerms[j]);
+			tmpVec = vecReader.getVector(queryTerms[j]);
 
-	    // try to get term weight; assume field is "contents"
-	    if (lUtils != null) {
+			// try to get term weight; assume field is "contents"
+			if (lUtils != null) {
 				weight = lUtils.getGlobalTermWeight(new Term("contents", queryTerms[j]));
-	    }
-	    else{ weight = 1; }
+			}
+			else{ weight = 1; }
 
-	    if (tmpVec != null) {
+			if (tmpVec != null) {
 				//System.err.println("Got vector for " + queryTerms[j] +
 				//									 ", using term weight " + weight);
 				for (int i = 0; i < ObjectVector.vecLength; ++i) {
 					queryVec[i] += tmpVec[i] * weight;
 				}
-	    }
-	    else{ System.err.println("No vector for " + queryTerms[j]); }
+			}
+			else{ System.err.println("No vector for " + queryTerms[j]); }
 		}
 
 		queryVec = VectorUtils.getNormalizedVector(queryVec);
@@ -214,14 +229,14 @@ public class CompoundVectorBuilder {
 		System.err.println("Numer of positive terms: " + numPositiveTerms);
 		ArrayList<float[]> vectorList = new ArrayList();
 		for (int i = 1; i <= numNegativeTerms; ++i) {
-	    float[] tmpVector = vecReader.getVector(queryTerms[split + i]);
-	    if (tmpVector != null) {
+			float[] tmpVector = vecReader.getVector(queryTerms[split + i]);
+			if (tmpVector != null) {
 				vectorList.add(tmpVector);
-	    }
+			}
 		}
 		String[] positiveTerms = new String[numPositiveTerms];
 		for (int i = 0; i < numPositiveTerms; ++i) {
-	    positiveTerms[i] = queryTerms[i];
+			positiveTerms[i] = queryTerms[i];
 		}
 		vectorList.add(getAdditiveQueryVector(positiveTerms));
 		VectorUtils.orthogonalizeVectors(vectorList);

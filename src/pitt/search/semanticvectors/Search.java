@@ -36,9 +36,8 @@
 package pitt.search.semanticvectors;
 
 import java.io.IOException;
+import java.lang.IllegalArgumentException;
 import java.util.LinkedList;
-
-import pitt.search.semanticvectors.VectorSearcher;
 
 /**
  * Command line term vector search utility.
@@ -106,8 +105,7 @@ public class Search {
 		 * random vectors (or term vectors if these were used to build permuted
 		 * vectors - not yet implemented), and the index searched must contain
 		 * permuted vectors 
-		 **/
-		
+		 **/		
 		 PERMUTATION,
 		/**
 		 * Build an additive query vector (as with <code>SUM</code> and
@@ -165,7 +163,6 @@ public class Search {
 			+ "\n<QUERYTERMS> should be a list of words, separated by spaces."
 			+ "\n    If the term NOT is used, terms after that will be negated.";
     System.out.println(usageMessage);
-    System.exit(-1);
   }
 
   /**
@@ -174,7 +171,8 @@ public class Search {
 	 * @param numResults Number of search results to be returned in a ranked list.
 	 * @return Linked list containing <code>numResults</code> search results.
    */
-  public static LinkedList<SearchResult> RunSearch (String[] args, int numResults) {
+  public static LinkedList<SearchResult> RunSearch (String[] args, int numResults)
+		throws IllegalArgumentException {
 		/** 
 		 * The RunSearch function has four main stages:
 		 * i. Parse command line arguments.
@@ -219,6 +217,7 @@ public class Search {
 			// If the args list is now too short, this is an error.
 			if (args.length - argc <= 2) {
 				usage();
+				throw new IllegalArgumentException();
 			}
 
       if (args[argc].equals("-q")) {
@@ -283,6 +282,7 @@ public class Search {
 					}
 					System.out.println();
 					usage();
+					throw new IllegalArgumentException();
 				}
 				argc += 2;
 			}
@@ -290,6 +290,7 @@ public class Search {
       else {
 				System.err.println("The following option is not recognized: " + args[argc]);
 				usage();
+				throw new IllegalArgumentException("Failed to recognize command line arguments.");
       }
     }
 
@@ -410,15 +411,19 @@ public class Search {
 			results = vecSearcher.getNearestNeighbors(numResults);
 			break;
 			
-			//permutes query vectors such that the most likely term in the position
-			//of the "?" is retrieved
+			// Permutes query vectors such that the most likely term in the position
+			// of the "?" is retrieved
 		case PERMUTATION:
-			
-			vecSearcher =
-				new VectorSearcher.VectorSearcherPerm(queryVecReader,searchVecReader,lUtils,queryTerms);	
-			System.err.print("Searching term vectors, searchtype PERMUTATION ... ");
-			results = vecSearcher.getNearestNeighbors(numResults);
-			break;
+			try {
+				// Create VectorSearcher and search for nearest neighbors.
+				vecSearcher =
+					new VectorSearcher.VectorSearcherPerm(queryVecReader,searchVecReader,lUtils,queryTerms);	
+				System.err.print("Searching term vectors, searchtype PERMUTATION ... ");
+				results = vecSearcher.getNearestNeighbors(numResults);
+				break;
+			} catch (IllegalArgumentException e) {
+				throw e;
+			}
 			
 			// Simply prints out the query vector: doesn't do any searching.
 		case PRINTQUERY:
@@ -453,7 +458,7 @@ public class Search {
    * Takes a user's query, creates a query vector, and searches a vector store.
    * @param args See usage();
    */
-  public static void main (String[] args) {
+  public static void main (String[] args) throws IllegalArgumentException {
 		int defaultNumResults = 20;
 		LinkedList<SearchResult> results = RunSearch(args, defaultNumResults);
 		// Print out results.

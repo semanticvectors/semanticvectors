@@ -35,8 +35,9 @@
 
 package pitt.search.semanticvectors;
 
-import java.util.LinkedList;
 import java.io.IOException;
+import java.lang.IllegalArgumentException;
+import java.util.LinkedList;
 
 /**
  * Command line utility for creating semantic vector indexes using the
@@ -47,17 +48,36 @@ public class BuildPositionalIndex {
 	static int seedLength = 20;
 	static int minFreq = 10;
 	static int windowLength = 21;
-	static String indexType= "basic";
-	static final String[] indexTypes = {"basic","directional","permutation"};
-	
+	static IndexType indexType = IndexType.BASIC;
+	//static final String[] indexTypes = {"basic","directional","permutation"};
+
+	/**
+	 * Enumeration of different indexTypes - basic, directional and permutation.
+	 */
+	public enum IndexType {
+		/**
+		 * Default option.
+		 */
+		BASIC,
+		/**
+		 * Directional - distinguishes between terms occuring pefore and
+		 after target term.
+		*/
+		DIRECTIONAL,
+		/**
+		 * Uses permutation to encode word order - see Sahlgren et al, 2008.
+		 */
+		PERMUTATION
+	}
+
 	/**
 	 * Prints the following usage message:
 	 * <code>
 	 * <br> BuildPositionalIndex class in package pitt.search.semanticvectors
 	 * <br> Usage: java pitt.search.semanticvectors.BuildPositionalIndex PATH_TO_LUCENE_INDEX
 	 * <br> BuildPositionalIndex creates file termtermvectors.bin in local directory.
-	 * <br> Other parameters that can be changed include windowlength (size of context window), vector length,
-	 * <br>     (number of dimensions), seed length (number of non-zero
+	 * <br> Other parameters that can be changed include windowlength (size of context window),
+	 * <br>     vector length (number of dimensions), seed length (number of non-zero
 	 * <br>     entries in basic vectors), and minimum term frequency.
 	 * <br> To change these use the following command line arguments:
 	 * <br> -d [number of dimensions]
@@ -67,32 +87,32 @@ public class BuildPositionalIndex {
 	 * <br> -indextype [type of index: basic (default), directional (HAL), permutation (Sahlgren 2008)
 	 * </code>
 	 */
-	public static void usage() {
-		String usageMessage = "\nBuildPositionalIndex class in package pitt.search.semanticvectors"
-			+ "\nUsage: java pitt.search.semanticvectors.BuildPositionalIndex PATH_TO_LUCENE_INDEX"
-			+ "\nBuildPositionalIndex creates file termtermvectors.bin  in local directory."
-			+ "\nOther parameters that can be changed include vector length,"
-			+ "\n windowlength (size of sliding context window),"   
-			+ "\n    (number of dimensions), seed length (number of non-zero"
-			+ "\n    entries in basic vectors), size of sliding window (including focus term)" 
-			+ "\n and minimum term frequency.\n"
-			+ "\nTo change these use the command line arguments "
-			+ "\n  -d [number of dimensions]"
-			+ "\n  -s [seed length]"
-			+ "\n  -m [minimum term frequency]"
-			+ "\n  -w [window size]"
-			+ "\n  -indextype [type of index: basic (default), directional (HAL), permutation (Sahlgren 2008)";
+		public static void usage() {
+			String usageMessage = "\nBuildPositionalIndex class in package pitt.search.semanticvectors"
+				+ "\nUsage: java pitt.search.semanticvectors.BuildPositionalIndex PATH_TO_LUCENE_INDEX"
+				+ "\nBuildPositionalIndex creates file termtermvectors.bin in local directory."
+				+ "\nOther parameters that can be changed include vector length,"
+				+ "\n windowlength (size of sliding context window),"
+				+ "\n    (number of dimensions), seed length (number of non-zero"
+				+ "\n    entries in basic vectors), size of sliding window (including focus term)"
+				+ "\n and minimum term frequency.\n"
+				+ "\nTo change these use the command line arguments "
+				+ "\n  -d [number of dimensions]"
+				+ "\n  -s [seed length]"
+				+ "\n  -m [minimum term frequency]"
+				+ "\n  -w [window size]"
+				+ "\n  -indextype [type of index: basic (default), directional (HAL), permutation (Sahlgren 2008)";
 
-		System.out.println(usageMessage);
-		System.exit(-1);
-	}
+			System.out.println(usageMessage);
+		}
 
 	/**
-	 * Builds term vector stores from a Lucene index - this index must contain TermPositionVectors.
+	 * Builds term vector stores from a Lucene index - this index must
+	 contain TermPositionVectors.
 	 * @param args
 	 * @see BuildPositionalIndex#usage
 	 */
-	public static void main (String[] args) {
+	public static void main (String[] args) throws IllegalArgumentException {
 		boolean wellFormed = false;
 		/* If only one argument, it should be the path to Lucene index. */
 		if (args.length == 1) {
@@ -114,7 +134,9 @@ public class BuildPositionalIndex {
 						ObjectVector.vecLength = Integer.parseInt(ar);
 						wellFormed = true;
 					} catch (NumberFormatException e) {
-						System.err.println(ar + " is not a number"); usage();
+						System.err.println(ar + " is not a number");
+						usage();
+						throw new IllegalArgumentException("Failed to parse command line arguments.");
 					}
 				}
 				/* Get seedlength. */
@@ -124,10 +146,13 @@ public class BuildPositionalIndex {
 						if (seedLength > ObjectVector.vecLength) {
 							System.err.println("Seed length cannot be greater than vector length");
 							usage();
+							throw new IllegalArgumentException("Failed to parse command line arguments.");
 						}
 						else wellFormed = true;
 					} catch (NumberFormatException e) {
-						System.err.println(ar + " is not a number"); usage();
+						System.err.println(ar + " is not a number");
+						usage();
+						throw new IllegalArgumentException("Failed parse command line arguments.");
 					}
 				}
 				/* Get minimum term frequency. */
@@ -137,6 +162,7 @@ public class BuildPositionalIndex {
 						if (minFreq < 0) {
 							System.err.println("Minimum frequency cannot be less than zero");
 							usage();
+							throw new IllegalArgumentException("Failed to parse command line arguments.");
 						}
 						else wellFormed = true;
 					} catch (NumberFormatException e) {
@@ -144,66 +170,77 @@ public class BuildPositionalIndex {
 					}
 				}
 				else if (pa.equalsIgnoreCase("-indextype")) {
-				    /* Determine index type */
-						String indexString = ar;
-						boolean validindex = false;
-				    for (int xx=0; xx < indexTypes.length; xx++)
-				    	if (indexTypes[xx].equalsIgnoreCase(indexString))
-				    	{indexType = indexTypes[xx];
-				    	 validindex = true;}
-				    	if (!validindex) {
-				    		  System.out.println("Did not recognize index type "+indexString);
-				    		  System.out.println("Building basic (sliding window, non-directional) positional index");
-				    	}
+					/* Determine index type */
+					String indexTypeString = ar;
+					boolean validindex = false;
+					// TODO(dwiddows): Find if this routine can be autogenerated from enum.
+					if (indexTypeString.equalsIgnoreCase("basic")) {
+						indexType = IndexType.BASIC;
+						wellFormed = true;
 					}
+					if (indexTypeString.equalsIgnoreCase("directional")) {
+						indexType = IndexType.DIRECTIONAL;
+						wellFormed = true;
+					}
+					if (indexTypeString.equalsIgnoreCase("permutation")) {
+						indexType = IndexType.PERMUTATION;
+						wellFormed = true;
+					} else {
+						System.err.println("Did not recognize index type " + indexTypeString);
+						System.err.println("Building basic (sliding window, non-directional) positional index");
+					}
+				}
 				/* Get window size */
 				else if (pa.equalsIgnoreCase("-w")) {
 					try {
 						windowLength = Integer.parseInt(ar);
 						if ((windowLength <= 2) |  (windowLength %2 == 0)  ) {
-							System.err.println("Windowlength must be an odd number " + 
+							System.err.println("Windowlength must be an odd number " +
 																 "(to accommodate a central focus term), larger than 2");
 							usage();
+							throw new IllegalArgumentException("Failed to parse command line arguments.");
 						}
 						else wellFormed = true;
 					} catch (NumberFormatException e) {
-						System.err.println(ar + " is not a number"); usage();
+						System.err.println(ar + " is not a number");
+						usage();
+						throw new IllegalArgumentException("Failed to parse command line arguments.");
 					}
 				}
 				/* All other arguments are unknown. */
 				else {
 					System.err.println("Unknown command line option: " + pa);
 					usage();
+					throw new IllegalArgumentException("Failed to parse command line arguments.");
 				}
 			}
 		}
 		if (!wellFormed) {
 			usage();
+			throw new IllegalArgumentException("Failed to parse command line arguments.");
 		}
 
 		String luceneIndex = args[args.length-1];
 		String termFile = "termtermvectors.bin";
-		if (indexType.equalsIgnoreCase("permutation")) termFile = "permtermvectors.bin";
+		if (indexType == IndexType.PERMUTATION) termFile = "permtermvectors.bin";
 		String docFile = "docvectors.bin";
 		String[] fieldsToIndex = {"contents"};
 		System.err.println("seedLength = " + seedLength);
 		System.err.println("Vector length = " + ObjectVector.vecLength);
 		System.err.println("Minimum frequency = " + minFreq);
 		System.err.println("Window length = " + windowLength);
-		try{
+		try {
 			TermTermVectorsFromLucene vecStore =
-				new TermTermVectorsFromLucene(luceneIndex, seedLength, minFreq, windowLength, fieldsToIndex);
+				new TermTermVectorsFromLucene(luceneIndex, seedLength, minFreq,
+																			windowLength, fieldsToIndex, indexType);
 			VectorStoreWriter vecWriter = new VectorStoreWriter();
 			System.err.println("Writing term vectors to " + termFile);
 			vecWriter.WriteVectors(termFile, vecStore);
-			
-			/**
-			 * don't write docvectors for permuted index
-			 */
-			
-			if (!indexType.equalsIgnoreCase("permutation"))
-			{IncrementalDocVectors docVectors =
-				new IncrementalDocVectors(vecStore, luceneIndex, fieldsToIndex, "incremental_"+docFile);	
+
+			// Write document vectors except for permutation index.
+			if (indexType != IndexType.PERMUTATION) {
+				IncrementalDocVectors docVectors =
+					new IncrementalDocVectors(vecStore, luceneIndex, fieldsToIndex,	"incremental_"+docFile);
 			}
 		}
 		catch (IOException e) {

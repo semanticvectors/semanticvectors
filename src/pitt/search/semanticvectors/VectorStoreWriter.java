@@ -108,52 +108,6 @@ public class VectorStoreWriter {
     }
   }
 
-  public boolean WriteVectors(String vectorFile, Hashtable<String,short[]> indexVectors)
-  {
-	  try{
-	      Enumeration<String> vecEnum = indexVectors.keys();
-	      MMapDirectory dir = new MMapDirectory();
-	      IndexOutput outputStream = dir.createOutput(vectorFile);
-	      float[] tmpVector = new float[ObjectVector.vecLength];
-
-	      int counter = 0;
-	      System.err.println("About to write vectors to file " + vectorFile);
-
-	      /* Write header giving number of dimensions for all vectors. */
-	      outputStream.writeString("-dimensions");
-	      outputStream.writeInt(ObjectVector.vecLength);
-
-	      /* Write each vector. */
-	      while (vecEnum.hasMoreElements()) {
-	        if ((counter % 10000 == 0) || (counter < 10000 && counter % 1000 == 0)) {
-	          System.err.print(counter + " ... ");
-	        }
-	        ++counter;
-		   
-		    String key = vecEnum.nextElement();
-		    Object theVector = indexVectors.get(key);
-		    float[] indexVector;
-		   indexVector =  VectorUtils.sparseVectorToFloatVector(indexVectors.get(key),ObjectVector.vecLength);
-		     indexVector = VectorUtils.getNormalizedVector(indexVector);
-		      
-		      outputStream.writeString(key);
-		     for (int i = 0; i < ObjectVector.vecLength; ++i) {
-		       outputStream.writeInt(Float.floatToIntBits(indexVector[i]));
-		     }
-		 	}
-
-	      
-	      System.err.println("Finished writing vectors.");
-	      outputStream.close();
-	      return true;
-	    }
-	    catch (Exception e) {
-	      e.printStackTrace();
-	      return false;
-	    }
-	  
-  }
-  
   /**
    * Outputs a vector store as a plain text file.
    * @param vectorTextFile The name of the file to write to

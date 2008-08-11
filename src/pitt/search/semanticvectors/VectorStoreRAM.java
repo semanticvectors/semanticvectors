@@ -75,7 +75,7 @@ public class VectorStoreRAM implements VectorStore {
   }
 
 	// Add a single vector.
-	public void addVector(Object key, float[] vector) {
+	public void putVector(Object key, float[] vector) {
 		ObjectVector objectVector = new ObjectVector(key, vector);
 		this.objectVectors.put(key, objectVector);
 	}
