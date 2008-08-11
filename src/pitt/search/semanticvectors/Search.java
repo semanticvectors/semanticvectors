@@ -340,13 +340,18 @@ public class Search {
 			// Simplest option, vector sum for composition, with possible negation.
 		case SUM:
 			// Create VectorSearcher and search for nearest neighbors.
-			vecSearcher =
-				new VectorSearcher.VectorSearcherCosine(queryVecReader,
-																								searchVecReader,
-																								lUtils,
-																								queryTerms);
-			System.err.print("Searching term vectors, searchtype SUM ... ");
-			results = vecSearcher.getNearestNeighbors(numResults);
+			try {
+				vecSearcher =
+					new VectorSearcher.VectorSearcherCosine(queryVecReader,
+																									searchVecReader,
+																									lUtils,
+																									queryTerms);
+				System.err.print("Searching term vectors, searchtype SUM ... ");
+				results = vecSearcher.getNearestNeighbors(numResults);
+			} catch (ZeroVectorException zve) {
+				System.err.println(zve.getMessage());
+				results = new LinkedList<SearchResult>();
+			}
 			break;
 
 			// Option for quantizing to sparse vectors before
@@ -354,37 +359,52 @@ public class Search {
 			// we lose by compressing to a sparse bit vector.
 		case SPARSESUM:
 			// Create VectorSearcher and search for nearest neighbors.
-			vecSearcher =
-				new VectorSearcher.VectorSearcherCosineSparse(queryVecReader,
-																											searchVecReader,
-																											lUtils,
-																											queryTerms);
-			System.err.print("Searching term vectors, searchtype SPARSESUM ... ");
-			results = vecSearcher.getNearestNeighbors(numResults);
+			try {
+				vecSearcher =
+					new VectorSearcher.VectorSearcherCosineSparse(queryVecReader,
+																												searchVecReader,
+																												lUtils,
+																												queryTerms);
+				System.err.print("Searching term vectors, searchtype SPARSESUM ... ");
+				results = vecSearcher.getNearestNeighbors(numResults);
+			} catch (ZeroVectorException zve) {
+				System.err.println(zve.getMessage());
+				results = new LinkedList<SearchResult>();
+			}
 			break;
 
 			// Tensor product.
 		case TENSOR:
 			// Create VectorSearcher and search for nearest neighbors.
-			vecSearcher =
-				new VectorSearcher.VectorSearcherTensorSim(queryVecReader,
-																									 searchVecReader,
-																									 lUtils,
-																									 queryTerms);
-			System.err.print("Searching term vectors, searchtype TENSOR ... ");
-			results = vecSearcher.getNearestNeighbors(numResults);
+			try {
+				vecSearcher =
+					new VectorSearcher.VectorSearcherTensorSim(queryVecReader,
+																										 searchVecReader,
+																										 lUtils,
+																										 queryTerms);
+				System.err.print("Searching term vectors, searchtype TENSOR ... ");
+				results = vecSearcher.getNearestNeighbors(numResults);
+			} catch (ZeroVectorException zve) {
+				System.err.println(zve.getMessage());
+				results = new LinkedList<SearchResult>();
+			}				
 			break;
 			
 			// Convolution product.
 		case CONVOLUTION:
 			// Create VectorSearcher and search for nearest neighbors.
-			vecSearcher =
-				new VectorSearcher.VectorSearcherConvolutionSim(queryVecReader,
-																												searchVecReader,
-																												lUtils,
-																												queryTerms);
-			System.err.print("Searching term vectors, searchtype CONVOLUTION ... ");
-			results = vecSearcher.getNearestNeighbors(numResults);
+			try {
+				vecSearcher =
+					new VectorSearcher.VectorSearcherConvolutionSim(queryVecReader,
+																													searchVecReader,
+																													lUtils,
+																													queryTerms);
+				System.err.print("Searching term vectors, searchtype CONVOLUTION ... ");
+				results = vecSearcher.getNearestNeighbors(numResults);
+			} catch (ZeroVectorException zve) {
+				System.err.println(zve.getMessage());
+				results = new LinkedList<SearchResult>();
+			}
 			break;
 
 			// Quantum disjunction / subspace similarity.
