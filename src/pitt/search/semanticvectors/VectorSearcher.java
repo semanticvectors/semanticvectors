@@ -389,7 +389,8 @@ abstract public class VectorSearcher{
 		public VectorSearcherSubspaceSim(VectorStore queryVecStore,
 																		 VectorStore searchVecStore,
 																		 LuceneUtils luceneUtils,
-																		 String[] queryTerms) {
+																		 String[] queryTerms) 
+			throws ZeroVectorException {
 			super(queryVecStore, searchVecStore, luceneUtils);
 			this.disjunctSpace = new ArrayList();
 
@@ -404,6 +405,10 @@ abstract public class VectorSearcher{
 					this.disjunctSpace.add(tmpVector);
 				}
 			}
+			if (this.disjunctSpace.size() == 0) {
+				throw new ZeroVectorException("No nonzero input vectors ... no results.");
+			}
+
 			VectorUtils.orthogonalizeVectors(this.disjunctSpace);
 		}
 
@@ -431,7 +436,8 @@ abstract public class VectorSearcher{
 		public VectorSearcherMaxSim(VectorStore queryVecStore,
 																VectorStore searchVecStore,
 																LuceneUtils luceneUtils,
-																String[] queryTerms) {
+																String[] queryTerms)
+		throws ZeroVectorException {
 			super(queryVecStore, searchVecStore, luceneUtils);
 			this.disjunctVectors = new ArrayList();
 
@@ -444,6 +450,9 @@ abstract public class VectorSearcher{
 				if (tmpVector != null) {
 					this.disjunctVectors.add(tmpVector);
 				}
+			}
+			if (this.disjunctVectors.size() == 0) {
+				throw new ZeroVectorException("No nonzero input vectors ... no results.");
 			}
 		}
 
@@ -465,6 +474,7 @@ abstract public class VectorSearcher{
 		}
 	
 	}
+
 	/**
 	 * Class for searching a permuted vector store using cosine similarity.
 	 * Uses implementation of rotation for permutation proposed by Sahlgren et al 2008
@@ -485,7 +495,7 @@ abstract public class VectorSearcher{
 																VectorStore searchVecStore,
 																LuceneUtils luceneUtils,
 																String[] queryTerms)
-			throws IllegalArgumentException {
+			throws IllegalArgumentException, ZeroVectorException {
 	    super(queryVecStore, searchVecStore, luceneUtils);
 			
 			try {
@@ -494,6 +504,10 @@ abstract public class VectorSearcher{
 			} catch (IllegalArgumentException e) {
 				System.err.println("Couldn't create permutation VectorSearcher ...");
 				throw e;
+			}
+
+			if (VectorUtils.isZeroVector(theAvg)) {
+				throw new ZeroVectorException("Permutation query vector is zero ... no results.");
 			}
 		}
 

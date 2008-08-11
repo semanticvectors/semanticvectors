@@ -172,7 +172,7 @@ public class Search {
 	 * @return Linked list containing <code>numResults</code> search results.
    */
   public static LinkedList<SearchResult> RunSearch (String[] args, int numResults)
-		throws IllegalArgumentException, ZeroVectorException {
+		throws IllegalArgumentException {
 		/** 
 		 * The RunSearch function has four main stages:
 		 * i. Parse command line arguments.
@@ -410,25 +410,36 @@ public class Search {
 			// Quantum disjunction / subspace similarity.
 		case SUBSPACE:
 			// Create VectorSearcher and search for nearest neighbors.
-			vecSearcher =
-				new VectorSearcher.VectorSearcherSubspaceSim(queryVecReader,
-																										 searchVecReader,
-																										 lUtils,
-																										 queryTerms);
-			System.err.print("Searching term vectors, searchtype SUBSPACE ... ");
-			results = vecSearcher.getNearestNeighbors(numResults);
+			try {
+				vecSearcher =
+					new VectorSearcher.VectorSearcherSubspaceSim(queryVecReader,
+																											 searchVecReader,
+																											 lUtils,
+																											 queryTerms);
+
+				System.err.print("Searching term vectors, searchtype SUBSPACE ... ");
+				results = vecSearcher.getNearestNeighbors(numResults);
+			}	catch (ZeroVectorException zve) {
+				System.err.println(zve.getMessage());
+				results = new LinkedList<SearchResult>();
+			}
 			break;
 
 			// Ranks by maximum similarity with any of the query terms.
 		case MAXSIM:
 			// Create VectorSearcher and search for nearest neighbors.
-			vecSearcher =
-				new VectorSearcher.VectorSearcherMaxSim(queryVecReader,
-																								searchVecReader,
-																								lUtils,
-																								queryTerms);
-			System.err.print("Searching term vectors, searchtype MAXSIM ... ");
-			results = vecSearcher.getNearestNeighbors(numResults);
+			try {
+				vecSearcher =
+					new VectorSearcher.VectorSearcherMaxSim(queryVecReader,
+																									searchVecReader,
+																									lUtils,
+																									queryTerms);
+				System.err.print("Searching term vectors, searchtype MAXSIM ... ");
+				results = vecSearcher.getNearestNeighbors(numResults);
+			}	catch (ZeroVectorException zve) {
+				System.err.println(zve.getMessage());
+					results = new LinkedList<SearchResult>();
+			}
 			break;
 			
 			// Permutes query vectors such that the most likely term in the position
@@ -441,8 +452,9 @@ public class Search {
 				System.err.print("Searching term vectors, searchtype PERMUTATION ... ");
 				results = vecSearcher.getNearestNeighbors(numResults);
 				break;
-			} catch (IllegalArgumentException e) {
-				throw e;
+			} catch (ZeroVectorException zve) {
+				System.err.println(zve.getMessage());
+				results = new LinkedList<SearchResult>();
 			}
 			
 			// Simply prints out the query vector: doesn't do any searching.
@@ -464,7 +476,7 @@ public class Search {
 	 * Search wrapper that returns the list of ObjectVectors.
 	 */
 	public static ObjectVector[] getSearchResultVectors(String[] args, int numResults) 
-		throws IllegalArgumentException, ZeroVectorException { 
+		throws IllegalArgumentException { 
 		LinkedList<SearchResult> results = Search.RunSearch(args, numResults);
 		ObjectVector[] resultsList = new ObjectVector[results.size()];
 		for (int i = 0; i < results.size(); ++i) {
@@ -480,7 +492,7 @@ public class Search {
    * @param args See usage();
    */
   public static void main (String[] args)
-		throws IllegalArgumentException, ZeroVectorException {
+		throws IllegalArgumentException {
 		int defaultNumResults = 20;
 		LinkedList<SearchResult> results = RunSearch(args, defaultNumResults);
 		// Print out results.
