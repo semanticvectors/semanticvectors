@@ -128,7 +128,7 @@ public class TermTermVectorsFromLucene implements VectorStore {
     if (fields_with_positions.isEmpty()) {
 			System.err.println("Term-term indexing requires a Lucene index containing TermPositionVectors");
 			System.err.println("Try rebuilding Lucene index using pitt.search.lucene.IndexFilePositions");
-			System.exit(0);
+			throw new IOException("Lucene indexes not built correctly.");
 		}
     
     this.indexVectors = new VectorStoreSparseRAM();

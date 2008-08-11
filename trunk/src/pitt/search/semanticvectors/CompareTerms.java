@@ -35,8 +35,9 @@
 
 package pitt.search.semanticvectors;
 
-import java.util.LinkedList;
 import java.io.IOException;
+import java.lang.IllegalArgumentException;
+import java.util.LinkedList;
 import org.apache.lucene.index.Term;
 
 /**
@@ -89,16 +90,16 @@ public class CompareTerms{
 			+ "\nIf the term NOT is used in one of the lists, subsequent terms in "
 			+ "\nthat list will be negated (as in Search class).";
 		System.out.println(usageMessage);
-		System.exit(-1);
 	}
 
 	/**
 	 * Main function for command line use.
 	 * @param args See usage();
 	 */
-	public static void main( String[] args ){
-		if( args.length == 0 ){
+	public static void main (String[] args) throws IllegalArgumentException {
+		if (args.length == 0) {
 	    usage();
+			throw new IllegalArgumentException();
 		}
 
 		String queryFile = "termvectors.bin"; // default value
@@ -117,18 +118,22 @@ public class CompareTerms{
 				lucenePath = args[argc + 1];
 				argc += 2;
 	    }
-	    else{ usage(); }
+	    else {
+				usage();
+				throw new IllegalArgumentException();
+			}
 		}
 
 		if (args.length - argc != 2) {
 	    System.err.println("After parsing command line options there must be " +
 												 "exactly two queryterm expressions to compare.");
 	    usage();
+			throw new IllegalArgumentException();
 		}
 
 
 		/* reading and searching test */
-		try{
+		try {
 	    VectorStoreReader vecReader = new VectorStoreReader(queryFile);
 	    System.err.println("Opening query vector store from file: " + queryFile);
 

@@ -34,6 +34,7 @@
 package pitt.search.semanticvectors;
 
 import java.io.IOException;
+import java.lang.IllegalArgumentException;
 
 /**
  * Class providing command-line interface for transforming vector
@@ -52,7 +53,6 @@ public class VectorStoreTranslater {
         + "\nUsage: java pitt.search.semanticvector.VectorStoreTranslater -option INFILE OUTFILE"
         + "\n -option can be: -lucenetotext or -texttolucene";
     System.out.println(usageMessage);
-    System.exit(0);
   }
 
   private enum Options { LUCENE_TO_TEXT, TEXT_TO_LUCENE }
@@ -65,12 +65,15 @@ public class VectorStoreTranslater {
     // Parse command line args.
     if (args.length != 3) {
       System.err.println("You gave " + args.length + " arguments ...");
-      usage();
+			throw new IllegalArgumentException();
     }
     Options option = null;
     if (args[0].equals("-lucenetotext")) { option = Options.LUCENE_TO_TEXT; }
     else if (args[0].equals("-texttolucene")) { option = Options.TEXT_TO_LUCENE; }
-    else { usage(); }
+    else {
+			usage();
+			throw new IllegalArgumentException();
+		}
 
     String infile = args[1];
     String outfile = args[2];

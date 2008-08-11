@@ -35,14 +35,15 @@
 
 package pitt.search.semanticvectors;
 
+import java.io.IOException;
+import java.lang.IllegalArgumentException;
 import java.util.Enumeration;
 import java.util.LinkedList;
-import java.io.IOException;
 
 /**
  * Command line utility for creating semantic vector indexes.
  */
-public class BuildIndex{
+public class BuildIndex {
 	/* These can be modified with command line arguments */
 	static int seedLength = 20;
 	static int minFreq = 10;
@@ -68,7 +69,7 @@ public class BuildIndex{
 	 * <br>       (requires positional index) or all in memory (default case).
 	 * </code>
 	 */
-	public static void usage(){
+	public static void usage() {
 		String usageMessage = "\nBuildIndex class in package pitt.search.semanticvectors"
 			+ "\nUsage: java pitt.search.semanticvectors.BuildIndex PATH_TO_LUCENE_INDEX"
 			+ "\nBuildIndex creates termvectors and docvectors files in local directory."
@@ -84,7 +85,6 @@ public class BuildIndex{
 			+ "\n  -docs [incremental|inmemory] Switch between building doc vectors incrementally"
 			+ "\n        (requires positional index) or all in memory (default case).";
 		System.out.println(usageMessage);
-		System.exit(-1);
 	}
 
 	/**
@@ -92,7 +92,7 @@ public class BuildIndex{
 	 * @param args
 	 * @see BuildIndex#usage
 	 */
-	public static void main (String[] args) {
+	public static void main (String[] args) throws IllegalArgumentException {
 		boolean wellFormed = false;
 		/* If only one argument, it should be the path to Lucene index. */
 		if (args.length == 1) {
@@ -114,7 +114,9 @@ public class BuildIndex{
 						ObjectVector.vecLength = Integer.parseInt(ar);
 						wellFormed = true;
 					} catch (NumberFormatException e) {
-						System.err.println(ar + " is not a number."); usage();
+						System.err.println(ar + " is not a number.");
+						usage();
+						throw new IllegalArgumentException();
 					}
 				}
 				/* Get seedlength. */
@@ -124,10 +126,13 @@ public class BuildIndex{
 						if (seedLength > ObjectVector.vecLength) {
 							System.err.println("Seed length cannot be greater than vector length");
 							usage();
+							throw new IllegalArgumentException();
 						}
 						else wellFormed = true;
 					} catch (NumberFormatException e) {
-						System.err.println(ar + " is not a number."); usage();
+						System.err.println(ar + " is not a number.");
+						usage();
+						throw new IllegalArgumentException();
 					}
 				}
 				/* Get minimum term frequency. */
@@ -137,10 +142,13 @@ public class BuildIndex{
 						if (minFreq < 0) {
 							System.err.println("Minimum frequency cannot be less than zero");
 							usage();
+							throw new IllegalArgumentException();
 						}
 						else wellFormed = true;
 					} catch (NumberFormatException e) {
-						System.err.println(ar + " is not a number."); usage();
+						System.err.println(ar + " is not a number.");
+						usage();
+						throw new IllegalArgumentException();
 					}
 				}
 				/* Get number of training cycles. */
@@ -150,10 +158,13 @@ public class BuildIndex{
 						if (trainingCycles < 1) {
 							System.err.println("Minimum frequency cannot be less than one.");
 							usage();
+							throw new IllegalArgumentException();
 						}
 						else wellFormed = true;
 					} catch (NumberFormatException e) {
-						System.err.println(ar + " is not a number."); usage();
+						System.err.println(ar + " is not a number.");
+						usage();
+						throw new IllegalArgumentException();
 					}
 				}
 				/* Get method for building doc vectors */
@@ -167,17 +178,20 @@ public class BuildIndex{
 					} else {
 						System.err.println("Option '" + ar + "' is unrecognized for -docs flag.");
 						usage();
+						throw new IllegalArgumentException();
 					}
 				}
 				/* All other arguments are unknown. */
 				else {
 					System.err.println("Unknown command line option: " + pa);
 					usage();
+					throw new IllegalArgumentException();
 				}
 			}
 		}
 		if (!wellFormed) {
 			usage();
+			throw new IllegalArgumentException();
 		}
 
 		String luceneIndex = args[args.length-1];

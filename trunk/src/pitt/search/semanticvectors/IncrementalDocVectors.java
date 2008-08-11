@@ -78,7 +78,7 @@ public class IncrementalDocVectors {
 		if (fields_with_positions.isEmpty()) {
 			System.err.println("Incremental document indexing requires a Lucene index containing TermPositionVectors");
 			System.err.println("Try rebuilding Lucene index using pitt.search.lucene.IndexFilePositions");
-			System.exit(0);
+			throw new IOException("Lucene indexes not built correctly.");
 		}
 
 		int numdocs = indexReader.numDocs();

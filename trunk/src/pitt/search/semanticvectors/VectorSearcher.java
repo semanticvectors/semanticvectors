@@ -154,14 +154,14 @@ abstract public class VectorSearcher{
 		public VectorSearcherCosine(VectorStore queryVecStore,
 																VectorStore searchVecStore,
 																LuceneUtils luceneUtils,
-																String[] queryTerms) {
+																String[] queryTerms)
+			throws ZeroVectorException {
 	    super(queryVecStore, searchVecStore, luceneUtils);
 			this.queryVector = CompoundVectorBuilder.getQueryVector(queryVecStore,
 																															luceneUtils,
 																															queryTerms);
 			if (VectorUtils.isZeroVector(this.queryVector)) {
-				System.err.println("Query vector is zero ... no results.");
-				System.exit(-1);
+				throw new ZeroVectorException("Query vector is zero ... no results.");
 			}
 		}
 
@@ -187,15 +187,15 @@ abstract public class VectorSearcher{
 		public VectorSearcherCosineSparse(VectorStore queryVecStore,
 																			VectorStore searchVecStore,
 																			LuceneUtils luceneUtils,
-																			String[] queryTerms) {
+																			String[] queryTerms)
+			throws ZeroVectorException {
 	    super(queryVecStore, searchVecStore, luceneUtils);
 			float[] fullQueryVector = CompoundVectorBuilder.getQueryVector(queryVecStore,
 																																		 luceneUtils,
 																																		 queryTerms);
 
 			if (VectorUtils.isZeroVector(fullQueryVector)) {
-				System.err.println("Query vector is zero ... no results.");
-				System.exit(-1);
+				throw new ZeroVectorException("Query vector is zero ... no results.");
 			}
 
 			short[] sparseQueryVector =
@@ -237,7 +237,8 @@ abstract public class VectorSearcher{
 		public VectorSearcherTensorSim(VectorStore queryVecStore,
 																	 VectorStore searchVecStore,
 																	 LuceneUtils luceneUtils,
-																	 String[] queryTerms) {
+																	 String[] queryTerms) 
+			throws ZeroVectorException {
 			super(queryVecStore, searchVecStore, luceneUtils);
 			this.trainingTensor = VectorUtils.createZeroTensor(ObjectVector.vecLength);
 
@@ -263,8 +264,7 @@ abstract public class VectorSearcher{
 
 			// Check to see that we got a non-zero training tensor before moving on.
 			if (VectorUtils.isZeroTensor(trainingTensor)) {
-				System.err.println("Tensor training relation is zero ... no results.");
-				System.exit(-1);
+				throw new ZeroVectorException("Tensor training relation is zero ... no results.");
 			}
 			this.trainingTensor = VectorUtils.getNormalizedTensor(trainingTensor);
 
@@ -278,8 +278,7 @@ abstract public class VectorSearcher{
 																																luceneUtils,
 																																partnerTerms);
 			if (VectorUtils.isZeroVector(this.partnerVector)) {
-				System.err.println("Query vector is zero ... no results.");
-				System.exit(-1);
+				throw new ZeroVectorException("Query vector is zero ... no results.");
 			}
 		}
 		
@@ -315,7 +314,9 @@ abstract public class VectorSearcher{
 		public VectorSearcherConvolutionSim(VectorStore queryVecStore,
 																				VectorStore searchVecStore,
 																				LuceneUtils luceneUtils,
-																				String[] queryTerms) {
+																				String[] queryTerms)
+			throws ZeroVectorException
+		{
 			super(queryVecStore, searchVecStore, luceneUtils);
 			this.trainingConvolution = new float[2 * ObjectVector.vecLength - 1];
 			for (int i = 0; i < 2 * ObjectVector.vecLength - 1; ++i) {
@@ -345,8 +346,7 @@ abstract public class VectorSearcher{
 
 			// Check to see that we got a non-zero training tensor before moving on.
 			if (VectorUtils.isZeroVector(trainingConvolution)) {
-				System.err.println("Convolution training relation is zero ... no results.");
-				System.exit(-1);
+				throw new ZeroVectorException("Convolution training relation is zero ... no results.");
 			}
 			this.trainingConvolution = VectorUtils.getNormalizedVector(trainingConvolution);
 
@@ -358,8 +358,7 @@ abstract public class VectorSearcher{
 																																luceneUtils,
 																																partnerTerms);
 			if (VectorUtils.isZeroVector(this.partnerVector)) {
-				System.err.println("Query vector is zero ... no results.");
-				System.exit(-1);
+				throw new ZeroVectorException("Query vector is zero ... no results.");
 			}
 		}
 		

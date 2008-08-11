@@ -35,8 +35,10 @@
 
 package pitt.search.semanticvectors;
 
+import java.lang.IllegalArgumentException;
 import java.lang.Integer;
 import java.lang.Math;
+import java.lang.Exception;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.Enumeration;
@@ -365,7 +367,7 @@ public class VectorUtils{
 		if (numResults > values.length) {
 			System.err.println("Asking for highest " + numResults
 												 + " entries out of only " + values.length);
-			System.exit(-1);
+			throw new IllegalArgumentException();
 		}
 
 		LinkedList<Integer> largestPositions = new LinkedList<Integer>();
@@ -399,7 +401,8 @@ public class VectorUtils{
 		// CHECK
 		if (largestPositions.size() != numResults) {
 			System.err.println("We have " + largestPositions.size()
-												 + " results. Expecting " + numResults);			System.exit(-1);
+												 + " results. Expecting " + numResults);			
+			throw new IllegalArgumentException();
 		}
 		Object[] intArray = largestPositions.toArray();
 		short[] results = new short[numResults];
@@ -417,7 +420,7 @@ public class VectorUtils{
 		if (seedLength > floatVector.length) {
 			System.err.println("Asking sparse form of length " + seedLength +
 												 " from float vector of length " + floatVector.length);
-			System.exit(-1);
+			throw new IllegalArgumentException();
 		}
 
 		short[] topN = getNLargestPositions(floatVector, seedLength/2);

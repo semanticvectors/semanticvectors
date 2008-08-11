@@ -33,10 +33,11 @@
 
 package pitt.search.semanticvectors;
 
+import java.lang.IllegalArgumentException;
+import java.io.IOException;
 import java.util.Hashtable;
 import java.util.Enumeration;
 import java.util.Random;
-import java.io.IOException;
 import org.apache.lucene.index.*;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 
@@ -82,7 +83,6 @@ public class BuildBilingualIndex{
         + "\n  -m [minimum term frequency]";
 
     System.out.println(usageMessage);
-    System.exit(-1);
   }
 
   /**
@@ -90,7 +90,7 @@ public class BuildBilingualIndex{
    * @param args
    * @see BuildBilingualIndex#usage
    */
-  public static void main (String[] args) {
+  public static void main (String[] args) throws IllegalArgumentException {
     boolean wellFormed = false;
     /* If only three argument, they should be the path to Lucene index and the language pair. */
     if (args.length == 3) {
@@ -112,7 +112,9 @@ public class BuildBilingualIndex{
             ObjectVector.vecLength = Integer.parseInt(value);
             wellFormed = true;
           } catch (NumberFormatException e) {
-            System.err.println(value + " is not a number"); usage();
+            System.err.println(value + " is not a number"); 
+						usage();
+						throw new IllegalArgumentException();
           }
         }
         /* Get seedlength. */
@@ -125,7 +127,9 @@ public class BuildBilingualIndex{
             }
             else wellFormed = true;
           } catch (NumberFormatException e) {
-            System.err.println(value + " is not a number"); usage();
+            System.err.println(value + " is not a number");
+						usage();
+						throw new IllegalArgumentException();
           }
         }
         /* Get minimum term frequency. */
@@ -135,21 +139,26 @@ public class BuildBilingualIndex{
             if (minFreq < 0) {
               System.err.println("Minimum frequency cannot be less than zero");
               usage();
+							throw new IllegalArgumentException();
             }
             else wellFormed = true;
           } catch (NumberFormatException e) {
-            System.err.println(value + " is not a number"); usage();
+            System.err.println(value + " is not a number");
+						usage();
+						throw new IllegalArgumentException();
           }
         }
         /* All other arguments are unknown. */
         else {
           System.err.println("Unknown command line option: " + option);
           usage();
+					throw new IllegalArgumentException();
         }
       }
     }
     if (!wellFormed) {
       usage();
+			throw new IllegalArgumentException();
     }
 
     String luceneIndex = args[args.length - 3];

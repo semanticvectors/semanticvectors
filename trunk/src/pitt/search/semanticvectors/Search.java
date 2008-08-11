@@ -431,7 +431,7 @@ public class Search {
 																																 lUtils,
 																																 queryTerms);
 			VectorUtils.printVector(queryVector);
-			System.exit(1);
+			return null;
 		
 		default:
 			System.err.println("Search type unrecognized ...");
