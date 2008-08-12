@@ -437,7 +437,7 @@ abstract public class VectorSearcher{
 																VectorStore searchVecStore,
 																LuceneUtils luceneUtils,
 																String[] queryTerms)
-		throws ZeroVectorException {
+			throws ZeroVectorException {
 			super(queryVecStore, searchVecStore, luceneUtils);
 			this.disjunctVectors = new ArrayList();
 
@@ -492,15 +492,15 @@ abstract public class VectorSearcher{
 		 * expression. If the string "?" appears, terms best fitting into this position will be returned
 		 */
 		public VectorSearcherPerm(VectorStore queryVecStore,
-																VectorStore searchVecStore,
-																LuceneUtils luceneUtils,
-																String[] queryTerms)
+															VectorStore searchVecStore,
+															LuceneUtils luceneUtils,
+															String[] queryTerms)
 			throws IllegalArgumentException, ZeroVectorException {
 	    super(queryVecStore, searchVecStore, luceneUtils);
 			
 			try {
 				theAvg = pitt.search.semanticvectors.CompoundVectorBuilder.getPermutedQueryVector(
-																						           queryVecStore,luceneUtils,queryTerms);
+																																													queryVecStore,luceneUtils,queryTerms);
 			} catch (IllegalArgumentException e) {
 				System.err.println("Couldn't create permutation VectorSearcher ...");
 				throw e;
@@ -512,8 +512,7 @@ abstract public class VectorSearcher{
 		}
 
 		public float getScore(float[] testVector) {
-	   return VectorUtils.scalarProduct(theAvg, testVector);
+			return VectorUtils.scalarProduct(theAvg, testVector);
 		}
-	}
-	
+	}	
 }
