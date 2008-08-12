@@ -47,6 +47,7 @@
 									includes="src/">
 				<include name="build.xml"/>
 				<include name="AUTHORS"/>
+				<include name="LICENSE"/>
       </tarfileset>
     </tar>
     <gzip zipfile="${distdir}/${distname}-src.tar.gz" 
@@ -60,6 +61,7 @@
 									includes="src/">
 				<include name="build.xml"/>
 				<include name="AUTHORS"/>
+				<include name="LICENSE"/>
 			</zipfileset>
     </zip>
   </target>
