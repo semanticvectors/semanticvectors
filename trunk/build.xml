@@ -46,6 +46,7 @@
                   preserveLeadingSlashes="true"
 									includes="src/">
 				<include name="build.xml"/>
+				<include name="AUTHORS"/>
       </tarfileset>
     </tar>
     <gzip zipfile="${distdir}/${distname}-src.tar.gz" 
@@ -58,7 +59,8 @@
                   prefix="${distname}"
 									includes="src/">
 				<include name="build.xml"/>
-      </zipfileset>
+				<include name="AUTHORS"/>
+			</zipfileset>
     </zip>
   </target>
 
