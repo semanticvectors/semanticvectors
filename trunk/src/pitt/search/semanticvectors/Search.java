@@ -60,58 +60,58 @@ public class Search {
 		 * @see VectorSearcher.VectorSearcherCosine
 		 */
 		SUM,
-	  /**
-		 * Build a query as with <code>SUM</code> option, but quantize to
-     * sparse vectors before taking scalar product at search time.
-     * This can be used to give a guide to how much smilarities are
-     * changed by only using the most significant coordinates of a
-     * vector.
-		 * @see VectorSearcher.VectorSearcherCosineSparse
-		 */
-		SPARSESUM,
-		/**
-		 * "Quantum disjunction" - get vectors for each query term, create a
-		 * representation for the subspace spanned by these vectors, and
-		 * score by measuring cosine similarity with this subspace.
-		 * @see VectorSearcher.VectorSearcherSubspaceSim
-		 */
-		SUBSPACE, 
-		/**
-		 * "Closest disjunction" - get vectors for each query term, score
-		 * by measuring distance to each term and taking the minimum.
-		 * @see VectorSearcher.VectorSearcherMaxSim
-		 */
-		MAXSIM,
-		/**
-		 * A product similarity that trains by taking ordered pairs of
-		 * terms, a target query term, and searches for the term whose tensor
-		 * product with the target term gives the largest similarity with training tensor.
-		 * @see VectorSearcher.VectorSearcherTensorSim
-		 */
-		TENSOR,
-		/**
-		 * Similar to <code>TENSOR</code>, product similarity that trains
-		 * by taking ordered pairs of terms, a target query term, and
-		 * searches for the term whose convolution product with the target
-		 * term gives the largest similarity with training convolution.
-		 * @see VectorSearcher.VectorSearcherConvolutionSim
-		 */
-		CONVOLUTION, 
-		/**
-		 * Based on Sahlgren (2008). Searches for the term that best matches
-		 * the position of a "?" in a sequence of terms. For example
-		 * 'martin ? king' should retrieve luther as the top ranked match
-		 * requires the index queried to contain unpermuted vectors, either
-		 * random vectors (or term vectors if these were used to build permuted
-		 * vectors - not yet implemented), and the index searched must contain
-		 * permuted vectors 
-		 **/		
-		 PERMUTATION,
-		/**
-		 * Build an additive query vector (as with <code>SUM</code> and
-		 * print out the query vector for debugging.
-		 */
-		PRINTQUERY }
+			/**
+			 * Build a query as with <code>SUM</code> option, but quantize to
+			 * sparse vectors before taking scalar product at search time.
+			 * This can be used to give a guide to how much smilarities are
+			 * changed by only using the most significant coordinates of a
+			 * vector.
+			 * @see VectorSearcher.VectorSearcherCosineSparse
+			 */
+			SPARSESUM,
+			/**
+			 * "Quantum disjunction" - get vectors for each query term, create a
+			 * representation for the subspace spanned by these vectors, and
+			 * score by measuring cosine similarity with this subspace.
+			 * @see VectorSearcher.VectorSearcherSubspaceSim
+			 */
+			SUBSPACE, 
+			/**
+			 * "Closest disjunction" - get vectors for each query term, score
+			 * by measuring distance to each term and taking the minimum.
+			 * @see VectorSearcher.VectorSearcherMaxSim
+			 */
+			MAXSIM,
+			/**
+			 * A product similarity that trains by taking ordered pairs of
+			 * terms, a target query term, and searches for the term whose tensor
+			 * product with the target term gives the largest similarity with training tensor.
+			 * @see VectorSearcher.VectorSearcherTensorSim
+			 */
+			TENSOR,
+			/**
+			 * Similar to <code>TENSOR</code>, product similarity that trains
+			 * by taking ordered pairs of terms, a target query term, and
+			 * searches for the term whose convolution product with the target
+			 * term gives the largest similarity with training convolution.
+			 * @see VectorSearcher.VectorSearcherConvolutionSim
+			 */
+			CONVOLUTION, 
+			/**
+			 * Based on Sahlgren (2008). Searches for the term that best matches
+			 * the position of a "?" in a sequence of terms. For example
+			 * 'martin ? king' should retrieve luther as the top ranked match
+			 * requires the index queried to contain unpermuted vectors, either
+			 * random vectors (or term vectors if these were used to build permuted
+			 * vectors - not yet implemented), and the index searched must contain
+			 * permuted vectors 
+			 **/		
+			PERMUTATION,
+			/**
+			 * Build an additive query vector (as with <code>SUM</code> and
+			 * print out the query vector for debugging.
+			 */
+			PRINTQUERY}
 
 	// Experimenting with class-level static variables to enable several
 	// methods to use this state. Initialize each with default values.
@@ -123,6 +123,7 @@ public class Search {
 	static LuceneUtils lUtils = null;
 	static int numResults;
 	static SearchType searchType = SearchType.SUM;
+	static boolean lowerCase = true;
 
   /**
    * Prints the following usage message:
@@ -133,6 +134,7 @@ public class Search {
    * <br>                                                [-l path_to_lucene_index]
 	 * <br>                                                [-searchtype TYPE]
 	 * <br>                                                [-results num_results]
+	 * <br>                                                [-lowercase true|false]
    * <br>                                                &lt;QUERYTERMS&gt;
    * <br> If no query or search file is given, default will be
    * <br>     termvectors.bin in local directory.
@@ -151,6 +153,7 @@ public class Search {
 			+ "\n                                               [-l path_to_lucene_index]"
 			+ "\n                                               [-searchtype TYPE]"
 			+ "\n                                               [-results num_results]"
+			+ "\n                                               [-lowercase true|false]"
 			+ "\n                                               <QUERYTERMS>"
 			+ "\n-q argument must precede -s argument if they differ;"
 			+ "\n    otherwise -s will default to -q."
@@ -198,20 +201,6 @@ public class Search {
 
     int argc = 0;
 
-		// Lower case all arguments: this is standard policy for
-		// now. Please don't write internal code that depends on this
-		// assumption, in case we want to change this.  Fixes issue 4,
-		// http://code.google.com/p/semanticvectors/issues/detail?id=4
-		// though there could be better solutions. DW, version 1.7.
-		if (true) {  // Wanted this to be easily removed.
-			for (int i = 0; i < args.length; ++i) {
-				if (!args[i].equals(args[i].toLowerCase())) {
-						System.err.println("Lowercasing term: " + args[i]);
-						args[i] = args[i].toLowerCase();
-				}
-			}
-		}
-
     // Stage i. Parse all the command-line arguments.
     while (args[argc].substring(0, 1).equals("-")) {
 			// If the args list is now too short, this is an error.
@@ -239,6 +228,12 @@ public class Search {
 			else if (args[argc].equals("-textindex")) {
 				textIndex = true;
 				argc += 1;
+			}
+			else if (args[argc].equals("-lowercase")) {
+				if (args[argc + 1].equalsIgnoreCase("false")) {
+					lowerCase = false;
+				}
+				argc += 2;
 			}
 			// The most complicated option is the search type: this will
 			// lead to the most complex implementational differences later.
@@ -330,6 +325,10 @@ public class Search {
 		String queryTerms[] = new String[args.length - argc];
 		for (int j = 0; j < args.length - argc; ++j) {
 			queryTerms[j] = args[j + argc];
+			if (lowerCase) {
+				System.err.println("Lowercasing term: " + queryTerms[j]);
+				queryTerms[j] = queryTerms[j].toLowerCase();
+			}
 		}
 		
 		VectorSearcher vecSearcher;
@@ -438,7 +437,7 @@ public class Search {
 				results = vecSearcher.getNearestNeighbors(numResults);
 			}	catch (ZeroVectorException zve) {
 				System.err.println(zve.getMessage());
-					results = new LinkedList<SearchResult>();
+				results = new LinkedList<SearchResult>();
 			}
 			break;
 			
