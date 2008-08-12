@@ -238,7 +238,7 @@ public class BuildPositionalIndex {
 			vecWriter.WriteVectors(termFile, vecStore);
 
 			// Write document vectors except for permutation index.
-			if (indexType != IndexType.PERMUTATION) {
+			if (indexType == IndexType.BASIC) {
 				IncrementalDocVectors docVectors =
 					new IncrementalDocVectors(vecStore, luceneIndex, fieldsToIndex,	"incremental_"+docFile);
 			}
