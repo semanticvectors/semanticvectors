@@ -1,0 +1,6 @@
+#summary Permutation and Directional Indexing and Search
+= Permutation Indexing and Search =
+
+The technique of using vector coordinate permutations (also interpreted as rotations) to investigate the effect of word order on vector semantics has recently been introduced by [http://www.sics.se/~mange/papers/permutationsCogSci08.pdf Sahlgren, Holst & Kanerva (2008)].
+
+To build a permutation or directional index, follow the instructions for building PositionalIndexes, but using the additional command line option `-indextype permutation` or `-indextype directional`.
