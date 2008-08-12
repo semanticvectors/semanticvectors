@@ -3,6 +3,12 @@
 
 Even-numbered versions are releases. Odd-numbered versions are in development. It follows that the most recent code and the `build.xml` file in the SVN repository is always odd-numbered.
 
+=== Version 1.14 ===
+
+Main feature addition is that of permutation and directional indexing and search. This is a new method for encoding and decoding word order in vector space models, introduced by [http://www.sics.se/~mange/papers/permutationsCogSci08.pdf Sahlgren et al (2008)]. Thanks to Trevor Cohen for the implementation in SemanticVectors.
+
+Other work has been to improve exception handling so that SemanticVectors can be used as a library by other Java applications, in particular [http://www.activemath.org ActiveMath]. SemanticVectors now has no hard-coded System.exit() calls, but throws standard exceptions and one new ZeroVectorException. Thanks to Dominik Jednoralski for leading this effort.
+
 === Version 1.12 ===
 
 *Indexing Improvements*
