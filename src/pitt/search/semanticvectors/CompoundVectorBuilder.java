@@ -74,10 +74,8 @@ public class CompoundVectorBuilder {
 																							 String[] queryTerms) throws IllegalArgumentException {
 
 		// Check basic invariant that there must be one and only one "?" in input.
-		System.out.println("Here here here ...");
 		int queryTermPosition = -1;
 		for (int j = 0; j < queryTerms.length; ++j) {
-			System.out.println("Queryterm: " + queryTerms[j]);
 			if (queryTerms[j].equals("?")) { 
 				if (queryTermPosition == -1) {
 					queryTermPosition = j;
