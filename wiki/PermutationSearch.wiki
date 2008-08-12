@@ -4,3 +4,7 @@
 The technique of using vector coordinate permutations (also interpreted as rotations) to investigate the effect of word order on vector semantics has recently been introduced by [http://www.sics.se/~mange/papers/permutationsCogSci08.pdf Sahlgren, Holst & Kanerva (2008)].
 
 To build a permutation or directional index, follow the instructions for building PositionalIndexes, but using the additional command line option `-indextype permutation` or `-indextype directional`.
+
+To search, use the normal Search program with the option `searchtype PERMUTATION` (and use the option `-q permtermvectors.bin` to tell the search to use the default output of BuildPositionalIndex). Query syntax uses a question mark "?" character to denote the target location, so that (e.g.) a search for "Martin ? King" would ideally return the result "Luther".
+
+For other search types, see SearchOptions.
