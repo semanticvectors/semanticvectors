@@ -499,8 +499,8 @@ abstract public class VectorSearcher{
 	    super(queryVecStore, searchVecStore, luceneUtils);
 			
 			try {
-				theAvg = pitt.search.semanticvectors.CompoundVectorBuilder.getPermutedQueryVector(
-																																													queryVecStore,luceneUtils,queryTerms);
+				theAvg = pitt.search.semanticvectors.CompoundVectorBuilder.
+					getPermutedQueryVector(queryVecStore,luceneUtils,queryTerms);
 			} catch (IllegalArgumentException e) {
 				System.err.println("Couldn't create permutation VectorSearcher ...");
 				throw e;
