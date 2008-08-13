@@ -177,11 +177,11 @@ public class BuildPositionalIndex {
 					if (indexTypeString.equalsIgnoreCase("basic")) {
 						indexType = IndexType.BASIC;
 						wellFormed = true;
-					}
+					} else
 					if (indexTypeString.equalsIgnoreCase("directional")) {
 						indexType = IndexType.DIRECTIONAL;
 						wellFormed = true;
-					}
+					} else
 					if (indexTypeString.equalsIgnoreCase("permutation")) {
 						indexType = IndexType.PERMUTATION;
 						wellFormed = true;
@@ -223,6 +223,8 @@ public class BuildPositionalIndex {
 		String luceneIndex = args[args.length-1];
 		String termFile = "termtermvectors.bin";
 		if (indexType == IndexType.PERMUTATION) termFile = "permtermvectors.bin";
+		else if (indexType == IndexType.DIRECTIONAL) termFile = "drxntermvectors.bin";
+		
 		String docFile = "docvectors.bin";
 		String[] fieldsToIndex = {"contents"};
 		System.err.println("seedLength = " + seedLength);
