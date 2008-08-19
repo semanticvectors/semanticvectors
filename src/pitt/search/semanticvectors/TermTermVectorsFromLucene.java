@@ -269,7 +269,7 @@ public class TermTermVectorsFromLucene implements VectorStore {
 							int permutation = w - focusposn;
 							VectorUtils.permuteSparseVector(localindex, permutation);
 						} else if (this.positionalIndexType == BuildPositionalIndex.IndexType.DIRECTIONAL) {
-							VectorUtils.permuteSparseVector(localindex, -1);
+							VectorUtils.permuteSparseVector(localindex, +1);
 						}
 						
 						if (this.indexVectors.getVector(docterms[coterm]) != null) { 
