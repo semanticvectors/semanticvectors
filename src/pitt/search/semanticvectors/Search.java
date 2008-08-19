@@ -462,7 +462,7 @@ public class Search {
 																																 lUtils,
 																																 queryTerms);
 			VectorUtils.printVector(queryVector);
-			return null;
+			return new LinkedList();
 		
 		default:
 			System.err.println("Search type unrecognized ...");
@@ -495,10 +495,14 @@ public class Search {
 		int defaultNumResults = 20;
 		LinkedList<SearchResult> results = RunSearch(args, defaultNumResults);
 		// Print out results.
-		System.err.println("Search output follows ...");
-		for (SearchResult result: results) {
-			System.out.println(result.getScore() + ":" +
-												 ((ObjectVector)result.getObject()).getObject().toString());
+		if (results.size() > 0) {
+			System.err.println("Search output follows ...");
+			for (SearchResult result: results) {
+				System.out.println(result.getScore() + ":" +
+													 ((ObjectVector)result.getObject()).getObject().toString());
+			}	
+		} else {
+			System.err.println("No search output.");
 		}
 	}
 }
