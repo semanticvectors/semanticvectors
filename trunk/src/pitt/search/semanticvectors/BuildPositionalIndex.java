@@ -49,7 +49,6 @@ public class BuildPositionalIndex {
 	static int minFreq = 10;
 	static int windowLength = 21;
 	static IndexType indexType = IndexType.BASIC;
-	//static final String[] indexTypes = {"basic","directional","permutation"};
 
 	/**
 	 * Enumeration of different indexTypes - basic, directional and permutation.

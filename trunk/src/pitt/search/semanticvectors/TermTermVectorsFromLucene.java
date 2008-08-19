@@ -115,16 +115,6 @@ public class TermTermVectorsFromLucene implements VectorStore {
     /* Create an index vector for each term. */
     this.indexReader = IndexReader.open(indexDir);
     Random random = new Random();
-
-    /* Set parameters for type of index */
-		/* TODO(dwiddows): Check if we need any extra internal state for
-		 * this or if it's OK to take this out.
-
-    if (BuildPositionalIndex.indexType == equals("permutation"))
-    	this.permute = true;
-    else if (BuildPositionalIndex.indexType.equals("directional"))
-    	this.directional = true;
-		*/
     
     // Check that the Lucene index contains Term Positions.
     java.util.Collection fields_with_positions =

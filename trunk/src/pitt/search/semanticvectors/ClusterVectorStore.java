@@ -35,7 +35,10 @@
 
 package pitt.search.semanticvectors;
 
+import java.io.IOException;
 import java.lang.Integer;
+import java.lang.IllegalArgumentException;
+import java.lang.NumberFormatException;
 import java.util.Enumeration;
 
 /**
@@ -46,13 +49,22 @@ import java.util.Enumeration;
  * @see ClusterResults 
  */
 public class ClusterVectorStore {
+	/**
+	 * Prints the following usage message:
+	 * <code>
+	 * ClusterVectorStore class for clustering an entire (text) vector store. <br>
+	 * Usage: java.pitt.search.semanticvectors.ClusterVectorStore NUMCLUSTERS VECTORFILE <br>
+	 * Do not try this for large vectors, it will not scale well! <br>
+	 */
 	public static void usage() {
 		String message = "ClusterVectorStore class for clustering an entire (text) vector store.";
 		message += "\nUsage: java.pitt.search.semanticvectors.ClusterVectorStore NUMCLUSTERS VECTORFILE";
 		message += "\nDo not try this for large vectors, it will not scale well!";
+		System.out.println(message);
+		return;
 	}
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws IllegalArgumentException {
 		int numClusters = 0;
 		VectorStoreReaderText vecReader = null;
 
@@ -60,13 +72,21 @@ public class ClusterVectorStore {
 		// arguments before any of the search arguments.
 		if (args.length != 2) {
 			usage();
+			return;
 		}
-		numClusters = Integer.parseInt(args[0]);
+		try {
+			numClusters = Integer.parseInt(args[0]);
+		} catch (NumberFormatException e) {
+			System.err.println(e.getMessage());
+			usage();
+			throw new IllegalArgumentException("Failed to parse arguments for ClusterVectorStore");
+		}
 		try {
 			vecReader = new VectorStoreReaderText(args[1]);
-		} catch (Exception e) {
+		} catch (IOException e) {
 			System.out.println("Failed to open vector store from file: '" + args[1] + "'");
-			e.printStackTrace();
+			System.err.println(e.getMessage());
+			throw new IllegalArgumentException("Failed to parse arguments for ClusterVectorStore");
 		}
 
 		// Figure out how many vectors we need.
