@@ -94,11 +94,15 @@ public class TermTermVectorsFromLucene implements VectorStore {
 																	 String[] fieldsToIndex,
 																	 BuildPositionalIndex.IndexType positionalIndexType)
 		throws IOException, RuntimeException {
-    this.minFreq = minFreq;
+    
+	 
+	  this.minFreq = minFreq;
     this.fieldsToIndex = fieldsToIndex;
     this.seedLength = seedLength;
 		this.positionalIndexType = positionalIndexType;
 
+
+		
     /* This small preprocessing step uses an IndexModifier to make
      * sure that the Lucene index is optimized to use contiguous
      * integers as identifiers, otherwise exceptions can occur if
@@ -244,9 +248,9 @@ public class TermTermVectorsFromLucene implements VectorStore {
 						short[] localindex = localindexvectors[coterm].clone(); 
 						if (this.positionalIndexType == BuildPositionalIndex.IndexType.PERMUTATION) {
 							int permutation = w - focusposn;
-							VectorUtils.permuteSparseVector(localindex, permutation);
+							localindex = VectorUtils.permuteSparseVector(localindex, permutation);
 						} else if (this.positionalIndexType == BuildPositionalIndex.IndexType.DIRECTIONAL) {
-							VectorUtils.permuteSparseVector(localindex, -1);
+							localindex = VectorUtils.permuteSparseVector(localindex, -1);
 						}
 
 						/* docterms[coterm] contains the term in position[w] in this document */
@@ -266,10 +270,11 @@ public class TermTermVectorsFromLucene implements VectorStore {
 						 */
 						short[] localindex = localindexvectors[coterm].clone(); 
 						if (this.positionalIndexType == BuildPositionalIndex.IndexType.PERMUTATION) {
+							
 							int permutation = w - focusposn;
-							VectorUtils.permuteSparseVector(localindex, permutation);
+							localindex = VectorUtils.permuteSparseVector(localindex, permutation);
 						} else if (this.positionalIndexType == BuildPositionalIndex.IndexType.DIRECTIONAL) {
-							VectorUtils.permuteSparseVector(localindex, +1);
+							localindex = VectorUtils.permuteSparseVector(localindex, +1);
 						}
 						
 						if (this.indexVectors.getVector(docterms[coterm]) != null) { 
