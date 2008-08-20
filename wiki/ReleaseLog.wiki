@@ -5,7 +5,7 @@ Even-numbered versions are releases. Odd-numbered versions are in development. I
 
 === Version 1.16 ===
 
-Trevor found and fixed a bug in the permutation indexing code. Dominic took the opportunity to add more conformant usage statements and exception handling for ClusterVectorStore.
+Trevor found and fixed a bug in the permutation indexing code. Dominic took the opportunity to add more conformant usage statements and exception handling for [http://semanticvectors.googlecode.com/svn/trunk/doc/pitt/search/semanticvectors/ClusterVectorStore.html ClusterVectorStore].
 
 === Version 1.14 ===
 
