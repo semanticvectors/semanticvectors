@@ -7,6 +7,8 @@ Even-numbered versions are releases. Odd-numbered versions are in development. I
 
 Trevor found and fixed a bug in the permutation indexing code. Dominic took the opportunity to add more conformant usage statements and exception handling for [http://semanticvectors.googlecode.com/svn/trunk/doc/pitt/search/semanticvectors/ClusterVectorStore.html ClusterVectorStore].
 
+PermutationSearch is really cool, give it a try.
+
 === Version 1.14 ===
 
 Main feature addition is that of permutation and directional indexing and search (see PermutationSearch). This is a new method for encoding and decoding word order in vector space models, introduced by [http://www.sics.se/~mange/papers/permutationsCogSci08.pdf Sahlgren et al (2008)]. Thanks to Trevor Cohen for the implementation in SemanticVectors.
