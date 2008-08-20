@@ -5,9 +5,60 @@ The technique of using vector coordinate permutations (also interpreted as rotat
 
 To build a permutation or directional index, follow the instructions for building PositionalIndexes, but using the additional command line option `-indextype permutation` or `-indextype directional`. A permutation index encodes the position of each term relative to each other term within a sliding window, while a directional index encodes whether a term occurs before or after each other term in this sliding window. The directional approach was first used in Burgess and Lund's HAL model. 
 
-To search, use the normal Search program with the option `-searchtype PERMUTATION` (and use the options '-q randomvectors.bin' and  `-s permtermvectors.bin` to tell the search to use the default output of BuildPositionalIndex). Query syntax uses a question mark "?" character to denote the target location, so that (e.g.) a search for "Martin ? King" would ideally return the result "Luther". Only one question mark per query is permitted in the current implementation.
+To search, use the normal Search program with the option `-searchtype PERMUTATION`, and use the options '-q randomvectors.bin' and  `-s permtermvectors.bin` to tell the search to use the default output of BuildPositionalIndex.
 
-Here are a few examples, drawn from Jones and Mewhort (2007) and Sahlgren (2008) generated using the TASA corpus, which was kindly provided by Tom Landauer.
+Query syntax uses a question mark "?" character to denote the target location, so that (e.g.) a search for "Martin ? King" would ideally return the result "Luther". The question mark must be used once and only once in the current implementation. If anyone has a good idea for figuring out the mathematics for two or more question marks, let us know. Stop what you're doing please, and [http://groups.google.com/group/semanticvectors send us a message], if only to let us know how to contact you.
+
+An example query (using the Bible corpus) then goes as follows:
+
+{{{
+~/Data/Corpora/bible_indexes/positional widdows$ java pitt.search.semanticvectors.Search -searchtype permutation -q randomvectors.bin -s permtermvectors.bin king ? 
+Opening query vector store from file: randomvectors.bin
+Dimensions = 200
+Opening search vector store from file: permtermvectors.bin
+Dimensions = 200
+Lowercasing term: king
+Lowercasing term: ?
+Searching term vectors, searchtype PERMUTATION ... Search output follows ...
+0.72752255:assyria
+0.72466135:babylon
+0.6896844:ahasuerus
+0.6166289:syria
+0.51723355:persia
+0.4362294:solomon
+0.4360716:zobah
+0.41100603:judah
+0.3905197:agrippa
+0.30784437:eglon
+0.30432403:ahaz
+0.3025093:tyre
+}}}
+
+Compare this with the standard query:
+
+{{{
+dom-laptop:~/Data/Corpora/bible_indexes widdows$ java pitt.search.semanticvectors.Search king
+Opening query vector store from file: termvectors.bin
+Dimensions = 200
+Lowercasing term: king
+Searching term vectors, searchtype SUM ... Search output follows ...
+1.0000001:king
+0.4411627:province
+0.40771794:reign
+0.3804317:had
+0.37756744:did
+0.3773844:came
+0.375291:servants
+0.3745748:adonijah
+0.369213:nor
+0.3688996:princes
+0.3642981:so
+0.36391386:jehoiada
+}}}
+
+Quite a difference! The permutational index seems to have used the order of words to represent two particular relationhips from "king" - not synonymy or taxonomy, or a mixture of vaguely defined associates, but places that had kings and people who were (or at least may have been) kings.
+
+Here are a few more examples, drawn from Jones and Mewhort (2007) and Sahlgren (2008) generated using the TASA corpus, which was kindly provided by Tom Landauer.
 
 (1) martin ? king
 
@@ -33,5 +84,3 @@ top match: 0.13623515:ostriches
 0.41262993:baltic
 0.3766794:mediterranean
 
-
-For other search types, see SearchOptions.
