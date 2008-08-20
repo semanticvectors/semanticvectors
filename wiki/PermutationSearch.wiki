@@ -7,7 +7,7 @@ To build a permutation or directional index (using SemanticVectors v1.16 or late
 
 To search, use the normal Search program with the option `-searchtype PERMUTATION`, and use the options '-q randomvectors.bin' and  `-s permtermvectors.bin` to tell the search to use the default output of BuildPositionalIndex.
 
-Query syntax uses a question mark "?" character to denote the target location, so that (e.g.) a search for "Martin ? King" would ideally return the result "Luther". The question mark must be used once and only once in the current implementation. If anyone has a good idea for figuring out the mathematics for two or more question marks, let us know. Stop what you're doing please, and [http://groups.google.com/group/semanticvectors send us a message], if only to let us know how to contact you.
+Query syntax uses a question mark "?" character to denote the target location, so that (e.g.) a search for "Martin ? King" would ideally return the result "Luther". The question mark must be used once and only once in the current implementation. If anyone has a good idea for figuring out the mathematics for two or more question marks, please [http://groups.google.com/group/semanticvectors send us a message], if only to let us know how to contact you!
 
 An example query (using the Bible corpus) then goes as follows:
 
@@ -60,6 +60,7 @@ Quite a difference! The permutational index seems to have used the order of word
 
 Here are a few more examples, drawn from Jones and Mewhort (2007) and Sahlgren (2008) generated using the TASA corpus, which was kindly provided by Tom Landauer.
 
+{{{
 (1) martin ? king
 
 top match: 0.78586185:luther
@@ -83,3 +84,6 @@ top match: 0.13623515:ostriches
 0.47394556:aegean
 0.41262993:baltic
 0.3766794:mediterranean
+}}}
+
+Even at this early stage, this looks like one of the most exciting developments in this area of research in several years!
