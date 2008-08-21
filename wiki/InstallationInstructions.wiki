@@ -32,6 +32,10 @@ These sketch instructions presume that you're reasonably familiar with Java, Ant
  * To compare two concepts, run `java pitt.search.semanticvectors.CompareTerms "QUERYTERMS1" "QUERYTERMS2"`.
  * For more information on searching, see SearchOptions.
 
+== Training Cycles ==
+
+Models can be built in several phases by passing the document vectors back to rebuild new term vectors. See TrainingCycles.
+
 == Bilingual Models ==
 
 For instructions on building a bilingual model from a parallel corpus, see BilingualModels.
