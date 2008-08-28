@@ -38,6 +38,9 @@ package pitt.search.semanticvectors;
 
 import java.lang.IllegalArgumentException;
 import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
 import org.apache.lucene.index.Term;
 
 /**
@@ -48,196 +51,242 @@ import org.apache.lucene.index.Term;
  * So far these basic operations include negation of one or more terms.
  */
 public class CompoundVectorBuilder {
+  private VectorStore vecReader;
+  private LuceneUtils lUtils;
 
-	private VectorStore vecReader;
-	private LuceneUtils lUtils;
+  public enum LookupSyntax {
+    STRING,
+    REGEX,
+  }
 
-	public CompoundVectorBuilder (VectorStore vecReader, LuceneUtils lUtils) {
-		this.vecReader = vecReader;
-		this.lUtils = lUtils;
-		/*
-			if (lUtils == null) {
-			System.err.println("No Lucene index for query term weighting, "
-			+ "so all query terms will have same weight.");
-			}
-		*/
-	}
+  public static LookupSyntax lookupSyntax = LookupSyntax.STRING;
 
-	/**
-	 * Returns a vector representation containing both content and positional information
-	 * @param queryTerms String array of query terms to look up. Expects a single "?" entry, which  
-	 * denotes the query term position. E.g., "martin ? king" might pick out "luther".
-	 *
-	 */
-	public static float[] getPermutedQueryVector(VectorStore vecReader,
-																							 LuceneUtils lUtils,
-																							 String[] queryTerms) throws IllegalArgumentException {
+  public CompoundVectorBuilder (VectorStore vecReader, LuceneUtils lUtils) {
+    this.vecReader = vecReader;
+    this.lUtils = lUtils;
+  }
 
-		// Check basic invariant that there must be one and only one "?" in input.
-		int queryTermPosition = -1;
-		for (int j = 0; j < queryTerms.length; ++j) {
-			if (queryTerms[j].equals("?")) { 
-				if (queryTermPosition == -1) {
-					queryTermPosition = j;
-				} else {
-					// If we get to here, there was more than one "?" argument.
-					System.err.println("Illegal query argument: arguments to getPermutedQueryVector must " +
-														 "have only one '?' string to denote target term position.");
-					throw new IllegalArgumentException();
-				}
-			}
-		}
-		// If we get to here, there were no "?" arguments.
-		if (queryTermPosition == -1) {
-			System.err.println("Illegal query argument: arguments to getPermutedQueryVector must " +
-												 "have exactly one '?' string to denote target term position.");
-			throw new IllegalArgumentException();
-		}
+  /**
+   * Returns a vector representation containing both content and positional information
+   * @param queryTerms String array of query terms to look up. Expects a single "?" entry, which
+   * denotes the query term position. E.g., "martin ? king" might pick out "luther".
+   *
+   */
+  public static float[] getPermutedQueryVector(VectorStore vecReader,
+                                               LuceneUtils lUtils,
+                                               String[] queryTerms) throws IllegalArgumentException {
 
-		// Initialize other arguments.
-		float[] queryVec = new float[ObjectVector.vecLength];
-		for (int i = 0; i < ObjectVector.vecLength; ++i) {
-			queryVec[i] = 0;
-		}
+    // Check basic invariant that there must be one and only one "?" in input.
+    int queryTermPosition = -1;
+    for (int j = 0; j < queryTerms.length; ++j) {
+      if (queryTerms[j].equals("?")) {
+        if (queryTermPosition == -1) {
+          queryTermPosition = j;
+        } else {
+          // If we get to here, there was more than one "?" argument.
+          System.err.println("Illegal query argument: arguments to getPermutedQueryVector must " +
+                             "have only one '?' string to denote target term position.");
+          throw new IllegalArgumentException();
+        }
+      }
+    }
+    // If we get to here, there were no "?" arguments.
+    if (queryTermPosition == -1) {
+      System.err.println("Illegal query argument: arguments to getPermutedQueryVector must " +
+                         "have exactly one '?' string to denote target term position.");
+      throw new IllegalArgumentException();
+    }
 
-		ArrayList<float[]> permutedVecs = new ArrayList<float[]>();
-		float[] tmpVec = new float[ObjectVector.vecLength];
-		float weight = 1;
-		
-		for (int j = 0; j < queryTerms.length; ++j) {
-			if (j != queryTermPosition)	{
-				tmpVec = vecReader.getVector(queryTerms[j]);
-				int permutation = j - queryTermPosition;
-	        
-				// try to get term weight; assume field is "contents"
-				if (lUtils != null) {
-					weight = lUtils.getGlobalTermFreq(new Term("contents", queryTerms[j]));
-					weight = 1/weight;
-					System.out.println("Term "+queryTerms[j]+" weight "+weight);
-				}
-				else{ weight = 1; }
+    // Initialize other arguments.
+    float[] queryVec = new float[ObjectVector.vecLength];
+    for (int i = 0; i < ObjectVector.vecLength; ++i) {
+      queryVec[i] = 0;
+    }
 
-				if (tmpVec != null) {
-					tmpVec = VectorUtils.permuteVector(tmpVec.clone(), permutation);
-					permutedVecs.add(VectorUtils.getNormalizedVector(tmpVec));
-					for (int i = 0; i < ObjectVector.vecLength; ++i) {
-						tmpVec[i] = tmpVec[i] * weight;
-						queryVec[i] += tmpVec[i];
-					}
-				
-				}
-				else{ System.err.println("No vector for " + queryTerms[j]); }
-			}
-		}
-		queryVec = VectorUtils.getNormalizedVector(queryVec);
-		
-		return queryVec;
-		
-	}
-	
-	
-	/**
-	 * Method gets a query vector from a query string, i.e., a
-	 * space-separated list of queryterms.
-	 */
-	public static float[] getQueryVectorFromString(VectorStore vecReader,
-																								 LuceneUtils lUtils,
-																								 String queryString) {
-		String[] queryTerms = queryString.split("\\s");
-		return getQueryVector(vecReader, lUtils, queryTerms);
-	}
+    ArrayList<float[]> permutedVecs = new ArrayList<float[]>();
+    float[] tmpVec = new float[ObjectVector.vecLength];
+    float weight = 1;
 
-	/**
-	 * Method gets a query vector from an array of query terms. The
-	 * method is static and creates its own CompoundVectorBuilder.  This
-	 * enables client code just to call "getQueryVector" without
-	 * creating an object first, though this may be slightly less
-	 * efficient for multiple calls.
-	 * @param vecReader The vector store reader to use.
-	 * @param lUtils Lucene utilities for getting term weights.
-	 * @param queryTerms Query expression, e.g., from command line.  If
-	 *        the term NOT appears in queryTerms, terms after that will
-	 *        be negated.
-	 * @return queryVector, an array of floats representing the user's query.
-	 */
-	public static float[] getQueryVector(VectorStore vecReader,
-																			 LuceneUtils lUtils,
-																			 String[] queryTerms) {
-		CompoundVectorBuilder builder = new CompoundVectorBuilder(vecReader, lUtils);
-		/* Check through args to see if we need to do negation. */
-		for (int i = 0; i < queryTerms.length; ++i) {
-			if (queryTerms[i].equals("NOT")) {
-				/* If, so build negated query and return. */
-				return builder.getNegatedQueryVector(queryTerms, i);
-			}
-		}
-		return builder.getAdditiveQueryVector(queryTerms);
-	}
+    for (int j = 0; j < queryTerms.length; ++j) {
+      if (j != queryTermPosition)	{
+        tmpVec = vecReader.getVector(queryTerms[j]);
+        int permutation = j - queryTermPosition;
 
-	/**
-	 * Returns a (possibly weighted) normalized query vector created
-	 * by adding together vectors retrieved from vector store.
-	 * @param queryTerms String array of query terms to look up.
-	 */
-	protected float[] getAdditiveQueryVector (String[] queryTerms) {
-		float[] queryVec = new float[ObjectVector.vecLength];
-		float[] tmpVec = new float[ObjectVector.vecLength];
-		float weight = 1;
+        // try to get term weight; assume field is "contents"
+        if (lUtils != null) {
+          weight = lUtils.getGlobalTermFreq(new Term("contents", queryTerms[j]));
+          weight = 1/weight;
+          System.out.println("Term "+queryTerms[j]+" weight "+weight);
+        }
+        else{ weight = 1; }
 
-		for (int i = 0; i < ObjectVector.vecLength; ++i) {
-			queryVec[i] = 0;
-		}
+        if (tmpVec != null) {
+          tmpVec = VectorUtils.permuteVector(tmpVec.clone(), permutation);
+          permutedVecs.add(VectorUtils.getNormalizedVector(tmpVec));
+          for (int i = 0; i < ObjectVector.vecLength; ++i) {
+            tmpVec[i] = tmpVec[i] * weight;
+            queryVec[i] += tmpVec[i];
+          }
 
-		for (int j = 0; j < queryTerms.length; ++j) {
-			tmpVec = vecReader.getVector(queryTerms[j]);
+        }
+        else{ System.err.println("No vector for " + queryTerms[j]); }
+      }
+    }
+    queryVec = VectorUtils.getNormalizedVector(queryVec);
 
-			// try to get term weight; assume field is "contents"
-			if (lUtils != null) {
-				weight = lUtils.getGlobalTermWeight(new Term("contents", queryTerms[j]));
-			}
-			else{ weight = 1; }
+    return queryVec;
 
-			if (tmpVec != null) {
-				//System.err.println("Got vector for " + queryTerms[j] +
-				//									 ", using term weight " + weight);
-				for (int i = 0; i < ObjectVector.vecLength; ++i) {
-					queryVec[i] += tmpVec[i] * weight;
-				}
-			}
-			else{ System.err.println("No vector for " + queryTerms[j]); }
-		}
+  }
 
-		queryVec = VectorUtils.getNormalizedVector(queryVec);
-		return queryVec;
-	}
 
-	/**
-	 * Creates a vector including orthogonalizing negated terms.
-	 * @param queryTerms List of positive and negative terms.
-	 * @param split Position in this list of the NOT mark: terms
-	 * before this are positive, those after this are negative.
-	 * @return Single query vector, the sum of the positive terms,
-	 * projected to be orthogonal to all negative terms.
-	 * @see VectorUtils#orthogonalizeVectors
-	 */
-	protected float[] getNegatedQueryVector(String[] queryTerms, int split) {		
-		int numNegativeTerms = queryTerms.length - split - 1;
-		int numPositiveTerms = split;
-		System.err.println("Numer of negative terms: " + numNegativeTerms);
-		System.err.println("Numer of positive terms: " + numPositiveTerms);
-		ArrayList<float[]> vectorList = new ArrayList();
-		for (int i = 1; i <= numNegativeTerms; ++i) {
-			float[] tmpVector = vecReader.getVector(queryTerms[split + i]);
-			if (tmpVector != null) {
-				vectorList.add(tmpVector);
-			}
-		}
-		String[] positiveTerms = new String[numPositiveTerms];
-		for (int i = 0; i < numPositiveTerms; ++i) {
-			positiveTerms[i] = queryTerms[i];
-		}
-		vectorList.add(getAdditiveQueryVector(positiveTerms));
-		VectorUtils.orthogonalizeVectors(vectorList);
-		return vectorList.get(vectorList.size() - 1);
-	}
+  /**
+   * Method gets a query vector from a query string, i.e., a
+   * space-separated list of queryterms.
+   */
+  public static float[] getQueryVectorFromString(VectorStore vecReader,
+                                                 LuceneUtils lUtils,
+                                                 String queryString) {
+    String[] queryTerms = queryString.split("\\s");
+    return getQueryVector(vecReader, lUtils, queryTerms);
+  }
+
+  /**
+   * Method gets a query vector from an array of query terms. The
+   * method is static and creates its own CompoundVectorBuilder.  This
+   * enables client code just to call "getQueryVector" without
+   * creating an object first, though this may be slightly less
+   * efficient for multiple calls.
+   * @param vecReader The vector store reader to use.
+   * @param lUtils Lucene utilities for getting term weights.
+   * @param queryTerms Query expression, e.g., from command line.  If
+   *        the term NOT appears in queryTerms, terms after that will
+   *        be negated.
+   * @return queryVector, an array of floats representing the user's query.
+   */
+  public static float[] getQueryVector(VectorStore vecReader,
+                                       LuceneUtils lUtils,
+                                       String[] queryTerms) {
+    CompoundVectorBuilder builder = new CompoundVectorBuilder(vecReader, lUtils);
+    float[] returnVector = new float[ObjectVector.vecLength];
+    /* Check through args to see if we need to do negation. */
+    for (int i = 0; i < queryTerms.length; ++i) {
+      if (queryTerms[i].equals("NOT")) {
+        /* If, so build negated query and return. */
+        return builder.getNegatedQueryVector(queryTerms, i);
+      }
+    }
+    if (lookupSyntax == LookupSyntax.REGEX) {
+      returnVector = builder.getAdditiveQueryVectorRegex(queryTerms);
+    } else {
+      returnVector = builder.getAdditiveQueryVector(queryTerms);
+    }
+    return returnVector;
+  }
+
+  /**
+   * Returns a (possibly weighted) normalized query vector created
+   * by adding together vectors retrieved from vector store.
+   * @param queryTerms String array of query terms to look up.
+   */
+  protected float[] getAdditiveQueryVector (String[] queryTerms) {
+    float[] queryVec = new float[ObjectVector.vecLength];
+    float[] tmpVec = new float[ObjectVector.vecLength];
+    float weight = 1;
+
+    for (int i = 0; i < ObjectVector.vecLength; ++i) {
+      queryVec[i] = 0;
+    }
+
+    for (int j = 0; j < queryTerms.length; ++j) {
+      tmpVec = vecReader.getVector(queryTerms[j]);
+
+      // try to get term weight; assume field is "contents"
+      if (lUtils != null) {
+        weight = lUtils.getGlobalTermWeight(new Term("contents", queryTerms[j]));
+      }
+      else{ weight = 1; }
+
+      if (tmpVec != null) {
+        for (int i = 0; i < ObjectVector.vecLength; ++i) {
+          queryVec[i] += tmpVec[i] * weight;
+        }
+      }
+      else{ System.err.println("No vector for " + queryTerms[j]); }
+    }
+
+    queryVec = VectorUtils.getNormalizedVector(queryVec);
+    return queryVec;
+  }
+
+  /**
+   * Returns a (possibly weighted) normalized query vector created by
+   * adding together all vectors retrieved from vector store whose
+   * objects match a particular regular expression.
+   * @param queryTerms String array of query terms to look up.
+   */
+  protected float[] getAdditiveQueryVectorRegex (String[] queryTerms) {
+    float[] queryVec = new float[ObjectVector.vecLength];
+    float weight = 1;
+
+    for (int i = 0; i < ObjectVector.vecLength; ++i) {
+      queryVec[i] = 0;
+    }
+
+    for (int j = 0; j < queryTerms.length; ++j) {
+      // Compile a regular expression for matching anything containing this term.
+      Pattern pattern = Pattern.compile(queryTerms[j]);
+      Enumeration<ObjectVector> vecEnum = vecReader.getAllVectors();
+      while (vecEnum.hasMoreElements()) {
+        // Test this element.
+        ObjectVector testElement = vecEnum.nextElement();
+        Matcher matcher = pattern.matcher(testElement.getObject().toString());
+        if (matcher.lookingAt()) {
+          float[] tmpVec = testElement.getVector();
+
+          // try to get term weight; assume field is "contents"
+          if (lUtils != null) {
+            weight = lUtils.getGlobalTermWeight(
+                new Term("contents", testElement.getObject().toString()));
+          }
+          else{ weight = 1; }
+
+          for (int i = 0; i < ObjectVector.vecLength; ++i) {
+            queryVec[i] += tmpVec[i] * weight;
+          }
+        }
+      }
+    }
+    queryVec = VectorUtils.getNormalizedVector(queryVec);
+    return queryVec;
+  }
+
+  /**
+   * Creates a vector including orthogonalizing negated terms.
+   * @param queryTerms List of positive and negative terms.
+   * @param split Position in this list of the NOT mark: terms
+   * before this are positive, those after this are negative.
+   * @return Single query vector, the sum of the positive terms,
+   * projected to be orthogonal to all negative terms.
+   * @see VectorUtils#orthogonalizeVectors
+   */
+  protected float[] getNegatedQueryVector(String[] queryTerms, int split) {
+    int numNegativeTerms = queryTerms.length - split - 1;
+    int numPositiveTerms = split;
+    System.err.println("Numer of negative terms: " + numNegativeTerms);
+    System.err.println("Numer of positive terms: " + numPositiveTerms);
+    ArrayList<float[]> vectorList = new ArrayList();
+    for (int i = 1; i <= numNegativeTerms; ++i) {
+      float[] tmpVector = vecReader.getVector(queryTerms[split + i]);
+      if (tmpVector != null) {
+        vectorList.add(tmpVector);
+      }
+    }
+    String[] positiveTerms = new String[numPositiveTerms];
+    for (int i = 0; i < numPositiveTerms; ++i) {
+      positiveTerms[i] = queryTerms[i];
+    }
+    vectorList.add(getAdditiveQueryVector(positiveTerms));
+    VectorUtils.orthogonalizeVectors(vectorList);
+    return vectorList.get(vectorList.size() - 1);
+  }
 }
