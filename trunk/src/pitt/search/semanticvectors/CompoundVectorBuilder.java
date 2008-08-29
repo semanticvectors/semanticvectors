@@ -235,20 +235,21 @@ public class CompoundVectorBuilder {
     for (int j = 0; j < queryTerms.length; ++j) {
       // Compile a regular expression for matching anything containing this term.
       Pattern pattern = Pattern.compile(queryTerms[j]);
+			System.err.println(pattern.pattern());
       Enumeration<ObjectVector> vecEnum = vecReader.getAllVectors();
       while (vecEnum.hasMoreElements()) {
         // Test this element.
         ObjectVector testElement = vecEnum.nextElement();
         Matcher matcher = pattern.matcher(testElement.getObject().toString());
-        if (matcher.lookingAt()) {
+        if (matcher.find()) {
           float[] tmpVec = testElement.getVector();
 
-          // try to get term weight; assume field is "contents"
+          // Try to get term weight; assume field is "contents".
           if (lUtils != null) {
             weight = lUtils.getGlobalTermWeight(
                 new Term("contents", testElement.getObject().toString()));
           }
-          else{ weight = 1; }
+          else { weight = 1; }
 
           for (int i = 0; i < ObjectVector.vecLength; ++i) {
             queryVec[i] += tmpVec[i] * weight;
