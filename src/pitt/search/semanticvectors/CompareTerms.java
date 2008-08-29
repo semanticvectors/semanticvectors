@@ -57,8 +57,6 @@ import org.apache.lucene.index.Term;
 
  <br> If the term NOT is used in one of the lists, subsequent terms in 
  that list will be negated.
-
- @see Search
 */
 
 public class CompareTerms{
@@ -71,6 +69,7 @@ public class CompareTerms{
    * <br>                                         "&lt;QUERYTERMS1&gt;" "&lt;QUERYTERMS2&gt;"
    * <br>-l argument may be used to get term weights from
    * <br>term frequency, doc frequency, etc. in lucene index.
+	 * <br>-lookupsyntax [STRING|REGEX] (default STRING).
    * <br>"&lt;QUERYTERMS1,2&gt;" should be lists of words, separated by spaces.
    * <br> The quotes are mandatory unless you are comparing two single words.
    * <br> If the term NOT is used in one of the lists, subsequent terms in 
@@ -80,15 +79,16 @@ public class CompareTerms{
    */
   public static void usage(){
     String usageMessage = "CompareTerms class in package pitt.search.semanticvectors"
-        + "\nUsage: java pitt.search.semanticvectors.CompareTerms [-v vectorfile]"
-        + "\n                                        [-l path_to_lucene_index]"
-        + "\n                                        \"<QUERYTERMS1>\" \"<QUERYTERMS2>\""
-        + "\n-l argument may be used to get term weights from"
-        + "\n    term frequency, doc frequency, etc. in lucene index."
-        + "\n<QUERYTERMS1,2> should be lists of words, separated by spaces."
-        + "\nThe quotes are mandatory unless you are comparing two single words."
-        + "\nIf the term NOT is used in one of the lists, subsequent terms in "
-        + "\nthat list will be negated (as in Search class).";
+			+ "\nUsage: java pitt.search.semanticvectors.CompareTerms [-v vectorfile]"
+			+ "\n                                        [-l path_to_lucene_index]"
+			+ "\n                                        \"<QUERYTERMS1>\" \"<QUERYTERMS2>\""
+			+ "\n-l argument may be used to get term weights from"
+			+ "\n    term frequency, doc frequency, etc. in lucene index."
+			+ "\n-lookupsyntax [STRING|REGEX] (default STRING)."
+			+ "\n<QUERYTERMS1,2> should be lists of words, separated by spaces."
+			+ "\nThe quotes are mandatory unless you are comparing two single words."
+			+ "\nIf the term NOT is used in one of the lists, subsequent terms in "
+			+ "\nthat list will be negated (as in Search class).";
     System.out.println(usageMessage);
   }
 
