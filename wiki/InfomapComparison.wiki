@@ -4,7 +4,7 @@
 
 The Semantic Vectors package builds upon a lot of research and experience in Latent Semantic Analysis and related technologies.
 
-In particular, the design of the current package was partly informed by some years of working on and maintaining the [http://infomap-nlp.sourceforge.net Infomap NLP package]. The Infomap package has developed a modest but active user base over a few years, but has also demonstrated two clear problems:
+In particular, the design of the current package was partly informed by some years of working on and maintaining the [http://infomap-nlp.sourceforge.net Infomap NLP package]. The [http://infomap.stanford.edu Infomap project] was led by Stanley Peters, and the methods and software grew out of work by Hinrich Schütze and Stefan Kaufmann, with later contributions from Scott Cederberg, Beate Dorow and Dominic Widdows. The Infomap package was publicly released towards the end of the project, and developed a modest but active user base over a few years, but has also demonstrated two clear problems:
 
 === Scalability ===
 
