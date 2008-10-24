@@ -36,10 +36,14 @@
 package pitt.search.semanticvectors;
 
 import java.io.IOException;
+import java.lang.Float;
 import java.lang.Integer;
 import java.lang.IllegalArgumentException;
 import java.lang.NumberFormatException;
+import java.lang.String;
+import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.Hashtable;
 
 /**
  * This class is used for performing kMeans clustering on an entire
@@ -64,6 +68,77 @@ public class ClusterVectorStore {
 		return;
 	}
 
+	/**
+	 * Small utility for work with the Bible.
+	 * Assumes input like "bible_chapters/Matthew/Chapter_9".
+	 */
+	public static String getBookFromPath(String path) {
+		String[] elts = path.split("/");
+		return elts[1];
+	}
+
+	public static int getMaxValue(int[] values) {
+		int max = values[0];
+		for(int value: values) {
+			if (value > max) {
+				max = value;
+			}
+		}
+		return max;
+	}
+
+	public static String[] getCluster(int ID, int[] clusterIDs, String[] names) {
+		ArrayList<String> results = new ArrayList<String>();
+		for (int i = 0; i < clusterIDs.length; ++i) {
+			if (clusterIDs[i] == ID) {
+				results.add(names[i]);
+			}
+		}
+		String[] finalResults = new String[results.size()];
+		for (int i = 0; i < results.size(); ++i) {
+			finalResults[i] = results.get(i);
+		}
+		return finalResults;
+	}
+
+	public static void ClusterOverlapMeasure(int[] clusterIDs, ObjectVector[] vectors) {
+		String[] names = new String[vectors.length];
+		Hashtable<String, int[]> internalResults = new Hashtable<String, int[]>();
+		for (int i = 0; i < vectors.length; ++i) {
+			names[i] = getBookFromPath(vectors[i].getObject().toString());
+			int[] matchAndTotal = {0, 0};
+			internalResults.put(names[i], matchAndTotal);
+		}
+		int numClusters = getMaxValue(clusterIDs);
+		for (int i = 0; i < numClusters; ++i) {
+			String[] cluster = getCluster(i, clusterIDs, names);
+			if (cluster.length < 2) {
+				continue;
+			}
+			for (int j = 0; j < cluster.length; ++j) {
+				for (int k = j+1; k < cluster.length; ++k) {
+					int[] matchAndTotalJ = internalResults.get(cluster[j]);
+					int[] matchAndTotalK = internalResults.get(cluster[k]);
+					matchAndTotalJ[1]++;
+					matchAndTotalK[1]++;
+					if (cluster[k].equals(cluster[j])) {
+						matchAndTotalJ[0]++;
+						matchAndTotalK[0]++;
+					}
+				}
+			}
+		}
+		for (Enumeration<String> keys = internalResults.keys(); keys.hasMoreElements();) {
+			String key = keys.nextElement(); 
+			int[] matchAndTotal = internalResults.get(key);
+			System.out.println(key + "\t" + (float) matchAndTotal[0] / (float) matchAndTotal[1]);
+		}
+	}
+
+	/**
+	 * Takes a number of clusters and a vector store (presumed to be
+	 * text format) as arguments and prints out clusters.
+	 */
 	public static void main(String[] args) throws IllegalArgumentException {
 		int numClusters = 0;
 		VectorStoreReaderText vecReader = null;
@@ -121,5 +196,7 @@ public class ClusterVectorStore {
 	    }
 	    System.out.println("\n*********\n");
 		}
+		
+		ClusterOverlapMeasure(clusterMappings, resultsVectors);
 	}
 }

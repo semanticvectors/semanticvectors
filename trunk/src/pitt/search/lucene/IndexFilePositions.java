@@ -43,7 +43,7 @@ public class IndexFilePositions {
 				writer = new IndexWriter(INDEX_DIR, new StandardAnalyzer(stoplist), true);
 	   
 				System.out.println("Using stoplist: "+stopfile);
-			} catch (Exception e){
+			} catch (IOException e){
 				e.printStackTrace();
 			}
        

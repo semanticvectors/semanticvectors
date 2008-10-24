@@ -141,7 +141,7 @@ public class Search {
    * <br> -l argument my be used to get term weights from
    * <br>     term frequency, doc frequency, etc. in lucene index.
 	 * <br> -searchtype can be one of SUM, SPARSESUM, SUBSPACE, MAXSIM,
-	 * <br> TENSOR, CONVOLUTION, PRINTQUERY
+	 * <br> TENSOR, CONVOLUTION, PERMUTATION, PRINTQUERY
    * <br> &lt;QUERYTERMS&gt; should be a list of words, separated by spaces.
    * <br> If the term NOT is used, terms after that will be negated.
    * </code>
@@ -162,7 +162,7 @@ public class Search {
 			+ "\n-l argument is needed if to get term weights from"
 			+ "\n    term frequency, doc frequency, etc. in lucene index."
 			+ "\n-searchtype can be one of SUM, SPARSESUM, SUBSPACE, MAXSIM,"
-			+ "\n                          TENSOR, CONVOLUTION, PRINTQUERY"
+			+ "\n                TENSOR, CONVOLUTION, PERMUTATION, PRINTQUERY"
 			+ "\n<QUERYTERMS> should be a list of words, separated by spaces."
 			+ "\n    If the term NOT is used, terms after that will be negated.";
     System.out.println(usageMessage);
