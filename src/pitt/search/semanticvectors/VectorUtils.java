@@ -1,3 +1,4 @@
+
 /**
    Copyright (c) 2007, University of Pittsburgh
 
@@ -50,12 +51,34 @@ import java.util.Random;
  */
 public class VectorUtils{
 
-	static void printVector(float[] vector) {
+	public static void printVector(float[] vector) {
 		for (int i = 0; i < vector.length - 1; ++i) {
 			System.out.print(vector[i] + "|");
 		}
 		// Print last coordinate followed by newline, not "|".
 		System.out.println(vector[vector.length - 1]);
+	}
+
+	public static void printMatrix(float[][] matrix) {
+		for (float[] vector: matrix) {
+			printVector(vector);
+		}
+	}
+
+	public static float[] Floats(double[] vector) {
+		float[] output = new float[vector.length];
+		for (int i = 0; i < vector.length; ++i) {
+			output[i] = (float) vector[i];
+		}
+		return output;
+	}
+
+	public static float[][] Floats(double[][] matrix) {
+		float[][] output = new float[matrix.length][matrix.length];
+		for (int i = 0; i < matrix.length; ++i) {
+			output[i] = Floats(matrix[i]);
+		}
+		return output;
 	}
 
 	/**

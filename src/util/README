@@ -1,0 +1,15 @@
+Vector utilities for use with Semantic Vectors.
+
+In particular, these can be used to generate principal component plots
+of lists of term vectors.
+
+Because they depend on external dependencies (e.g., Jama), these utils
+are not compiled as part of the standard SemanticVectors "ant" build
+target.
+
+If you want to compile these utils, make sure the directory in which
+you placed the Jama distribution is part of your CLASSPATH and run
+"ant compile-util".
+
+Run using (e.g.) java pitt.util.vectors.PrincipalComponents <SEARCHARGS>
+(This is similar to usage for java pitt.search.semanticvectors.ClusterResults)

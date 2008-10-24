@@ -3,13 +3,15 @@
   <property name="version" value="1.17"/>
 
   <property name="basedir" value="."/>
-  <property name="srcdir" value="${basedir}/src"/>
-  <property name="testdir" value="${basedir}/test"/>
-  <property name="docdir" value="${basedir}/doc"/>  
   <property name="builddir" value="${basedir}/build"/>
   <property name="buildclassesdir" value="${builddir}/classes"/>
   <property name="distdir" value="${basedir}/dist"/>
   <property name="distname" value="semanticvectors-${version}"/>
+  <property name="docdir" value="${basedir}/doc"/>  
+  <property name="srcdir" value="${basedir}/src"/>
+  <property name="testdir" value="${basedir}/test"/>
+  <property name="pittsrcdir" value="${srcdir}/pitt"/>
+  <property name="utildir" value="${srcdir}/util"/>
 
   <target name="init">
     <mkdir dir="${docdir}"/>
@@ -19,7 +21,7 @@
   </target>
 
   <target name="compile" depends="init">
-    <javac srcdir="${srcdir}"
+    <javac srcdir="${pittsrcdir}"
 	   destdir="${buildclassesdir}"
 	   debug="on"
 	   />
@@ -82,16 +84,26 @@
 	<!-- Tests do not currently ship with standard distributions; to
 	     compile and run tests, check out test dir from the svn repository.
 	     You will also need to install junit (www.junit.org) -->
-  <target name="compile-tests" depends="compile">
+  <target name="compile-test" depends="compile">
     <javac srcdir="${testdir}"
 	   destdir="${buildclassesdir}"
 	   debug="on"
 	   />
   </target>
 
-	<target name="run-tests" depends="compile-tests">
+	<target name="run-test" depends="compile-test">
 		<java classname="pitt.search.semanticvectors.RunTests"/>
 	</target>
+
+<!-- Compile development utils ... this is a temporary solution until
+     we have a good way of shipping development utils without
+     introducing dependencies on any more libraries to install. -->
+  <target name="compile-util" depends="compile">
+    <javac srcdir="${utildir}"
+	   destdir="${buildclassesdir}"
+	   debug="on"
+	   />
+  </target>
 
 <!-- Build all -->
 <!-- Does not compile and run tests (see compile-tests target above). -->
