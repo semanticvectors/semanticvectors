@@ -126,7 +126,10 @@ public class IncrementalDocVectors {
 					// Get terms in document and term frequencies.
 					String[] terms = vex.getTerms();
 					int[] freqs = vex.getTermFrequencies();
-
+					
+					
+					
+					
 					for (int b = 0; b < freqs.length; ++b) {
 						String term = terms[b];
 						int freq = freqs[b];
@@ -139,7 +142,7 @@ public class IncrementalDocVectors {
 							// System.err.println("term "+term+ " not represented");
 						}
 						// Exclude terms that are not represented in termVectorData
-						if (termVector.length > 0) {
+						if (termVector != null && termVector.length > 0) {
 							for (int j = 0; j < ObjectVector.vecLength; ++j) {
 								docVector[j] += freq * termVector[j];
 							}
@@ -161,4 +164,19 @@ public class IncrementalDocVectors {
 		outputStream.flush();
 		outputStream.close();
 	}
+	
+	
+	
+	public static void main(String[] args) throws Exception
+	{//vector store (terms)
+     //index
+	 String[] fieldsToIndex = {"contents"};
+	 String vectorFile = args[0].replaceAll("\\.bin","")+"_docvectors.bin";	
+	 VectorStoreRAM vsr = new VectorStoreRAM();
+	 vsr.InitFromFile(args[0]);
+	 
+		new IncrementalDocVectors(vsr, args[1],
+				 fieldsToIndex, vectorFile);
+	}
+	
 }
