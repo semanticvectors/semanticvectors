@@ -127,25 +127,22 @@ public class IncrementalDocVectors {
 					String[] terms = vex.getTerms();
 					int[] freqs = vex.getTermFrequencies();
 					
-					
-					
-					
 					for (int b = 0; b < freqs.length; ++b) {
 						String term = terms[b];
 						int freq = freqs[b];
-						float[] termVector = new float[0];
+						// Add contribution from this term, excluding terms that
+						// are not represented in termVectorData.
 						try{
-							termVector = termVectorData.getVector(term);
+							float[] termVector = termVectorData.getVector(term);
+							if (termVector != null && termVector.length > 0) {
+								for (int j = 0; j < ObjectVector.vecLength; ++j) {
+									docVector[j] += freq * termVector[j];
+								}
+							}
 						} catch (NullPointerException npe) {
 							// Don't normally print anything - too much data!
 							// TODO(dwiddows): Replace with a configurable logging system.
 							// System.err.println("term "+term+ " not represented");
-						}
-						// Exclude terms that are not represented in termVectorData
-						if (termVector != null && termVector.length > 0) {
-							for (int j = 0; j < ObjectVector.vecLength; ++j) {
-								docVector[j] += freq * termVector[j];
-							}
 						}
 					}
 				}
