@@ -128,8 +128,9 @@ public class TermTermVectorsFromLucene implements VectorStore {
     this.indexVectors = new VectorStoreSparseRAM();
     this.termVectors = new VectorStoreRAM();
 
-    // Iterate through an enumeration of terms and create termVector table.
-    System.err.println("Creating term vectors ...");
+    // Iterate through an enumeration of terms and create basic termVector table.
+		// Derived term vectors will be linear combinations of these.
+    System.err.println("Creating basic term vectors ...");
     TermEnum terms = this.indexReader.terms();
     int tc = 0;
 
@@ -164,7 +165,7 @@ public class TermTermVectorsFromLucene implements VectorStore {
 
 		for (int dc = 0; dc < numdocs; ++dc) {
 			/* output progress counter */
-			if (( dc % 10000 == 0 ) || ( dc < 10000 && dc % 1000 == 0 )) {
+			if ((dc % 10000 == 0) || (dc < 10000 && dc % 1000 == 0)) {
 				System.err.print(dc + " ... ");
 			}
 
