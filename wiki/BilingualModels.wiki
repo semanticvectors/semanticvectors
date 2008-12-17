@@ -25,6 +25,39 @@ To create a set of input corpora from the europarl files:
  # Now copy and run the [http://code.google.com/p/semanticvectors/source/browse/trunk/scripts/europarl/chapters-as-files-align.perl chapter alignment script] from the SemanticVectors scripts directory.
  # This should create a new directory for you in the `aligned-chapters` directory, e.g., `aligned-chapters/en-fr`, with the two directories `en` and `fr` with parallel contents.
 
+=== Preprocessing for the MuchMore Springer Corpus ===
+
+There have been some questions about how to build a model from the corpus of English and German medical abstracts from the MuchMore project. Remember, your target is to get two directories called `en` and `de` with identical filenames in them. Here's how to proceed:
+
+ # Download the (plain versions) of the corpora from http://muchmore.dfki.de/resources1.htm
+ # Unzip the files into `en` and `de` directories.
+ # Strip the "eng" and "ger" parts of the filenames (e.g., `for i in *; do j=$i; mv $i ${j/ger./}; done`).
+ # Remove the files that are available in English but not in German.  E.g., use the following python script
+
+{{{
+import os
+
+os.chdir('de')
+ger_files = os.listdir('.')
+
+os.chdir('../en')
+eng_files = os.listdir('.')
+
+os.chdir('..')
+
+for i in eng_files:
+    if i not in ger_files:
+        print i
+        os.remove('en/' + i)
+
+for i in ger_files:
+    if i not in eng_files:
+        print i
+        os.remove('de/' + i)
+}}}
+
+You should now be able to proceed as below.
+
 == Building a Model ==
 
 Once you have a corpus prepared, `cd` to the directory containing the two directories containing the parallel files.
