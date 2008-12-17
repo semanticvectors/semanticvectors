@@ -1,0 +1,3 @@
+#summary Redirect link to MuchMore project.
+
+The [http://muchmore.dfki.de MuchMore project] ran fram 2001 to 2004 and is one source for parallel corpora.
