@@ -14,13 +14,16 @@ import pitt.search.semanticvectors.*;
 public class Plot2dVectors extends JPanel {
 	ObjectVector[] vectors;
 	static final int scale = 500;
-	static final int pad = 40;
+	static final int pad = 50;
 	static final int comp1 = 1;
 	static final int comp2 = 2;
 	static final int maxplot = 50;
+	// Setting this to true will make the plotter output TeX source to
+	// your consolve.
+	public final boolean PRINT_TEX_OUTPUT = true;
 
 	public Plot2dVectors (ObjectVector[] vectors) {
-		System.out.println("Constructing plotter ...");
+		System.err.println("Constructing plotter ...");
 		this.vectors = vectors;
 		this.setSize(new Dimension(scale + 2*pad, scale + 2*pad));
 	}
@@ -49,22 +52,45 @@ public class Plot2dVectors extends JPanel {
 	    }
 		}
 
-		System.out.println("Painting component ...");
+		System.err.println("Painting component ...");
+		if (PRINT_TEX_OUTPUT) {
+			int len = scale + pad;
+			System.out.println("\\begin{figure}[t]");
+			System.out.println("\\begin{center}");
+			System.out.println("\\footnotesize");
+			System.out.println("\\setlength{\\unitlength}{.55pt}");
+			System.out.println();
+			System.out.println("\\begin{picture}(" + len + "," + len + ")");
+			System.out.println("\\put(0,0){\\framebox(" + len + "," + len + "){}}");
+		}
+
 		for (int i = 0; i < vectors.length; ++i) {
-	    c1 = (pad/2)+Math.round(scale*(vectors[i].getVector()[comp1]-min1)/(max1-min1));
-	    c2 = (pad/2)+Math.round(scale*(vectors[i].getVector()[comp2]-min2)/(max2-min2));
-	    /*
-				System.out.print(vectors[i].term + " ");
-				System.out.print(c1);
-				System.out.print(" ");
-				System.out.println(c2);
-	    */
+	    c1 = (pad/2) + Math.round(scale*(vectors[i].getVector()[comp1]-min1)
+																/ (max1-min1));
+	    c2 = (pad/2) + Math.round(scale*(vectors[i].getVector()[comp2]-min2)
+																/ (max2-min2));
+	    
 	    g.drawString(vectors[i].getObject().toString(), c1, c2);        
 	    if( i > maxplot ){
 				break;
 	    }
+
+			if (PRINT_TEX_OUTPUT) {
+				System.out.println("\\put(" + c1 + "," + c2 + ")" + "{\\makebox(0,0){"
+													 + vectors[i].getObject().toString() + "}}");
+
+			}
 		}
-		System.out.println("Finished painting component ...");
+
+		if (PRINT_TEX_OUTPUT) {
+			System.out.println("\\end{picture}");
+			System.out.println("\\caption{ADD CAPTION}");
+			System.out.println("\\label{ADD LABEL}");
+			System.out.println("\\end{center}");
+			System.out.println("\\end{figure}");
+		}
+
+		System.err.println("Finished painting component ...");
 	}
 
 
@@ -73,7 +99,7 @@ public class Plot2dVectors extends JPanel {
 		JFrame frame = new JFrame("Term Vector Plotter");
 		frame.setSize(new Dimension(scale+2*pad, scale+2*pad));
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		System.out.println("Trying to set content pane ...");
+		System.err.println("Trying to set content pane ...");
 		frame.setContentPane(this);
 		// Display the window.
 		frame.setVisible(true);

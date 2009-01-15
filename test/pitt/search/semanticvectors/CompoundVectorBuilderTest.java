@@ -1,5 +1,5 @@
 /**
-   Copyright 2008, Google Inc.
+   Copyright 2009, the SemanticVectors authors.
    All rights reserved.
 
    Redistribution and use in source and binary forms, with or without
@@ -33,37 +33,45 @@
 
 package pitt.search.semanticvectors;
 
+import java.lang.Math;
+import java.util.*;
 import org.junit.*;
 import static org.junit.Assert.*;
-import java.util.*;
 
-public class VectorStoreRAMTest {
+public class CompoundVectorBuilderTest {
 
-	@Test
-		public void TestCreateWriteAndRead() {
-		System.err.println("\nRunning tests for VectorStoreRAMTest");
+	private VectorStoreRAM CreateVectorStore() {
 		VectorStoreRAM vectorStore = new VectorStoreRAM();
 		ObjectVector.vecLength = 2;
-		assertEquals(0, vectorStore.getNumVectors());
-		float[] vector = {1.0f, 2.0f};
-		vectorStore.putVector("my vector", vector);
-		assertEquals(1, vectorStore.getNumVectors());
-		float[] vectorOut = vectorStore.getVector("my vector"); 
-		assertEquals(2, vectorOut.length);
+		float[] vector1 = {1.0f, 2.0f};
+		vectorStore.putVector("vector1", vector1);
+		float[] vector2 = {1.0f, -1.0f};
+		vectorStore.putVector("vector2", vector2);
+		return vectorStore;
+	}
+
+	private CompoundVectorBuilder CreateCompoundVectorBuilder() {
+		VectorStoreRAM vectorStore = CreateVectorStore();
+		CompoundVectorBuilder cvb = new CompoundVectorBuilder(vectorStore);
+		return cvb;
 	}
 
 	@Test
-		public void TestRepeatReads() {
-		VectorStoreRAM vectorStore = new VectorStoreRAM();
-		ObjectVector.vecLength = 2;
-		assertEquals(0, vectorStore.getNumVectors());
-		float[] vector = {1.0f, 2.0f};
-		vectorStore.putVector("my vector", vector);
-		assertEquals(1, vectorStore.getNumVectors());
-		float[] vectorOut = vectorStore.getVector("my vector"); 
-		assertEquals(2, vectorOut.length);
-		vectorOut = null;
-		vectorOut = vectorStore.getVector("my vector"); 
-		assertEquals(2, vectorOut.length);
+		public void TestGetAdditiveQueryVectorTest() {
+		System.err.println("Running tests for CompoundVectorBuilder");
+		VectorStore vectorStore = CreateVectorStore();
+		float[] queryVector =
+			CompoundVectorBuilder.getQueryVectorFromString(vectorStore, null, "vector1 vector2");
+		assertEquals(2, queryVector.length);
+		float norm = (float) Math.sqrt(5);
+		assertEquals(2.0/norm, queryVector[0], 0.0001);
+		assertEquals(1.0/norm, queryVector[1], 0.0001);
+
+		// Test again to check for side effects.
+		float[] queryVector2 =
+			CompoundVectorBuilder.getQueryVectorFromString(vectorStore, null, "vector1 vector2");
+		assertEquals(2, queryVector.length);
+		assertEquals(2.0/norm, queryVector[0], 0.0001);
+		assertEquals(1.0/norm, queryVector[1], 0.0001);
 	}
 }

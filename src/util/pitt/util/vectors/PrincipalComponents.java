@@ -25,7 +25,7 @@ public class PrincipalComponents {
 	    }
 		}
 		this.matrix = new Matrix(vectorArray);
-		System.out.println("Created matrix from search results ... preforming svd ...");
+		System.err.println("Created matrix from search results ... preforming svd ...");
 		this.svd = new SingularValueDecomposition(matrix);
 	}
 
