@@ -96,9 +96,11 @@ public class VectorStoreRAM implements VectorStore {
    */
   public float[] getVector(Object desiredObject) {
 		ObjectVector objectVector = this.objectVectors.get(desiredObject);
-		if (objectVector != null)
-			return objectVector.getVector();
-		else
+		if (objectVector != null) {
+			// Make sure that vector returned is new to avoid overwriting.
+			return objectVector.getVector().clone();
+		} else {
 			return null;
+		}
   }
 }

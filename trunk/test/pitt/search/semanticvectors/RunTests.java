@@ -39,9 +39,12 @@ public class RunTests {
 
 	// For each class with tests in it, add its main function below.
 	public static void main(String args[]) {
-		String[] tests = {"pitt.search.semanticvectors.VectorUtilsTest",
-											"pitt.search.semanticvectors.VectorStoreRAMTest",
-											"pitt.search.semanticvectors.VectorStoreSparseRAMTest"};
+		String[] tests = {
+			"pitt.search.semanticvectors.VectorUtilsTest",
+			"pitt.search.semanticvectors.VectorStoreRAMTest",
+			"pitt.search.semanticvectors.VectorStoreSparseRAMTest",
+			"pitt.search.semanticvectors.CompoundVectorBuilderTest",
+		};
 		org.junit.runner.JUnitCore.main(tests);	
 	}
 }

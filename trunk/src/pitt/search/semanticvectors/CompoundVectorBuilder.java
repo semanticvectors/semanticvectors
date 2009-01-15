@@ -1,6 +1,7 @@
 
 /**
    Copyright (c) 2007, University of Pittsburgh
+	 Copyright (c) 2008 and ongoing, the SemanticVectors authors
 
    All rights reserved.
 
@@ -66,6 +67,14 @@ public class CompoundVectorBuilder {
     this.lUtils = lUtils;
   }
 
+	/**
+	 * Constructor that defaults LuceneUtils to null.
+	 */
+  public CompoundVectorBuilder (VectorStore vecReader) {
+    this.vecReader = vecReader;
+    this.lUtils = null;
+  }
+
   /**
    * Returns a vector representation containing both content and positional information
    * @param queryTerms String array of query terms to look up. Expects a single "?" entry, which
@@ -117,8 +126,9 @@ public class CompoundVectorBuilder {
           weight = lUtils.getGlobalTermFreq(new Term("contents", queryTerms[j]));
           weight = 1/weight;
           System.out.println("Term "+queryTerms[j]+" weight "+weight);
-        }
-        else{ weight = 1; }
+        } else {
+					weight = 1;
+				}
 
         if (tmpVec != null) {
           tmpVec = VectorUtils.permuteVector(tmpVec.clone(), permutation);
@@ -127,17 +137,15 @@ public class CompoundVectorBuilder {
             tmpVec[i] = tmpVec[i] * weight;
             queryVec[i] += tmpVec[i];
           }
-
-        }
-        else{ System.err.println("No vector for " + queryTerms[j]); }
+        } else {
+					System.err.println("No vector for " + queryTerms[j]);
+				}
       }
     }
     queryVec = VectorUtils.getNormalizedVector(queryVec);
 
     return queryVec;
-
   }
-
 
   /**
    * Method gets a query vector from a query string, i.e., a
@@ -203,16 +211,18 @@ public class CompoundVectorBuilder {
       // try to get term weight; assume field is "contents"
       if (lUtils != null) {
         weight = lUtils.getGlobalTermWeight(new Term("contents", queryTerms[j]));
-      }
-      else{ weight = 1; }
+      } else {
+				weight = 1;
+			}
 
       if (tmpVec != null) {
         for (int i = 0; i < ObjectVector.vecLength; ++i) {
           queryVec[i] += tmpVec[i] * weight;
         }
-      }
-      else{ System.err.println("No vector for " + queryTerms[j]); }
-    }
+      } else {
+				System.err.println("No vector for " + queryTerms[j]);
+			}
+		}
 
     queryVec = VectorUtils.getNormalizedVector(queryVec);
     return queryVec;

@@ -84,14 +84,14 @@
 	<!-- Tests do not currently ship with standard distributions; to
 	     compile and run tests, check out test dir from the svn repository.
 	     You will also need to install junit (www.junit.org) -->
-  <target name="compile-test" depends="compile">
+  <target name="compile-tests" depends="compile">
     <javac srcdir="${testdir}"
 	   destdir="${buildclassesdir}"
 	   debug="on"
 	   />
   </target>
 
-	<target name="run-test" depends="compile-test">
+	<target name="run-tests" depends="compile-tests">
 		<java classname="pitt.search.semanticvectors.RunTests"/>
 	</target>
 

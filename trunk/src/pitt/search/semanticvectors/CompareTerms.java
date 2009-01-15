@@ -107,7 +107,7 @@ public class CompareTerms{
     LuceneUtils lUtils = null;
     int argc = 0;
 
-    // parse command-line args
+    // Parse command-line args.
     while (args[argc].substring(0, 1).equals("-")) {
       if (args[argc].equals("-v")) {
         queryFile = args[argc + 1];
@@ -136,15 +136,15 @@ public class CompareTerms{
       throw new IllegalArgumentException();
     }
 
-
-    /* reading and searching test */
+    // Reading and searching data.
     try {
       VectorStoreReader vecReader = new VectorStoreReader(queryFile);
       System.err.println("Opening query vector store from file: " + queryFile);
 
       if (lucenePath != null) {
-        try{ lUtils = new LuceneUtils( lucenePath ); }
-        catch (IOException e) {
+        try {
+					lUtils = new LuceneUtils( lucenePath );
+				} catch (IOException e) {
           System.err.println("Couldn't open Lucene index at " + lucenePath);
         }
       }
