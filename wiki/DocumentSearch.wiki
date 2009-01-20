@@ -17,3 +17,5 @@ The default `BuildIndex` command build both term vectors (`termvectors.bin`) and
 You can also use the document file as a source of queries. For example, to find terms most closely related to Chapter 1 of Genesis, you'd use
 
 {{{java pitt.search.semanticvectors.Search -q docvectors.bin -s termvectors.bin -lowercase false bible_chapters/Genesis/Chapter_1}}}
+
+(With default settings, this brings up pretty generic terms like "unto", "i", "them, "have". Not exactly sure why this is so.)
