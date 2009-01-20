@@ -1,0 +1,19 @@
+#summary Document Search in SemanticVectors.
+
+= Document Search in SemanticVectors =
+
+It's easy to search for documents in SemanticVectors, by telling the search program to use an appropriate vector store. This means that there is no special class or interface for searching documents - this functionality is provided by enabling the more general freedom to take query terms and search over a variety of different vector stores.
+
+The query file is set using the `-q` option and the search file is set using the `-s` options.
+
+=== Searching for Documents using Terms ===
+
+The default `BuildIndex` command build both term vectors (`termvectors.bin`) and document vectors (`docvectors.bin`). To search for document vectors closest to the vector for `Abraham`, you would therefore use the command:
+
+{{{java pitt.search.semanticvectors.Search -q termvectors.bin -s docvectors.bin Abraham}}}
+
+=== Using Documents as Queries ===
+
+You can also use the document file as a source of queries. For example, to find terms most closely related to Chapter 1 of Genesis, you'd use
+
+{{{java pitt.search.semanticvectors.Search -q docvectors.bin -s termvectors.bin -lowercase false bible_chapters/Genesis/Chapter_1}}}
