@@ -14,6 +14,10 @@ Several other options are available: these fall broadly into the categories of f
 
 The simplest way to find out more about these arguments is to run `java pitt.search.semanticvectors.Search` with no arguments, which will result in a basic usage message being written to the console. All changes to interface of Search.java should be reflected in the [http://semanticvectors.googlecode.com/svn/trunk/doc/pitt/search/semanticvectors/Search.html#usage() usage function].
 
+===Document Search===
+
+See DocumentSearch.
+
 ==Permutation Search==
 
 See PermutationSearch.
