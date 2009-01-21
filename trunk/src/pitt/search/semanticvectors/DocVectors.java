@@ -86,7 +86,7 @@ public class DocVectors implements VectorStore {
 		try {
 			int dc = 0;
 			while (termEnum.hasMoreElements()) {
-				/* output progress counter */
+				// Output progress counter.
 				if ((dc % 10000 == 0) || (dc < 10000 && dc % 1000 == 0)) {
 					System.err.print(dc + " ... ");
 				}
@@ -94,7 +94,7 @@ public class DocVectors implements VectorStore {
 
 				ObjectVector termVectorObject = termEnum.nextElement();
 				float[] termVector = termVectorObject.getVector();
-				String word = (String)termVectorObject.getObject();
+				String word = (String) termVectorObject.getObject();
 
 				// Go through checking terms for each fieldName.
 				for (String fieldName: termVectorData.getFieldsToIndex()) {

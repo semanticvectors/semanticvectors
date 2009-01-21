@@ -213,8 +213,6 @@ public class BuildIndex {
 				vecWriter.WriteVectors(termFile, vecStore);
 				IncrementalDocVectors idocVectors =
 					new IncrementalDocVectors(vecStore, luceneIndex, fieldsToIndex, "incremental_"+docFile);
-		
-					
 			} else {
 				DocVectors docVectors = new DocVectors(vecStore);			
 				for (int i = 1; i < trainingCycles; ++i) {
