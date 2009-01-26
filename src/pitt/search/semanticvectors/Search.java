@@ -118,7 +118,7 @@ public class Search {
 	static String queryFile = "termvectors.bin";
 	static String searchFile = "";
 	static String lucenePath = null;
-	static VectorStore queryVecReader, searchVecReader;
+	static CloseableVectorStore queryVecReader, searchVecReader;
 	static boolean textIndex = false; 
 	static LuceneUtils lUtils = null;
 	static int numResults;
@@ -468,6 +468,13 @@ public class Search {
 			System.err.println("Search type unrecognized ...");
 			results = new LinkedList();
 		}
+
+		// Release filesystem resources.
+		queryVecReader.close();
+		if (!searchFile.equals(queryFile)) {
+			searchVecReader.close();
+		}
+
 		return results;
 	}
 

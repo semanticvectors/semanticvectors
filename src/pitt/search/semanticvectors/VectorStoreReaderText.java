@@ -59,14 +59,16 @@ import java.util.StringTokenizer;
    @see VectorStoreReader
    @see ObjectVector
 **/
-public class VectorStoreReaderText implements VectorStore {
+public class VectorStoreReaderText implements CloseableVectorStore {
   private String vectorFileText;
   private boolean hasHeader;
+  private FileReader fileReader;
   private BufferedReader inBuf;
 
   public VectorStoreReaderText (String vectorFileText) throws IOException {
-    this. vectorFileText = vectorFileText;
-    this.inBuf = new BufferedReader(new FileReader (vectorFileText));
+    this.vectorFileText = vectorFileText;
+		this.fileReader = new FileReader(vectorFileText);
+    this.inBuf = new BufferedReader(this.fileReader);
     try {
       // Read number of dimensions from header information.
       String firstLine = inBuf.readLine();
@@ -74,7 +76,6 @@ public class VectorStoreReaderText implements VectorStore {
       String[] firstLineData = firstLine.split("\\|");
       if ((firstLineData[0].equalsIgnoreCase("-dimensions"))) {
         ObjectVector.vecLength = Integer.parseInt(firstLineData[1]);
-        System.err.println("Found first line header, dimensions = " + ObjectVector.vecLength);
         this.hasHeader = true;
       }
       else {
@@ -89,6 +90,16 @@ public class VectorStoreReaderText implements VectorStore {
       System.out.println("Cannot read file: " + vectorFileText + "\n" + e.getMessage());
     }
   }
+
+	public void close() {
+		try {
+			this.inBuf.close();
+			this.fileReader.close();
+		} catch (IOException e) {
+				System.out.println("Cannot close resources from file: " + this.vectorFileText
+													 + "\n" + e.getMessage());
+		}
+	}
 
   public Enumeration getAllVectors() {
     try{

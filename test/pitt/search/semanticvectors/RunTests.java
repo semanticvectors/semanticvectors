@@ -35,16 +35,48 @@
 
 package pitt.search.semanticvectors;
 
+import java.io.FileWriter;
+import java.io.BufferedWriter;
+import java.io.IOException;
+
 public class RunTests {
+
+	public static String testDataPath = "test/testdata/";
+	public static String vectorTextFile = testDataPath + "termvectors.txt";
+	public static String vectorBinFile = testDataPath + "termvectors.bin";
+	public static String testVectors = "-dimensions|3\n"
+		+ "Abraham|1.0|0.0|0.0\n"
+		+ "Isaac|0.8|0.2|0.2\n";
+
+	private static void PrepareTestData() {
+		try {
+			BufferedWriter outBuf = new BufferedWriter(new FileWriter(vectorTextFile));
+			outBuf.write(testVectors);
+			outBuf.close();
+
+			VectorStoreTranslater translater = new VectorStoreTranslater();
+			String[] translaterArgs = {"-TEXTTOLUCENE", vectorTextFile, vectorBinFile};
+			translater.main(translaterArgs);
+		} catch (IOException e) {
+			System.err.println("Failed to prepare test data ... abandoning tests.");
+			e.printStackTrace();
+		}
+	}
 
 	// For each class with tests in it, add its main function below.
 	public static void main(String args[]) {
+		PrepareTestData();
+
 		String[] tests = {
 			"pitt.search.semanticvectors.VectorUtilsTest",
 			"pitt.search.semanticvectors.VectorStoreRAMTest",
+			"pitt.search.semanticvectors.VectorStoreReaderTest",
 			"pitt.search.semanticvectors.VectorStoreSparseRAMTest",
+			"pitt.search.semanticvectors.VectorStoreWriterTest",
 			"pitt.search.semanticvectors.CompoundVectorBuilderTest",
 		};
 		org.junit.runner.JUnitCore.main(tests);	
+
+		// TODO(widdows): Write cleanup method to clean testdata directory.
 	}
 }
