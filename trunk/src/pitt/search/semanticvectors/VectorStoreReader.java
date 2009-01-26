@@ -51,12 +51,15 @@ import java.util.StringTokenizer;
    than the native java.io.DataOutputStream
    @see ObjectVector
 **/
-public class VectorStoreReader implements VectorStore {
+public class VectorStoreReader implements CloseableVectorStore {
+	private String vectorFile;
+	private MMapDirectory dir;
   private IndexInput indexInput;
   private boolean hasHeader;
 
   public VectorStoreReader (String vectorFile) throws IOException {
-    MMapDirectory dir = new MMapDirectory();
+		this.vectorFile = vectorFile;
+    this.dir = new MMapDirectory();
     this.indexInput = dir.openInput(vectorFile);
     try {
       /* Read number of dimensions from header information. */
@@ -64,7 +67,6 @@ public class VectorStoreReader implements VectorStore {
       /* Include "-" character to avoid unlikely case that first term is "dimensions"! */
       if ((test.equalsIgnoreCase("-dimensions"))) {
         ObjectVector.vecLength = indexInput.readInt();
-        System.err.println("Dimensions = " + ObjectVector.vecLength);
         this.hasHeader = true;
       }
       else {
@@ -76,12 +78,23 @@ public class VectorStoreReader implements VectorStore {
         this.hasHeader = false;
       }
     } catch (IOException e) {
-      System.out.println("Cannot read file: " + vectorFile + "\n" + e.getMessage());
+      System.out.println("Cannot read file: " + this.vectorFile + "\n" + e.getMessage());
     }
   }
 
-  public Enumeration getAllVectors(){
-    try{
+	public void close() {
+		try {
+			// Causes null pointer exception.
+			//this.dir.close();
+			this.indexInput.close();
+		} catch (IOException e) {
+				System.out.println("Cannot close resources from file: " + this.vectorFile
+													 + "\n" + e.getMessage());
+		}
+	}
+
+  public Enumeration getAllVectors() {
+    try {
       indexInput.seek(0);
       if (hasHeader) {
         indexInput.readString();

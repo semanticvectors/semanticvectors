@@ -68,8 +68,8 @@ public class VectorStoreTranslater {
 			throw new IllegalArgumentException();
     }
     Options option = null;
-    if (args[0].equals("-lucenetotext")) { option = Options.LUCENE_TO_TEXT; }
-    else if (args[0].equals("-texttolucene")) { option = Options.TEXT_TO_LUCENE; }
+    if (args[0].equalsIgnoreCase("-lucenetotext")) { option = Options.LUCENE_TO_TEXT; }
+    else if (args[0].equalsIgnoreCase("-texttolucene")) { option = Options.TEXT_TO_LUCENE; }
     else {
 			usage();
 			throw new IllegalArgumentException();
