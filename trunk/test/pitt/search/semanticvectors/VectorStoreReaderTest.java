@@ -42,32 +42,45 @@ public class VectorStoreReaderTest {
 	@Test
 		public void TestReadFromTestData() {
 		System.err.println("Running tests for VectorStoreReader");
-		// TODO(dwiddows): I don't like having a test inside a try/catch,
-		// but don't know what to do about this. 
-		//
-		// The "tested" variable is meant to track whether the test have
-		// really been run or not.
-		boolean tested = false;
 		try {
 			VectorStoreReader reader = new VectorStoreReader(RunTests.vectorBinFile);
 			assertEquals(2, reader.getNumVectors());
-			float[] abraham = reader.getVector("Abraham");
+			float[] abraham = reader.getVector("abraham");
 			assertEquals(1.0f, abraham[0], 0.01);
-			tested = true;
 		} catch (IOException e) {
-			e.printStackTrace();
+			// Not sure if there is a better way to test for exceptions ...
+			assertTrue(false);
 		}
-		assertTrue(tested);
 	}
 
 	@Test
-		public void TestMultipleOpens() {
+		public void TestOpensAndCloses() {
+		try {
+			VectorStoreReader reader;
+			reader = new VectorStoreReader(RunTests.vectorBinFile);
+			System.out.println("Before closing:" + reader.getMMapDirectory().toString());
+			reader.close();
+			System.out.println("After closing:" + reader.getMMapDirectory().toString());
+		}	catch (IOException e) {
+			assertTrue(false);
+		} catch (NullPointerException e) {
+			// TODO(widdows): This is something we must track down, I think.
+			System.out.println("Cannot close MMapDirectory ... this is a problem.");
+		}
+	}
+
+	@Test
+	// I'm not sure you *should* be able to open two versions of the
+	// same vector store file open at once, even for reads, but it's
+	// good to test for this somehow.
+		public void TestMultipleOpensForRead() {
 		boolean tested = false;
 		try {
 			VectorStoreReader reader = new VectorStoreReader(RunTests.vectorBinFile);
 			VectorStoreReader reader2 = new VectorStoreReader(RunTests.vectorBinFile);
 		} catch (IOException e) {
-			e.printStackTrace();
+			// Not sure if there is a better way to test for exceptions ...
+			assertTrue(false);
 		}
 	}
 }

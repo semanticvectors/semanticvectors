@@ -44,9 +44,10 @@ public class RunTests {
 	public static String testDataPath = "test/testdata/";
 	public static String vectorTextFile = testDataPath + "termvectors.txt";
 	public static String vectorBinFile = testDataPath + "termvectors.bin";
+
 	public static String testVectors = "-dimensions|3\n"
-		+ "Abraham|1.0|0.0|0.0\n"
-		+ "Isaac|0.8|0.2|0.2\n";
+		+ "abraham|1.0|0.0|0.0\n"
+		+ "isaac|0.8|0.2|0.2\n";
 
 	private static void PrepareTestData() {
 		try {

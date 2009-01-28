@@ -470,9 +470,14 @@ public class Search {
 		}
 
 		// Release filesystem resources.
-		queryVecReader.close();
-		if (!searchFile.equals(queryFile)) {
-			searchVecReader.close();
+		try {
+			queryVecReader.close();
+			if (!searchFile.equals(queryFile)) {
+				searchVecReader.close();
+			}
+		} catch (NullPointerException e ) {
+			// TODO(widdows): Make this go away once we understand how to
+			// close VectorStoreReaders properly.
 		}
 
 		return results;

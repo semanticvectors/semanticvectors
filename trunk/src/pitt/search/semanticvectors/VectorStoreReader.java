@@ -53,14 +53,18 @@ import java.util.StringTokenizer;
 **/
 public class VectorStoreReader implements CloseableVectorStore {
 	private String vectorFile;
-	private MMapDirectory dir;
+	private MMapDirectory mMapDirectory;
   private IndexInput indexInput;
   private boolean hasHeader;
 
+	public MMapDirectory getMMapDirectory() {
+		return this.mMapDirectory;
+	}
+
   public VectorStoreReader (String vectorFile) throws IOException {
 		this.vectorFile = vectorFile;
-    this.dir = new MMapDirectory();
-    this.indexInput = dir.openInput(vectorFile);
+    this.mMapDirectory = new MMapDirectory();
+    this.indexInput = mMapDirectory.openInput(vectorFile);
     try {
       /* Read number of dimensions from header information. */
       String test = indexInput.readString();
@@ -84,13 +88,13 @@ public class VectorStoreReader implements CloseableVectorStore {
 
 	public void close() {
 		try {
-			// Causes null pointer exception.
-			//this.dir.close();
 			this.indexInput.close();
-		} catch (IOException e) {
-				System.out.println("Cannot close resources from file: " + this.vectorFile
+		}	catch (IOException e) {
+			System.out.println("Cannot close resources from file: " + this.vectorFile
 													 + "\n" + e.getMessage());
 		}
+		// Causes null pointer exception not documented in Lucene API. Currently testing.
+		this.mMapDirectory.close();
 	}
 
   public Enumeration getAllVectors() {
