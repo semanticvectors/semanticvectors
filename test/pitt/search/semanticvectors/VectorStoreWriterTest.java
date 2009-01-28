@@ -43,18 +43,19 @@ public class VectorStoreWriterTest {
 		public void TestWriteToFileUsedEarlier() {
 		System.err.println("Running tests for VectorStoreWriter");
 		
-		VectorStoreReader reader;
+		VectorStoreReader fileReader;
 		VectorStoreRAM ramCache = new VectorStoreRAM();
 
 		try {
-			reader = new VectorStoreReader(RunTests.vectorBinFile);
+			fileReader = new VectorStoreReader(RunTests.vectorBinFile);
 			ramCache.InitFromFile(RunTests.vectorBinFile);
+			fileReader.close();
 		} catch (IOException e) {
 			System.out.println("Couldn't open test vector stores.");
+		} catch (NullPointerException e) {
+			System.out.println("Couldn't close vector stores (apparently).");
 		}
 
-		// Now try to write ... strangely, this is supposed to fail
-		// because the reader has not been closed.
 		VectorStoreWriter writer = new VectorStoreWriter();
 		writer.WriteVectors(RunTests.vectorBinFile, ramCache);
 	}
