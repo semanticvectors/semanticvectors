@@ -51,9 +51,7 @@ public class VectorStoreWriterTest {
 			ramCache.InitFromFile(RunTests.vectorBinFile);
 			fileReader.close();
 		} catch (IOException e) {
-			System.out.println("Couldn't open test vector stores.");
-		} catch (NullPointerException e) {
-			System.out.println("Couldn't close vector stores (apparently).");
+			System.out.println("Couldn't open and close test vector stores.");
 		}
 
 		VectorStoreWriter writer = new VectorStoreWriter();

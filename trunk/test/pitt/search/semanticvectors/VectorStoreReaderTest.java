@@ -49,7 +49,7 @@ public class VectorStoreReaderTest {
 			assertEquals(1.0f, abraham[0], 0.01);
 		} catch (IOException e) {
 			// Not sure if there is a better way to test for exceptions ...
-			assertTrue(false);
+			fail();
 		}
 	}
 
@@ -58,14 +58,9 @@ public class VectorStoreReaderTest {
 		try {
 			VectorStoreReader reader;
 			reader = new VectorStoreReader(RunTests.vectorBinFile);
-			System.out.println("Before closing:" + reader.getMMapDirectory().toString());
 			reader.close();
-			System.out.println("After closing:" + reader.getMMapDirectory().toString());
 		}	catch (IOException e) {
-			assertTrue(false);
-		} catch (NullPointerException e) {
-			// TODO(widdows): This is something we must track down, I think.
-			System.out.println("Cannot close MMapDirectory ... this is a problem.");
+			fail();
 		}
 	}
 
@@ -80,7 +75,7 @@ public class VectorStoreReaderTest {
 			VectorStoreReader reader2 = new VectorStoreReader(RunTests.vectorBinFile);
 		} catch (IOException e) {
 			// Not sure if there is a better way to test for exceptions ...
-			assertTrue(false);
+			fail();
 		}
 	}
 }
