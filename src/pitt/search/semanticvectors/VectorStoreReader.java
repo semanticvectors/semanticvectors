@@ -35,11 +35,13 @@
 
 package pitt.search.semanticvectors;
 
-import java.util.Enumeration;
-import java.io.*;
-import org.apache.lucene.store.*;
+import java.io.File;
+import java.io.IOException;
 import java.lang.Float;
+import java.util.Enumeration;
 import java.util.StringTokenizer;
+import org.apache.lucene.store.FSDirectory;
+import org.apache.lucene.store.IndexInput;
 
 /**
    This class provides methods for reading a VectorStore from disk. <p>
@@ -52,23 +54,27 @@ import java.util.StringTokenizer;
    @see ObjectVector
 **/
 public class VectorStoreReader implements CloseableVectorStore {
-	private String vectorFile;
-	private MMapDirectory mMapDirectory;
+	private String vectorFileName;
+	private File vectorFile;
+	private FSDirectory fsDirectory;
   private IndexInput indexInput;
   private boolean hasHeader;
 
-	public MMapDirectory getMMapDirectory() {
-		return this.mMapDirectory;
+	public FSDirectory fsDirectory() {
+		return this.fsDirectory;
 	}
 
-  public VectorStoreReader (String vectorFile) throws IOException {
-		this.vectorFile = vectorFile;
-    this.mMapDirectory = new MMapDirectory();
-    this.indexInput = mMapDirectory.openInput(vectorFile);
+  public VectorStoreReader (String vectorFileName) throws IOException {
+		this.vectorFileName = vectorFileName;
+		this.vectorFile = new File(vectorFileName);
     try {
-      /* Read number of dimensions from header information. */
+			String parentPath = this.vectorFile.getParent();
+			if (parentPath == null) parentPath = "";
+			this.fsDirectory = FSDirectory.getDirectory(parentPath);
+			this.indexInput = fsDirectory.openInput(vectorFile.getName());
+      // Read number of dimensions from header information.
       String test = indexInput.readString();
-      /* Include "-" character to avoid unlikely case that first term is "dimensions"! */
+      // Include "-" character to avoid unlikely case that first term is "dimensions"!
       if ((test.equalsIgnoreCase("-dimensions"))) {
         ObjectVector.vecLength = indexInput.readInt();
         this.hasHeader = true;
@@ -82,7 +88,7 @@ public class VectorStoreReader implements CloseableVectorStore {
         this.hasHeader = false;
       }
     } catch (IOException e) {
-      System.out.println("Cannot read file: " + this.vectorFile + "\n" + e.getMessage());
+      System.out.println("Cannot open file: " + this.vectorFileName + "\n" + e.getMessage());
     }
   }
 
@@ -90,11 +96,10 @@ public class VectorStoreReader implements CloseableVectorStore {
 		try {
 			this.indexInput.close();
 		}	catch (IOException e) {
-			System.out.println("Cannot close resources from file: " + this.vectorFile
-													 + "\n" + e.getMessage());
+			System.err.println("Cannot close resources from file: " + this.vectorFile
+												 + "\n" + e.getMessage());
 		}
-		// Causes null pointer exception not documented in Lucene API. Currently testing.
-		this.mMapDirectory.close();
+		this.fsDirectory.close();
 	}
 
   public Enumeration getAllVectors() {

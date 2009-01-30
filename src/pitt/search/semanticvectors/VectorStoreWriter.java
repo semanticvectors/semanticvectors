@@ -35,15 +35,16 @@
 
 package pitt.search.semanticvectors;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.File;
+import java.io.IOException;
+import java.lang.Float;
 import java.util.Enumeration;
 import java.util.Hashtable;
-import java.io.*;
-import org.apache.lucene.store.*;
-
-import pitt.search.semanticvectors.ObjectVector;
-import pitt.search.semanticvectors.VectorUtils;
-
-import java.lang.Float;
+import org.apache.lucene.store.FSDirectory;
+import org.apache.lucene.store.IndexOutput;
+import org.apache.lucene.store.MMapDirectory;
 
 /**
  * This class provides methods for serializing a VectorStore to disk.<p>
@@ -68,14 +69,18 @@ public class VectorStoreWriter {
   public VectorStoreWriter() {}
 
   /**
-   * @param vectorFile The name of the file to write to
+   * @param vectorFileName The name of the file to write to
    * @param objectVectors The vector store to be written to disk
    */
-  public boolean WriteVectors(String vectorFile, VectorStore objectVectors) {
-    try{
+  public boolean WriteVectors(String vectorFileName, VectorStore objectVectors) {
+    try {
+			File vectorFile = new File(vectorFileName);
+			String parentPath = vectorFile.getParent();
+			if (parentPath == null) parentPath = "";
+			FSDirectory fsDirectory = FSDirectory.getDirectory(parentPath);
+      IndexOutput outputStream = fsDirectory.createOutput(vectorFile.getName());
+
       Enumeration<ObjectVector> vecEnum = objectVectors.getAllVectors();
-      MMapDirectory dir = new MMapDirectory();
-      IndexOutput outputStream = dir.createOutput(vectorFile);
       float[] tmpVector = new float[ObjectVector.vecLength];
 
       int counter = 0;
@@ -100,6 +105,7 @@ public class VectorStoreWriter {
       }
       System.err.println("Finished writing vectors.");
       outputStream.close();
+			fsDirectory.close();
       return true;
     }
     catch (Exception e) {
