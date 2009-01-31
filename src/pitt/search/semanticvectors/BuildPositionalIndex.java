@@ -46,8 +46,9 @@ import java.util.LinkedList;
 public class BuildPositionalIndex {
 	/* These can now be modified with command line arguments */
 	static int seedLength = 20;
+	static int nonAlphabet =0;
 	static int minFreq = 10;
-	static int windowLength = 21;
+	static int windowLength = 5;
 	static IndexType indexType = IndexType.BASIC;
 
 	/**
@@ -82,6 +83,7 @@ public class BuildPositionalIndex {
 	 * <br> -d [number of dimensions]
 	 * <br> -s [seed length]
 	 * <br> -m [minimum term frequency]
+	 * <br> -n [number of non-alphabet charcters (or -1 for any number)]
 	 * <br> -w [window size]
 	 * <br> -indextype [type of index: basic (default), directional (HAL), permutation (Sahlgren 2008)
 	 * </code>
@@ -99,6 +101,7 @@ public class BuildPositionalIndex {
 				+ "\n  -d [number of dimensions]"
 				+ "\n  -s [seed length]"
 				+ "\n  -m [minimum term frequency]"
+				+ "\n -n [number of non-alphabet charcters (or -1 for any number)]"
 				+ "\n  -w [window size]"
 				+ "\n  -indextype [type of index: basic (default), directional (HAL), permutation (Sahlgren 2008)";
 
@@ -137,6 +140,15 @@ public class BuildPositionalIndex {
 						usage();
 						throw new IllegalArgumentException("Failed to parse command line arguments.");
 					}
+				}
+				/* Allow n non-alphabet characters, or -1 for no character screening*/
+				else if (pa.equalsIgnoreCase("-n")) {
+				    try {
+					nonAlphabet = Integer.parseInt(ar);
+					wellFormed = true;
+				    } catch (NumberFormatException e) {
+					System.err.println(ar + " is not a number"); usage();
+				    }
 				}
 				/* Get seedlength. */
 				else if (pa.equalsIgnoreCase("-s")) {
@@ -229,10 +241,11 @@ public class BuildPositionalIndex {
 		System.err.println("seedLength = " + seedLength);
 		System.err.println("Vector length = " + ObjectVector.vecLength);
 		System.err.println("Minimum frequency = " + minFreq);
+		System.err.println("Nubmer non-alphabet characters = "+nonAlphabet);
 		System.err.println("Window length = " + windowLength);
 		try {
 			TermTermVectorsFromLucene vecStore =
-				new TermTermVectorsFromLucene(luceneIndex, seedLength, minFreq,
+				new TermTermVectorsFromLucene(luceneIndex, seedLength, minFreq, nonAlphabet,
 																			windowLength, fieldsToIndex, indexType);
 			VectorStoreWriter vecWriter = new VectorStoreWriter();
 			System.err.println("Writing term vectors to " + termFile);

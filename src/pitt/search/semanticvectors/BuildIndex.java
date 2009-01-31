@@ -47,6 +47,7 @@ public class BuildIndex {
 	/* These can be modified with command line arguments */
 	static int seedLength = 20;
 	static int minFreq = 10;
+	static int nonAlphabet =0;
 	static int trainingCycles = 1;
 	static boolean docsIncremental = false;
 
@@ -64,6 +65,7 @@ public class BuildIndex {
 	 * <br> -d [number of dimensions]
 	 * <br> -s [seed length]
 	 * <br> -m [minimum term frequency]
+	 * <br> -n [number non-alphabet characters (-1 for any number)]
 	 * <br> -tc [training cycles]
 	 * <br> -docs [incremental|inmemory] Switch between building doc vectors incrementally"
 	 * <br>       (requires positional index) or all in memory (default case).
@@ -81,6 +83,7 @@ public class BuildIndex {
 			+ "\n  -d [number of dimensions]"
 			+ "\n  -s [seed length]"
 			+ "\n  -m [minimum term frequency]"
+			+ "\n -n [number non-alphabet characters (-1 for any number)]"
 			+ "\n  -tc [training cycles]"
 			+ "\n  -docs [incremental|inmemory] Switch between building doc vectors incrementally"
 			+ "\n        (requires positional index) or all in memory (default case).";
@@ -151,6 +154,17 @@ public class BuildIndex {
 						throw new IllegalArgumentException();
 					}
 				}
+				/* Get number non-alphabet characters */
+				else if (pa.equalsIgnoreCase("-n")) {
+					try {
+						nonAlphabet = Integer.parseInt(ar);
+						wellFormed = true;
+					} catch (NumberFormatException e) {
+						System.err.println(ar + " is not a number.");
+						usage();
+						throw new IllegalArgumentException();
+					}
+				}
 				/* Get number of training cycles. */
 				else if (pa.equalsIgnoreCase("-tc")) {
 					try {
@@ -199,12 +213,13 @@ public class BuildIndex {
 		System.err.println("seedLength = " + seedLength);
 		System.err.println("Vector length = " + ObjectVector.vecLength);
 		System.err.println("Minimum frequency = " + minFreq);
+		System.err.println("Number non-alphabet characters = " + nonAlphabet);
 		String termFile = "termvectors.bin";
 		String docFile = "docvectors.bin";
 		
 		try{
 			TermVectorsFromLucene vecStore =
-				new TermVectorsFromLucene(luceneIndex, seedLength, minFreq, null, fieldsToIndex);
+				new TermVectorsFromLucene(luceneIndex, seedLength, minFreq, nonAlphabet, null, fieldsToIndex);
 
 			// Create doc vectors and write vectors to disk.
 			if (docsIncremental == true) {
@@ -221,6 +236,7 @@ public class BuildIndex {
 					vecStore = new TermVectorsFromLucene(luceneIndex,
 																							 seedLength,
 																							 minFreq,
+																							 nonAlphabet,
 																							 newBasicDocVectors,
 																							 fieldsToIndex);
 					docVectors = new DocVectors(vecStore);
