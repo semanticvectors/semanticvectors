@@ -50,6 +50,7 @@ import java.io.IOException;
 public class BuildBilingualIndex{
   // These can be modified with command line arguments.
   static int seedLength = 20;
+  static int nonAlphabet =0;
   static int minFreq = 10;
 
   /**
@@ -65,6 +66,7 @@ public class BuildBilingualIndex{
    * <br> To change these use the following command line arguments:
    * <br> -d [number of dimensions]
    * <br> -s [seed length]
+   * <br> -n [number non-alphabet characters (-1 for any number)]
    * <br> -m [minimum term frequency]
    * </code>
    */
@@ -79,6 +81,7 @@ public class BuildBilingualIndex{
         + "\n    entries in basic vectors), and minimum term frequency."
         + "\nTo change these use the command line arguments "
         + "\n  -d [number of dimensions]"
+        + "\n  -n [number of non-alphabet characters (-1 for any number)]"
         + "\n  -s [seed length]"
         + "\n  -m [minimum term frequency]";
 
@@ -132,6 +135,7 @@ public class BuildBilingualIndex{
 						throw new IllegalArgumentException();
           }
         }
+    	
         /* Get minimum term frequency. */
         else if (option.equalsIgnoreCase("-m")) {
           try {
@@ -148,6 +152,17 @@ public class BuildBilingualIndex{
 						throw new IllegalArgumentException();
           }
         }
+        /* Allow n non-alphabet characters, or -1 for no character screening */
+        else if (option.equalsIgnoreCase("-n")) {
+		    try {
+			nonAlphabet = Integer.parseInt(value);
+			wellFormed = true;
+		    } catch (NumberFormatException e) {
+			System.err.println(value + " is not a number");
+			usage();   
+				throw new IllegalArgumentException();
+		    }
+		}
         /* All other arguments are unknown. */
         else {
           System.err.println("Unknown command line option: " + option);
@@ -173,10 +188,11 @@ public class BuildBilingualIndex{
 
     System.err.println("seedLength = " + seedLength);
     System.err.println("Vector length = " + ObjectVector.vecLength);
+    System.err.println("Non-alphabet characters = "+ nonAlphabet);
     System.err.println("Minimum frequency = " + minFreq);
     try{
       TermVectorsFromLucene vecStore1 =
-          new TermVectorsFromLucene(luceneIndex, seedLength, minFreq, null, fields1);
+          new TermVectorsFromLucene(luceneIndex, seedLength, minFreq, nonAlphabet, null, fields1);
       VectorStoreWriter vecWriter = new VectorStoreWriter();
       System.err.println("Writing term vectors to " + termFile1);
       vecWriter.WriteVectors(termFile1, vecStore1);
@@ -187,7 +203,7 @@ public class BuildBilingualIndex{
       VectorStore basicDocVectors = vecStore1.getBasicDocVectors();
       System.out.println("Keeping basic doc vectors, number: " + basicDocVectors.getNumVectors());
       TermVectorsFromLucene vecStore2 =
-          new TermVectorsFromLucene(luceneIndex, seedLength, minFreq, 
+          new TermVectorsFromLucene(luceneIndex, seedLength, minFreq, nonAlphabet, 
                                     basicDocVectors, fields2);
       System.err.println("Writing term vectors to " + termFile2);
       vecWriter.WriteVectors(termFile2, vecStore2);

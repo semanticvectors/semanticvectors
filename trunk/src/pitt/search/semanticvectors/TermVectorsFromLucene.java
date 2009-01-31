@@ -61,6 +61,8 @@ public class TermVectorsFromLucene implements VectorStore {
   private IndexReader indexReader;
   private int seedLength;
   private String[] fieldsToIndex;
+  private LuceneUtils lUtils;
+  private int nonAlphabet;
   private int minFreq;
   private VectorStore basicDocVectors;
 
@@ -93,10 +95,12 @@ public class TermVectorsFromLucene implements VectorStore {
   public TermVectorsFromLucene(String indexDir,
                                int seedLength,
                                int minFreq,
+                               int nonAlphabet,
                                VectorStore basicDocVectors,
                                String[] fieldsToIndex)
       throws IOException, RuntimeException {
     this.minFreq = minFreq;
+    this.nonAlphabet = nonAlphabet;
     this.fieldsToIndex = fieldsToIndex;
     this.seedLength = seedLength;
 
@@ -108,6 +112,12 @@ public class TermVectorsFromLucene implements VectorStore {
     IndexModifier modifier = new IndexModifier(indexDir, new StandardAnalyzer(), false);
     modifier.optimize();
     modifier.close();
+    
+    /*
+     * create LuceneUtils Class to filter terms
+     */
+    
+    lUtils = new LuceneUtils(indexDir);
 
     indexReader = IndexReader.open(indexDir);
 
@@ -153,7 +163,7 @@ public class TermVectorsFromLucene implements VectorStore {
       Term term = terms.term();
 
       /* skip terms that don't pass the filter */
-      if (!termFilter(terms.term())) {
+      if (!lUtils.termFilter(terms.term(),fieldsToIndex,nonAlphabet,minFreq)) {
         continue;
       }
 
@@ -191,43 +201,4 @@ public class TermVectorsFromLucene implements VectorStore {
 		return termVectors.size();
 	}
 
-  /**
-   * Filters out non-alphabetic terms and those of low frequency
-   * it might be a good idea to factor this out as a separate component.
-   * @param term Term to be filtered.
-   */
-  private boolean termFilter (Term term) throws IOException {
-    // Field filter.
-    if (this.fieldsToIndex != null) {
-      boolean desiredField = false;
-      for (int i = 0; i < fieldsToIndex.length; ++i) {
-        if (term.field().equals(fieldsToIndex[i])) {
-          desiredField = true;
-        }
-      }
-      if (desiredField == false) {
-        return false;
-      }
-    }
-
-    // Character filter.
-    String termText = term.text();
-    for (int i = 0; i < termText.length(); ++i) {
-      if (!Character.isLetter(termText.charAt(i))) {
-        return false;
-      }
-    }
-
-    // Freqency filter.
-    int freq = 0;
-    TermDocs tDocs = indexReader.termDocs(term);
-    while (tDocs.next()) {
-      freq += tDocs.freq();
-    }
-    if (freq < minFreq) {
-      return false;
-    }
-
-    return true;
-  }
 }

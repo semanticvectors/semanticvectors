@@ -99,4 +99,45 @@ public class LuceneUtils{
 	    return 1;
 		}
 	}
+	
+	  /**
+	   * Filters out non-alphabetic terms and those of low frequency
+	   * @param term - Term to be filtered.
+	   * @param desiredFields - Terms in only these fields are filtered in   
+	   * @param nonalphabet - 	-1 if we want no character filtering
+	   * 						number of allowed non-alphabets in the term 
+	   * @param minfreq - min global frequency allowed
+	   * Thanks to Vidya Vasuki for refactoring and bug repair 
+	   */
+	  protected boolean termFilter ( Term term, String[] desiredFields, 
+			  int nonalphabet, int minfreq) 
+	  throws IOException 
+	  {
+		  boolean isDesiredField = false;
+		  for(int i=0; i<desiredFields.length; i++)
+			  if(term.field().compareToIgnoreCase(desiredFields[i])==0)
+				  isDesiredField = true;
+		  if(!isDesiredField)
+			  return false;
+
+		  
+		  /* character filter */
+		  if(nonalphabet !=-1)
+		  {
+			  int nonletter=0;
+			  String termText = term.text();
+			  for( int i=0; i<termText.length(); i++ ){
+				  if( !Character.isLetter(termText.charAt(i)) )
+					  nonletter++;
+				  if (nonletter >  nonalphabet) 
+					  return false;
+			  }
+		  }
+		  
+		  /* freqency filter */
+		  if( getGlobalTermFreq(term) < minfreq )
+			  return false;
+		  return true;
+	  }
+	
 }	
