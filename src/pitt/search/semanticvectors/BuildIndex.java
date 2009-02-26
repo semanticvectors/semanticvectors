@@ -47,7 +47,7 @@ public class BuildIndex {
 	/* These can be modified with command line arguments */
 	static int seedLength = 20;
 	static int minFreq = 10;
-	static int nonAlphabet =0;
+	static int nonAlphabet = 0;
 	static int trainingCycles = 1;
 	static boolean docsIncremental = false;
 

@@ -113,10 +113,7 @@ public class TermVectorsFromLucene implements VectorStore {
     modifier.optimize();
     modifier.close();
     
-    /*
-     * create LuceneUtils Class to filter terms
-     */
-    
+    // Create LuceneUtils Class to filter terms.
     lUtils = new LuceneUtils(indexDir);
 
     indexReader = IndexReader.open(indexDir);
@@ -142,7 +139,7 @@ public class TermVectorsFromLucene implements VectorStore {
 
     termVectors = new Hashtable<String, ObjectVector>();
 
-    /* iterate through an enumeration of terms and create termVector table*/
+    // Iterate through an enumeration of terms and create termVector table.
     System.err.println("Creating term vectors ...");
     TermEnum terms = this.indexReader.terms();
     int tc = 0;
@@ -154,7 +151,7 @@ public class TermVectorsFromLucene implements VectorStore {
     tc = 0;
     terms = indexReader.terms();
     while (terms.next()) {
-      /* output progress counter */
+      // Output progress counter.
       if (( tc % 10000 == 0 ) || ( tc < 10000 && tc % 1000 == 0 )) {
         System.err.print(tc + " ... ");
       }
@@ -162,12 +159,12 @@ public class TermVectorsFromLucene implements VectorStore {
 
       Term term = terms.term();
 
-      /* skip terms that don't pass the filter */
-      if (!lUtils.termFilter(terms.term(),fieldsToIndex,nonAlphabet,minFreq)) {
+      // Skip terms that don't pass the filter.
+      if (!lUtils.termFilter(terms.term(), fieldsToIndex, nonAlphabet, minFreq)) {
         continue;
       }
 
-      /* initialize new termVector */
+      // Initialize new termVector.
       float[] termVector = new float[ObjectVector.vecLength];
       for (int i = 0; i < ObjectVector.vecLength; ++i) {
         termVector[i] = 0;
