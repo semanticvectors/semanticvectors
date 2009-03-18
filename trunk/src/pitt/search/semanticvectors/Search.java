@@ -193,7 +193,7 @@ public class Search {
 		 */
 
 		// This will become overwritten if -results is passed in as a command line argument!
-		numResults = numResults;
+		Search.numResults = numResults;
 
     if (args.length == 0) {
       usage();
