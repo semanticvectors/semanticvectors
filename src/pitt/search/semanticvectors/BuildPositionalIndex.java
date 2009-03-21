@@ -1,5 +1,5 @@
-/**
-	 Copyright (c) 2008, University of Pittsburgh
+/** 
+Copyright (c) 2008, University of Pittsburgh
 
 	 All rights reserved.
 
@@ -49,7 +49,9 @@ public class BuildPositionalIndex {
 	static int nonAlphabet = 0;
 	static int minFreq = 10;
 	static int windowLength = 5;
+	static int trainingCycles = 1;
 	static IndexType indexType = IndexType.BASIC;
+	static VectorStore newBasicTermVectors = null;
 
 	/**
 	 * Enumeration of different indexTypes - basic, directional and permutation.
@@ -59,16 +61,16 @@ public class BuildPositionalIndex {
 		 * Default option.
 		 */
 		BASIC,
-			/**
-			 * Directional - distinguishes between terms occuring pefore and
-			 after target term.
-			*/
-			DIRECTIONAL,
-			/**
-			 * Uses permutation to encode word order - see Sahlgren et al, 2008.
-			 */
-			PERMUTATION
-			}
+		/**
+		 * Directional - distinguishes between terms occuring pefore and
+		 after target term.
+		*/
+		DIRECTIONAL,
+		/**
+		 * Uses permutation to encode word order - see Sahlgren et al, 2008.
+		 */
+		PERMUTATION
+	}
 
 	/**
 	 * Prints the following usage message:
@@ -83,39 +85,39 @@ public class BuildPositionalIndex {
 	 * <br> -d [number of dimensions]
 	 * <br> -s [seed length]
 	 * <br> -m [minimum term frequency]
-	 * <br> -n [number of non-alphabet charcters (or -1 for any number)]
 	 * <br> -w [window size]
 	 * <br> -indextype [type of index: basic (default), directional (HAL), permutation (Sahlgren 2008)
 	 * </code>
 	 */
-	public static void usage() {
-		String usageMessage = "\nBuildPositionalIndex class in package pitt.search.semanticvectors"
-			+ "\nUsage: java pitt.search.semanticvectors.BuildPositionalIndex PATH_TO_LUCENE_INDEX"
-			+ "\nBuildPositionalIndex creates file termtermvectors.bin in local directory."
-			+ "\nOther parameters that can be changed include vector length,"
-			+ "\n windowlength (size of sliding context window),"
-			+ "\n    (number of dimensions), seed length (number of non-zero"
-			+ "\n    entries in basic vectors), size of sliding window (including focus term)"
-			+ "\n and minimum term frequency.\n"
-			+ "\nTo change these use the command line arguments "
-			+ "\n  -d [number of dimensions]"
-			+ "\n  -s [seed length]"
-			+ "\n  -m [minimum term frequency]"
-			+ "\n -n [number of non-alphabet charcters (or -1 for any number)]"
-			+ "\n  -w [window size]"
-			+ "\n  -indextype [type of index: basic (default), directional (HAL), permutation (Sahlgren 2008)";
+		public static void usage() {
+			String usageMessage = "\nBuildPositionalIndex class in package pitt.search.semanticvectors"
+				+ "\nUsage: java pitt.search.semanticvectors.BuildPositionalIndex PATH_TO_LUCENE_INDEX"
+				+ "\nBuildPositionalIndex creates file termtermvectors.bin in local directory."
+				+ "\nOther parameters that can be changed include vector length,"
+				+ "\n windowlength (size of sliding context window),"
+				+ "\n    (number of dimensions), seed length (number of non-zero"
+				+ "\n    entries in basic vectors), size of sliding window (including focus term)"
+				+ "\n and minimum term frequency.\n"
+				+ "\nTo change these use the command line arguments "
+				+ "\n  -d [number of dimensions]"
+				+ "\n  -s [seed length]"
+				+ "\n  -m [minimum term frequency]"
+				+ "\n -pt [name of preexisting vectorstore for term vectors]"
+				+ "\n  -w [window size]"
+				+ "\n  -indextype [type of index: basic (default), directional (HAL), permutation (Sahlgren 2008)";
 
-		System.out.println(usageMessage);
-	}
+			System.out.println(usageMessage);
+		}
 
 	/**
 	 * Builds term vector stores from a Lucene index - this index must
 	 contain TermPositionVectors.
 	 * @param args
-	 * @see BuildPositionalIndex#usage
+	 * @see CopyOfBuildPositionalIndex#usage
 	 */
 	public static void main (String[] args) throws IllegalArgumentException {
 		boolean wellFormed = false;
+		
 		/* If only one argument, it should be the path to Lucene index. */
 		if (args.length == 1) {
 			wellFormed = true;
@@ -141,7 +143,7 @@ public class BuildPositionalIndex {
 						throw new IllegalArgumentException("Failed to parse command line arguments.");
 					}
 				}
-				/* Allow n non-alphabet characters, or -1 for no character screening*/
+					/* Allow n non-alphabet characters, or -1 for no character screening*/
 				else if (pa.equalsIgnoreCase("-n")) {
 					try {
 						nonAlphabet = Integer.parseInt(ar);
@@ -189,17 +191,17 @@ public class BuildPositionalIndex {
 						indexType = IndexType.BASIC;
 						wellFormed = true;
 					} else
-						if (indexTypeString.equalsIgnoreCase("directional")) {
-							indexType = IndexType.DIRECTIONAL;
-							wellFormed = true;
-						} else
-							if (indexTypeString.equalsIgnoreCase("permutation")) {
-								indexType = IndexType.PERMUTATION;
-								wellFormed = true;
-							} else {
-								System.err.println("Did not recognize index type " + indexTypeString);
-								System.err.println("Building basic (sliding window, non-directional) positional index");
-							}
+					if (indexTypeString.equalsIgnoreCase("directional")) {
+						indexType = IndexType.DIRECTIONAL;
+						wellFormed = true;
+					} else
+					if (indexTypeString.equalsIgnoreCase("permutation")) {
+						indexType = IndexType.PERMUTATION;
+						wellFormed = true;
+					} else {
+						System.err.println("Did not recognize index type " + indexTypeString);
+						System.err.println("Building basic (sliding window, non-directional) positional index");
+					}
 				}
 				/* Get window size */
 				else if (pa.equalsIgnoreCase("-w")) {
@@ -217,6 +219,36 @@ public class BuildPositionalIndex {
 						usage();
 						throw new IllegalArgumentException("Failed to parse command line arguments.");
 					}
+				}	/* Get number of training cycles. */
+				else if (pa.equalsIgnoreCase("-tc")) {
+					try {
+						trainingCycles = Integer.parseInt(ar);
+						if (trainingCycles < 1) {
+							System.err.println("Minimum frequency cannot be less than one.");
+							usage();
+							throw new IllegalArgumentException();
+						}
+						else wellFormed = true;
+					} catch (NumberFormatException e) {
+						System.err.println(ar + " is not a number.");
+						usage();
+						throw new IllegalArgumentException();
+					}
+				}
+				/* Get term vectors to use for pre-trained (rather than random) indexes */
+				else if (pa.equalsIgnoreCase("-pt")) {
+					try {
+							VectorStoreRAM vsr = new VectorStoreRAM();
+							vsr.InitFromFile(ar);
+						newBasicTermVectors = vsr;
+						wellFormed = true;
+						System.err.println("Using trained index vectors from vector store "+ar);
+						
+					} catch (IOException e) {
+						System.err.println("Could not read from vector store "+ar);
+						usage();
+						throw new IllegalArgumentException();
+					}
 				}
 				/* All other arguments are unknown. */
 				else {
@@ -224,6 +256,7 @@ public class BuildPositionalIndex {
 					usage();
 					throw new IllegalArgumentException("Failed to parse command line arguments.");
 				}
+				
 			}
 		}
 		if (!wellFormed) {
@@ -241,16 +274,37 @@ public class BuildPositionalIndex {
 		System.err.println("seedLength = " + seedLength);
 		System.err.println("Vector length = " + ObjectVector.vecLength);
 		System.err.println("Minimum frequency = " + minFreq);
-		System.err.println("Nubmer non-alphabet characters = " + nonAlphabet);
+			System.err.println("Nubmer non-alphabet characters = " + nonAlphabet);
 		System.err.println("Window length = " + windowLength);
+		
+		
+		
 		try {
 			TermTermVectorsFromLucene vecStore =
 				new TermTermVectorsFromLucene(luceneIndex, seedLength, minFreq, nonAlphabet,
-																			windowLength, fieldsToIndex, indexType);
+																			windowLength, newBasicTermVectors, fieldsToIndex, indexType);
 			VectorStoreWriter vecWriter = new VectorStoreWriter();
 			System.err.println("Writing term vectors to " + termFile);
 			vecWriter.WriteVectors(termFile, vecStore);
-
+			
+			for (int i = 1; i < trainingCycles; ++i) {
+				newBasicTermVectors = vecStore.getBasicTermVectors();
+				System.err.println("\nRetraining with learned term vectors ...");
+				vecStore = new TermTermVectorsFromLucene(luceneIndex,
+																						 seedLength,
+																						 minFreq,
+																						 nonAlphabet,
+																						 windowLength,
+																						 newBasicTermVectors,
+																						 fieldsToIndex, indexType);
+				
+			}
+	
+			if (trainingCycles > 1) {
+				termFile = "termvectors" + trainingCycles + ".bin";
+				docFile = "docvectors" + trainingCycles + ".bin";
+			}
+			
 			// Write document vectors except for permutation index.
 			if (indexType == IndexType.BASIC) {
 				IncrementalDocVectors docVectors =
@@ -262,3 +316,4 @@ public class BuildPositionalIndex {
 		}
 	}
 }
+
