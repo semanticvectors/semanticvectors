@@ -1,5 +1,5 @@
-/**
-   Copyright (c) 2008, University of Pittsburgh
+/** 
+Copyright (c) 2008, University of Pittsburgh
 
    All rights reserved.
 
@@ -60,16 +60,19 @@ import org.apache.lucene.analysis.standard.StandardAnalyzer;
  * @author Trevor Cohen, Dominic Widdows. 
  */
 public class TermTermVectorsFromLucene implements VectorStore {
-
+  private boolean retraining = false;
   private VectorStoreRAM termVectors;
-  private VectorStoreSparseRAM indexVectors;
+  private VectorStore indexVectors;
   private IndexReader indexReader;
   private int seedLength;
   private String[] fieldsToIndex;
   private int minFreq;
+  private BuildPositionalIndex.IndexType positionalIndexType; 
+  private float[][] localindexvectors;		
+  private short[][] localsparseindexvectors; 
   private LuceneUtils lUtils;
   private int nonAlphabet;
-	private BuildPositionalIndex.IndexType positionalIndexType;
+	
   //private boolean permute = false;
   //private boolean directional = false;
   
@@ -78,6 +81,12 @@ public class TermTermVectorsFromLucene implements VectorStore {
    */
   public IndexReader getIndexReader(){ return this.indexReader; }
 
+  /**
+   * @return The object's basicTermVectors.
+   */
+  public VectorStore getBasicTermVectors(){ return this.termVectors; }
+
+  
 
   public String[] getFieldsToIndex(){ return this.fieldsToIndex; }
 
@@ -94,6 +103,7 @@ public class TermTermVectorsFromLucene implements VectorStore {
 																	 int minFreq,
 																	 int nonAlphabet,
 																	 int windowSize,
+																 	 VectorStore basicTermVectors,
 																	 String[] fieldsToIndex,
 																	 BuildPositionalIndex.IndexType positionalIndexType)
 		throws IOException, RuntimeException {
@@ -115,12 +125,13 @@ public class TermTermVectorsFromLucene implements VectorStore {
     IndexModifier modifier = new IndexModifier(indexDir, new StandardAnalyzer(), false);
     modifier.optimize();
     modifier.close();
+
+    /* Create an index vector for each term. */
+    this.indexReader = IndexReader.open(indexDir);
     
-		// Create LuceneUtils Class to filter terms
+    // Create LuceneUtils Class to filter terms
     lUtils = new LuceneUtils(indexDir);
     
-    // Create an index vector for each term.
-    this.indexReader = IndexReader.open(indexDir);
     Random random = new Random();
     
     // Check that the Lucene index contains Term Positions.
@@ -138,6 +149,14 @@ public class TermTermVectorsFromLucene implements VectorStore {
     // Iterate through an enumeration of terms and create basic termVector table.
 		// Derived term vectors will be linear combinations of these.
     System.err.println("Creating basic term vectors ...");
+    
+    // Check that basicDocVectors is the right size.
+    if (basicTermVectors != null) 
+    { retraining = true;
+      this.indexVectors = basicTermVectors;
+			System.out.println("Reusing basic term vectors; number of terms: "
+												 + basicTermVectors.getNumVectors());
+    }
     TermEnum terms = this.indexReader.terms();
     int tc = 0;
 
@@ -145,7 +164,8 @@ public class TermTermVectorsFromLucene implements VectorStore {
 			Term term = terms.term();
 
 			// Skip terms that don't pass the filter.
-			if (!lUtils.termFilter(terms.term(), fieldsToIndex, nonAlphabet, minFreq))  {
+
+				if (!lUtils.termFilter(terms.term(), fieldsToIndex, nonAlphabet, minFreq))  {
 				continue;
 			}
 			tc++;
@@ -155,8 +175,9 @@ public class TermTermVectorsFromLucene implements VectorStore {
 			// Place each term vector in the vector store.
 			this.termVectors.putVector(term.text(), termVector);
 
-			// Do the same for random index vectors.
-			this.indexVectors.putVector(term.text(), indexVector);
+			// Do the same for random index vectors unless retraining with trained term vectors
+			if (!retraining) 
+			((VectorStoreSparseRAM) this.indexVectors).putVector(term.text(), indexVector);
     }
     System.err.println("There are " + tc + " terms (and " + indexReader.numDocs() + " docs)");
 
@@ -171,7 +192,7 @@ public class TermTermVectorsFromLucene implements VectorStore {
 		int numdocs = this.indexReader.numDocs();
 
 		for (int dc = 0; dc < numdocs; ++dc) {
-			// Output progress counter.
+			/* output progress counter */
 			if ((dc % 10000 == 0) || (dc < 10000 && dc % 1000 == 0)) {
 				System.err.print(dc + " ... ");
 			}
@@ -185,42 +206,50 @@ public class TermTermVectorsFromLucene implements VectorStore {
 			if (vex !=null) {
 				int[] freqs = vex.getTermFrequencies();
 					
-				// Find number of positions in document (across all terms).
+				/** find number of positions in document (across all terms)**/
 				int numwords = freqs.length;
 				int numpositions = 0;
 				for (int i = 0; i < numwords; ++i) {
 					numpositions += freqs[i];
 				}
 
-				// Create index with one space for each position.
+				/** create index with one space for each position **/
 				short[] positions = new short[numpositions];
 				String[] docterms = vex.getTerms();
 
-				// Create local random index and term vectors for relevant terms.
-				short[][] localindexvectors = new short[numwords][seedLength];
+				/** create local random index and term vectors for relevant terms**/	
+				if (retraining)
+				localindexvectors = new float[numwords][ObjectVector.vecLength];		
+				else
+				localsparseindexvectors = new short[numwords][seedLength];
+				
 				float[][] localtermvectors = new float[numwords][ObjectVector.vecLength];
 
-				// Insert local term indices in position vector.
 				for (short tcn = 0; tcn < numwords; ++tcn)	{ 
-					// Get all positions of term in document
-					int[] posns = vex.getTermPositions(tcn);
+					/** insert local term indices in position vector   **/
+					int[] posns = vex.getTermPositions(tcn); //  get all positions of term in document
 					for (int pc = 0; pc < posns.length; ++pc)	{
-						// Set position of index vector to local (document-specific)
-						// index of term in this position
+						//  set position of index vector to local
+						//  (document-specific) index of term in this position
 						positions[posns[pc]] = tcn;
 					}
 
 					// Only terms that have passed the term filter are included in the VectorStores.
 					if (this.indexVectors.getVector(docterms[tcn]) != null) {
-						// Retrieve relevant random index vectors.
-						localindexvectors[tcn] = indexVectors.getSparseVector(docterms[tcn]);
-						// Retrieve the float[] arrays of relevant term vectors.
+						/** retrieve relevant random index vectors**/
+						if (retraining)
+						localindexvectors[tcn] = indexVectors.getVector(docterms[tcn]);
+						else
+						localsparseindexvectors[tcn] = ((VectorStoreSparseRAM) indexVectors).getSparseVector(docterms[tcn]);
+						
+						/** retrieve the float[] arrays of relevant term vectors **/
 						localtermvectors[tcn] = termVectors.getVector(docterms[tcn]);
 					}
 				}
 
-				// Iterate through positions adding index vectors of terms
-				// occurring within window to term vector for focus term
+				/** Iterate through positions adding index vectors of terms
+				 *  occurring within window to term vector for focus term
+				 **/
 				int w2 = windowSize / 2;
 				for (int p = 0; p < positions.length; ++p) {
 					int focusposn = p;
@@ -228,57 +257,87 @@ public class TermTermVectorsFromLucene implements VectorStore {
 					int windowstart = Math.max(0, p - w2);
 					int windowend = Math.min(focusposn + w2, positions.length - 1);
 
-					/* Add random vector (in condensed (signed index + 1)
+					/* add random vector (in condensed (signed index + 1)
 					 * representation) to term vector by adding -1 or +1 to the
 					 * location (index - 1) according to the sign of the index.
 					 * (The -1 and +1 are necessary because there is no signed
 					 * version of 0, so we'd have no way of telling that the
 					 * zeroth position in the array should be plus or minus 1.)
-					 * See also VectorUtils.generateRandomVector method.
+					 * See also generateRandomVector method below.
 					 */
+
 					for (int w = windowstart; w < focusposn; w++)	{
 						int coterm = positions[w];
-
-						// Calculate permutation required for either Sahlgren (2008) 
-						// implementation encoding word order, or encoding
-						// direction as in Burgess and Lund's HAL.
-						short[] localindex = localindexvectors[coterm].clone(); 
+						/*
+						 * calculate permutation required for either Sahlgren (2008) implementation
+						 * encoding word order, or encoding direction as in Burgess and Lund's HAL
+						 */
+						
+						
+						float[] localindex= new float[0];
+						short[] localsparseindex = new short[0];
+						if (retraining) localindex = localindexvectors[coterm].clone();
+						else localsparseindex = localsparseindexvectors[coterm].clone();
+					
 						if (this.positionalIndexType == BuildPositionalIndex.IndexType.PERMUTATION) {
 							int permutation = w - focusposn;
-							localindex = VectorUtils.permuteSparseVector(localindex, permutation);
+							if (retraining)
+							localindex = VectorUtils.permuteVector(localindex , permutation);
+							else localsparseindex =  VectorUtils.permuteVector(localsparseindex, permutation);
 						} else if (this.positionalIndexType == BuildPositionalIndex.IndexType.DIRECTIONAL) {
-							localindex = VectorUtils.permuteSparseVector(localindex, -1);
+							if (retraining)
+								localindex = VectorUtils.permuteVector(localindex, -1);
+								else localsparseindex =  VectorUtils.permuteVector(localsparseindex, -1);
+							
 						}
 
-						// Docterms[coterm] contains the term in position[w] in this document.
+						/* docterms[coterm] contains the term in position[w] in this document */
 						if (this.indexVectors.getVector(docterms[coterm]) != null) {
-							for (int i = 0; i < seedLength; ++i) {
-								short index = localindex[i];
-								localtermvectors[focusterm][Math.abs(index) - 1] +=  Math.signum(index);
-							}
+							if (retraining)
+								VectorUtils.addVectors(localtermvectors[focusterm],localindex,1);
+							else
+								VectorUtils.addVectors(localtermvectors[focusterm],localsparseindex,1);
+							
 						}
+						
 					}
 
 					for (int w = focusposn + 1; w <= windowend; w++) {
-						int coterm = positions[w];
-
-						// Calculate permutation required for either Sahlgren (2008) 
-						// implementation encoding word order, or encoding
-						// direction as in Burgess and Lund's HAL.
-						short[] localindex = localindexvectors[coterm].clone(); 
-						if (this.positionalIndexType == BuildPositionalIndex.IndexType.PERMUTATION) {
+						{
+							int coterm = positions[w];
+							/*
+							 * calculate permutation required for either Sahlgren (2008) implementation
+							 * encoding word order, or encoding direction as in Burgess and Lund's HAL
+							 */
 							
-							int permutation = w - focusposn;
-							localindex = VectorUtils.permuteSparseVector(localindex, permutation);
-						} else if (this.positionalIndexType == BuildPositionalIndex.IndexType.DIRECTIONAL) {
-							localindex = VectorUtils.permuteSparseVector(localindex, +1);
-						}
+							float[] localindex = new float[0];
+							short[] localsparseindex = new short[0];
+							
+							if (retraining) localindex = localindexvectors[coterm].clone();
+							else localsparseindex = localsparseindexvectors[coterm].clone();
 						
-						if (this.indexVectors.getVector(docterms[coterm]) != null) { 
-							for  (int i = 0; i < seedLength; ++i) {
-								short index = localindex[i];
-								localtermvectors[focusterm][Math.abs(index) - 1] +=  Math.signum(index);
+							
+							if (this.positionalIndexType == BuildPositionalIndex.IndexType.PERMUTATION) {
+								int permutation = w - focusposn;
+								if (retraining)
+								localindex = VectorUtils.permuteVector(localindex , permutation);
+								else localsparseindex =  VectorUtils.permuteVector(localsparseindex, permutation);
+							} else if (this.positionalIndexType == BuildPositionalIndex.IndexType.DIRECTIONAL) {
+								if (retraining)
+									localindex = VectorUtils.permuteVector(localindex , 1);
+									else localsparseindex =  VectorUtils.permuteVector(localsparseindex, 1);
+								
 							}
+
+							/* docterms[coterm] contains the term in position[w] in this document */
+							if (this.indexVectors.getVector(docterms[coterm]) != null) {
+								if (retraining)
+									VectorUtils.addVectors(localtermvectors[focusterm],localindex,1);
+								else
+									VectorUtils.addVectors(localtermvectors[focusterm],localsparseindex,1);
+								
+							}
+							
 						}
 					}
 				}
@@ -296,7 +355,7 @@ public class TermTermVectorsFromLucene implements VectorStore {
 		}
 
 		// If building a permutation index, these need to be written out to be reused.
-		if (positionalIndexType == BuildPositionalIndex.IndexType.PERMUTATION) {
+		if (positionalIndexType == BuildPositionalIndex.IndexType.PERMUTATION && !retraining) {
 			String randFile = "randomvectors.bin";
 			System.err.println("\nWriting random vectors to "+randFile);
 			new VectorStoreWriter().WriteVectors(randFile, this.indexVectors);
