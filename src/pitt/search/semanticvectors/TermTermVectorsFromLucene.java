@@ -244,7 +244,7 @@ public class TermTermVectorsFromLucene implements VectorStore {
 						
 						/** retrieve the float[] arrays of relevant term vectors **/
 						localtermvectors[tcn] = termVectors.getVector(docterms[tcn]);
-					}
+					} 
 				}
 
 				/** Iterate through positions adding index vectors of terms
@@ -266,7 +266,8 @@ public class TermTermVectorsFromLucene implements VectorStore {
 					 * See also generateRandomVector method below.
 					 */
 
-					for (int w = windowstart; w < focusposn; w++)	{
+					for (int w = windowstart; w <= windowend; w++)	{
+						if (w == focusposn) continue;
 						int coterm = positions[w];
 						/*
 						 * calculate permutation required for either Sahlgren (2008) implementation
@@ -286,13 +287,12 @@ public class TermTermVectorsFromLucene implements VectorStore {
 							else localsparseindex =  VectorUtils.permuteVector(localsparseindex, permutation);
 						} else if (this.positionalIndexType == BuildPositionalIndex.IndexType.DIRECTIONAL) {
 							if (retraining)
-								localindex = VectorUtils.permuteVector(localindex, -1);
-								else localsparseindex =  VectorUtils.permuteVector(localsparseindex, -1);
-							
-						}
+								localindex = VectorUtils.permuteVector(localindex, new Float(Math.signum(w-focusposn)).intValue());
+								else localsparseindex =  VectorUtils.permuteVector(localsparseindex, new Float(Math.signum(w-focusposn)).intValue());
+									}
 
 						/* docterms[coterm] contains the term in position[w] in this document */
-						if (this.indexVectors.getVector(docterms[coterm]) != null) {
+						if (this.indexVectors.getVector(docterms[coterm]) != null && localtermvectors[focusterm] != null) {
 							if (retraining)
 								VectorUtils.addVectors(localtermvectors[focusterm],localindex,1);
 							else
@@ -302,45 +302,8 @@ public class TermTermVectorsFromLucene implements VectorStore {
 						
 					}
 
-					for (int w = focusposn + 1; w <= windowend; w++) {
-						{
-							int coterm = positions[w];
-							/*
-							 * calculate permutation required for either Sahlgren (2008) implementation
-							 * encoding word order, or encoding direction as in Burgess and Lund's HAL
-							 */
-							
-							float[] localindex = new float[0];
-							short[] localsparseindex = new short[0];
-							
-							if (retraining) localindex = localindexvectors[coterm].clone();
-							else localsparseindex = localsparseindexvectors[coterm].clone();
-						
-							
-							if (this.positionalIndexType == BuildPositionalIndex.IndexType.PERMUTATION) {
-								int permutation = w - focusposn;
-								if (retraining)
-								localindex = VectorUtils.permuteVector(localindex , permutation);
-								else localsparseindex =  VectorUtils.permuteVector(localsparseindex, permutation);
-							} else if (this.positionalIndexType == BuildPositionalIndex.IndexType.DIRECTIONAL) {
-								if (retraining)
-									localindex = VectorUtils.permuteVector(localindex , 1);
-									else localsparseindex =  VectorUtils.permuteVector(localsparseindex, 1);
-								
-							}
 
-							/* docterms[coterm] contains the term in position[w] in this document */
-							if (this.indexVectors.getVector(docterms[coterm]) != null) {
-								if (retraining)
-									VectorUtils.addVectors(localtermvectors[focusterm],localindex,1);
-								else
-									VectorUtils.addVectors(localtermvectors[focusterm],localsparseindex,1);
-								
-							}
-							
-						}
-					}
-				}
+				} 
 			}
 		}
 
