@@ -301,15 +301,17 @@ public class BuildPositionalIndex {
 			}
 	
 			if (trainingCycles > 1) {
-				termFile = "termvectors" + trainingCycles + ".bin";
+				termFile = termFile.replaceAll("\\..*", "") + trainingCycles + ".bin";
 				docFile = "docvectors" + trainingCycles + ".bin";
+				System.err.println("Writing term vectors to " + termFile);
+				vecWriter.WriteVectors(termFile, vecStore);
+		
 			}
 			
-			// Write document vectors except for permutation index.
-			if (indexType == IndexType.BASIC) {
+			
 				IncrementalDocVectors docVectors =
 					new IncrementalDocVectors(vecStore, luceneIndex, fieldsToIndex,	"incremental_"+docFile);
-			}
+			
 		}
 		catch (IOException e) {
 			e.printStackTrace();
