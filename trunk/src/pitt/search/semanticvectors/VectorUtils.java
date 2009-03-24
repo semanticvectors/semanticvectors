@@ -1,4 +1,3 @@
-
 /**
    Copyright (c) 2007, University of Pittsburgh
 
@@ -491,7 +490,7 @@ public class VectorUtils{
 	 * @param rotation the direction and number of places to rotate
 	 * @return sparse vector with permutation
 	 */
-	public static short[] permuteSparseVector (short[] indexVector, int rotation)	{
+	public static short[] permuteVector (short[] indexVector, int rotation)	{
 		short[] permutedVector = new short[indexVector.length];
 		for (int x = 0; x < permutedVector.length; x++) {
 			int newIndex = Math.abs(indexVector[x]);
@@ -520,16 +519,51 @@ public class VectorUtils{
 		// Correct for unlikely possibility that rotation specified > indexVector.length
 		if (Math.abs(rotation) > indexVector.length)
 			rotation = rotation % indexVector.length;
-
 		float[] permutedVector = new float[indexVector.length];
-		for (int x = 0; x < permutedVector.length; x++) {
-			int max = indexVector.length;
-			int newIndex = x - rotation;
+		int max = indexVector.length;
+		
+		for (int x = 0; x < max; x++) {
+			int newIndex = x + rotation;
 			if (newIndex >= max) newIndex = newIndex - max;
 			if (newIndex < 0) newIndex = max + newIndex;
-			permutedVector[x] = indexVector[newIndex];
+			permutedVector[newIndex] = indexVector[x];
 		}
-		return permutedVector;
+		
+			return permutedVector;
 	}
+	
+	/**
+	 * Add two vectors. Overloaded vector to handle either float[] + float[] or float[] + sparse vector
+	 * @param vector1 	initial vector
+	 * @param vector2	vector to be added 
+	 * @param weight	weight (presently only term frequency implemented - may need this to take floats later)
+	 * @return sum of two vectors
+	 */
+	
+	public static float[] addVectors(float[] vector1, float[] vector2, int weight)
+	{	float[] sum = vector1;
+		for (int x=0; x < sum.length; x++)
+		sum[x] = sum[x] + vector2[x]*weight;
+		return sum;
+	}
+
+	/**
+	 * Add two vectors. Overloaded vector to handle either float[] + float[] or float[] + sparse vector
+	 * @param vector1 	initial vector
+	 * @param vector2	vector to be added 
+	 * @param weight	weight (presently only term frequency implemented - may need this to take floats later)
+	 * @return sum of two vectors
+	 */
+	
+	public static float[] addVectors(float[] vector1, short[] sparseVector, int weight)
+	{	float[] sum = vector1;
+	for (int i = 0; i < sparseVector.length; ++i) {
+		short index = sparseVector[i];
+		sum[Math.abs(index) - 1] +=  Math.signum(index)* weight;
+	}
+		return sum;
+	}
+	
 }
+
 
