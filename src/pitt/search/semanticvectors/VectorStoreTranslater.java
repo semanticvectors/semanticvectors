@@ -65,6 +65,7 @@ public class VectorStoreTranslater {
     // Parse command line args.
     if (args.length != 3) {
       System.err.println("You gave " + args.length + " arguments ...");
+			usage();
 			throw new IllegalArgumentException();
     }
     Options option = null;

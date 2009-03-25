@@ -550,7 +550,7 @@ public class VectorUtils{
 	/**
 	 * Add two vectors. Overloaded vector to handle either float[] + float[] or float[] + sparse vector
 	 * @param vector1 	initial vector
-	 * @param vector2	vector to be added 
+	 * @param sparseVector	vector to be added 
 	 * @param weight	weight (presently only term frequency implemented - may need this to take floats later)
 	 * @return sum of two vectors
 	 */
