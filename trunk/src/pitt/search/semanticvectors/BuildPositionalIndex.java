@@ -113,7 +113,7 @@ public class BuildPositionalIndex {
 	 * Builds term vector stores from a Lucene index - this index must
 	 contain TermPositionVectors.
 	 * @param args
-	 * @see CopyOfBuildPositionalIndex#usage
+	 * //@see CopyOfBuildPositionalIndex#usage
 	 */
 	public static void main (String[] args) throws IllegalArgumentException {
 		boolean wellFormed = false;

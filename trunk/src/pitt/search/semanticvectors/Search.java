@@ -469,12 +469,6 @@ public class Search {
 			results = new LinkedList();
 		}
 
-		// Release filesystem resources.
-		queryVecReader.close();
-		if (!searchFile.equals(queryFile)) {
-			searchVecReader.close();
-		}
-
 		return results;
 	}
 
@@ -510,6 +504,17 @@ public class Search {
 			}	
 		} else {
 			System.err.println("No search output.");
+		}
+
+		// Release filesystem resources.
+		//
+		// TODO(widdows): This is not the cleanest control flow, since these are
+		// opened in RunSearch but also needed in getSearchResultsVectors.
+		// Really there should be a global variable for indexformat (text
+		// or lucene), and general "openIndexes" and "closeIndexes" methods.
+		queryVecReader.close();
+		if (!searchFile.equals(queryFile)) {
+			searchVecReader.close();
 		}
 	}
 }

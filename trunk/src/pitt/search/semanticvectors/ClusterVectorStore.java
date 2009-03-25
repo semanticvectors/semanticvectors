@@ -101,7 +101,7 @@ public class ClusterVectorStore {
 		return finalResults;
 	}
 
-	public static void ClusterOverlapMeasure(int[] clusterIDs, ObjectVector[] vectors) {
+	public static void clusterOverlapMeasure(int[] clusterIDs, ObjectVector[] vectors) {
 		String[] names = new String[vectors.length];
 		Hashtable<String, int[]> internalResults = new Hashtable<String, int[]>();
 		for (int i = 0; i < vectors.length; ++i) {
@@ -197,6 +197,6 @@ public class ClusterVectorStore {
 	    System.out.println("\n*********\n");
 		}
 		
-		ClusterOverlapMeasure(clusterMappings, resultsVectors);
+		clusterOverlapMeasure(clusterMappings, resultsVectors);
 	}
 }
