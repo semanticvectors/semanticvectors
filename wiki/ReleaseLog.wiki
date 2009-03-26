@@ -13,7 +13,7 @@ Added clusterOverlapMeasure to [http://semanticvectors.googlecode.com/svn/trunk/
 
 Added build support for tests and visualization utils (these do not ship with main distribution because of Jama and JUnit dependencies).
 
-TermFilter moved to [http://semanticvectors.googlecode.com/svn/trunk/doc/pitt/search/semanticvectors/LuceneUtils.html LuceneUtils]. (thanks to Vidya Vasuki). Added support for setting the number of non-alphabetic characters that can appear in a term.
+Term filter moved to [http://semanticvectors.googlecode.com/svn/trunk/doc/pitt/search/semanticvectors/LuceneUtils.html LuceneUtils]. (thanks to Vidya Vasuki). Added support for setting the number of non-alphabetic characters that can appear in a term.
 
 Some other minor bug-fixes (see commit log, revisions 190-228).
 
