@@ -3,6 +3,28 @@
 
 Even-numbered versions are releases. Odd-numbered versions are in development. It follows that the most recent code and the `build.xml` file in the SVN repository is always odd-numbered.
 
+=== Version 1.18 ===
+
+(About to ship.)
+
+Added regex query generation to CompareTerms. Not added to main Search yet but would be easy to add here too.
+
+Added clusterOverlapMeasure to ClusterVectorStore. Only works for Bible chapters so far, would be easy to extend to other data.
+
+Added build support for tests and visualization utils (these do not ship with main distribution because of Jama and JUnit dependencies).
+
+TermFilter moved to LuceneUtils (thanks to Vidya Vasuki). Added support for setting the number of non-alphabetic characters that can appear in a term.
+
+Some other minor bug-fixes (see commit log, revisions 190-228).
+
+Added some additional methods to support pre/re-training of incremental vectors.
+
+Added cyclical retraining, and the ability to start with a set of trained term
+vectors (command line option -pt) to allow for combining vector stores in
+interesting ways.
+
+Improved VectorStore implementation to close vector stores properly.
+
 === Version 1.16 ===
 
 Trevor found and fixed a bug in the permutation indexing code. Dominic took the opportunity to add more conformant usage statements and exception handling for [http://semanticvectors.googlecode.com/svn/trunk/doc/pitt/search/semanticvectors/ClusterVectorStore.html ClusterVectorStore].
