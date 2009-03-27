@@ -1,6 +1,6 @@
 <project name="pitt semantic vectors" default="build-all" basedir=".">
 
-  <property name="version" value="1.17"/>
+  <property name="version" value="1.19"/>
 
   <property name="basedir" value="."/>
   <property name="builddir" value="${basedir}/build"/>
@@ -46,7 +46,7 @@
       <tarfileset dir="${basedir}"
                   prefix="${distname}"
                   preserveLeadingSlashes="true"
-									includes="src/">
+									includes="src/pitt/">
 				<include name="build.xml"/>
 				<include name="AUTHORS"/>
 				<include name="LICENSE"/>
@@ -60,7 +60,7 @@
     <zip destfile="${distdir}/${distname}-src.zip">
       <zipfileset dir="${basedir}"
                   prefix="${distname}"
-									includes="src/">
+									includes="src/pitt/">
 				<include name="build.xml"/>
 				<include name="AUTHORS"/>
 				<include name="LICENSE"/>
