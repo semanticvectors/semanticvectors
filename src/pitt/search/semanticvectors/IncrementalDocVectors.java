@@ -69,18 +69,6 @@ public class IncrementalDocVectors {
 		this.indexReader = IndexReader.open(indexDir);
 		this.fieldsToIndex = fieldsToIndex;
 	
-	
-
-		/* Check that the Lucene index contains Term Positions */
-		java.util.Collection fields_with_positions =
-			indexReader.getFieldNames(IndexReader.FieldOption.TERMVECTOR_WITH_POSITION);
-
-		if (fields_with_positions.isEmpty()) {
-			System.err.println("Incremental document indexing requires a Lucene index containing TermPositionVectors");
-			System.err.println("Try rebuilding Lucene index using pitt.search.lucene.IndexFilePositions");
-			throw new IOException("Lucene indexes not built correctly.");
-		}
-
 		int numdocs = indexReader.numDocs();
 
 		// Open file and write headers.
@@ -119,8 +107,8 @@ public class IncrementalDocVectors {
 			float[] docVector = new float[ObjectVector.vecLength];
 
 			for (String fieldName: fieldsToIndex) {
-				TermPositionVector vex =
-					(TermPositionVector) indexReader.getTermFreqVector(dc, fieldName);
+				TermFreqVector vex =
+					 indexReader.getTermFreqVector(dc, fieldName);
 
 				if (vex !=null) {
 					// Get terms in document and term frequencies.
