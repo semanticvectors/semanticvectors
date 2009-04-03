@@ -86,8 +86,6 @@ public class TermTermVectorsFromLucene implements VectorStore {
    */
   public VectorStore getBasicTermVectors(){ return this.termVectors; }
 
-  
-
   public String[] getFieldsToIndex(){ return this.fieldsToIndex; }
 
   /**
@@ -107,15 +105,12 @@ public class TermTermVectorsFromLucene implements VectorStore {
 																	 String[] fieldsToIndex,
 																	 BuildPositionalIndex.IndexType positionalIndexType)
 		throws IOException, RuntimeException {
-    
 	 
 	  this.minFreq = minFreq;
 	  this.nonAlphabet = nonAlphabet;
     this.fieldsToIndex = fieldsToIndex;
     this.seedLength = seedLength;
 		this.positionalIndexType = positionalIndexType;
-
-
 		
     /* This small preprocessing step uses an IndexModifier to make
      * sure that the Lucene index is optimized to use contiguous
@@ -126,7 +121,7 @@ public class TermTermVectorsFromLucene implements VectorStore {
     modifier.optimize();
     modifier.close();
 
-    /* Create an index vector for each term. */
+    // Create an index vector for each term.
     this.indexReader = IndexReader.open(indexDir);
     
     // Create LuceneUtils Class to filter terms
@@ -273,8 +268,6 @@ public class TermTermVectorsFromLucene implements VectorStore {
 						 * calculate permutation required for either Sahlgren (2008) implementation
 						 * encoding word order, or encoding direction as in Burgess and Lund's HAL
 						 */
-						
-						
 						float[] localindex= new float[0];
 						short[] localsparseindex = new short[0];
 						if (retraining) localindex = localindexvectors[coterm].clone();
@@ -297,12 +290,8 @@ public class TermTermVectorsFromLucene implements VectorStore {
 								VectorUtils.addVectors(localtermvectors[focusterm],localindex,1);
 							else
 								VectorUtils.addVectors(localtermvectors[focusterm],localsparseindex,1);
-							
 						}
-						
 					}
-
-
 				} 
 			}
 		}
@@ -337,6 +326,4 @@ public class TermTermVectorsFromLucene implements VectorStore {
 	public int getNumVectors() {
 		return termVectors.getNumVectors();
 	}
-
- 
 }

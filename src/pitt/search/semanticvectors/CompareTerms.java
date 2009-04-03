@@ -97,6 +97,8 @@ public class CompareTerms{
    * @param args See usage();
    */
   public static void main (String[] args) throws IllegalArgumentException {
+		args = Flags.parseCommandLineFlags(args);
+
     if (args.length == 0) {
       usage();
       throw new IllegalArgumentException();
@@ -106,7 +108,8 @@ public class CompareTerms{
     String lucenePath = null;
     LuceneUtils lUtils = null;
     int argc = 0;
-
+		
+		/*
     // Parse command-line args.
     while (args[argc].substring(0, 1).equals("-")) {
       if (args[argc].equals("-v")) {
@@ -128,6 +131,7 @@ public class CompareTerms{
         throw new IllegalArgumentException();
       }
     }
+		*/
 
     if (args.length - argc != 2) {
       System.err.println("After parsing command line options there must be " +

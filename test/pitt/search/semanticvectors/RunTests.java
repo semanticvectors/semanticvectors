@@ -75,6 +75,7 @@ public class RunTests {
 			"pitt.search.semanticvectors.VectorStoreSparseRAMTest",
 			"pitt.search.semanticvectors.VectorStoreWriterTest",
 			"pitt.search.semanticvectors.CompoundVectorBuilderTest",
+      "pitt.search.semanticvectors.FlagsTest",
 		};
 		org.junit.runner.JUnitCore.main(tests);	
 

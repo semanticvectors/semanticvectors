@@ -36,52 +36,35 @@
 package pitt.search.semanticvectors;
 
 import java.lang.IllegalArgumentException;
+import java.lang.reflect.Field;
 
+/**
+ * Class for representing and parsing global command line flags.
+ * 
+ * All command line flags for the SemanticVectors package should be defined here.
+ * This design is a violation of encapsulation, but since these are things that 
+ * the user can break, we believe that we'll create a much cleaner package if we
+ * put this power into user's hands explicitly, but at least insist that all command
+ * line flags are declared in one place - in the Flags class. Needless to say, the 
+ * Flags class only looks after the basic syntax of (name, value) command line flags.
+ * All semantics (i.e., in this case, behaviour affected by the flags) is up to the
+ * developer to implement.
+ * 
+ * @author dwiddows
+ */
 public class Flags {
 
-	public static class FlagInt {
-		public String name;
-		public int value;
-
-		public FlagInt(String name, int value) {
-			this.name = name;
-			this.value = value;
-		}
-	}
-
-	public static class FlagString {
-		public String name;
-		public String value;
-
-		public FlagString(String name, String value) {
-			this.name = name;
-			this.value = value;
-		}
-	}
-
-	public static class FlagBool {
-		public String name;
-		public boolean value;
-
-		public FlagBool(String name, boolean value) {
-			this.name = name;
-			this.value = value;
-		}
-	}
-
-	// Add new command line flags here. The name sill be acessed
-	// globally and should be identical to the intended string used as
-	// the flag at the command line. By convention, please use lower case.
+	// Add new command line flags here. By convention, please use lower case.
 	//
 	// DO NOT DUPLICATE NAMES HERE! YOU WILL OVERWRITE OTHER PEOPLE's FLAGS!
-	public static FlagInt dimension = new FlagInt("dimension", 200);
-	public static FlagInt seedlength = new FlagInt("seedlength", 10);
-	public static FlagInt[] flagsInt = {dimension, seedlength};
+  public static int dimension;
+  public static int seedlength;
+  public static int numsearchresults;
+  public static int numclusters;
 
-	public static FlagString searchtype = new FlagString("searchtype", "SUM");
-	public static FlagString indextype = new FlagString("indextype", "basic");
-	public static FlagString[] flagsString = {searchtype, indextype};
-
+  public static String searchtype;
+  public static String indextype;
+  
 	/**
 	 * Parse command line flags and create public data structures for accessing them.
 	 * @param args
@@ -103,29 +86,23 @@ public class Flags {
 			while (flagName.charAt(0) == '-') {
 				flagName = flagName.substring(1, flagName.length());
 			}
+			
+			try {
+			  Field field = Flags.class.getField(flagName);
 
-			// Check to see if it's a string flag.
-			for (FlagString flag: flagsString) {
-				if (flagName.equalsIgnoreCase(flag.name)) {
-					flag.value = args[argc + 1];
-					recognized = true;
-					argc += 2;
-					continue;
-				}
-			}
-
-			// Check to see if it's an int flag.
-			for (FlagInt flag: flagsInt) {
-				if (flagName.equalsIgnoreCase(flag.name)) {
-					flag.value = Integer.parseInt(args[argc + 1]);
-					recognized = true;
-					argc += 2;
-					continue;
-				}
-			}
-
-			if (!recognized) {
-				throw new IllegalArgumentException("Unrecognized command line flag: " + flagName);
+			  // Parse String arguments.
+	      if (field.getType().getName().equals("java.lang.String")) {
+	        field.set(field, args[argc + 1]);
+	      // Parse int arguments.
+	      } else if (field.getType().getName().equals("int")) {
+	        field.setInt(field, Integer.parseInt(args[argc + 1]));
+	      }
+			  argc += 2;
+			} catch (NoSuchFieldException e) {
+			  throw new IllegalArgumentException("Command line flag not defined: " + flagName);
+			} catch (IllegalAccessException e) {
+	      System.err.println("Must be able to access all fields publicly, including: " + flagName);
+	      e.printStackTrace();
 			}
 
 			if (argc >= args.length) {
