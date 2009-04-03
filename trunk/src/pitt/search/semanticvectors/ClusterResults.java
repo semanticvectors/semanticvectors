@@ -106,8 +106,8 @@ public class ClusterResults {
 	 * <code>
 	 * ClusterResults class in package pitt.search.semanticvectors
 	 * <br>Usage: java pitt.search.semanticvectors.BuildIndex 
-	 * <br>-results [number of search results] 
-	 * <br>-clusters [number of clusters]
+	 * <br>-numsearchresults [number of search results] 
+	 * <br>-numclusters [number of clusters]
 	 * <br> &lt;SEARCH ARGS&gt;
 	 * where SEARCH ARGS is an expression passed to Search class.
 	 * </code>
@@ -116,8 +116,8 @@ public class ClusterResults {
 	public static void usage() {
 		String usageMessage = "\nClusterResults class in package pitt.search.semanticvectors"
 			+ "\nUsage: java pitt.search.semanticvectors.ClusterResults"
-			+ "\n                        -results [number of search results]" 
-			+ "\n                        -clusters [number of clusters]"
+			+ "\n                        -numsearchresults [number of search results]" 
+			+ "\n                        -numclusters [number of clusters]"
 			+ "\n                        <SEARCH ARGS>"
 			+ "\nwhere SEARCH ARGS is an expression passed to Search class.";
 		System.out.println(usageMessage);
@@ -130,44 +130,12 @@ public class ClusterResults {
 	 * @see ClusterResults#usage
 	 */
 	public static void main (String[] args) throws IllegalArgumentException, ZeroVectorException {
-		int numClusters = 0, numResults = 0;
-
-		// Parse query args. Make sure you put the two clustering
-		// arguments before any of the search arguments.
-    int argc = 0;
-		if (args.length < 5) {
-			usage();
-			throw new IllegalArgumentException("Too few arguments to ClusterResults.");
-		}
-    while (args[argc].substring(0, 1).equals("-")) {
-      if (args[argc].equals("-clusters")) {
-        numClusters = Integer.parseInt(args[argc + 1]);
-        argc += 2;
-      }
-      else if (args[argc].equals("-results")) {
-        numResults = Integer.parseInt(args[argc + 1]);
-        argc += 2;
-      }
-			else {
-				if (argc == 4 && numClusters != 0 && numResults != 0) {
-					break;
-				}
-				else {
-					usage();
-					return;
-				}
-			}
-		}
-
-		String[] searchArgs = new String[args.length - argc];
-		for (int i = 0; i < args.length - argc;  ++i) {
-			searchArgs[i] = args[argc + i];
-		}
-
+	  args = Flags.parseCommandLineFlags(args);
+	  
 		// Get search results, perform clustering, and print out results.		
-		ObjectVector[] resultsVectors = Search.getSearchResultVectors(searchArgs, numResults);
-		int[] clusterMappings = kMeansCluster(resultsVectors, numClusters);
-		for (int i = 0; i < numClusters; ++i) {
+		ObjectVector[] resultsVectors = Search.getSearchResultVectors(args, Flags.numsearchresults);
+		int[] clusterMappings = kMeansCluster(resultsVectors, Flags.numclusters);
+		for (int i = 0; i < Flags.numclusters; ++i) {
 	    System.out.println("Cluster " + i);
 	    for (int j = 0; j < clusterMappings.length; ++j) {
 				if (clusterMappings[j] == i) {

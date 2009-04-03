@@ -42,8 +42,8 @@ public class FlagsTest {
     public void testParseCommandLineFlags() {
 		String[] args = {"-searchtype", "subspace", "--dimension", "3", "queryterm"};
 		args = Flags.parseCommandLineFlags(args);
-		assertEquals("subspace", Flags.searchtype.value);
-		assertEquals(3, Flags.dimension.value);
+		assertEquals("subspace", Flags.searchtype);
+		assertEquals(3, Flags.dimension);
 
 		// Test remaining query args correct.
 		assertEquals(1, args.length);
