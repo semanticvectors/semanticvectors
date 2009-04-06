@@ -55,13 +55,6 @@ public class CompoundVectorBuilder {
   private VectorStore vecReader;
   private LuceneUtils lUtils;
 
-  public enum LookupSyntax {
-    STRING,
-    REGEX,
-  }
-
-  public static LookupSyntax lookupSyntax = LookupSyntax.STRING;
-
   public CompoundVectorBuilder (VectorStore vecReader, LuceneUtils lUtils) {
     this.vecReader = vecReader;
     this.lUtils = lUtils;
@@ -125,7 +118,7 @@ public class CompoundVectorBuilder {
         if (lUtils != null) {
           weight = lUtils.getGlobalTermFreq(new Term("contents", queryTerms[j]));
           weight = 1/weight;
-          System.out.println("Term "+queryTerms[j]+" weight "+weight);
+          System.err.println("Term " + queryTerms[j] + " weight " + weight);
         } else {
 					weight = 1;
 				}
@@ -183,7 +176,7 @@ public class CompoundVectorBuilder {
         return builder.getNegatedQueryVector(queryTerms, i);
       }
     }
-    if (lookupSyntax == LookupSyntax.REGEX) {
+    if (Flags.vectorlookupsyntax.equals("regex")) {
       returnVector = builder.getAdditiveQueryVectorRegex(queryTerms);
     } else {
       returnVector = builder.getAdditiveQueryVector(queryTerms);

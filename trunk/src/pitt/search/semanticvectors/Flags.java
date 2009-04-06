@@ -64,6 +64,10 @@ public class Flags {
 
   public static String searchtype;
   public static String indextype;
+  public static String queryvectorfile;
+  public static String searchvectorfile;
+  public static String luceneindexpath;
+  public static String vectorlookupsyntax;
   
 	/**
 	 * Parse command line flags and create public data structures for accessing them.

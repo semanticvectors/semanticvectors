@@ -64,12 +64,8 @@ public class CompareTerms{
    * Prints the following usage message: 
    * <code>
    * <br> CompareTerms class in package pitt.search.semanticvectors 
-   * <br> Usage: java pitt.search.semanticvectors.CompareTerms [-v vectorfile]
-   * <br>                                                      [-l path_to_lucene_index]
+   * <br> Usage: java pitt.search.semanticvectors.CompareTerms
    * <br>                                         "&lt;QUERYTERMS1&gt;" "&lt;QUERYTERMS2&gt;"
-   * <br>-l argument may be used to get term weights from
-   * <br>term frequency, doc frequency, etc. in lucene index.
-	 * <br>-lookupsyntax [STRING|REGEX] (default STRING).
    * <br>"&lt;QUERYTERMS1,2&gt;" should be lists of words, separated by spaces.
    * <br> The quotes are mandatory unless you are comparing two single words.
    * <br> If the term NOT is used in one of the lists, subsequent terms in 
@@ -79,12 +75,8 @@ public class CompareTerms{
    */
   public static void usage(){
     String usageMessage = "CompareTerms class in package pitt.search.semanticvectors"
-			+ "\nUsage: java pitt.search.semanticvectors.CompareTerms [-v vectorfile]"
-			+ "\n                                        [-l path_to_lucene_index]"
+			+ "\nUsage: java pitt.search.semanticvectors.CompareTerms"
 			+ "\n                                        \"<QUERYTERMS1>\" \"<QUERYTERMS2>\""
-			+ "\n-l argument may be used to get term weights from"
-			+ "\n    term frequency, doc frequency, etc. in lucene index."
-			+ "\n-lookupsyntax [STRING|REGEX] (default STRING)."
 			+ "\n<QUERYTERMS1,2> should be lists of words, separated by spaces."
 			+ "\nThe quotes are mandatory unless you are comparing two single words."
 			+ "\nIf the term NOT is used in one of the lists, subsequent terms in "
@@ -99,41 +91,9 @@ public class CompareTerms{
   public static void main (String[] args) throws IllegalArgumentException {
 		args = Flags.parseCommandLineFlags(args);
 
-    if (args.length == 0) {
-      usage();
-      throw new IllegalArgumentException();
-    }
-
-    String queryFile = "termvectors.bin"; // default value
-    String lucenePath = null;
-    LuceneUtils lUtils = null;
-    int argc = 0;
+    LuceneUtils luceneUtils = null;
 		
-		/*
-    // Parse command-line args.
-    while (args[argc].substring(0, 1).equals("-")) {
-      if (args[argc].equals("-v")) {
-        queryFile = args[argc + 1];
-        argc += 2;
-      }
-      else if (args[argc].equals("-l")) {
-        lucenePath = args[argc + 1];
-        argc += 2;
-      }
-      else if (args[argc].equals("-lookupsyntax")) {
-        if (args[argc + 1].equalsIgnoreCase("regex")) {
-          CompoundVectorBuilder.lookupSyntax = CompoundVectorBuilder.LookupSyntax.REGEX;
-        }
-        argc += 2;
-      }
-      else {
-        usage();
-        throw new IllegalArgumentException();
-      }
-    }
-		*/
-
-    if (args.length - argc != 2) {
+    if (args.length != 2) {
       System.err.println("After parsing command line options there must be " +
                          "exactly two queryterm expressions to compare.");
       usage();
@@ -142,32 +102,32 @@ public class CompareTerms{
 
     // Reading and searching data.
     try {
-      VectorStoreReader vecReader = new VectorStoreReader(queryFile);
-      System.err.println("Opening query vector store from file: " + queryFile);
+      VectorStoreReader vecReader = new VectorStoreReader(Flags.queryvectorfile);
+      System.err.println("Opening query vector store from file: " + Flags.queryvectorfile);
 
-      if (lucenePath != null) {
+      if (Flags.luceneindexpath != null) {
         try {
-					lUtils = new LuceneUtils( lucenePath );
+					luceneUtils = new LuceneUtils(Flags.luceneindexpath);
 				} catch (IOException e) {
-          System.err.println("Couldn't open Lucene index at " + lucenePath);
+          System.err.println("Couldn't open Lucene index at " + Flags.luceneindexpath);
         }
       }
-      if (lUtils == null) {
+      if (luceneUtils == null) {
         System.err.println("No Lucene index for query term weighting, "
                            + "so all query terms will have same weight.");
       }
 
       float[] vec1 = CompoundVectorBuilder.getQueryVectorFromString(vecReader,
-                                                                    lUtils,
-                                                                    args[argc]);
+                                                                    luceneUtils,
+                                                                    args[0]);
       float[] vec2 = CompoundVectorBuilder.getQueryVectorFromString(vecReader,
-                                                                    lUtils,
-                                                                    args[argc + 1]);
+                                                                    luceneUtils,
+                                                                    args[1]);
       float simScore = VectorUtils.scalarProduct(vec1, vec2);
       // Printing prompt to stderr and score to stdout, this should enable
       // easier batch scripting to combine input and output data.
-      System.err.println("Outputting similarity of \"" + args[argc]
-                         + "\" with \"" + args[argc+1] + "\" ...");
+      System.err.println("Outputting similarity of \"" + args[0]
+                         + "\" with \"" + args[1] + "\" ...");
       System.out.println(simScore);
     }
     catch (IOException e) {
