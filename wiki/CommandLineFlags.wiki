@@ -41,10 +41,17 @@ So far the design is entirely syntactic. Anything about the semantics of the glo
 
 If we do include enumerations of allowed values for strings, this goes one step beyond purely type-level syntax. You could imagine adding predicates that test integer values for semantic correctness as well (e.g., "-dimension" should be greater that zero). Once you have combinations of variables needed to define correctness (e.g., seedlength must be less than or equal to half of dimension), it would be really hard to build this into the Flags class itself.
 
+==How will this affect me?==
 
+If you're a SemanticVectors user but not a developer, it won't affect you at all, execpt that we will almost certainly be changing some of the flag names. Using `-d` for dimension was find when we had just a couple of flags, but it just doesn't work any more given how many flags we have and how hard it is to remember them all. If and when the new flags implementation is shipped in a full release, if you have wrapper scripts using old flag names, these will need to be updated. _Write to us as soon as possible if this will be a major problem for you and we'll see if there's an interim accommodation we can include._
 
+If you're a SemanticVectors developer, it will make it much easier and quicker to prototype new configurable features. Please use your new power wisely!
 
+==Current Status==
 
+Much of the Flags class is written (no support for Boolean values, string value enumerations or printing helpful descriptions yet).
+
+Test implementations are in CompareTerms and ClusterResults. We'll hopefully refactor the main index building and searching classes in a few days, pending feedback from the user group.
 
 
 
@@ -55,8 +62,6 @@ If we do include enumerations of allowed values for strings, this goes one step 
 
 
  
-
-
 
 
 
