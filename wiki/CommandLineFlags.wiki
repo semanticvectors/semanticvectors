@@ -4,7 +4,12 @@
 
 When the project started, we just had a couple of programs (BuildIndex and Search) that had their own `main()` functions, and it was easy to have them each parse their command line arguments.
 
+Now the package has grown, we have a lot more programs, a lot more `main()` functions, and a lot more configurable arguments. So it's appropriate for BuildIndex, Search, BuildPositionalIndex, ClusterResults, and ClusterVectorStore, all to say (for example) that they'd like to use a text rather than a lucene vector file format. Having each of these programs look after parsing overlapping command line arguments has led to unnecessary code repetition, with all the problems of poor maintainability and sometimes lack of synchronization that you would expect.
 
+== Suggested Solution ==
 
-http://semanticvectors.googlecode.com/svn/trunk/doc/pitt/search/semanticvectors/Flags.html
+There's a new [http://semanticvectors.googlecode.com/svn/trunk/doc/pitt/search/semanticvectors/Flags.html Flags] class that looks after:
+
+  * Representing publicly all variables that can be set at the command line.
+  * Parsing command line arguments to extract these variables and leave the rest of the arguments to the caller.
 
