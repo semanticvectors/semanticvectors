@@ -13,3 +13,25 @@ There's a new [http://semanticvectors.googlecode.com/svn/trunk/doc/pitt/search/s
   * Representing publicly all variables that can be set at the command line.
   * Parsing command line arguments to extract these variables and leave the rest of the arguments to the caller.
 
+In order to create and use a new command-line flag anywhere in the package, all a developer has to do is:
+  # Define the flag as a public field in Flags.java.
+  # Add the line `args = Flags.parseCommandLineFlags(args);` at the beginning of their `main(String[] args)` function.
+
+For example, to create a command-line configurable variable to represent the dimension of the vector space used, you'd add the line `public static int dimension;` to Flags.java. Then any program that calls `Flags.parseCommandLineFlags(args);` will interpret the arguments `-dimension 500` as a directive to set the value of the public `Flags.dimension` variable to 500.
+
+One side effect of this policy is that flags can be set in any of the programs and used anywhere in the rest of the package codebase. For example, you can now give the instruction to use `-vectorfileformat text` anywhere, and this can be used anywhere else to determine which VectorStore implementation to use. This is powerful but dangerous: it's a big violation of encapsulation principles, but in some cases this may be justified as it rapidly speeds up development (e.g., because the developer doesn't have to figure out how to pass the new variable throughout the call stack to where it is used).
+
+===Potential Additions===
+
+  * Default values. This is probably a no-brainer: the declaration `public static int dimension = 200;` is a reasonable way to set default values.
+  * Allowed values for strings. Several string arguments only take certain enumerated arguments (e.g., `searchtype`). It would be reasonably easy to add support for enumerations of allowed values for string variables.
+
+
+
+
+
+
+
+
+
+
