@@ -1,0 +1,10 @@
+#summary Command line flags in SemanticVectors - Design doc and Developer guide.
+
+== Motivation ==
+
+When the project started, we just had a couple of programs (BuildIndex and Search) that had their own `main()` functions, and it was easy to have them each parse their command line arguments.
+
+
+
+http://semanticvectors.googlecode.com/svn/trunk/doc/pitt/search/semanticvectors/Flags.html
+
