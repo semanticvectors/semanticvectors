@@ -33,6 +33,7 @@
 
 package pitt.search.semanticvectors;
 
+import java.lang.reflect.Field;
 import org.junit.*;
 import static org.junit.Assert.*;
 
@@ -61,5 +62,43 @@ public class FlagsTest {
 			failed = true;
 		}
 		if (!failed) fail();
+	}
+
+	@Test
+		public void testThrowsUnrecognizedValue() {
+		String[] args = {"-searchtype", "sum"};
+		try {
+			Flags.parseCommandLineFlags(args);
+		} catch (IllegalArgumentException e) {
+			fail();
+		}
+
+		String[] args2 = {"-searchtype", "notagoodvalue"};
+		boolean failed = false;
+		try {
+			Flags.parseCommandLineFlags(args2);
+		} catch (IllegalArgumentException e) {
+			System.out.println(e.getMessage());
+			failed = true;
+		}
+		if (!failed) fail();
+	}
+
+	@Test
+		public void testFlagsMetadata() {
+		Field[] allFlagFields = Flags.class.getFields();
+		for (Field field: allFlagFields) {
+			String fieldName = field.getName();
+			if (fieldName.endsWith("Description")) {
+				try {
+					String flagName = fieldName.substring(0, fieldName.length() - 11);
+					Field flagField = Flags.class.getField(flagName);
+				} catch (NoSuchFieldException e) {
+					System.err.println("Description field '" + fieldName
+														 + "' has no corresponding flag defined.");
+					fail();
+				}
+			}
+		}
 	}
 }
