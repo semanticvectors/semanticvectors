@@ -57,17 +57,30 @@ public class Flags {
 	// Add new command line flags here. By convention, please use lower case.
 	//
 	// DO NOT DUPLICATE NAMES HERE! YOU WILL OVERWRITE OTHER PEOPLE's FLAGS!
-  public static int dimension;
+  public static int dimension = 200;
+	public static final String dimensionDescription = "Dimension of semantic vector space";
+
   public static int seedlength;
+	public static final String seedlengthDescription =
+		"Number of +1 and number of -1 entries in a sparse random vector";
+
   public static int numsearchresults;
   public static int numclusters;
 
-  public static String searchtype;
+  public static String searchtype = "sum";
+	public static final String searchtypeDescription = "Method used for combining and searching vectors.";
+	public static final String[] searchtypeValues = {"sum", "sparsesum", "subspace", "maxsim", "tensor",
+																									 "convolution", "permutation", "printquery"};
+
   public static String indextype;
   public static String queryvectorfile;
   public static String searchvectorfile;
   public static String luceneindexpath;
-  public static String vectorlookupsyntax;
+
+  public static String vectorlookupsyntax = "exactmatch";
+	public static final String vectorlookupsyntaxDescription =
+		"Method used for looking up vectors in a vector store";
+  public static String[] vectorlookupsyntaxValues = {"exactmatch", "regex"};
   
 	/**
 	 * Parse command line flags and create public data structures for accessing them.
@@ -96,7 +109,30 @@ public class Flags {
 
 			  // Parse String arguments.
 	      if (field.getType().getName().equals("java.lang.String")) {
-	        field.set(field, args[argc + 1]);
+					// All string values are lowercased.
+					String flagValue = args[argc + 1].toLowerCase();
+	        field.set(field, flagValue);
+					// If there is an enum of accepted values, check that it's one of these.
+					try {
+						Field valuesField = Flags.class.getField(flagName + "Values");
+						String[] valuesList = (String[]) valuesField.get(Flags.class);
+						boolean found = false;
+						for (int i = 0; i < valuesList.length; ++i) {
+							if (flagValue.equals(valuesList[i])) {
+								found = true;
+								break;
+							}
+						}
+						if (!found) {
+							String errString = "Value '" + flagValue + "' not valid value for option -" + flagName
+								+ "\nValid values are: " + joinStringArray(valuesList);
+							throw new IllegalArgumentException(errString);
+						}
+					} catch (NoSuchFieldException e) {
+						// This just means there isn't a list of allowed values.		
+						continue;
+					}
+
 	      // Parse int arguments.
 	      } else if (field.getType().getName().equals("int")) {
 	        field.setInt(field, Integer.parseInt(args[argc + 1]));
@@ -122,5 +158,18 @@ public class Flags {
 			trimmedArgs[i] = args[argc + i];
 		}
 		return trimmedArgs;
+	}
+
+	/**
+	 * String pretty print a String array.
+	 * @returns String representation of input array.
+	 */
+	public static String joinStringArray(String[] values) {
+		String result = "";
+		for (int i = 0; i < values.length - 1; ++i) {
+			result += values[i] + ", ";
+		}
+		result += values[values.length - 1];
+		return result;
 	}
 }
