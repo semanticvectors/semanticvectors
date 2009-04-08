@@ -43,94 +43,147 @@ import java.lang.InterruptedException;
 import java.lang.Process;
 import java.lang.Runtime;
 
+import org.junit.runner.notification.Failure;
 import org.junit.runner.JUnitCore;
+import org.junit.runner.Result;
 
+/**
+ * Class for running unit tests and regression tests.
+ *
+ * Should be run in the test/testdata/tmp working directory. Running
+ * from the build.xml script with "ant run-tests" ensures this.
+ */
 public class RunTests {
+  /**
+   * Important: you need to add your test class to this list for it to
+   * be run by runUnitTests().
+   */
+  public static Class[] unitTestClasses = { VectorUtilsTest.class, 
+                                            VectorStoreRAMTest.class,
+                                            VectorStoreReaderTest.class,
+                                            VectorStoreSparseRAMTest.class,
+                                            VectorStoreWriterTest.class,
+                                            CompoundVectorBuilderTest.class,
+                                            FlagsTest.class };
 
-	public static String tmpTestDataPath = "tmp/";  // Perhaps don't need this if set in build.xml file.
-	public static String vectorTextFile = tmpTestDataPath + "termvectors.txt";
-	public static String vectorBinFile = tmpTestDataPath + "termvectors.bin";
+  public static Class[] regressionTestClasses = { RegressionTests.class };
 
-	public static String testVectors = "-dimensions|3\n"
-		+ "abraham|1.0|0.0|0.0\n"
-		+ "isaac|0.8|0.2|0.2\n";
+  public static String vectorTextFile = "testtermvectors.txt";
+  public static String vectorBinFile = "testtermvectors.bin";
 
-	// Recursively delete a directory.
-	// Return true on success; return false and quit at first failure.
-	public static boolean deleteDir(File dir) {
-		if (dir.isDirectory()) {
-			String[] subDirs = dir.list();
-			for (String subDir: subDirs) {
-				boolean success = deleteDir(new File(dir, subDir));
-				if (!success) {
-					return false;
-				}
-			}
-		}
-		// The directory is now empty so delete it
-		return dir.delete();
-	}
+  public static String testVectors = "-dimensions|3\n"
+    + "abraham|1.0|0.0|0.0\n"
+    + "isaac|0.8|0.2|0.2\n";
 
+  public static boolean checkCurrentDirEmpty() {
+    File cwd = new File(".");
+    if (!cwd.isDirectory()) return false;
+    String[] files = cwd.list();
+    if (files.length > 0) return false;
+    return true;
+  }
 
-	private static void prepareUnitTestData() {
-		try {
-			File tmpDir = new File(tmpTestDataPath);
-			tmpDir.mkdir();
-			BufferedWriter outBuf = new BufferedWriter(new FileWriter(vectorTextFile));
-			outBuf.write(testVectors);
-			outBuf.close();
+  /**
+   * Recursively delete a directory.
+   * Return true on success; return false and quit at first failure.
+   */
+  public static boolean deleteDir(File dir) {
+    if (dir.isDirectory()) {
+      String[] subDirs = dir.list();
+      for (String subDir: subDirs) {
+        boolean success = deleteDir(new File(dir, subDir));
+        if (!success) {
+          return false;
+        }
+      }
+    }
+    // The directory is now empty so delete it
+    return dir.delete();
+  }
 
-			VectorStoreTranslater translater = new VectorStoreTranslater();
-			String[] translaterArgs = {"-TEXTTOLUCENE", vectorTextFile, vectorBinFile};
-			translater.main(translaterArgs);
-		} catch (IOException e) {
-			System.err.println("Failed to prepare test data ... abandoning tests.");
-			e.printStackTrace();
-		}
-	}
+  /**
+   * Convenience method for running JUnit tests and displaying failure results.
+   * @return int[2] {num_successes, num_failures}.
+   */
+  private static int[] runJUnitTests(Class[] classes) {
+    Result results = org.junit.runner.JUnitCore.runClasses(classes);
+    for (Failure failure: results.getFailures()) {
+      System.out.println("FAILURE!!!");
+      System.out.println("FAILURE!!!   " + failure.toString());
+      System.out.println("FAILURE!!!");
+    }
+    int[] resultCounts = { results.getRunCount() - results.getFailureCount(),
+                           results.getFailureCount() };
+    return resultCounts;
+  }
 
-	private static void cleanupUnitTestData() {
-		deleteDir(new File(tmpTestDataPath));
-	}
+  private static boolean prepareUnitTestData() {
+    try {
+      BufferedWriter outBuf = new BufferedWriter(new FileWriter(vectorTextFile));
+      outBuf.write(testVectors);
+      outBuf.close();
 
-	private static void prepareRegressionTestData() {
-		// Explicitly trying to use Runtime constructs instead of (more reliable)
-		// imported class APIs, in the hope that we fail faster with Runtime constructs.
-		Runtime runtime = Runtime.getRuntime();
-		try {
-			Process luceneIndexer = runtime.exec("java org.apache.lucene.demo.IndexFiles John");
-			luceneIndexer.waitFor();
-		} catch (Exception e) {
-			System.err.println("Failed to prepare regression test data ... abandoning tests.");
-			e.printStackTrace();
-		}
-	}
+      VectorStoreTranslater translater = new VectorStoreTranslater();
+      String[] translaterArgs = {"-TEXTTOLUCENE", vectorTextFile, vectorBinFile};
+      translater.main(translaterArgs);
+    } catch (IOException e) {
+      System.err.println("Failed to prepare test data ... abandoning tests.");
+      e.printStackTrace();
+      return false;
+    }
+    return true;
+  }
 
-	private static void cleanupRegressionTestData() {
-		deleteDir(new File(tmpTestDataPath));
-		deleteDir(new File("index/"));
-	}
+  private static void cleanupUnitTestData() {
+    deleteDir(new File("."));
+  }
 
-	public static void main(String args[]) {
-		// Prepare, run, and cleanup after unit tests.
-		System.err.println("Preparing and running unit tests ...");
-		prepareUnitTestData();
+  private static boolean prepareRegressionTestData() {
+    // Explicitly trying to use Runtime constructs instead of (more reliable)
+    // imported class APIs, in the hope that we fail faster with Runtime constructs.
+    Runtime runtime = Runtime.getRuntime();
+    String testDataPath = "../John";
+    File testDataDir = new File(testDataPath);
+    if (!testDataDir.isDirectory()) return false;
+    try {
+      Process luceneIndexer = runtime.exec("java org.apache.lucene.demo.IndexFiles " + testDataPath);
+      luceneIndexer.waitFor();
+    } catch (Exception e) {
+      System.err.println("Failed to prepare regression test data ... abandoning tests.");
+      e.printStackTrace();
+    }
+    return true;
+  }
 
-		JUnitCore runner = new JUnitCore();
-		Class[] unitTestClasses = {VectorUtilsTest.class, 
-															 VectorStoreRAMTest.class,
-															 VectorStoreReaderTest.class,
-															 VectorStoreSparseRAMTest.class,
-															 VectorStoreWriterTest.class,
-															 CompoundVectorBuilderTest.class,
-															 FlagsTest.class};
-		runner.run(unitTestClasses);
-		cleanupUnitTestData();
+  private static void cleanupRegressionTestData() {
+    deleteDir(new File("."));
+  }
 
-		// Prepare, run, and cleanup after regression tests. 
-		System.err.println("Preparing and running regression tests ...");
-		prepareRegressionTestData();
+  public static void main(String args[]) throws IOException {
+    if (!checkCurrentDirEmpty()) {
+      throw new IOException("The test/testdata/tmp directory should be empty before running tests.");
+    }
 
-		cleanupRegressionTestData();
-	}
+    int successes = 0;
+    int failures = 0;
+    int[] scores = {0, 0}; 
+
+    // Prepare, run, and cleanup after unit tests.
+    System.err.println("Preparing and running unit tests ...");
+    if (!prepareUnitTestData()) System.out.println("Failed.");
+    scores = runJUnitTests(unitTestClasses);
+    successes += scores[0];
+    failures += scores[1];
+    cleanupUnitTestData();
+
+    // Prepare, run, and cleanup after regression tests. 
+    System.err.println("Preparing and running regression tests ...");
+    if (!prepareRegressionTestData()) System.out.println("Failed.");
+    scores = runJUnitTests(regressionTestClasses);
+    successes += scores[0];
+    failures += scores[1];
+    cleanupRegressionTestData();
+
+    System.err.println("Ran all tests. Successes: " + successes + "\tFailures: " + failures);
+  }
 }

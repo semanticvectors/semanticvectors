@@ -10,7 +10,7 @@
   <property name="docdir" value="${basedir}/doc"/>  
   <property name="srcdir" value="${basedir}/src"/>
   <property name="testdir" value="${basedir}/test"/>
-  <property name="testdatadir" value="${testdir}/testdata/"/>
+  <property name="testworkingdir" value="${testdir}/testdata/tmp"/>
   <property name="pittsrcdir" value="${srcdir}/pitt"/>
   <property name="utildir" value="${srcdir}/util"/>
 
@@ -93,7 +93,8 @@
   </target>
 
 	<target name="run-tests" depends="compile-tests">
-		<java fork="true" dir="${testdatadir}"
+    <mkdir dir="${testworkingdir}"/>
+		<java fork="true" dir="${testworkingdir}"
 					classname="pitt.search.semanticvectors.RunTests"/>
 	</target>
 
