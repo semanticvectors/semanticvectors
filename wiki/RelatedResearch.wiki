@@ -22,8 +22,7 @@ Magnus Sahlgren. [http://www.sics.se/~mange/papers/RI_intro.pdf An introduction 
 
 See also the excellent collection at http://www.sics.se/~mange/random_indexing.html.
 
-Ella Bingham and Heikki Mannila. [http://citeseer.ist.psu.edu/bingham01random.html.
-Random projection in dimensionality reduction: applications to image and text data]. In Knowledge Discovery and Data Mining, pages 245–250, 2001.
+Ella Bingham and Heikki Mannila. [http://citeseer.ist.psu.edu/bingham01random.html Random projection in dimensionality reduction: applications to image and text data]. In Knowledge Discovery and Data Mining, pages 245–250, 2001.
 
 ==Introductory Material on Semantic Vector Spaces==
 
