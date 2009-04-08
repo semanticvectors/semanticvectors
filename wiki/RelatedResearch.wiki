@@ -1,0 +1,35 @@
+#summary A list of research related to semantic vector spaces generally.
+
+This is a large topic on which much has been written. There are many many more papers we should add here, please feel free to write in with suggestions. Or even better, join the project and start adding them yourself.
+
+==Papers about the SemanticVectors Package and Related Software==
+
+Semantic Vectors: A Scalable Open Source Package and Online Technology Management Application, Dominic Widdows, Kathleen Ferraro, 2008.
+
+Empirical Distributional Semantics: Methods and Biomedical Applications, Trevor Cohen, Dominic Widdows, Journal of Biomedical Informatics (2009) (to appear).
+
+==Papers that use the SemanticVectors Package==
+
+Semantic Vector Products: Some Initial Investigations, Dominic Widdows, Proceedings of the Second AAAI Symposium on Quantum Interaction, 2008.
+
+Semantic Vector Combinations and the Synoptic Gospels, Dominic Widdows, Trevor Cohen, Third International Symposium on Quantum Interaction, 2009.
+
+==Core Papers on Random Projection==
+
+(See also RandomProjection.)
+
+Magnus Sahlgren. [http://www.sics.se/~mange/papers/RI_intro.pdf An introduction to random indexing.] Technical report, 2005. 
+
+See also the excellent collection at http://www.sics.se/~mange/random_indexing.html.
+
+Ella Bingham and Heikki Mannila. [http://citeseer.ist.psu.edu/bingham01random.html.
+Random projection in dimensionality reduction: applications to image and text data]. In Knowledge Discovery and Data Mining, pages 245–250, 2001.
+
+==Introductory Material on Semantic Vector Spaces==
+
+[http://www.puttypeg.com/book/ Geometry and Meaning], Dominic Widdows, CSLI Publications, 2004. The [http://infomap.stanford.edu/papers/vector-chapter.pdf sample chapter] may be particularly useful to those unfamiliar with vectors.
+
+==Papers about Semantic Spaces more generally==
+
+Landauer, T. K., & Dumais, S. T. (1997). 
+[http://lsa.colorado.edu/papers/plato/plato.annote.html A solution to Plato's problem: The Latent Semantic Analysis theory of the acquisition, induction, and representation of knowledge.] Psychological Review, 104, 211-240.
