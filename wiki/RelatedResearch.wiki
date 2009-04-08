@@ -2,19 +2,21 @@
 
 This is a large topic on which much has been written. There are many many more papers we should add here, please feel free to write in with suggestions. Or even better, join the project and start adding them yourself.
 
-==Papers about the SemanticVectors Package and Related Software==
+===Papers that talk about the SemanticVectors Package itself===
 
 Semantic Vectors: A Scalable Open Source Package and Online Technology Management Application, Dominic Widdows, Kathleen Ferraro, 2008.
 
 Empirical Distributional Semantics: Methods and Biomedical Applications, Trevor Cohen, Dominic Widdows, Journal of Biomedical Informatics (2009) (to appear).
 
-==Papers that use the SemanticVectors Package==
+===Papers that use the SemanticVectors Package to generate results===
+
+_Please let us know if you have any articles to add to this list, it is really good for the project to know what results people have obtained using the software._
 
 Semantic Vector Products: Some Initial Investigations, Dominic Widdows, Proceedings of the Second AAAI Symposium on Quantum Interaction, 2008.
 
 Semantic Vector Combinations and the Synoptic Gospels, Dominic Widdows, Trevor Cohen, Third International Symposium on Quantum Interaction, 2009.
 
-==Core Papers on Random Projection==
+===Core Papers on Random Projection===
 
 (See also RandomProjection.)
 
@@ -24,7 +26,7 @@ See also the excellent collection at http://www.sics.se/~mange/random_indexing.h
 
 Ella Bingham and Heikki Mannila. [http://citeseer.ist.psu.edu/bingham01random.html Random projection in dimensionality reduction: applications to image and text data]. In Knowledge Discovery and Data Mining, pages 245–250, 2001.
 
-==Introductory Material on Semantic Vector Spaces==
+===Introductory Material on Semantic Vector Spaces===
 
 [http://www.puttypeg.com/book/ Geometry and Meaning], Dominic Widdows, CSLI Publications, 2004. The [http://infomap.stanford.edu/papers/vector-chapter.pdf sample chapter] may be particularly useful to those unfamiliar with vectors.
 
