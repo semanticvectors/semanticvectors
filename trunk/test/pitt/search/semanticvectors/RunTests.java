@@ -35,22 +35,47 @@
 
 package pitt.search.semanticvectors;
 
-import java.io.FileWriter;
 import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.lang.InterruptedException;
+import java.lang.Process;
+import java.lang.Runtime;
+
+import org.junit.runner.JUnitCore;
 
 public class RunTests {
 
-	public static String testDataPath = "test/testdata/";
-	public static String vectorTextFile = testDataPath + "termvectors.txt";
-	public static String vectorBinFile = testDataPath + "termvectors.bin";
+	public static String tmpTestDataPath = "tmp/";  // Perhaps don't need this if set in build.xml file.
+	public static String vectorTextFile = tmpTestDataPath + "termvectors.txt";
+	public static String vectorBinFile = tmpTestDataPath + "termvectors.bin";
 
 	public static String testVectors = "-dimensions|3\n"
 		+ "abraham|1.0|0.0|0.0\n"
 		+ "isaac|0.8|0.2|0.2\n";
 
-	private static void PrepareTestData() {
+	// Recursively delete a directory.
+	// Return true on success; return false and quit at first failure.
+	public static boolean deleteDir(File dir) {
+		if (dir.isDirectory()) {
+			String[] subDirs = dir.list();
+			for (String subDir: subDirs) {
+				boolean success = deleteDir(new File(dir, subDir));
+				if (!success) {
+					return false;
+				}
+			}
+		}
+		// The directory is now empty so delete it
+		return dir.delete();
+	}
+
+
+	private static void prepareUnitTestData() {
 		try {
+			File tmpDir = new File(tmpTestDataPath);
+			tmpDir.mkdir();
 			BufferedWriter outBuf = new BufferedWriter(new FileWriter(vectorTextFile));
 			outBuf.write(testVectors);
 			outBuf.close();
@@ -64,21 +89,48 @@ public class RunTests {
 		}
 	}
 
-	// For each class with tests in it, add its main function below.
+	private static void cleanupUnitTestData() {
+		deleteDir(new File(tmpTestDataPath));
+	}
+
+	private static void prepareRegressionTestData() {
+		// Explicitly trying to use Runtime constructs instead of (more reliable)
+		// imported class APIs, in the hope that we fail faster with Runtime constructs.
+		Runtime runtime = Runtime.getRuntime();
+		try {
+			Process luceneIndexer = runtime.exec("java org.apache.lucene.demo.IndexFiles John");
+			luceneIndexer.waitFor();
+		} catch (Exception e) {
+			System.err.println("Failed to prepare regression test data ... abandoning tests.");
+			e.printStackTrace();
+		}
+	}
+
+	private static void cleanupRegressionTestData() {
+		deleteDir(new File(tmpTestDataPath));
+		deleteDir(new File("index/"));
+	}
+
 	public static void main(String args[]) {
-		PrepareTestData();
+		// Prepare, run, and cleanup after unit tests.
+		System.err.println("Preparing and running unit tests ...");
+		prepareUnitTestData();
 
-		String[] tests = {
-			"pitt.search.semanticvectors.VectorUtilsTest",
-			"pitt.search.semanticvectors.VectorStoreRAMTest",
-			"pitt.search.semanticvectors.VectorStoreReaderTest",
-			"pitt.search.semanticvectors.VectorStoreSparseRAMTest",
-			"pitt.search.semanticvectors.VectorStoreWriterTest",
-			"pitt.search.semanticvectors.CompoundVectorBuilderTest",
-      "pitt.search.semanticvectors.FlagsTest",
-		};
-		org.junit.runner.JUnitCore.main(tests);	
+		JUnitCore runner = new JUnitCore();
+		Class[] unitTestClasses = {VectorUtilsTest.class, 
+															 VectorStoreRAMTest.class,
+															 VectorStoreReaderTest.class,
+															 VectorStoreSparseRAMTest.class,
+															 VectorStoreWriterTest.class,
+															 CompoundVectorBuilderTest.class,
+															 FlagsTest.class};
+		runner.run(unitTestClasses);
+		cleanupUnitTestData();
 
-		// TODO(widdows): Write cleanup method to clean testdata directory.
+		// Prepare, run, and cleanup after regression tests. 
+		System.err.println("Preparing and running regression tests ...");
+		prepareRegressionTestData();
+
+		cleanupRegressionTestData();
 	}
 }

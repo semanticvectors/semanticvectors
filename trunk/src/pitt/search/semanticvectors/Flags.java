@@ -162,7 +162,7 @@ public class Flags {
 
 	/**
 	 * String pretty print a String array.
-	 * @returns String representation of input array.
+	 * @return String representation of input array.
 	 */
 	public static String joinStringArray(String[] values) {
 		String result = "";
