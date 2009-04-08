@@ -109,8 +109,4 @@ public class VectorUtilsTest {
 		assertEquals(1, floatVector[1], 0.0001);
 		assertEquals(-1, floatVector[3], 0.0001);
 	}
-
-	public static void main(String args[]) {
-
-	}
 }

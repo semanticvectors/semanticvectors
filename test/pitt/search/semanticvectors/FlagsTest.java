@@ -84,7 +84,7 @@ public class FlagsTest {
 		if (!failed) fail();
 	}
 
-	@Test
+	@org.junit.Test
 		public void testFlagsMetadata() {
 		Field[] allFlagFields = Flags.class.getFields();
 		for (Field field: allFlagFields) {
