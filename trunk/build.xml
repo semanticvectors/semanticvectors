@@ -1,3 +1,6 @@
+<?xml version="1.0"?>
+<!DOCTYPE project>
+
 <project name="pitt semantic vectors" default="build-all" basedir=".">
 
   <property name="version" value="1.19"/>
@@ -23,23 +26,23 @@
 
   <target name="compile" depends="init">
     <javac srcdir="${pittsrcdir}"
-	   destdir="${buildclassesdir}"
-	   debug="on"
-	   />
+           destdir="${buildclassesdir}"
+           debug="on"
+           />
   </target>
 
   <target name="doc" depends="init">
     <javadoc sourcepath="${srcdir}"
-	     packagenames="pitt.search.semanticvectors,pitt.search.lucene"
-	     destdir="${docdir}"
-	     author="true"
-	     use="true"
-	     />
+             packagenames="pitt.search.semanticvectors,pitt.search.lucene"
+             destdir="${docdir}"
+             author="true"
+             use="true"
+             />
   </target>
 
   <target name="jardist" depends="init">
     <jar destfile="${builddir}/${distname}.jar" 
-	 basedir="${buildclassesdir}"/>
+         basedir="${buildclassesdir}"/>
   </target>
 
   <target name="tardist" depends="init">
@@ -47,10 +50,10 @@
       <tarfileset dir="${basedir}"
                   prefix="${distname}"
                   preserveLeadingSlashes="true"
-									includes="src/pitt/">
-				<include name="build.xml"/>
-				<include name="AUTHORS"/>
-				<include name="LICENSE"/>
+                                                                        includes="src/pitt/">
+                                <include name="build.xml"/>
+                                <include name="AUTHORS"/>
+                                <include name="LICENSE"/>
       </tarfileset>
     </tar>
     <gzip zipfile="${distdir}/${distname}-src.tar.gz" 
@@ -61,11 +64,11 @@
     <zip destfile="${distdir}/${distname}-src.zip">
       <zipfileset dir="${basedir}"
                   prefix="${distname}"
-									includes="src/pitt/">
-				<include name="build.xml"/>
-				<include name="AUTHORS"/>
-				<include name="LICENSE"/>
-			</zipfileset>
+                                                                        includes="src/pitt/">
+                                <include name="build.xml"/>
+                                <include name="AUTHORS"/>
+                                <include name="LICENSE"/>
+                        </zipfileset>
     </zip>
   </target>
 
@@ -74,38 +77,39 @@
     <delete dir="${distdir}"/>
     <!-- Only delete html files from ${docdir} - don't delete
          directories since this is part of svn tree -->
-    <delete>	
+    <delete>    
       <fileset dir="${docdir}">
         <include name="**/*.html"/>
       </fileset>
     </delete>
   </target>
 
-	<!-- Compile and run tests. -->
-	<!-- Tests do not currently ship with standard distributions; to
-	     compile and run tests, check out test dir from the svn repository.
-	     You will also need to install junit (www.junit.org) -->
+        <!-- Compile and run tests. -->
+        <!-- Tests do not currently ship with standard distributions; to
+             compile and run tests, check out test dir from the svn repository.
+             You will also need to install junit (www.junit.org) -->
   <target name="compile-tests" depends="compile">
     <javac srcdir="${testdir}"
-	   destdir="${buildclassesdir}"
-	   debug="on"
-	   />
+           destdir="${buildclassesdir}"
+           debug="on"
+           />
   </target>
 
-	<target name="run-tests" depends="compile-tests">
+        <target name="run-tests" depends="compile-tests">
     <mkdir dir="${testworkingdir}"/>
-		<java fork="true" dir="${testworkingdir}"
-					classname="pitt.search.semanticvectors.RunTests"/>
-	</target>
+                <java fork="true" dir="${testworkingdir}"
+                                        classname="pitt.search.semanticvectors.RunTests"/>
+        <delete dir="${testworkingdir}"/>
+        </target>
 
 <!-- Compile development utils ... this is a temporary solution until
      we have a good way of shipping development utils without
      introducing dependencies on any more libraries to install. -->
   <target name="compile-util" depends="compile">
     <javac srcdir="${utildir}"
-	   destdir="${buildclassesdir}"
-	   debug="on"
-	   />
+           destdir="${buildclassesdir}"
+           debug="on"
+           />
   </target>
 
 <!-- Build all -->
