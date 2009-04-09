@@ -58,7 +58,7 @@ public class RunTests {
    * Important: you need to add your test class to this list for it to
    * be run by runUnitTests().
    */
-  public static Class[] unitTestClasses = { VectorUtilsTest.class, 
+  public static Class[] unitTestClasses = { VectorUtilsTest.class,
                                             VectorStoreRAMTest.class,
                                             VectorStoreReaderTest.class,
                                             VectorStoreSparseRAMTest.class,
@@ -84,21 +84,31 @@ public class RunTests {
   }
 
   /**
-   * Recursively delete a directory.
+   * Recursively delete a directory. Do not attempt to delete dot files.
    * Return true on success; return false and quit at first failure.
    */
   public static boolean deleteDir(File dir) {
     if (dir.isDirectory()) {
-      String[] subDirs = dir.list();
-      for (String subDir: subDirs) {
-        boolean success = deleteDir(new File(dir, subDir));
+      String[] files = dir.list();
+      for (String file: files) {
+        // I don't know why, but sometimes dot files get generated on
+        // Linux and are hard to get rid of.
+        if (file.charAt(0) == '.') continue;
+
+        boolean success = deleteDir(new File(dir, file));
         if (!success) {
+          System.err.println("Failed to delete file: " + file);
           return false;
         }
       }
     }
-    // The directory is now empty so delete it
-    return dir.delete();
+    // The directory is now empty so delete it.
+    boolean success = true;
+    if (dir.getName().charAt(0) != '.') {
+      success = dir.delete();
+      if (!success) System.err.println("Failed to delete directory: " + dir);
+    }
+    return success;
   }
 
   /**
@@ -134,8 +144,8 @@ public class RunTests {
     return true;
   }
 
-  private static void cleanupUnitTestData() {
-    deleteDir(new File("."));
+  private static boolean cleanupUnitTestData() {
+    return deleteDir(new File("."));
   }
 
   private static boolean prepareRegressionTestData() {
@@ -148,6 +158,7 @@ public class RunTests {
     try {
       Process luceneIndexer = runtime.exec("java org.apache.lucene.demo.IndexFiles " + testDataPath);
       luceneIndexer.waitFor();
+      luceneIndexer.destroy();
     } catch (Exception e) {
       System.err.println("Failed to prepare regression test data ... abandoning tests.");
       e.printStackTrace();
@@ -155,8 +166,8 @@ public class RunTests {
     return true;
   }
 
-  private static void cleanupRegressionTestData() {
-    deleteDir(new File("."));
+  private static boolean cleanupRegressionTestData() {
+    return deleteDir(new File("."));
   }
 
   public static void main(String args[]) throws IOException {
@@ -166,7 +177,7 @@ public class RunTests {
 
     int successes = 0;
     int failures = 0;
-    int[] scores = {0, 0}; 
+    int[] scores = {0, 0};
 
     // Prepare, run, and cleanup after unit tests.
     System.err.println("Preparing and running unit tests ...");
@@ -174,15 +185,21 @@ public class RunTests {
     scores = runJUnitTests(unitTestClasses);
     successes += scores[0];
     failures += scores[1];
-    cleanupUnitTestData();
+    if (!cleanupUnitTestData()) {
+      System.err.println("Failed to cleanup unit test data ... " +
+                         "\nant will do this later but beware of intervening side effects in your tests.");
+    }
 
-    // Prepare, run, and cleanup after regression tests. 
+    // Prepare, run, and cleanup after regression tests.
     System.err.println("Preparing and running regression tests ...");
     if (!prepareRegressionTestData()) System.out.println("Failed.");
     scores = runJUnitTests(regressionTestClasses);
     successes += scores[0];
     failures += scores[1];
-    cleanupRegressionTestData();
+    if (!cleanupRegressionTestData()) {
+      System.err.println("Failed to cleanup regression test data."  +
+                         "\nant will do this later but beware of intervening side effects in your tests.");
+    }
 
     System.err.println("Ran all tests. Successes: " + successes + "\tFailures: " + failures);
   }
