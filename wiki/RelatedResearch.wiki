@@ -32,5 +32,20 @@ Ella Bingham and Heikki Mannila. [http://citeseer.ist.psu.edu/bingham01random.ht
 
 ==Papers about Semantic Spaces more generally==
 
+===Latent Semantic Analysis (LSA)===
+
 Landauer, T. K., & Dumais, S. T. (1997). 
 [http://lsa.colorado.edu/papers/plato/plato.annote.html A solution to Plato's problem: The Latent Semantic Analysis theory of the acquisition, induction, and representation of knowledge.] Psychological Review, 104, 211-240.
+
+===Hyperspace Analogue to Language (HAL)===
+
+HAL is the grandfather of another of the main types of semantic space models, term-term coocurrence ("sliding context window") models. See http://hal.ucr.edu/Papers.html
+
+See also Hinrich Schutze, [http://www.aclweb.org/anthology-new/J/J98/J98-1004.pdf Automatic word sense discrimination]. Computational Linguistics. Volume 24-1 (March 1998)
+
+===BEAGLE Model===
+
+Jones, M. N., & Mewhort,D. J. K. (2007). [http://www.indiana.edu/~clcl/BEAGLE/Jones_Mewhort_PR.pdf Representing word meaning and order information in a composite holographic lexicon]. Psychological Review, 114, 1-37.
+
+For a detailed introduction to holographic reduces representations, see
+Tony Plate. [http://csli-publications.stanford.edu/site/1575864304.html Holographic Reduced Representation: Distributed Representation for Cognitive Structures]. CSLI Publications.
