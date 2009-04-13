@@ -164,7 +164,7 @@ public class TermTermVectorsFromLucene implements VectorStore {
 				continue;
 			}
 			tc++;
-			float[] termVector = new float[ObjectVector.vecLength];
+			float[] termVector = new float[Flags.dimension];
 			short[] indexVector =  VectorUtils.generateRandomVector(seedLength, random);
 
 			// Place each term vector in the vector store.
@@ -214,11 +214,11 @@ public class TermTermVectorsFromLucene implements VectorStore {
 
 				/** create local random index and term vectors for relevant terms**/	
 				if (retraining)
-				localindexvectors = new float[numwords][ObjectVector.vecLength];		
+				localindexvectors = new float[numwords][Flags.dimension];		
 				else
 				localsparseindexvectors = new short[numwords][seedLength];
 				
-				float[][] localtermvectors = new float[numwords][ObjectVector.vecLength];
+				float[][] localtermvectors = new float[numwords][Flags.dimension];
 
 				for (short tcn = 0; tcn < numwords; ++tcn)	{ 
 					/** insert local term indices in position vector   **/

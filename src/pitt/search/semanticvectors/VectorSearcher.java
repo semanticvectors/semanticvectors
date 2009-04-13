@@ -201,7 +201,7 @@ abstract public class VectorSearcher{
 			short[] sparseQueryVector =
 				VectorUtils.floatVectorToSparseVector(fullQueryVector, 20);
 			this.queryVector = 
-				VectorUtils.sparseVectorToFloatVector(sparseQueryVector, ObjectVector.vecLength);
+				VectorUtils.sparseVectorToFloatVector(sparseQueryVector, Flags.dimension);
 		}
 
 		public float getScore(float[] testVector) {
@@ -209,7 +209,7 @@ abstract public class VectorSearcher{
 			short[] sparseTestVector =
 				VectorUtils.floatVectorToSparseVector(testVector, 40);
 			testVector = 
-				VectorUtils.sparseVectorToFloatVector(sparseTestVector, ObjectVector.vecLength);
+				VectorUtils.sparseVectorToFloatVector(sparseTestVector, Flags.dimension);
 	    return VectorUtils.scalarProduct(this.queryVector, testVector);
 		}
 	}
@@ -240,7 +240,7 @@ abstract public class VectorSearcher{
 																	 String[] queryTerms) 
 			throws ZeroVectorException {
 			super(queryVecStore, searchVecStore, luceneUtils);
-			this.trainingTensor = VectorUtils.createZeroTensor(ObjectVector.vecLength);
+			this.trainingTensor = VectorUtils.createZeroTensor(Flags.dimension);
 
 			// Collect tensor training relations.
 			int i = 0;
@@ -318,8 +318,8 @@ abstract public class VectorSearcher{
 			throws ZeroVectorException
 		{
 			super(queryVecStore, searchVecStore, luceneUtils);
-			this.trainingConvolution = new float[2 * ObjectVector.vecLength - 1];
-			for (int i = 0; i < 2 * ObjectVector.vecLength - 1; ++i) {
+			this.trainingConvolution = new float[2 * Flags.dimension - 1];
+			for (int i = 0; i < 2 * Flags.dimension - 1; ++i) {
 				this.trainingConvolution[i] = 0;
 			}
 
@@ -337,7 +337,7 @@ abstract public class VectorSearcher{
 				if (trainingVec1 != null && trainingVec2 != null) {
 					float[] trainingPair =
 						VectorUtils.getConvolutionFromVectors(trainingVec1, trainingVec2);
-					for (int j = 0; j < 2 * ObjectVector.vecLength - 1; ++j) {
+					for (int j = 0; j < 2 * Flags.dimension - 1; ++j) {
 						this.trainingConvolution[j] += trainingPair[j];
 					}
 				}

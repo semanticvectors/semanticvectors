@@ -81,14 +81,14 @@ public class VectorStoreWriter {
       IndexOutput outputStream = fsDirectory.createOutput(vectorFile.getName());
 
       Enumeration<ObjectVector> vecEnum = objectVectors.getAllVectors();
-      float[] tmpVector = new float[ObjectVector.vecLength];
+      float[] tmpVector = new float[Flags.dimension];
 
       int counter = 0;
       System.err.println("About to write vectors to file " + vectorFile);
 
       /* Write header giving number of dimensions for all vectors. */
       outputStream.writeString("-dimensions");
-      outputStream.writeInt(ObjectVector.vecLength);
+      outputStream.writeInt(Flags.dimension);
 
       /* Write each vector. */
       while (vecEnum.hasMoreElements()) {
@@ -99,7 +99,7 @@ public class VectorStoreWriter {
         ObjectVector objectVector = vecEnum.nextElement();
         outputStream.writeString(objectVector.getObject().toString());
         tmpVector = objectVector.getVector();
-        for (int i = 0; i < ObjectVector.vecLength; ++i) {
+        for (int i = 0; i < Flags.dimension; ++i) {
           outputStream.writeInt(Float.floatToIntBits(tmpVector[i]));
         }
       }
@@ -128,7 +128,7 @@ public class VectorStoreWriter {
       System.err.println("About to write vectors to text file: " + vectorTextFile);
 
       /* Write header giving number of dimensions for all vectors. */
-      outBuf.write("-dimensions|" + ObjectVector.vecLength + "\n");
+      outBuf.write("-dimensions|" + Flags.dimension + "\n");
 
       /* Write each vector. */
       while (vecEnum.hasMoreElements()) {
@@ -139,9 +139,9 @@ public class VectorStoreWriter {
         ObjectVector objectVector = vecEnum.nextElement();
         outBuf.write(objectVector.getObject().toString() + "|");
         float[] tmpVector = objectVector.getVector();
-        for (int i = 0; i < ObjectVector.vecLength; ++i) {
+        for (int i = 0; i < Flags.dimension; ++i) {
           outBuf.write(Float.toString(tmpVector[i]));
-          if (i != ObjectVector.vecLength - 1) {
+          if (i != Flags.dimension - 1) {
             outBuf.write("|");
           }
         }

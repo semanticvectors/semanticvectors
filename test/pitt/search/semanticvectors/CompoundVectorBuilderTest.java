@@ -42,7 +42,7 @@ public class CompoundVectorBuilderTest {
 
 	private VectorStoreRAM CreateVectorStore() {
 		VectorStoreRAM vectorStore = new VectorStoreRAM();
-		ObjectVector.vecLength = 2;
+		Flags.dimension = 2;
 		float[] vector1 = {1.0f, 2.0f};
 		vectorStore.putVector("vector1", vector1);
 		float[] vector2 = {1.0f, -1.0f};

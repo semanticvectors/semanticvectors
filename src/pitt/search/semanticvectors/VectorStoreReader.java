@@ -76,13 +76,13 @@ public class VectorStoreReader implements CloseableVectorStore {
       String test = indexInput.readString();
       // Include "-" character to avoid unlikely case that first term is "dimensions"!
       if ((test.equalsIgnoreCase("-dimensions"))) {
-        ObjectVector.vecLength = indexInput.readInt();
+        Flags.dimension = indexInput.readInt();
         this.hasHeader = true;
       }
       else {
         System.err.println("No file header for file " + vectorFile +
                            "\nAttempting to process with default vector length: " +
-                           ObjectVector.vecLength +
+                           Flags.dimension +
                            "\nIf this fails, consider rebuilding indexes - existing " +
                            "ones were probably created with old version of software.");
         this.hasHeader = false;
@@ -131,14 +131,14 @@ public class VectorStoreReader implements CloseableVectorStore {
       }
       while (indexInput.getFilePointer() < indexInput.length() - 1) {
         if (indexInput.readString().equals(desiredObject)) {
-          float[] vector = new float[ObjectVector.vecLength];
-          for (int i = 0; i < ObjectVector.vecLength; ++i) {
+          float[] vector = new float[Flags.dimension];
+          for (int i = 0; i < Flags.dimension; ++i) {
             vector[i] = Float.intBitsToFloat(indexInput.readInt());
           }
           return vector;
         }
         else{
-          indexInput.seek(indexInput.getFilePointer() + 4*ObjectVector.vecLength);
+          indexInput.seek(indexInput.getFilePointer() + 4*Flags.dimension);
         }
       }
     }
@@ -179,10 +179,10 @@ public class VectorStoreReader implements CloseableVectorStore {
 
     public ObjectVector nextElement() {
       String object = null;
-      float[] vector = new float[ObjectVector.vecLength];
+      float[] vector = new float[Flags.dimension];
       try {
         object = indexInput.readString();
-        for (int i = 0; i < ObjectVector.vecLength; ++i) {
+        for (int i = 0; i < Flags.dimension; ++i) {
           vector[i] = Float.intBitsToFloat(indexInput.readInt());
         }
       }

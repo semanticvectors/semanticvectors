@@ -64,6 +64,9 @@ public class Flags {
 	public static final String seedlengthDescription =
 		"Number of +1 and number of -1 entries in a sparse random vector";
 
+  public static int minfrequency;
+  public static int maxnonalphabetchars;
+
   public static int numsearchresults;
   public static int numclusters;
 

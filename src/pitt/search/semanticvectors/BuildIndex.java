@@ -114,7 +114,7 @@ public class BuildIndex {
 				/* Get number of dimensions. */
 				if (pa.equalsIgnoreCase("-d")) {
 					try {
-						ObjectVector.vecLength = Integer.parseInt(ar);
+						Flags.dimension = Integer.parseInt(ar);
 						wellFormed = true;
 					} catch (NumberFormatException e) {
 						System.err.println(ar + " is not a number.");
@@ -126,7 +126,7 @@ public class BuildIndex {
 				else if (pa.equalsIgnoreCase("-s")) {
 					try {
 						seedLength = Integer.parseInt(ar);
-						if (seedLength > ObjectVector.vecLength) {
+						if (seedLength > Flags.dimension) {
 							System.err.println("Seed length cannot be greater than vector length");
 							usage();
 							throw new IllegalArgumentException();
@@ -211,7 +211,7 @@ public class BuildIndex {
 		String luceneIndex = args[args.length-1];
 		String[] fieldsToIndex = {"contents"};
 		System.err.println("seedLength = " + seedLength);
-		System.err.println("Vector length = " + ObjectVector.vecLength);
+		System.err.println("Vector length = " + Flags.dimension);
 		System.err.println("Minimum frequency = " + minFreq);
 		System.err.println("Number non-alphabet characters = " + nonAlphabet);
 		String termFile = "termvectors.bin";

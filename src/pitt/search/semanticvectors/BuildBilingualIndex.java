@@ -60,14 +60,6 @@ public class BuildBilingualIndex{
    * <br> Usage: java pitt.search.semanticvectors.BuildBilingualIndex PATH_TO_LUCENE_INDEX LANG1 LANG2
    * <br> BuildBilingualIndex creates files termvectors_LANGn.bin and docvectors_LANGn.bin,
    * <br> in local directory, where LANG1 and LANG2 are obtained from fields in index.
-   * <br> Other parameters that can be changed include vector length,
-   * <br>     (number of dimensions), seed length (number of non-zero
-   * <br>     entries in basic vectors), and minimum term frequency.
-   * <br> To change these use the following command line arguments:
-   * <br> -d [number of dimensions]
-   * <br> -s [seed length]
-   * <br> -n [number non-alphabet characters (-1 for any number)]
-   * <br> -m [minimum term frequency]
    * </code>
    */
   public static void usage(){
@@ -75,16 +67,7 @@ public class BuildBilingualIndex{
 			+ "\nUsage: java pitt.search.semanticvectors.BuildBilingualIndex "
 			+ "PATH_TO_LUCENE_INDEX LANG1 LANG2"
 			+ "\nBuildBilingualIndex creates files termvectors_LANGn.bin and docvectors_LANGn.bin,"
-			+ "\nin local directory, where LANG1 and LANG2 are obtained from fields in index."
-			+ "\nOther parameters that can be changed include vector length,"
-			+ "\n    (number of dimensions), seed length (number of non-zero"
-			+ "\n    entries in basic vectors), and minimum term frequency."
-			+ "\nTo change these use the command line arguments "
-			+ "\n  -d [number of dimensions]"
-			+ "\n  -n [number of non-alphabet characters (-1 for any number)]"
-			+ "\n  -s [seed length]"
-			+ "\n  -m [minimum term frequency]";
-
+			+ "\nin local directory, where LANG1 and LANG2 are obtained from fields in index.";
     System.out.println(usageMessage);
   }
 
@@ -94,86 +77,16 @@ public class BuildBilingualIndex{
    * @see BuildBilingualIndex#usage
    */
   public static void main (String[] args) throws IllegalArgumentException {
+    args = Flags.parseCommandLineFlags(args);
     boolean wellFormed = false;
-    /* If only three argument, they should be the path to Lucene index and the language pair. */
-    if (args.length == 3) {
-      wellFormed = true;
-    }
-    /* If there is an even number of arguments, there's a problem. */
-    else if (args.length % 2 == 0) {
-      wellFormed = false;
-    }
-    /* Parse command line arguments. */
-    else {
-      for (int x = 0; x < args.length-1; x += 2) {
-        String option = args[x];
-        String value = args[x+1];
 
-        /* Get number of dimensions. */
-        if (option.equalsIgnoreCase("-d")) {
-          try {
-            ObjectVector.vecLength = Integer.parseInt(value);
-            wellFormed = true;
-          } catch (NumberFormatException e) {
-            System.err.println(value + " is not a number"); 
-						usage();
-						throw new IllegalArgumentException();
-          }
-        }
-        /* Get seedlength. */
-        else if (option.equalsIgnoreCase("-s")) {
-          try {
-            seedLength = Integer.parseInt(value);
-            if (seedLength > ObjectVector.vecLength) {
-              System.err.println("Seed length cannot be greater than vector length");
-              usage();
-            }
-            else wellFormed = true;
-          } catch (NumberFormatException e) {
-            System.err.println(value + " is not a number");
-						usage();
-						throw new IllegalArgumentException();
-          }
-        }
-    	
-        /* Get minimum term frequency. */
-        else if (option.equalsIgnoreCase("-m")) {
-          try {
-            minFreq = Integer.parseInt(value);
-            if (minFreq < 0) {
-              System.err.println("Minimum frequency cannot be less than zero");
-              usage();
-							throw new IllegalArgumentException();
-            }
-            else wellFormed = true;
-          } catch (NumberFormatException e) {
-            System.err.println(value + " is not a number");
-						usage();
-						throw new IllegalArgumentException();
-          }
-        }
-        /* Allow n non-alphabet characters, or -1 for no character screening */
-        else if (option.equalsIgnoreCase("-n")) {
-					try {
-						nonAlphabet = Integer.parseInt(value);
-						wellFormed = true;
-					} catch (NumberFormatException e) {
-						System.err.println(value + " is not a number");
-						usage();   
-						throw new IllegalArgumentException();
-					}
-				}
-        /* All other arguments are unknown. */
-        else {
-          System.err.println("Unknown command line option: " + option);
-          usage();
-					throw new IllegalArgumentException();
-        }
-      }
-    }
-    if (!wellFormed) {
+    /* Only three arguments should remain, the path to Lucene index and the language pair. */
+    if (args.length != 3) {
+      System.err.println("After parsing command line flags, there were " + args.length
+                         + " arguments, instead of the expected 3.");
       usage();
-			throw new IllegalArgumentException();
+      throw (new IllegalArgumentException("After parsing command line flags, there were " + args.length
+                                          + " arguments, instead of the expected 3."));
     }
 
     String luceneIndex = args[args.length - 3];
@@ -186,13 +99,14 @@ public class BuildBilingualIndex{
     String[] fields1 = new String[] {"contents_" + lang1};
     String[] fields2 = new String[] {"contents_" + lang2};
 
-    System.err.println("seedLength = " + seedLength);
-    System.err.println("Vector length = " + ObjectVector.vecLength);
-    System.err.println("Non-alphabet characters = " + nonAlphabet);
-    System.err.println("Minimum frequency = " + minFreq);
+    System.err.println("seedLength = " + Flags.seedlength);
+    System.err.println("Vector length = " + Flags.dimension);
+    System.err.println("Non-alphabet characters = " + Flags.maxnonalphabetchars);
+    System.err.println("Minimum frequency = " + Flags.minfrequency);
     try{
       TermVectorsFromLucene vecStore1 =
-				new TermVectorsFromLucene(luceneIndex, seedLength, minFreq, nonAlphabet, null, fields1);
+				new TermVectorsFromLucene(luceneIndex, Flags.seedlength, Flags.minfrequency,
+                                  Flags.maxnonalphabetchars, null, fields1);
       VectorStoreWriter vecWriter = new VectorStoreWriter();
       System.err.println("Writing term vectors to " + termFile1);
       vecWriter.WriteVectors(termFile1, vecStore1);
@@ -203,8 +117,8 @@ public class BuildBilingualIndex{
       VectorStore basicDocVectors = vecStore1.getBasicDocVectors();
       System.out.println("Keeping basic doc vectors, number: " + basicDocVectors.getNumVectors());
       TermVectorsFromLucene vecStore2 =
-				new TermVectorsFromLucene(luceneIndex, seedLength, minFreq, nonAlphabet, 
-																	basicDocVectors, fields2);
+				new TermVectorsFromLucene(luceneIndex, Flags.seedlength, Flags.minfrequency,
+                                  Flags.maxnonalphabetchars, null, fields1);
       System.err.println("Writing term vectors to " + termFile2);
       vecWriter.WriteVectors(termFile2, vecStore2);
       docVectors = new DocVectors(vecStore2);
