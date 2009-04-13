@@ -4,7 +4,7 @@
 
 The basic SemanticVectors indexes do not take into account word positions within a document: they are just created from a basic term document matrix.
 
-Positional indexes, by contrast, iterated over the contents of a document and index terms according to which other terms they occur near. This "sliding context window" approach was pioneered by Hinrich Schutze in the Infomap Project, and by Lund and Burgess in developing the HAL model (Hyperspace Analogue to Language).
+Positional indexes, by contrast, iterated over the contents of a document and index terms according to which other terms they occur near. This "sliding context window" approach was pioneered by Hinrich Schutze in the Infomap Project, and by Lund and Burgess in developing the [http://hal.ucr.edu/Papers.html HAL model] (Hyperspace Analogue to Language).
 
 == Building Positional Indexes ==
 
