@@ -90,7 +90,7 @@ public class VectorStoreSparseRAM implements VectorStore {
   public float[] getVector(Object desiredObject) {
 		short[] sparseVector = this.sparseVectors.get(desiredObject);
 		if (sparseVector != null) {
-			return VectorUtils.sparseVectorToFloatVector(sparseVector, ObjectVector.vecLength);
+			return VectorUtils.sparseVectorToFloatVector(sparseVector, Flags.dimension);
 		} else {
 			return null;
 		}

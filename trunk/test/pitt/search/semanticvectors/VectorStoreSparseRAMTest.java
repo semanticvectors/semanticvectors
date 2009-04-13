@@ -43,7 +43,7 @@ public class VectorStoreSparseRAMTest {
 		public void TestCreateAndRead() {
 		System.err.println("\nRunning tests for VectorStoreSparseRAMTest");
 		VectorStoreSparseRAM sparseVectorStore = new VectorStoreSparseRAM();
-		ObjectVector.vecLength = 200;
+		Flags.dimension = 200;
 		assertEquals(0, sparseVectorStore.getNumVectors());
 		sparseVectorStore.CreateRandomVectors(10, 20);
 		assertEquals(10, sparseVectorStore.getNumVectors());

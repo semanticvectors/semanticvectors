@@ -100,13 +100,13 @@ public class CompoundVectorBuilder {
     }
 
     // Initialize other arguments.
-    float[] queryVec = new float[ObjectVector.vecLength];
-    for (int i = 0; i < ObjectVector.vecLength; ++i) {
+    float[] queryVec = new float[Flags.dimension];
+    for (int i = 0; i < Flags.dimension; ++i) {
       queryVec[i] = 0;
     }
 
     ArrayList<float[]> permutedVecs = new ArrayList<float[]>();
-    float[] tmpVec = new float[ObjectVector.vecLength];
+    float[] tmpVec = new float[Flags.dimension];
     float weight = 1;
 
     for (int j = 0; j < queryTerms.length; ++j) {
@@ -126,7 +126,7 @@ public class CompoundVectorBuilder {
         if (tmpVec != null) {
           tmpVec = VectorUtils.permuteVector(tmpVec.clone(), permutation);
           permutedVecs.add(VectorUtils.getNormalizedVector(tmpVec));
-          for (int i = 0; i < ObjectVector.vecLength; ++i) {
+          for (int i = 0; i < Flags.dimension; ++i) {
             tmpVec[i] = tmpVec[i] * weight;
             queryVec[i] += tmpVec[i];
           }
@@ -168,7 +168,7 @@ public class CompoundVectorBuilder {
                                        LuceneUtils lUtils,
                                        String[] queryTerms) {
     CompoundVectorBuilder builder = new CompoundVectorBuilder(vecReader, lUtils);
-    float[] returnVector = new float[ObjectVector.vecLength];
+    float[] returnVector = new float[Flags.dimension];
     /* Check through args to see if we need to do negation. */
     for (int i = 0; i < queryTerms.length; ++i) {
       if (queryTerms[i].equals("NOT")) {
@@ -190,11 +190,11 @@ public class CompoundVectorBuilder {
    * @param queryTerms String array of query terms to look up.
    */
   protected float[] getAdditiveQueryVector (String[] queryTerms) {
-    float[] queryVec = new float[ObjectVector.vecLength];
-    float[] tmpVec = new float[ObjectVector.vecLength];
+    float[] queryVec = new float[Flags.dimension];
+    float[] tmpVec = new float[Flags.dimension];
     float weight = 1;
 
-    for (int i = 0; i < ObjectVector.vecLength; ++i) {
+    for (int i = 0; i < Flags.dimension; ++i) {
       queryVec[i] = 0;
     }
 
@@ -209,7 +209,7 @@ public class CompoundVectorBuilder {
 			}
 
       if (tmpVec != null) {
-        for (int i = 0; i < ObjectVector.vecLength; ++i) {
+        for (int i = 0; i < Flags.dimension; ++i) {
           queryVec[i] += tmpVec[i] * weight;
         }
       } else {
@@ -228,10 +228,10 @@ public class CompoundVectorBuilder {
    * @param queryTerms String array of query terms to look up.
    */
   protected float[] getAdditiveQueryVectorRegex (String[] queryTerms) {
-    float[] queryVec = new float[ObjectVector.vecLength];
+    float[] queryVec = new float[Flags.dimension];
     float weight = 1;
 
-    for (int i = 0; i < ObjectVector.vecLength; ++i) {
+    for (int i = 0; i < Flags.dimension; ++i) {
       queryVec[i] = 0;
     }
 
@@ -254,7 +254,7 @@ public class CompoundVectorBuilder {
           }
           else { weight = 1; }
 
-          for (int i = 0; i < ObjectVector.vecLength; ++i) {
+          for (int i = 0; i < Flags.dimension; ++i) {
             queryVec[i] += tmpVec[i] * weight;
           }
         }

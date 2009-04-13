@@ -72,8 +72,8 @@ public class DocVectors implements VectorStore {
 		// Intialize doc vector store.
 		System.err.println("Initializing document vector store ...");
 		for (int i = 0; i < indexReader.numDocs(); ++i) {
-			float[] docVector = new float[ObjectVector.vecLength];
-			for (int j = 0; j < ObjectVector.vecLength; ++j) {
+			float[] docVector = new float[Flags.dimension];
+			for (int j = 0; j < Flags.dimension; ++j) {
 				docVector[j] = 0;
 			}
 			this.docVectors.putVector(Integer.toString(i), docVector);
@@ -105,7 +105,7 @@ public class DocVectors implements VectorStore {
 						String docID = Integer.toString(td.doc());
 						// Add vector from this term, taking freq into account.
 						float[] docVector = this.docVectors.getVector(docID);
-						for (int j = 0; j < ObjectVector.vecLength; ++j) {
+						for (int j = 0; j < Flags.dimension; ++j) {
 							docVector[j] += td.freq() * termVector[j];
 						}
 					}

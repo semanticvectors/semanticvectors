@@ -75,7 +75,7 @@ public class VectorStoreReaderText implements CloseableVectorStore {
       // Include "-" character to avoid unlikely case that first term is "dimensions"!
       String[] firstLineData = firstLine.split("\\|");
       if ((firstLineData[0].equalsIgnoreCase("-dimensions"))) {
-        ObjectVector.vecLength = Integer.parseInt(firstLineData[1]);
+        Flags.dimension = Integer.parseInt(firstLineData[1]);
         this.hasHeader = true;
       }
       else {
@@ -83,7 +83,7 @@ public class VectorStoreReaderText implements CloseableVectorStore {
                            "\nPresuming vector length is: " + (firstLineData.length - 1) +
                            "\nIf this fails, consider rebuilding indexes - existing " +
                            "ones were probably created with old version of software.");
-        ObjectVector.vecLength = firstLineData.length - 1;
+        Flags.dimension = firstLineData.length - 1;
         this.hasHeader = false;
       }
     } catch (IOException e) {
@@ -119,13 +119,13 @@ public class VectorStoreReaderText implements CloseableVectorStore {
    */
   public static ObjectVector parseVectorLine(String line) throws IOException {
     String[] entries = line.split("\\|");
-    if (entries.length != ObjectVector.vecLength + 1) {
+    if (entries.length != Flags.dimension + 1) {
       throw new IOException("Found " + (entries.length - 1) + " possible coordinates: "
-                            + "expected " + ObjectVector.vecLength);
+                            + "expected " + Flags.dimension);
     }
     String objectName = entries[0];
-    float[] tmpVector = new float[ObjectVector.vecLength];
-    for (int i = 0; i < ObjectVector.vecLength; ++i) {
+    float[] tmpVector = new float[Flags.dimension];
+    for (int i = 0; i < Flags.dimension; ++i) {
       tmpVector[i] = Float.parseFloat(entries[i + 1]);
     }
     return new ObjectVector(objectName, tmpVector);

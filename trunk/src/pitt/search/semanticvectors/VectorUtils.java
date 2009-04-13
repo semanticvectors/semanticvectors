@@ -314,7 +314,7 @@ public class VectorUtils{
 		// Go up through vectors in turn, parameterized by k.
 		for (int k = 0; k < vectors.size(); ++k) {
 	    float[] kthVector = vectors.get(k);
-	    if (kthVector.length != ObjectVector.vecLength) {
+	    if (kthVector.length != Flags.dimension) {
 				System.err.println("In orthogonalizeVector: not all vectors have required dimension.");
 				return false;
 	    }
@@ -323,7 +323,7 @@ public class VectorUtils{
 				float[] jthVector = vectors.get(j);
 				float dotProduct = scalarProduct(kthVector, jthVector);
 				// Subtract relevant amount from kth vector.
-				for (int i = 0; i < ObjectVector.vecLength; ++i) {
+				for (int i = 0; i < Flags.dimension; ++i) {
 					kthVector[i] -= dotProduct * jthVector[i];
 				}
 	    }
@@ -335,7 +335,7 @@ public class VectorUtils{
 	}
 
   /**
-   * Generates a basic sparse vector (dimension = ObjectVector.vecLength)
+   * Generates a basic sparse vector (dimension = Flags.dimension)
    * with mainly zeros and some 1 and -1 entries (seedLength/2 of each)
    * each vector is an array of length seedLength containing 1+ the index of a non-zero
    * value, signed according to whether this is a + or -1.
@@ -353,14 +353,14 @@ public class VectorUtils{
    * +/-1 entry is located.
    */
 	public static short[] generateRandomVector(int seedLength, Random random) {
-    boolean[] randVector = new boolean[ObjectVector.vecLength];
+    boolean[] randVector = new boolean[Flags.dimension];
     short[] randIndex = new short[seedLength];
 
     int testPlace, entryCount = 0;
 
     /* put in +1 entries */
     while (entryCount < seedLength / 2) {
-      testPlace = random.nextInt(ObjectVector.vecLength);
+      testPlace = random.nextInt(Flags.dimension);
       if (!randVector[testPlace]) {
         randVector[testPlace] = true;
         randIndex[entryCount] = new Integer(testPlace + 1).shortValue();
@@ -370,7 +370,7 @@ public class VectorUtils{
 
     /* put in -1 entries */
     while (entryCount < seedLength) {
-      testPlace = random.nextInt (ObjectVector.vecLength);
+      testPlace = random.nextInt (Flags.dimension);
       if (!randVector[testPlace]) {
         randVector[testPlace] = true;
         randIndex[entryCount] = new Integer((1 + testPlace) * -1).shortValue();
@@ -497,8 +497,8 @@ public class VectorUtils{
 			int sign = Integer.signum(indexVector[x]);
 			// rotate vector
 			newIndex += rotation;
-			if (newIndex > ObjectVector.vecLength) newIndex = newIndex - ObjectVector.vecLength;
-			if (newIndex < 1) newIndex = ObjectVector.vecLength + newIndex;
+			if (newIndex > Flags.dimension) newIndex = newIndex - Flags.dimension;
+			if (newIndex < 1) newIndex = Flags.dimension + newIndex;
 			newIndex = newIndex * sign;
 			permutedVector[x] = (short) newIndex;
 		}

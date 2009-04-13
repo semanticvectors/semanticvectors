@@ -49,7 +49,7 @@ public class VectorUtilsTest {
 
 	@Test
     public void testOrthogonalizeVectors() {
-		ObjectVector.vecLength = 3;
+		Flags.dimension = 3;
 		float[] vec1 = new float[] {1, 2, 1};
 		float[] vec2 = new float[] {2, 3, 1};
 		float[] vec3 = new float[] {2, 1, 1};

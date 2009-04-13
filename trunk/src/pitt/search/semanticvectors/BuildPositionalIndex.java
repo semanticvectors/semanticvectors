@@ -134,7 +134,7 @@ public class BuildPositionalIndex {
 				/* Get number of dimensions. */
 				if (pa.equalsIgnoreCase("-d")) {
 					try {
-						ObjectVector.vecLength = Integer.parseInt(ar);
+						Flags.dimension = Integer.parseInt(ar);
 						wellFormed = true;
 					} catch (NumberFormatException e) {
 						System.err.println(ar + " is not a number");
@@ -155,7 +155,7 @@ public class BuildPositionalIndex {
 				else if (pa.equalsIgnoreCase("-s")) {
 					try {
 						seedLength = Integer.parseInt(ar);
-						if (seedLength > ObjectVector.vecLength) {
+						if (seedLength > Flags.dimension) {
 							System.err.println("Seed length cannot be greater than vector length");
 							usage();
 							throw new IllegalArgumentException("Failed to parse command line arguments.");
@@ -271,7 +271,7 @@ public class BuildPositionalIndex {
 		String docFile = "docvectors.bin";
 		String[] fieldsToIndex = {"contents"};
 		System.err.println("seedLength = " + seedLength);
-		System.err.println("Vector length = " + ObjectVector.vecLength);
+		System.err.println("Vector length = " + Flags.dimension);
 		System.err.println("Minimum frequency = " + minFreq);
 			System.err.println("Nubmer non-alphabet characters = " + nonAlphabet);
 		System.err.println("Window length = " + windowLength);

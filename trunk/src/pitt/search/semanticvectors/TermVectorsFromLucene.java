@@ -165,8 +165,8 @@ public class TermVectorsFromLucene implements VectorStore {
       }
 
       // Initialize new termVector.
-      float[] termVector = new float[ObjectVector.vecLength];
-      for (int i = 0; i < ObjectVector.vecLength; ++i) {
+      float[] termVector = new float[Flags.dimension];
+      for (int i = 0; i < Flags.dimension; ++i) {
         termVector[i] = 0;
       }
 
@@ -176,7 +176,7 @@ public class TermVectorsFromLucene implements VectorStore {
 				float[] docVector = this.basicDocVectors.getVector(docID);
         int freq = tDocs.freq();
 				
-        for (int i = 0; i < ObjectVector.vecLength; ++i) {
+        for (int i = 0; i < Flags.dimension; ++i) {
           termVector[i] += freq * docVector[i];
         }
       }

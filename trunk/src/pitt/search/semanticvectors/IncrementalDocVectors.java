@@ -74,14 +74,14 @@ public class IncrementalDocVectors {
 		// Open file and write headers.
 		MMapDirectory dir = new MMapDirectory();
 		IndexOutput outputStream = dir.createOutput(vectorFile);
-		float[] tmpVector = new float[ObjectVector.vecLength];
+		float[] tmpVector = new float[Flags.dimension];
 
 		int counter = 0;
 		System.err.println("Write vectors incrementally to file " + vectorFile);
 
 		// Write header giving number of dimensions for all vectors.
 		outputStream.writeString("-dimensions");
-		outputStream.writeInt(ObjectVector.vecLength);
+		outputStream.writeInt(Flags.dimension);
 
 
 		// Iterate through documents.
@@ -104,7 +104,7 @@ public class IncrementalDocVectors {
 				docID = this.indexReader.document(dc).getField("filename").stringValue();
 			}
 
-			float[] docVector = new float[ObjectVector.vecLength];
+			float[] docVector = new float[Flags.dimension];
 
 			for (String fieldName: fieldsToIndex) {
 				TermFreqVector vex =
@@ -123,7 +123,7 @@ public class IncrementalDocVectors {
 						try{
 							float[] termVector = termVectorData.getVector(term);
 							if (termVector != null && termVector.length > 0) {
-								for (int j = 0; j < ObjectVector.vecLength; ++j) {
+								for (int j = 0; j < Flags.dimension; ++j) {
 									docVector[j] += freq * termVector[j];
 								}
 							}
@@ -139,7 +139,7 @@ public class IncrementalDocVectors {
 				outputStream.writeString(docID);
 				docVector = VectorUtils.getNormalizedVector(docVector);
 
-				for (int i = 0; i < ObjectVector.vecLength; ++i) {
+				for (int i = 0; i < Flags.dimension; ++i) {
 					outputStream.writeInt(Float.floatToIntBits(docVector[i]));
 				}
 			}
