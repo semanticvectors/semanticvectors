@@ -77,13 +77,15 @@ public class BuildBilingualIndex{
    * @see BuildBilingualIndex#usage
    */
   public static void main (String[] args) throws IllegalArgumentException {
-    args = Flags.parseCommandLineFlags(args);
-    boolean wellFormed = false;
+    try {
+      args = Flags.parseCommandLineFlags(args);
+    } catch (IllegalArgumentException e) {
+      usage();
+      throw e;
+    }
 
-    /* Only three arguments should remain, the path to Lucene index and the language pair. */
+    // Only three arguments should remain, the path to Lucene index and the language pair.
     if (args.length != 3) {
-      System.err.println("After parsing command line flags, there were " + args.length
-                         + " arguments, instead of the expected 3.");
       usage();
       throw (new IllegalArgumentException("After parsing command line flags, there were " + args.length
                                           + " arguments, instead of the expected 3."));

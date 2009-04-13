@@ -60,7 +60,7 @@ public class Flags {
   public static int dimension = 200;
 	public static final String dimensionDescription = "Dimension of semantic vector space";
 
-  public static int seedlength;
+  public static int seedlength = 10;
 	public static final String seedlengthDescription =
 		"Number of +1 and number of -1 entries in a sparse random vector";
 
@@ -69,6 +69,8 @@ public class Flags {
 
   public static int numsearchresults;
   public static int numclusters;
+
+  public static int trainingcycles;
 
   public static String searchtype = "sum";
 	public static final String searchtypeDescription = "Method used for combining and searching vectors.";
@@ -79,6 +81,10 @@ public class Flags {
   public static String queryvectorfile;
   public static String searchvectorfile;
   public static String luceneindexpath;
+
+  public static String docindexing = "inmemory";
+  public static String docindexingDescription = "Memory management method used for indexing documents.";
+  public static String docindexingValues[] = {"inmemory", "incremental", "none"};
 
   public static String vectorlookupsyntax = "exactmatch";
 	public static final String vectorlookupsyntaxDescription =
@@ -96,6 +102,10 @@ public class Flags {
 	// per command so it's probably negligible.
 	public static String[] parseCommandLineFlags(String[] args)
 		throws IllegalArgumentException {
+    if (args.length == 0) {
+      throw (new IllegalArgumentException("Cannot parse empty list of command line arguments!"));
+    }
+
 		int argc = 0;
 		while (args[argc].charAt(0) == '-') {
 			boolean recognized = false;

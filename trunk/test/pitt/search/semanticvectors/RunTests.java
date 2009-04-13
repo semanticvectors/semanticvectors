@@ -84,6 +84,7 @@ public class RunTests {
   }
 
   /**
+   * @deprecated Use ant delete target instead, it's more reliable.
    * Recursively delete a directory. Do not attempt to delete dot files.
    * Return true on success; return false and quit at first failure.
    */
@@ -179,27 +180,19 @@ public class RunTests {
     int failures = 0;
     int[] scores = {0, 0};
 
-    // Prepare, run, and cleanup after unit tests.
+    // Prepare and run unit tests.
     System.err.println("Preparing and running unit tests ...");
     if (!prepareUnitTestData()) System.out.println("Failed.");
     scores = runJUnitTests(unitTestClasses);
     successes += scores[0];
     failures += scores[1];
-    if (!cleanupUnitTestData()) {
-      System.err.println("Failed to cleanup unit test data ... " +
-                         "\nant will do this later but beware of intervening side effects in your tests.");
-    }
 
-    // Prepare, run, and cleanup after regression tests.
+    // Prepare and run regression tests.
     System.err.println("Preparing and running regression tests ...");
     if (!prepareRegressionTestData()) System.out.println("Failed.");
     scores = runJUnitTests(regressionTestClasses);
     successes += scores[0];
     failures += scores[1];
-    if (!cleanupRegressionTestData()) {
-      System.err.println("Failed to cleanup regression test data."  +
-                         "\nant will do this later but beware of intervening side effects in your tests.");
-    }
 
     System.err.println("Ran all tests. Successes: " + successes + "\tFailures: " + failures);
   }

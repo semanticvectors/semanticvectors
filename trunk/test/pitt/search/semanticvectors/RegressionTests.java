@@ -84,7 +84,7 @@ public class RegressionTests {
     public void testBuildAndSearchBasicIndex() {
     assert(!(new File("termvectors.bin")).isFile());
     assert(!(new File("docvectors.bin")).isFile());
-    String[] args = {"-d", "200", "index"};
+    String[] args = {"-dimension", "200", "index"};
     BuildIndex.main(args);
     assert((new File("termvectors.bin")).isFile());
     assert((new File("docvectors.bin")).isFile());
