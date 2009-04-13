@@ -95,12 +95,12 @@
            />
   </target>
 
-        <target name="run-tests" depends="compile-tests">
+  <target name="run-tests" depends="compile-tests">
     <mkdir dir="${testworkingdir}"/>
-                <java fork="true" dir="${testworkingdir}"
-                                        classname="pitt.search.semanticvectors.RunTests"/>
-        <delete dir="${testworkingdir}"/>
-        </target>
+    <java fork="true" dir="${testworkingdir}"
+          classname="pitt.search.semanticvectors.RunTests"/>
+    <!-- <delete dir="${testworkingdir}"/> -->
+  </target>
 
 <!-- Compile development utils ... this is a temporary solution until
      we have a good way of shipping development utils without

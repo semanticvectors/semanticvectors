@@ -80,13 +80,13 @@ public class BuildIndex {
 			+ "\n    entries in basic vectors), minimum term frequency,"
 			+ "\n    and number of iterative training cycles."
 			+ "\nTo change these use the command line arguments "
-			+ "\n  -d [number of dimensions]"
-			+ "\n  -s [seed length]"
-			+ "\n  -m [minimum term frequency]"
-			+ "\n -n [number non-alphabet characters (-1 for any number)]"
-			+ "\n  -tc [training cycles]"
-			+ "\n  -docs [incremental|inmemory] Switch between building doc vectors incrementally"
-			+ "\n        (requires positional index) or all in memory (default case).";
+			+ "\n  -dimension [number of dimensions]"
+			+ "\n  -seedlength [seed length]"
+			+ "\n  -minfrequency [minimum term frequency]"
+			+ "\n  -numnonalphabetchars [number non-alphabet characters (-1 for any number)]"
+			+ "\n  -trainingcycles [training cycles]"
+			+ "\n  -docindexing [incremental|inmemory|none] Switch between building doc vectors incrementally"
+			+ "\n        (requires positional index), all in memory (default case), or not at all";
 		System.out.println(usageMessage);
 	}
 
@@ -96,147 +96,51 @@ public class BuildIndex {
 	 * @see BuildIndex#usage
 	 */
 	public static void main (String[] args) throws IllegalArgumentException {
-		boolean wellFormed = false;
-		/* If only one argument, it should be the path to Lucene index. */
-		if (args.length == 1) {
-			wellFormed = true;
-		}
-		/* If there is an even number of arguments, there's a problem. */
-		else if (args.length % 2 == 0) {
-			wellFormed = false;
-		}
-		/* Parse command line arguments. */
-		else {
-			for (int x = 0; x < args.length-1; x += 2) {
-				String pa = args[x];
-				String ar = args[x+1];
+    try {
+      args = Flags.parseCommandLineFlags(args);
+    } catch (IllegalArgumentException e) {
+      usage();
+      throw e;
+    }
 
-				/* Get number of dimensions. */
-				if (pa.equalsIgnoreCase("-d")) {
-					try {
-						Flags.dimension = Integer.parseInt(ar);
-						wellFormed = true;
-					} catch (NumberFormatException e) {
-						System.err.println(ar + " is not a number.");
-						usage();
-						throw new IllegalArgumentException();
-					}
-				}
-				/* Get seedlength. */
-				else if (pa.equalsIgnoreCase("-s")) {
-					try {
-						seedLength = Integer.parseInt(ar);
-						if (seedLength > Flags.dimension) {
-							System.err.println("Seed length cannot be greater than vector length");
-							usage();
-							throw new IllegalArgumentException();
-						}
-						else wellFormed = true;
-					} catch (NumberFormatException e) {
-						System.err.println(ar + " is not a number.");
-						usage();
-						throw new IllegalArgumentException();
-					}
-				}
-				/* Get minimum term frequency. */
-				else if (pa.equalsIgnoreCase("-m")) {
-					try {
-						minFreq = Integer.parseInt(ar);
-						if (minFreq < 0) {
-							System.err.println("Minimum frequency cannot be less than zero");
-							usage();
-							throw new IllegalArgumentException();
-						}
-						else wellFormed = true;
-					} catch (NumberFormatException e) {
-						System.err.println(ar + " is not a number.");
-						usage();
-						throw new IllegalArgumentException();
-					}
-				}
-				/* Get number non-alphabet characters */
-				else if (pa.equalsIgnoreCase("-n")) {
-					try {
-						nonAlphabet = Integer.parseInt(ar);
-						wellFormed = true;
-					} catch (NumberFormatException e) {
-						System.err.println(ar + " is not a number.");
-						usage();
-						throw new IllegalArgumentException();
-					}
-				}
-				/* Get number of training cycles. */
-				else if (pa.equalsIgnoreCase("-tc")) {
-					try {
-						trainingCycles = Integer.parseInt(ar);
-						if (trainingCycles < 1) {
-							System.err.println("Minimum frequency cannot be less than one.");
-							usage();
-							throw new IllegalArgumentException();
-						}
-						else wellFormed = true;
-					} catch (NumberFormatException e) {
-						System.err.println(ar + " is not a number.");
-						usage();
-						throw new IllegalArgumentException();
-					}
-				}
-				/* Get method for building doc vectors */
-				else if (pa.equalsIgnoreCase("-docs")) {
-					if (ar.equals("incremental")) {
-						docsIncremental = true;
-						wellFormed = true;
-					} else if (ar.equals("inmemory")) {
-						docsIncremental = false;
-						wellFormed = true;
-					} else {
-						System.err.println("Option '" + ar + "' is unrecognized for -docs flag.");
-						usage();
-						throw new IllegalArgumentException();
-					}
-				}
-				/* All other arguments are unknown. */
-				else {
-					System.err.println("Unknown command line option: " + pa);
-					usage();
-					throw new IllegalArgumentException();
-				}
-			}
-		}
-		if (!wellFormed) {
-			usage();
-			throw new IllegalArgumentException();
-		}
+    // Only one argument should remain, the path to the Lucene index.
+    if (args.length != 1) {
+      usage();
+      throw (new IllegalArgumentException("After parsing command line flags, there were " + args.length
+                                          + " arguments, instead of the expected 1."));
+    }
 
-		String luceneIndex = args[args.length-1];
+		String luceneIndex = args[0];
+    // TODO(widdows): Make fieldToIndex configurable.
 		String[] fieldsToIndex = {"contents"};
-		System.err.println("seedLength = " + seedLength);
-		System.err.println("Vector length = " + Flags.dimension);
-		System.err.println("Minimum frequency = " + minFreq);
-		System.err.println("Number non-alphabet characters = " + nonAlphabet);
+		System.err.println("Seedlength = " + Flags.seedlength);
+		System.err.println("Dimension = " + Flags.dimension);
+		System.err.println("Minimum frequency = " + Flags.minfrequency);
+		System.err.println("Number non-alphabet characters = " + Flags.maxnonalphabetchars);
 		String termFile = "termvectors.bin";
 		String docFile = "docvectors.bin";
 		
 		try{
 			TermVectorsFromLucene vecStore =
-				new TermVectorsFromLucene(luceneIndex, seedLength, minFreq, nonAlphabet, null, fieldsToIndex);
+				new TermVectorsFromLucene(luceneIndex, Flags.seedlength,Flags.minfrequency,
+                                  Flags.maxnonalphabetchars, null, fieldsToIndex);
 
 			// Create doc vectors and write vectors to disk.
-			if (docsIncremental == true) {
+			if (Flags.docindexing.equals("incremental")) {
 				VectorStoreWriter vecWriter = new VectorStoreWriter();
 				System.err.println("Writing term vectors to " + termFile);
 				vecWriter.WriteVectors(termFile, vecStore);
 				IncrementalDocVectors idocVectors =
 					new IncrementalDocVectors(vecStore, luceneIndex, fieldsToIndex, "incremental_"+docFile);
-			} else {
+        } else if (Flags.docindexing.equals("inmemory")) {
 				DocVectors docVectors = new DocVectors(vecStore);			
-				for (int i = 1; i < trainingCycles; ++i) {
+				for (int i = 1; i < Flags.trainingcycles; ++i) {
 					VectorStore newBasicDocVectors = vecStore.getBasicDocVectors();
 					System.err.println("\nRetraining with learned document vectors ...");
 					vecStore = new TermVectorsFromLucene(luceneIndex,
-																							 seedLength,
-																							 minFreq,
-																							 nonAlphabet,
+																							 Flags.seedlength,
+																							 Flags.minfrequency,
+																							 Flags.maxnonalphabetchars,
 																							 newBasicDocVectors,
 																							 fieldsToIndex);
 					docVectors = new DocVectors(vecStore);
@@ -244,9 +148,9 @@ public class BuildIndex {
 				// At end of training, convert document vectors from ID keys to pathname keys.
 				VectorStore writeableDocVectors = docVectors.makeWriteableVectorStore();
 				
-				if (trainingCycles > 1) {
-					termFile = "termvectors" + trainingCycles + ".bin";
-					docFile = "docvectors" + trainingCycles + ".bin";
+				if (Flags.trainingcycles > 1) {
+					termFile = "termvectors" + Flags.trainingcycles + ".bin";
+					docFile = "docvectors" + Flags.trainingcycles + ".bin";
 				}
 				VectorStoreWriter vecWriter = new VectorStoreWriter();
 				System.err.println("Writing term vectors to " + termFile);
