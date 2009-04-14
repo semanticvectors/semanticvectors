@@ -20,6 +20,8 @@ _Please let us know if you have any articles to add to this list, it is really g
 
 (See also RandomProjection.)
 
+*New!* Pentti Kanerva. [http://www.springerlink.com/content/966151841g415165/ Hyperdimensional Computing: An Introduction to Computing in Distributed Representation with High-Dimensional Random Vectors]. Cognitive Computation, 2009.
+
 Magnus Sahlgren. [http://www.sics.se/~mange/papers/RI_intro.pdf An introduction to random indexing.] Technical report, 2005. 
 
 See also the excellent collection at http://www.sics.se/~mange/random_indexing.html.
