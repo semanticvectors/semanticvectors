@@ -3,7 +3,7 @@
 
 = Summary =
 
-This page contains brief instructions for installing and running the prerelease version (0.8) of the Semantic Vectors package from the University of Pittsburgh.
+This page contains brief instructions for installing and running the Semantic Vectors package.
 
 These sketch instructions presume that you're reasonably familiar with Java, Ant, CLASSPATHs, etc. If not, you might struggle a bit. Better documentation will hopefully follow sometime soon.
 
@@ -20,7 +20,6 @@ These sketch instructions presume that you're reasonably familiar with Java, Ant
 
  * Download the most recent `semanticvectors-*.*.tar.gz` or `semanticvectors-*.*.zip` archive and expand the archive (using `tar -zxvf` or `unzip`).
  * Feel free to check out the source code from svn and build using `ant`.
- * Optionally, you can unpack the jar distribution using `jar -xvf semanticvectors-*.*.jar` and compile by running `ant` in the trunk directory.
  * Make sure that either the resulting `build/classes` directory or `build/*.jar` file is in your `CLASSPATH`.
 
 == To Build and Search a Model ==
