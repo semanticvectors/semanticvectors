@@ -93,6 +93,30 @@ public class RegressionTests {
     // Iterate to second line and check result.
     results.next();
     String secondTerm = termFromResult(results.next());
-    assert(secondTerm.equals("simon"));
+    assertEquals("simon", secondTerm);
+  }
+
+  @Test
+    public void testBuildAndSearchPositionalIndex() {
+    assert(!(new File("termtermvectors.bin")).isFile());
+    assert(!(new File("incremental_docvectors.bin")).isFile());
+    String[] args2 = {"-dimension", "200", "positional_index"};
+    BuildPositionalIndex.main(args2);
+    assert((new File("termtermvectors.bin")).isFile());
+    assert((new File("incremental_docvectors.bin")).isFile());
+
+    Scanner results = getCommandOutput(
+        "java pitt.search.semanticvectors.Search -q termtermvectors.bin martha");
+    // Iterate to second line and check result.
+    int i = 0;
+    boolean foundMary = false;
+    while (i < 5) {
+      if (termFromResult(results.next()).equals("mary")) {
+        foundMary = true;
+        System.err.println("Found mary in line: " + i);
+      }
+      ++i;
+    }
+    assertTrue(foundMary);
   }
 }
