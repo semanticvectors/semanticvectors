@@ -34,17 +34,16 @@ public class IndexFilePositions {
       //  Create StandardAnalyzer with the default StandardAnalyzer stopword list.
       IndexWriter writer = new IndexWriter(INDEX_DIR, new StandardAnalyzer(),true);
 
-      // Use a stop-list passed as a parameter.
-      String stopfile = "";
-      if (args.length ==2) stopfile = args[1];
-      try {
-
-        File stoplist = new File(stopfile);
-        writer = new IndexWriter(INDEX_DIR, new StandardAnalyzer(stoplist), true);
-
-        System.out.println("Using stoplist: "+stopfile);
-      } catch (IOException e){
-        e.printStackTrace();
+      if (args.length ==2) {
+        // Use a stop-list passed as a parameter.
+        String stopfile = args[1];
+        try {
+          File stoplist = new File(stopfile);
+          writer = new IndexWriter(INDEX_DIR, new StandardAnalyzer(stoplist), true);
+          System.out.println("Using stoplist: "+stopfile);
+        } catch (IOException e){
+          e.printStackTrace();
+        }
       }
 
       final File docDir = new File(args[0]);
