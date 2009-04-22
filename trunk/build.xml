@@ -14,8 +14,7 @@
   <property name="srcdir" value="${basedir}/src"/>
   <property name="testdir" value="${basedir}/test"/>
   <property name="testworkingdir" value="${testdir}/testdata/tmp"/>
-  <property name="pittsrcdir" value="${srcdir}/pitt"/>
-  <property name="utildir" value="${srcdir}/util"/>
+  <property name="extdir" value="${basedir}/src-ext"/>
 
   <target name="init">
     <mkdir dir="${docdir}"/>
@@ -25,7 +24,7 @@
   </target>
 
   <target name="compile" depends="init">
-    <javac srcdir="${pittsrcdir}"
+    <javac srcdir="${srcdir}"
            destdir="${buildclassesdir}"
            debug="on"
            />
@@ -50,10 +49,10 @@
       <tarfileset dir="${basedir}"
                   prefix="${distname}"
                   preserveLeadingSlashes="true"
-                                                                        includes="src/pitt/">
-                                <include name="build.xml"/>
-                                <include name="AUTHORS"/>
-                                <include name="LICENSE"/>
+                  includes="src/pitt/">
+        <include name="build.xml"/>
+        <include name="AUTHORS"/>
+        <include name="LICENSE"/>
       </tarfileset>
     </tar>
     <gzip zipfile="${distdir}/${distname}-src.tar.gz" 
@@ -64,11 +63,11 @@
     <zip destfile="${distdir}/${distname}-src.zip">
       <zipfileset dir="${basedir}"
                   prefix="${distname}"
-                                                                        includes="src/pitt/">
-                                <include name="build.xml"/>
-                                <include name="AUTHORS"/>
-                                <include name="LICENSE"/>
-                        </zipfileset>
+                  includes="src/pitt/">
+        <include name="build.xml"/>
+        <include name="AUTHORS"/>
+        <include name="LICENSE"/>
+      </zipfileset>
     </zip>
   </target>
 
@@ -96,17 +95,18 @@
   </target>
 
   <target name="run-tests" depends="compile-tests">
+    <delete dir="${testworkingdir}"/>
     <mkdir dir="${testworkingdir}"/>
     <java fork="true" dir="${testworkingdir}"
           classname="pitt.search.semanticvectors.RunTests"/>
-    <!-- <delete dir="${testworkingdir}"/> -->
+    <delete dir="${testworkingdir}"/>
   </target>
 
-<!-- Compile development utils ... this is a temporary solution until
-     we have a good way of shipping development utils without
+<!-- Compile development extensions ... this is a temporary solution until
+     we have a good way of shipping development extensions without
      introducing dependencies on any more libraries to install. -->
-  <target name="compile-util" depends="compile">
-    <javac srcdir="${utildir}"
+  <target name="compile-ext" depends="compile">
+    <javac srcdir="${extdir}"
            destdir="${buildclassesdir}"
            debug="on"
            />

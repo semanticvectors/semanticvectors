@@ -79,8 +79,8 @@ public class Flags {
                                                    "convolution", "permutation", "printquery"};
 
   public static String indextype;
-  public static String queryvectorfile;
-  public static String searchvectorfile;
+  public static String queryvectorfile = "termvectors.bin";
+  public static String searchvectorfile = "";
   public static String luceneindexpath;
   public static String initialtermvectors = "";
   public static String initialtermvectorsDescription =
