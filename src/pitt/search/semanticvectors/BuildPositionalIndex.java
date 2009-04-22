@@ -50,27 +50,7 @@ public class BuildPositionalIndex {
   static int minFreq = 10;
   static int windowLength = 5;
   static int trainingCycles = 1;
-  static IndexType indexType = IndexType.BASIC;
   static VectorStore newBasicTermVectors = null;
-
-  /**
-   * Enumeration of different indexTypes - basic, directional and permutation.
-   */
-  public enum IndexType {
-    /**
-     * Default option.
-     */
-    BASIC,
-    /**
-     * Directional - distinguishes between terms occuring pefore and
-     after target term.
-    */
-    DIRECTIONAL,
-    /**
-     * Uses permutation to encode word order - see Sahlgren et al, 2008.
-     */
-    PERMUTATION
-  }
 
   /**
    * Prints the following usage message:
@@ -126,13 +106,14 @@ public class BuildPositionalIndex {
     // Only one argument should remain, the path to the Lucene index.
     if (args.length != 1) {
       usage();
-      throw (new IllegalArgumentException("After parsing command line flags, there were " + args.length
+      throw (new IllegalArgumentException("After parsing command line flags, there were "
+					  + args.length
                                           + " arguments, instead of the expected 1."));
     }
     String luceneIndex = args[0];
     System.err.println("Lucene positional index being set to: " + luceneIndex);
 
-    // If initialtermvectors is defined, read these vectors.
+    //If initialtermvectors is defined, read these vectors.
     if (!Flags.initialtermvectors.equals("")) {
       try {
         VectorStoreRAM vsr = new VectorStoreRAM();
@@ -168,7 +149,7 @@ public class BuildPositionalIndex {
                                         Flags.maxnonalphabetchars,
                                         2 * Flags.windowradius + 1,
                                         newBasicTermVectors,
-                                        fieldsToIndex, indexType);
+                                        fieldsToIndex);
       VectorStoreWriter vecWriter = new VectorStoreWriter();
       System.err.println("Writing term vectors to " + termFile);
       vecWriter.WriteVectors(termFile, vecStore);
@@ -182,7 +163,7 @@ public class BuildPositionalIndex {
                                                  Flags.maxnonalphabetchars,
                                                  2 * Flags.windowradius + 1,
                                                  newBasicTermVectors,
-                                                 fieldsToIndex, indexType);
+                                                 fieldsToIndex);
       }
 
       if (trainingCycles > 1) {
