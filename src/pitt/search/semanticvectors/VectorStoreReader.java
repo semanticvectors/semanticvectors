@@ -54,24 +54,24 @@ import org.apache.lucene.store.IndexInput;
    @see ObjectVector
 **/
 public class VectorStoreReader implements CloseableVectorStore {
-	private String vectorFileName;
-	private File vectorFile;
-	private FSDirectory fsDirectory;
+  private String vectorFileName;
+  private File vectorFile;
+  private FSDirectory fsDirectory;
   private IndexInput indexInput;
   private boolean hasHeader;
 
-	public FSDirectory fsDirectory() {
-		return this.fsDirectory;
-	}
+  public FSDirectory fsDirectory() {
+    return this.fsDirectory;
+  }
 
   public VectorStoreReader (String vectorFileName) throws IOException {
-		this.vectorFileName = vectorFileName;
-		this.vectorFile = new File(vectorFileName);
+    this.vectorFileName = vectorFileName;
+    this.vectorFile = new File(vectorFileName);
     try {
-			String parentPath = this.vectorFile.getParent();
-			if (parentPath == null) parentPath = "";
-			this.fsDirectory = FSDirectory.getDirectory(parentPath);
-			this.indexInput = fsDirectory.openInput(vectorFile.getName());
+      String parentPath = this.vectorFile.getParent();
+      if (parentPath == null) parentPath = "";
+      this.fsDirectory = FSDirectory.getDirectory(parentPath);
+      this.indexInput = fsDirectory.openInput(vectorFile.getName());
       // Read number of dimensions from header information.
       String test = indexInput.readString();
       // Include "-" character to avoid unlikely case that first term is "dimensions"!
@@ -92,15 +92,15 @@ public class VectorStoreReader implements CloseableVectorStore {
     }
   }
 
-	public void close() {
-		try {
-			this.indexInput.close();
-		}	catch (IOException e) {
-			System.err.println("Cannot close resources from file: " + this.vectorFile
-												 + "\n" + e.getMessage());
-		}
-		this.fsDirectory.close();
-	}
+  public void close() {
+    try {
+      this.indexInput.close();
+    }	catch (IOException e) {
+      System.err.println("Cannot close resources from file: " + this.vectorFile
+                         + "\n" + e.getMessage());
+    }
+    this.fsDirectory.close();
+  }
 
   public Enumeration getAllVectors() {
     try {
@@ -120,7 +120,7 @@ public class VectorStoreReader implements CloseableVectorStore {
    * Given an object, get its corresponding vector <br>
    * This implementation only works for string objects so far <br>
    * @param desiredObject - the string you're searching for
-	 * @return vector from the VectorStore, or null if not found. 
+   * @return vector from the VectorStore, or null if not found. 
    */
   public float[] getVector(Object desiredObject) {
     try {
@@ -149,18 +149,18 @@ public class VectorStoreReader implements CloseableVectorStore {
     return null;
   }
 
-	/**
-	 * Trivial (costly) implementation of getNumVectors that iterates and counts vectors.
-	 */
-	public int getNumVectors() {
-		Enumeration allVectors = this.getAllVectors();
-		int i = 0;
-		while (allVectors.hasMoreElements()) {
-			allVectors.nextElement();
-			++i;
-		}
-		return i;
-	}
+  /**
+   * Trivial (costly) implementation of getNumVectors that iterates and counts vectors.
+   */
+  public int getNumVectors() {
+    Enumeration allVectors = this.getAllVectors();
+    int i = 0;
+    while (allVectors.hasMoreElements()) {
+      allVectors.nextElement();
+      ++i;
+    }
+    return i;
+  }
 
   /**
    * Implements the hasMoreElements() and nextElement() methods
