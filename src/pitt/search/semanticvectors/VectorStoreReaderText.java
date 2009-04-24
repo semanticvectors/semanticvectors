@@ -56,7 +56,7 @@ import java.util.StringTokenizer;
    formats: normal (fast) implementations should use the internal
    VectorStoreReader class that uses Lucene's I/O functions.
 
-   @see VectorStoreReader
+   @see VectorStoreReaderLucene
    @see ObjectVector
 **/
 public class VectorStoreReaderText implements CloseableVectorStore {

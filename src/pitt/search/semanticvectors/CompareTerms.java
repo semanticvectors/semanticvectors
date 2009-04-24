@@ -102,7 +102,7 @@ public class CompareTerms{
 
     // Reading and searching data.
     try {
-      VectorStoreReader vecReader = new VectorStoreReader(Flags.queryvectorfile);
+      VectorStoreReaderLucene vecReader = new VectorStoreReaderLucene(Flags.queryvectorfile);
       System.err.println("Opening query vector store from file: " + Flags.queryvectorfile);
 
       if (Flags.luceneindexpath != null) {

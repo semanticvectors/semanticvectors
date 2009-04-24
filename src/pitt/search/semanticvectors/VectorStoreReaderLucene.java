@@ -53,7 +53,7 @@ import org.apache.lucene.store.IndexInput;
    than the native java.io.DataOutputStream
    @see ObjectVector
 **/
-public class VectorStoreReader implements CloseableVectorStore {
+public class VectorStoreReaderLucene implements CloseableVectorStore {
   private String vectorFileName;
   private File vectorFile;
   private FSDirectory fsDirectory;
@@ -64,7 +64,7 @@ public class VectorStoreReader implements CloseableVectorStore {
     return this.fsDirectory;
   }
 
-  public VectorStoreReader (String vectorFileName) throws IOException {
+  public VectorStoreReaderLucene (String vectorFileName) throws IOException {
     this.vectorFileName = vectorFileName;
     this.vectorFile = new File(vectorFileName);
     try {
