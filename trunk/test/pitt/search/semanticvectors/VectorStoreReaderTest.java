@@ -43,7 +43,7 @@ public class VectorStoreReaderTest {
 		public void TestReadFromTestData() {
 		System.err.println("Running tests for VectorStoreReader");
 		try {
-			VectorStoreReader reader = new VectorStoreReader(RunTests.vectorBinFile);
+			VectorStoreReaderLucene reader = new VectorStoreReaderLucene(RunTests.vectorBinFile);
 			assertEquals(2, reader.getNumVectors());
 			float[] abraham = reader.getVector("abraham");
 			assertEquals(1.0f, abraham[0], 0.01);
@@ -56,8 +56,8 @@ public class VectorStoreReaderTest {
 	@Test
 		public void TestOpensAndCloses() {
 		try {
-			VectorStoreReader reader;
-			reader = new VectorStoreReader(RunTests.vectorBinFile);
+			VectorStoreReaderLucene reader;
+			reader = new VectorStoreReaderLucene(RunTests.vectorBinFile);
 			reader.close();
 		}	catch (IOException e) {
 			fail();
@@ -71,8 +71,8 @@ public class VectorStoreReaderTest {
 		public void TestMultipleOpensForRead() {
 		boolean tested = false;
 		try {
-			VectorStoreReader reader = new VectorStoreReader(RunTests.vectorBinFile);
-			VectorStoreReader reader2 = new VectorStoreReader(RunTests.vectorBinFile);
+			VectorStoreReaderLucene reader = new VectorStoreReaderLucene(RunTests.vectorBinFile);
+			VectorStoreReaderLucene reader2 = new VectorStoreReaderLucene(RunTests.vectorBinFile);
 		} catch (IOException e) {
 			// Not sure if there is a better way to test for exceptions ...
 			fail();
