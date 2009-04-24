@@ -78,7 +78,11 @@ public class Flags {
   public static final String[] searchtypeValues = {"sum", "sparsesum", "subspace", "maxsim", "tensor",
                                                    "convolution", "permutation", "printquery"};
 
-  public static String indextype;
+  public static String indexfileformat = "lucene";
+  public static final String indexfileformatDescription =
+	  	"Format used for serializing / deserializing vectors from disk";
+  public static final String[] indexfileformatValues = {"lucene", "text"};
+  
   public static String queryvectorfile = "termvectors.bin";
   public static String searchvectorfile = "";
   public static String luceneindexpath;

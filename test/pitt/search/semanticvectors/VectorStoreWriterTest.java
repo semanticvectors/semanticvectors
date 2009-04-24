@@ -43,11 +43,11 @@ public class VectorStoreWriterTest {
 		public void TestWriteToFileUsedEarlier() {
 		System.err.println("Running tests for VectorStoreWriter");
 		
-		VectorStoreReader fileReader;
+		VectorStoreReaderLucene fileReader;
 		VectorStoreRAM ramCache = new VectorStoreRAM();
 
 		try {
-			fileReader = new VectorStoreReader(RunTests.vectorBinFile);
+			fileReader = new VectorStoreReaderLucene(RunTests.vectorBinFile);
 			ramCache.InitFromFile(RunTests.vectorBinFile);
 			fileReader.close();
 		} catch (IOException e) {
