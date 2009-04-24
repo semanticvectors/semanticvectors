@@ -49,7 +49,7 @@ import java.util.Random;
 
    The class is constructed by creating a VectorStoreReader class,
    iterating through vectors and reading them into memory.
-	 @see VectorStoreReader
+	 @see VectorStoreReaderLucene
    @see ObjectVector
 **/
 public class VectorStoreSparseRAM implements VectorStore {

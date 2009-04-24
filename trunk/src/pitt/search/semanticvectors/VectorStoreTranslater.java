@@ -82,7 +82,7 @@ public class VectorStoreTranslater {
 		// Convert Lucene-style index to plain text.
     if (option == Options.LUCENE_TO_TEXT) {
       try {
-        VectorStoreReader vecReader = new VectorStoreReader(infile);
+        VectorStoreReaderLucene vecReader = new VectorStoreReaderLucene(infile);
         VectorStoreWriter vecWriter = new VectorStoreWriter();
         System.err.println("Writing term vectors to " + outfile);
         vecWriter.WriteVectorsAsText(outfile, vecReader);

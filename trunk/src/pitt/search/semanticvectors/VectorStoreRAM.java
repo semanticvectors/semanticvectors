@@ -50,7 +50,7 @@ import java.util.StringTokenizer;
 
    The class is constructed by creating a VectorStoreReader class,
    iterating through vectors and reading them into memory.
-	 @see VectorStoreReader
+	 @see VectorStoreReaderLucene
    @see ObjectVector
 **/
 public class VectorStoreRAM implements VectorStore {
@@ -63,7 +63,7 @@ public class VectorStoreRAM implements VectorStore {
 
 	// Initialization routine.
   public void InitFromFile (String vectorFile) throws IOException {
-		VectorStoreReader vectorReaderDisk = new VectorStoreReader(vectorFile);
+		VectorStoreReaderLucene vectorReaderDisk = new VectorStoreReaderLucene(vectorFile);
 		Enumeration<ObjectVector> vectorEnumeration = vectorReaderDisk.getAllVectors();
 		
 		System.err.println("Reading vectors from store on disk into memory cache  ...");

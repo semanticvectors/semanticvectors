@@ -299,7 +299,7 @@ public class Search {
 			// Default VectorStore implementation is (Lucene) VectorStoreReader.
       System.err.println("Opening query vector store from file: " + queryFile);
 			if (textIndex) { queryVecReader = new VectorStoreReaderText(queryFile); }
-			else { queryVecReader = new VectorStoreReader(queryFile); }
+			else { queryVecReader = new VectorStoreReaderLucene(queryFile); }
 
       // Open second vector store if search vectors are different from query vectors.
       if (queryFile == searchFile) {
@@ -307,7 +307,7 @@ public class Search {
 			} else {
         System.err.println("Opening search vector store from file: " + searchFile);
 				if (textIndex) { searchVecReader = new VectorStoreReaderText(searchFile); }
-				else { searchVecReader = new VectorStoreReader(searchFile); }
+				else { searchVecReader = new VectorStoreReaderLucene(searchFile); }
       }
 
       if (lucenePath != null) {
