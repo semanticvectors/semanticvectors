@@ -68,6 +68,8 @@ public class RunTests {
 
   public static Class[] regressionTestClasses = { RegressionTests.class };
 
+  public static boolean testDataPrepared = false;
+  
   public static String vectorTextFile = "testtermvectors.txt";
   public static String vectorBinFile = "testtermvectors.bin";
 
@@ -128,28 +130,25 @@ public class RunTests {
     return resultCounts;
   }
 
-  private static boolean prepareUnitTestData() {
+  public static boolean prepareTestData() {
+  	if (testDataPrepared) return true;
+  	
+  	// Create basic vector store files. No Lucene / corpus dependencies here. 
     try {
       BufferedWriter outBuf = new BufferedWriter(new FileWriter(vectorTextFile));
       outBuf.write(testVectors);
       outBuf.close();
 
-      VectorStoreTranslater translater = new VectorStoreTranslater();
       String[] translaterArgs = {"-TEXTTOLUCENE", vectorTextFile, vectorBinFile};
-      translater.main(translaterArgs);
+      VectorStoreTranslater.main(translaterArgs);
     } catch (IOException e) {
       System.err.println("Failed to prepare test data ... abandoning tests.");
       e.printStackTrace();
       return false;
     }
-    return true;
-  }
 
-  private static boolean cleanupUnitTestData() {
-    return deleteDir(new File("."));
-  }
-
-  private static boolean prepareRegressionTestData() {
+    // Create Lucene indexes from test corpus, to use in index building and searching tests.
+    //
     // Explicitly trying to use Runtime constructs instead of (more reliable)
     // imported class APIs, in the hope that we fail faster with Runtime constructs.
     Runtime runtime = Runtime.getRuntime();
@@ -169,32 +168,35 @@ public class RunTests {
       System.err.println("Failed to prepare regression test data ... abandoning tests.");
       e.printStackTrace();
     }
+    
+    testDataPrepared = true;
     return true;
   }
 
-  private static boolean cleanupRegressionTestData() {
+  private static boolean cleanupTestData() {
     return deleteDir(new File("."));
   }
 
-  public static void main(String args[]) throws IOException {
+  public static void main(String args[]) {
     if (!checkCurrentDirEmpty()) {
-      throw new IOException("The test/testdata/tmp directory should be empty before running tests.");
+    	System.err.println("The test/testdata/tmp directory should be empty before running tests.\n"
+    				+ "This may skew your results: consider cleaning up this directory first.");
     }
 
     int successes = 0;
     int failures = 0;
     int[] scores = {0, 0};
 
-    // Prepare and run unit tests.
-    System.err.println("Preparing and running unit tests ...");
-    if (!prepareUnitTestData()) System.out.println("Failed.");
+    System.err.println("Preparing test data ...");    
+    if (!prepareTestData()) System.out.println("Failed.");
+    
+    // Run unit tests.
+    System.err.println("Running unit tests ...");
     scores = runJUnitTests(unitTestClasses);
     successes += scores[0];
     failures += scores[1];
 
-    // Prepare and run regression tests.
-    System.err.println("Preparing and running regression tests ...");
-    if (!prepareRegressionTestData()) System.out.println("Failed.");
+    // Run regression tests.
     scores = runJUnitTests(regressionTestClasses);
     successes += scores[0];
     failures += scores[1];

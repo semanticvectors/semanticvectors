@@ -39,6 +39,9 @@ import java.io.IOException;
 
 public class VectorStoreReaderTest {
 
+	@Before
+		public void setUp() { assert(RunTests.prepareTestData()); }
+	
 	@Test
 		public void TestReadFromTestData() {
 		System.err.println("Running tests for VectorStoreReader");

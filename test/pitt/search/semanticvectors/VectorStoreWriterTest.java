@@ -34,11 +34,13 @@
 package pitt.search.semanticvectors;
 
 import org.junit.*;
-import static org.junit.Assert.*;
 import java.io.IOException;
 
 public class VectorStoreWriterTest {
 
+	@Before
+		public void setUp() { assert(RunTests.prepareTestData()); }
+	
 	@Test
 		public void TestWriteToFileUsedEarlier() {
 		System.err.println("Running tests for VectorStoreWriter");
