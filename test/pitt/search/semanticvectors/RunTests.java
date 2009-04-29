@@ -162,8 +162,8 @@ public class RunTests {
 
       Process lucenePositionsIndexer =
           runtime.exec("java pitt.search.lucene.IndexFilePositions " + testDataPath);
-      luceneIndexer.waitFor();
-      luceneIndexer.destroy();
+      lucenePositionsIndexer.waitFor();
+      lucenePositionsIndexer.destroy();
     } catch (Exception e) {
       System.err.println("Failed to prepare regression test data ... abandoning tests.");
       e.printStackTrace();

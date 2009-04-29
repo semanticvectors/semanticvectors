@@ -74,7 +74,7 @@ public class VectorUtilsTest {
 		float[] floatVector = {2.3f, 0.1f, -1.0f};
 		short[] largest1 = VectorUtils.getNLargestPositions(floatVector, 1);
 		assertEquals(1, largest1.length);
-		assertEquals(0, largest1[0]);
+		assertEquals((short) 0, largest1[0]);
 	}
 
 	@Test
@@ -82,8 +82,8 @@ public class VectorUtilsTest {
 		float[] floatVector2 = {1.0f, 2.3f, 0.1f, -1.0f};
 		short[] largest2 = VectorUtils.getNLargestPositions(floatVector2, 2);
 		assertEquals(2, largest2.length);
-		assertEquals(1, largest2[0]);
-		assertEquals(0, largest2[1]);
+		assertEquals((short) 1, largest2[0]);
+		assertEquals((short) 0, largest2[1]);
 	}
 
 	@Test
@@ -91,14 +91,14 @@ public class VectorUtilsTest {
 		float[] floatVector = {1.0f, 2.3f, 0.1f, -1.0f};
 		short[] sparseVector = VectorUtils.floatVectorToSparseVector(floatVector, 2);
 		assertEquals(2, sparseVector.length);
-		assertEquals(2, sparseVector[0]);
-		assertEquals(-4, sparseVector[1]);
+		assertEquals((short) 2, sparseVector[0]);
+		assertEquals((short) -4, sparseVector[1]);
 
 		float[] floatVector2 = {1.0f, 2.3f, 0.1f, -1.0f, 0f, 0f, 0f, 0f};
 		sparseVector = VectorUtils.floatVectorToSparseVector(floatVector, 4);
 		assertEquals(4, sparseVector.length);
-		assertEquals(2, sparseVector[0]);
-		assertEquals(-4, sparseVector[2]);
+		assertEquals((short) 2, sparseVector[0]);
+		assertEquals((short) -4, sparseVector[2]);
 	}
 
 	@Test

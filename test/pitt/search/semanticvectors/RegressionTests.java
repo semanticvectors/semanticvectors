@@ -6,15 +6,15 @@
    modification, are permitted provided that the following conditions are
    met:
 
-   * Redistributions of source code must retain the above copyright
+ * Redistributions of source code must retain the above copyright
    notice, this list of conditions and the following disclaimer.
 
-   * Redistributions in binary form must reproduce the above
+ * Redistributions in binary form must reproduce the above
    copyright notice, this list of conditions and the following disclaimer
    in the documentation and/or other materials provided with the
    distribution.
 
-   * Neither the name of Google Inc. nor the names of its
+ * Neither the name of Google Inc. nor the names of its
    contributors may be used to endorse or promote products derived from
    this software without specific prior written permission.
 
@@ -29,7 +29,7 @@
    THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
    (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
    THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-**/
+ **/
 
 package pitt.search.semanticvectors;
 
@@ -50,60 +50,63 @@ import static org.junit.Assert.*;
  * RunTests class.
  */
 public class RegressionTests {
-	
+
 	@Before
-	 public void setUp() { assert(RunTests.prepareTestData()); }
-	
-  @Test
-    public void testBuildAndSearchBasicIndex() {
-    assert(!(new File("termvectors.bin")).isFile());
-    assert(!(new File("docvectors.bin")).isFile());
-    String[] args = {"-dimension", "200", "index"};
-    BuildIndex.main(args);
-    assert((new File("termvectors.bin")).isFile());
-    assert((new File("docvectors.bin")).isFile());
+	public void setUp() { assert(RunTests.prepareTestData()); }
 
-    Scanner results = TestUtils.getCommandOutput("java pitt.search.semanticvectors.Search peter");
-    // Iterate to second line and check result.
-    results.next();
-    String secondTerm = TestUtils.termFromResult(results.next());
-    assertEquals("simon", secondTerm);
-  }
+	@Test
+	public void testBuildAndSearchBasicIndex() {
+		assert(!(new File("termvectors.bin")).isFile());
+		assert(!(new File("docvectors.bin")).isFile());
+		String[] args = {"-dimension", "200", "index"};
+		BuildIndex.main(args);
+		assert((new File("termvectors.bin")).isFile());
+		assert((new File("docvectors.bin")).isFile());
 
-  @Test
-    public void testBuildAndSearchPositionalIndex() {
-    assert(!(new File("termtermvectors.bin")).isFile());
-    assert(!(new File("incremental_docvectors.bin")).isFile());
-    String[] args2 = {"-dimension", "200", "positional_index"};
-    BuildPositionalIndex.main(args2);
-    assert((new File("termtermvectors.bin")).isFile());
-    assert((new File("incremental_docvectors.bin")).isFile());
+		Scanner results = TestUtils.getCommandOutput("java pitt.search.semanticvectors.Search peter");
+		// Iterate to second line and check result.
+		results.next();
+		String secondTerm = TestUtils.termFromResult(results.next());
+		assertEquals("simon", secondTerm);
+	}
 
-    Scanner results = TestUtils.getCommandOutput(
-        "java pitt.search.semanticvectors.Search -q termtermvectors.bin martha");
-    // Iterate to second line and check result.
-    int i = 0;
-    boolean foundMary = false;
-    while (i < 5) {
-      if (TestUtils.termFromResult(results.next()).equals("mary")) {
-        foundMary = true;
-        System.err.println("Found mary in line: " + i);
-      }
-      ++i;
-    }
-    assertTrue(foundMary);
-  }
+	@Test
+	public void testBuildAndSearchPositionalIndex() {
+		assert(!(new File("termtermvectors.bin")).isFile());
+		assert(!(new File("incremental_docvectors.bin")).isFile());
+		String[] args2 = {"-dimension", "200", "positional_index"};
+		BuildPositionalIndex.main(args2);
+		assert((new File("termtermvectors.bin")).isFile());
+		assert((new File("incremental_docvectors.bin")).isFile());
 
-  @Test
-    public void testBuildAndSearchPermutationIndex() {
-    String[] args3 = {"-dimension", "200", "-positionalmethod",
-                      "permutation", "positional_index"};
-    BuildPositionalIndex.main(args3);
+		Scanner results = TestUtils.getCommandOutput(
+		"java pitt.search.semanticvectors.Search -q termtermvectors.bin martha");
+		int i = 0;
+		boolean foundMary = false;
+		while (i < 5) {
+			String nextTerm = TestUtils.termFromResult(results.next());
+			if (nextTerm.equals("mary")) {
+				foundMary = true;
+				System.err.println("Found mary in line: " + i);
+				break;
+			}
+			++i;
+		}
+		assertTrue(foundMary);
+	}
 
-    Scanner results = TestUtils.getCommandOutput(
-        "java pitt.search.semanticvectors.Search -searchtype permutation -q randomvectors.bin -s permtermvectors.bin simon ?");
-    // First result should be "peter".
-    String firstTerm = TestUtils.termFromResult(results.next());
-    assertEquals("peter", firstTerm);
-  }
+	@Test
+	public void testBuildAndSearchPermutationIndex() {
+		String[] args3 = {"-dimension", "200", "-positionalmethod",
+				"permutation", "positional_index"};
+		BuildPositionalIndex.main(args3);
+
+		Scanner results = TestUtils.getCommandOutput(
+		"java pitt.search.semanticvectors.Search -searchtype permutation -q randomvectors.bin -s permtermvectors.bin simon ?");
+		// First result should be "peter".
+		String firstLine = results.next();
+		System.err.println(firstLine);
+		String firstTerm = TestUtils.termFromResult(firstLine);
+		assertEquals("peter", firstTerm);
+	}
 }
