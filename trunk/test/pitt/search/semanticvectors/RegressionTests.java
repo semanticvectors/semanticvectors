@@ -34,10 +34,6 @@
 package pitt.search.semanticvectors;
 
 import java.io.File;
-import java.io.IOException;
-import java.lang.Process;
-import java.lang.Runtime;
-import java.util.Scanner;
 import java.util.*;
 
 import org.junit.*;
@@ -54,33 +50,10 @@ import static org.junit.Assert.*;
  * RunTests class.
  */
 public class RegressionTests {
-
-  /**
-   * Utility for taking a command, executing it as a process, and
-   * returning a scanner of that processes stdout.
-   */
-  public static Scanner getCommandOutput(String command) {
-    try {
-      Runtime runtime = Runtime.getRuntime();
-      Process process = runtime.exec(command);
-      Scanner output = new Scanner(process.getInputStream()).useDelimiter("\\n");
-      process.waitFor();
-      return output;
-    }
-    catch (IOException e) { e.printStackTrace(); }
-    catch (InterruptedException e) { e.printStackTrace(); }
-    return null;
-  }
-
-  /**
-   * Get a term from a search results line.
-   */
-  public String termFromResult(String result) {
-    String[] parts = result.split(":");
-    if (parts.length != 2) return null;
-    return parts[1];
-  }
-
+	
+	@Before
+	 public void setUp() { assert(RunTests.prepareTestData()); }
+	
   @Test
     public void testBuildAndSearchBasicIndex() {
     assert(!(new File("termvectors.bin")).isFile());
@@ -90,10 +63,10 @@ public class RegressionTests {
     assert((new File("termvectors.bin")).isFile());
     assert((new File("docvectors.bin")).isFile());
 
-    Scanner results = getCommandOutput("java pitt.search.semanticvectors.Search peter");
+    Scanner results = TestUtils.getCommandOutput("java pitt.search.semanticvectors.Search peter");
     // Iterate to second line and check result.
     results.next();
-    String secondTerm = termFromResult(results.next());
+    String secondTerm = TestUtils.termFromResult(results.next());
     assertEquals("simon", secondTerm);
   }
 
@@ -106,13 +79,13 @@ public class RegressionTests {
     assert((new File("termtermvectors.bin")).isFile());
     assert((new File("incremental_docvectors.bin")).isFile());
 
-    Scanner results = getCommandOutput(
+    Scanner results = TestUtils.getCommandOutput(
         "java pitt.search.semanticvectors.Search -q termtermvectors.bin martha");
     // Iterate to second line and check result.
     int i = 0;
     boolean foundMary = false;
     while (i < 5) {
-      if (termFromResult(results.next()).equals("mary")) {
+      if (TestUtils.termFromResult(results.next()).equals("mary")) {
         foundMary = true;
         System.err.println("Found mary in line: " + i);
       }
@@ -121,17 +94,16 @@ public class RegressionTests {
     assertTrue(foundMary);
   }
 
-
   @Test
     public void testBuildAndSearchPermutationIndex() {
     String[] args3 = {"-dimension", "200", "-positionalmethod",
                       "permutation", "positional_index"};
     BuildPositionalIndex.main(args3);
 
-    Scanner results = getCommandOutput(
+    Scanner results = TestUtils.getCommandOutput(
         "java pitt.search.semanticvectors.Search -searchtype permutation -q randomvectors.bin -s permtermvectors.bin simon ?");
     // First result should be "peter".
-    String firstTerm = termFromResult(results.next());
+    String firstTerm = TestUtils.termFromResult(results.next());
     assertEquals("peter", firstTerm);
   }
 }
