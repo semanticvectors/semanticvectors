@@ -95,11 +95,14 @@
   </target>
 
   <target name="run-tests" depends="compile-tests">
+  	<!-- This test configuration includes some quick and dirty filesystem
+      	 operations to make sure that the working dir starts and finishes empty. -->
     <delete dir="${testworkingdir}"/>
     <mkdir dir="${testworkingdir}"/>
     <java fork="true" dir="${testworkingdir}"
           classname="pitt.search.semanticvectors.RunTests"/>
     <delete dir="${testworkingdir}"/>
+    <mkdir dir="${testworkingdir}"/>  	
   </target>
 
 <!-- Compile development extensions ... this is a temporary solution until
