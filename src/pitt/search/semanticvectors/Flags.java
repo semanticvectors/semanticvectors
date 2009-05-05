@@ -47,7 +47,7 @@ import java.lang.reflect.Field;
  * put this power into user's hands explicitly, but at least insist that all command
  * line flags are declared in one place - in the Flags class. Needless to say, the
  * Flags class only looks after the basic syntax of (name, value) command line flags.
- * All semantics (i.e., in this case, behaviur affected by the flags) is up to the
+ * All semantics (i.e., in this case, behaviour affected by the flags) is up to the
  * developer to implement.
  *
  * @author dwiddows
@@ -76,7 +76,7 @@ public class Flags {
   public static String searchtype = "sum";
   public static final String searchtypeDescription = "Method used for combining and searching vectors.";
   public static final String[] searchtypeValues = {"sum", "sparsesum", "subspace", "maxsim", "tensor",
-                                                   "convolution", "permutation", "printquery"};
+                                                   "convolution","balanced_permutation", "permutation", "printquery"};
 
   public static String indexfileformat = "lucene";
   public static final String indexfileformatDescription =
