@@ -97,6 +97,16 @@ import java.util.LinkedList;
  * random vectors or previously learned term vectors, and the index searched must contain
  * permuted vectors. 
  *
+ * <br/><b>balanced permutation</b>
+ * Based on Sahlgren at al. (2008). Searches for the term that best matches
+ * the position of a "?" in a sequence of terms. For example
+ * 'martin ? king' should retrieve luther as the top ranked match
+ * requires the index queried to contain unpermuted vectors, either
+ * random vectors or previously learned term vectors, and the index searched must contain
+ * permuted vectors. This is a variant of the method, that takes the mean  
+ * of the two possible search directions (search with index vectors for permuted vectors,
+ * or vice versa)
+ *
  * <br/><b>printquery</b>
  * Build an additive query vector (as with <code>SUM</code> and
  * print out the query vector for debugging.
@@ -122,15 +132,15 @@ public class Search {
    * <br> -luceneindexpath argument my be used to get term weights from
    * <br>     term frequency, doc frequency, etc. in lucene index.
 	 * <br> -searchtype can be one of SUM, SPARSESUM, SUBSPACE, MAXSIM,
-	 * <br> TENSOR, CONVOLUTION, PERMUTATION, PRINTQUERY
+	 * <br> TENSOR, CONVOLUTION, PERMUTATION, BALANCED_PERMUTATION, PRINTQUERY
    * <br> &lt;QUERYTERMS&gt; should be a list of words, separated by spaces.
    * <br> If the term NOT is used, terms after that will be negated.
    * </code>
    */
   public static void usage() {
     String usageMessage = "\nSearch class in package pitt.search.semanticvectors"
-			+ "\nUsage: java pitt.search.semanticvectors.Search [-queryfile query_vector_file]"
-			+ "\n                                               [-searchfile search_vector_file]"
+			+ "\nUsage: java pitt.search.semanticvectors.Search [-queryvectorfile query_vector_file]"
+			+ "\n                                               [-searchvectorfile search_vector_file]"
 			+ "\n                                               [-luceneindexpath path_to_lucene_index]"
 			+ "\n                                               [-searchtype TYPE]"
 			+ "\n                                               [-numsearchresults num_results]"
@@ -141,7 +151,7 @@ public class Search {
 			+ "\n-luceneindexpath argument is needed if to get term weights from"
 			+ "\n    term frequency, doc frequency, etc. in lucene index."
 			+ "\n-searchtype can be one of SUM, SPARSESUM, SUBSPACE, MAXSIM,"
-			+ "\n                TENSOR, CONVOLUTION, PERMUTATION, PRINTQUERY"
+			+ "\n     TENSOR, CONVOLUTION, BALANCED_PERMUTATION, PERMUTATION, PRINTQUERY"
 			+ "\n<QUERYTERMS> should be a list of words, separated by spaces."
 			+ "\n    If the term NOT is used, terms after that will be negated.";
     System.out.println(usageMessage);
@@ -324,6 +334,22 @@ public class Search {
 				System.err.println(zve.getMessage());
 				results = new LinkedList<SearchResult>();
 			}
+		} else if (Flags.searchtype.equals("balanced_permutation")) {			
+				// Permutes query vectors such that the most likely term in the position
+				// of the "?" is retrieved
+				try {
+					// Create VectorSearcher and search for nearest neighbors.
+					vecSearcher =
+						new VectorSearcher.BalancedVectorSearcherPerm(queryVecReader,
+																									searchVecReader,
+																									luceneUtils,
+																									args);	
+					System.err.print("Searching term vectors, searchtype BALANCED_PERMUTATION ... ");
+					results = vecSearcher.getNearestNeighbors(numResults);
+				} catch (ZeroVectorException zve) {
+					System.err.println(zve.getMessage());
+					results = new LinkedList<SearchResult>();
+				}
 		} else if (Flags.searchtype.equals("printquery")) {
 			// Simply prints out the query vector: doesn't do any searching.
 			float[] queryVector = CompoundVectorBuilder.getQueryVector(queryVecReader,
