@@ -80,7 +80,7 @@ public class RegressionTests {
 		assert((new File("incremental_docvectors.bin")).isFile());
 
 		Scanner results = TestUtils.getCommandOutput(
-		"java pitt.search.semanticvectors.Search -q termtermvectors.bin martha");
+				"java pitt.search.semanticvectors.Search -queryvectorfile termtermvectors.bin martha");
 		int i = 0;
 		boolean foundMary = false;
 		while (i < 5) {
@@ -94,18 +94,18 @@ public class RegressionTests {
 		}
 		assertTrue(foundMary);
 	}
-
+	
 	@Test
 	public void testBuildAndSearchPermutationIndex() {
 		String[] args3 = {"-dimension", "200", "-positionalmethod",
 				"permutation", "positional_index"};
 		BuildPositionalIndex.main(args3);
 
-		Scanner results = TestUtils.getCommandOutput(
-		"java pitt.search.semanticvectors.Search -searchtype permutation -q randomvectors.bin -s permtermvectors.bin simon ?");
+		Scanner results = TestUtils.getCommandOutput("java pitt.search.semanticvectors.Search " +
+				"	-searchtype permutation -queryvectorfile randomvectors.bin " +
+				"	-searchvectorfile permtermvectors.bin simon ?");
 		// First result should be "peter".
 		String firstLine = results.next();
-		System.err.println(firstLine);
 		String firstTerm = TestUtils.termFromResult(firstLine);
 		assertEquals("peter", firstTerm);
 	}

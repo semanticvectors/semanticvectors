@@ -47,7 +47,7 @@ import java.lang.reflect.Field;
  * put this power into user's hands explicitly, but at least insist that all command
  * line flags are declared in one place - in the Flags class. Needless to say, the
  * Flags class only looks after the basic syntax of (name, value) command line flags.
- * All semantics (i.e., in this case, behaviour affected by the flags) is up to the
+ * All semantics (i.e., in this case, behaviur affected by the flags) is up to the
  * developer to implement.
  *
  * @author dwiddows
@@ -85,7 +85,7 @@ public class Flags {
   
   public static String queryvectorfile = "termvectors.bin";
   public static String searchvectorfile = "";
-  public static String luceneindexpath;
+  public static String luceneindexpath = "";
   public static String initialtermvectors = "";
   public static String initialtermvectorsDescription =
       "Use the vectors in this file for initialization instead of new random vectors.";
@@ -103,6 +103,7 @@ public class Flags {
   "Method used for looking up vectors in a vector store";
   public static String[] vectorlookupsyntaxValues = {"exactmatch", "regex"};
 
+  public static boolean lowercasequery = false;
   /**
    * Parse command line flags and create public data structures for accessing them.
    * @param args
@@ -129,6 +130,7 @@ public class Flags {
         flagName = flagName.substring(1, flagName.length());
       }
 
+      System.err.println("Flag: '" + flagName + "' in position: " + argc);
       try {
         Field field = Flags.class.getField(flagName);
 
@@ -145,6 +147,7 @@ public class Flags {
             for (int i = 0; i < valuesList.length; ++i) {
               if (flagValue.equals(valuesList[i])) {
                 found = true;
+                argc += 2;
                 break;
               }
             }
@@ -155,14 +158,19 @@ public class Flags {
             }
           } catch (NoSuchFieldException e) {
             // This just means there isn't a list of allowed values.
+            argc += 2;
             continue;
           }
-
           // Parse int arguments.
         } else if (field.getType().getName().equals("int")) {
           field.setInt(field, Integer.parseInt(args[argc + 1]));
+          argc += 2;
+          // Parse boolean arguments.
+        } else if (field.getType().getName().equals("boolean")) {
+        	field.setBoolean(field, true);
+        	++argc;
         }
-        argc += 2;
+
       } catch (NoSuchFieldException e) {
         throw new IllegalArgumentException("Command line flag not defined: " + flagName);
       } catch (IllegalAccessException e) {

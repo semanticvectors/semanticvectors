@@ -35,7 +35,6 @@
 
 package pitt.search.semanticvectors;
 
-import java.io.IOException;
 import java.lang.IllegalArgumentException;
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -86,8 +85,8 @@ abstract public class VectorSearcher{
 	 * argument.
 	 * @param numResults the number of results / length of the result list.
 	 */
-	public LinkedList getNearestNeighbors(int numResults) {
-		LinkedList<SearchResult> results = new LinkedList();
+	public LinkedList<SearchResult> getNearestNeighbors(int numResults) {
+		LinkedList<SearchResult> results = new LinkedList<SearchResult>();
 		float score, threshold = -1;
 
 		Enumeration<ObjectVector> vecEnum = searchVecStore.getAllVectors();
