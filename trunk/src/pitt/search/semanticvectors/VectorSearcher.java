@@ -514,4 +514,130 @@ abstract public class VectorSearcher{
 			return VectorUtils.scalarProduct(theAvg, testVector);
 		}
 	}	
+    /**
+     * Class for searching a permuted vector store using cosine similarity.
+     * Uses implementation of rotation for permutation proposed by Sahlgren et al 2008
+     * Should find the term that appears frequently in the position p relative to the 
+     * index term (i.e. sat +1 would find a term occurring frequently immediately after "sat"
+     * This is a variant that takes into account differt results obtained when using either
+     * permuted or random index vectors as the cue terms, by taking the mean of the results
+     * obtained with each of these options
+     */                                                                                      
+    static public class BalancedVectorSearcherPerm extends VectorSearcher {                          
+            float[] oneDirection;                                                            
+            float[] otherDirection;                                                          
+            VectorStore searchVecStore, queryVecStore;                                       
+            LuceneUtils luceneUtils;                                                         
+            String[] queryTerms;                                                             
+
+
+            /**
+             * @param queryVecStore Vector store to use for query generation (this is also reversed).
+             * @param searchVecStore The vector store to search (this is also reversed).
+             * @param luceneUtils LuceneUtils object to use for query weighting. (May be null.)
+             * @param queryTerms Terms that will be parsed into a query                        
+             * expression. If the string "?" appears, terms best fitting into this position will be returned                                                                                                        
+             */                                                                                          
+           
+            public BalancedVectorSearcherPerm(VectorStore queryVecStore,  VectorStore searchVecStore,  LuceneUtils luceneUtils,   String[] queryTerms)                                                                                          
+                    throws IllegalArgumentException, ZeroVectorException {                               
+        super(queryVecStore, searchVecStore, luceneUtils);                                               
+            this.queryVecStore = queryVecStore;                                                          
+        this.searchVecStore = searchVecStore;                                                            
+            this.luceneUtils = luceneUtils;                                                              
+
+        
+        
+                    try {
+                            oneDirection = pitt.search.semanticvectors.CompoundVectorBuilder.
+                                    getPermutedQueryVector(queryVecStore,luceneUtils,queryTerms);
+                            otherDirection = pitt.search.semanticvectors.CompoundVectorBuilder.  
+                                    getPermutedQueryVector(searchVecStore,luceneUtils,queryTerms);
+                    } catch (IllegalArgumentException e) {                                        
+                            System.err.println("Couldn't create permutation VectorSearcher ..."); 
+                            throw e;                                                              
+                    }                                                                             
+
+                    if (VectorUtils.isZeroVector(oneDirection)) {
+                            throw new ZeroVectorException("Permutation query vector is zero ... no results.");                                                                                                        
+                    }                                                                                    
+            }                                                                                            
+
+            /**
+             * This overides the nearest neighbor class implemented in the abstract
+             * VectorSearcher class 
+             * @param numResults the number of results / length of the result list.
+             */                                                                    
+
+            public LinkedList getNearestNeighbors(int numResults) {
+                    LinkedList<SearchResult> results = new LinkedList();
+                    float score,score1, score2, threshold = -1;                        
+
+                    Enumeration<ObjectVector> vecEnum  = searchVecStore.getAllVectors();
+                    Enumeration<ObjectVector> vecEnum2  = queryVecStore.getAllVectors();  
+                    while (vecEnum.hasMoreElements()) {                                 
+                // Initialize result list if just starting.                             
+                if (results.size() == 0) {                                              
+                                    ObjectVector firstElement = vecEnum.nextElement();  
+                                    score = getScore(firstElement.getVector());     
+                                    score2= getScore(vecEnum2.nextElement().getVector());
+                                    results.add(new SearchResult((score+score2)/2, firstElement)); 
+                                    continue;                                           
+                }                                                                       
+
+                // Test this element.
+                ObjectVector testElement = vecEnum.nextElement();
+                ObjectVector testElement2 = vecEnum2.nextElement();
+                score1 = getScore(testElement.getVector());       
+                score2 = getScore2(VectorUtils.getNormalizedVector(testElement2.getVector()));
+                score = (score1+score2)/2;
+               
+                // This is a way of using the Lucene Index to get term and
+                            // document frequency information to reweight all results. It
+                            // seems to be good at moving excessively common terms further
+                            // down the results. Note that using this means that scores   
+                            // returned are no longer just cosine similarities.           
+                            if (this.luceneUtils != null) {                               
+                                    score = score *  luceneUtils.getGlobalTermWeightFromString((String) testElement.getObject());                                                                                              
+                            }                                                                            
+
+                if (score > threshold) {
+                                    boolean added = false;
+                                    for (int i = 0; i < results.size(); ++i) {
+                                            // Add to list if this is right place.
+                                            if (score > results.get(i).getScore() && added == false) {
+                                                    results.add(i, new SearchResult(score, testElement));
+                                                    added = true;                                        
+                                            }                                                            
+                                    }                                                                    
+                                    // Prune list if there are already numResults.                       
+                                    if (results.size() > numResults) {                                   
+                                            results.removeLast();                                        
+                                            threshold = results.getLast().getScore();                    
+                                    } else {                                                             
+                                            if (added == false) {                                        
+                                                    results.add(new SearchResult(score, testElement));   
+                                            }                                                            
+                 }                                                                                        
+                                                                                                    
+                   
+
+
+                }}
+
+                    return results;
+            }
+
+
+
+            public float getScore(float[] testVector) {
+                    return VectorUtils.scalarProduct(oneDirection, testVector);
+            }
+            public float getScore2(float[] testVector) {
+                    return VectorUtils.scalarProduct(otherDirection, VectorUtils.getNormalizedVector(testVector));
+                                    }
+
+    }
+
+	
 }
