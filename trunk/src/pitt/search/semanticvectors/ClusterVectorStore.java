@@ -36,11 +36,6 @@
 package pitt.search.semanticvectors;
 
 import java.io.IOException;
-import java.lang.Float;
-import java.lang.Integer;
-import java.lang.IllegalArgumentException;
-import java.lang.NumberFormatException;
-import java.lang.String;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Hashtable;
@@ -57,13 +52,15 @@ public class ClusterVectorStore {
 	 * Prints the following usage message:
 	 * <code>
 	 * ClusterVectorStore class for clustering an entire (text) vector store. <br>
-	 * Usage: java.pitt.search.semanticvectors.ClusterVectorStore NUMCLUSTERS VECTORFILE <br>
-	 * Do not try this for large vectors, it will not scale well! <br>
+	 * Usage: java.pitt.search.semanticvectors.ClusterVectorStore VECTORFILE <br>
+	 * Use --numclusters to change the number of clusters.
+	 * Do not try this for large vector stores, it will not scale well! <br>
 	 */
 	public static void usage() {
 		String message = "ClusterVectorStore class for clustering an entire (text) vector store.";
-		message += "\nUsage: java.pitt.search.semanticvectors.ClusterVectorStore NUMCLUSTERS VECTORFILE";
-		message += "\nDo not try this for large vectors, it will not scale well!";
+		message += "\nUsage: java.pitt.search.semanticvectors.ClusterVectorStore VECTORFILE";
+		message += "\nUse --numclusters to change the number of clusters.";
+		message += "\nDo not try this for large vector stores, it will not scale well!";
 		System.out.println(message);
 		return;
 	}
@@ -140,26 +137,18 @@ public class ClusterVectorStore {
 	 * text format) as arguments and prints out clusters.
 	 */
 	public static void main(String[] args) throws IllegalArgumentException {
-		int numClusters = 0;
-		VectorStoreReaderText vecReader = null;
-
-		// Parse query args. Make sure you put the two clustering
-		// arguments before any of the search arguments.
-		if (args.length != 2) {
-			usage();
-			return;
-		}
+	  args = Flags.parseCommandLineFlags(args);
+	  if (args.length != 1) {
+	  	System.out.println("Wrong number of arguments.");
+	  	usage();
+	  	return;
+	  }
+	  
+		CloseableVectorStore vecReader;
 		try {
-			numClusters = Integer.parseInt(args[0]);
-		} catch (NumberFormatException e) {
-			System.err.println(e.getMessage());
-			usage();
-			throw new IllegalArgumentException("Failed to parse arguments for ClusterVectorStore");
-		}
-		try {
-			vecReader = new VectorStoreReaderText(args[1]);
+			vecReader = VectorStoreReader.openVectorStore(args[0]);
 		} catch (IOException e) {
-			System.out.println("Failed to open vector store from file: '" + args[1] + "'");
+			System.out.println("Failed to open vector store from file: '" + args[0] + "'");
 			System.err.println(e.getMessage());
 			throw new IllegalArgumentException("Failed to parse arguments for ClusterVectorStore");
 		}
@@ -186,8 +175,8 @@ public class ClusterVectorStore {
 
 		// Peform clustering and print out results.
 		System.err.println("Clustering vectors ...");
-		int[] clusterMappings = ClusterResults.kMeansCluster(resultsVectors, numClusters);
-		for (int i = 0; i < numClusters; ++i) {
+		int[] clusterMappings = ClusterResults.kMeansCluster(resultsVectors, Flags.numclusters);
+		for (int i = 0; i < Flags.numclusters; ++i) {
 	    System.out.println("Cluster " + i);
 	    for (int j = 0; j < clusterMappings.length; ++j) {
 				if (clusterMappings[j] == i) {

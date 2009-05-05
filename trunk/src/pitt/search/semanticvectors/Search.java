@@ -168,27 +168,18 @@ public class Search {
 		throws IllegalArgumentException {
 		/** 
 		 * The RunSearch function has four main stages:
-		 * i. Parse command line arguments.
+		 * i. Parse command line arguments, with a tiny bit of extra logic for vector stores.
 		 * ii. Open corresponding vector and lucene indexes.
 		 * iii. Based on search type, build query vector and perform search.
 		 * iv. Return LinkedList of results, usually for main() to print out.
-		 *
-		 * Stage iii. is a large switch statement, that depends on the searchType.
-		 *
-		 * The code would be nicer if we combined stages i. and ii., but
-		 * this would be hard to implement without forcing the user to use
-		 * command line arguments in a fixed order, which would definitely
-		 * lead to errors. So the trade-off is to make the code more
-		 * complex and the usage simpler.
 		 */
 
+  	// Stage i. Assemble command line options.
 		args = Flags.parseCommandLineFlags(args);
-		
 		// If Flags.searchvectorfile wasn't set, it defaults to Flags.queryvectorfile.
 		if (Flags.searchvectorfile.equals("")) {
 			Flags.searchvectorfile = Flags.queryvectorfile;
 		}
-
 
 		// Stage ii. Open vector stores, and Lucene utils.
     try {
@@ -216,7 +207,7 @@ public class Search {
     }
 
 		// This takes the slice of args from argc to end.
-    if (Flags.lowercasequery) {
+    if (!Flags.matchcase) {
     	for (int i = 0; i < args.length; ++i) {
     		args[i] = args[i].toLowerCase();
     	}

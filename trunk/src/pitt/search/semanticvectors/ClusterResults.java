@@ -35,11 +35,6 @@
 
 package pitt.search.semanticvectors;
 
-import java.lang.Math;
-import java.lang.Integer;
-import java.lang.IllegalArgumentException;
-import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.Random;
 
 public class ClusterResults {
