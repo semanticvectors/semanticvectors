@@ -95,7 +95,6 @@ public class BuildPositionalIndex {
    * @param args
    */
   public static void main (String[] args) throws IllegalArgumentException {
-    for(String arg: args) System.out.println(arg);
     try {
       args = Flags.parseCommandLineFlags(args);
     } catch (IllegalArgumentException e) {
