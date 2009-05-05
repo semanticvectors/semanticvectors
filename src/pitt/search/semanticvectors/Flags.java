@@ -82,7 +82,7 @@ public class Flags {
   public static final String indexfileformatDescription =
 	  	"Format used for serializing / deserializing vectors from disk";
   public static final String[] indexfileformatValues = {"lucene", "text"};
-  
+
   public static String queryvectorfile = "termvectors.bin";
   public static String searchvectorfile = "";
   public static String luceneindexpath = "";
@@ -130,7 +130,6 @@ public class Flags {
         flagName = flagName.substring(1, flagName.length());
       }
 
-      System.err.println("Flag: '" + flagName + "' in position: " + argc);
       try {
         Field field = Flags.class.getField(flagName);
 
