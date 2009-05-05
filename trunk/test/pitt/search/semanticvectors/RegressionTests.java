@@ -108,5 +108,13 @@ public class RegressionTests {
 		String firstLine = results.next();
 		String firstTerm = TestUtils.termFromResult(firstLine);
 		assertEquals("peter", firstTerm);
+		
+		Scanner results2 = TestUtils.getCommandOutput("java pitt.search.semanticvectors.Search " +
+				"	-searchtype balanced_permutation -queryvectorfile randomvectors.bin " +
+				"	-searchvectorfile permtermvectors.bin simon ?");
+		// First result should be "peter".
+		String firstLine2 = results2.next();
+		String firstTerm2 = TestUtils.termFromResult(firstLine2);
+		assertEquals("peter", firstTerm2);
 	}
 }
