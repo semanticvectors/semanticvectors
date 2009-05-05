@@ -103,7 +103,7 @@ public class Flags {
   "Method used for looking up vectors in a vector store";
   public static String[] vectorlookupsyntaxValues = {"exactmatch", "regex"};
 
-  public static boolean lowercasequery = false;
+  public static boolean matchcase = false;
   /**
    * Parse command line flags and create public data structures for accessing them.
    * @param args
