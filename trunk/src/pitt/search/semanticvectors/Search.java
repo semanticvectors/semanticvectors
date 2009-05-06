@@ -55,7 +55,7 @@ import java.util.LinkedList;
  * vectors for each of the query terms, and search using cosine
  * similarity.
  * @see VectorSearcher.VectorSearcherCosine
- *	
+ *
  * <br/> <b>sparsesum</b>:
  * Build a query as with <code>SUM</code> option, but quantize to
  * sparse vectors before taking scalar product at search time.
@@ -95,7 +95,7 @@ import java.util.LinkedList;
  * 'martin ? king' should retrieve luther as the top ranked match
  * requires the index queried to contain unpermuted vectors, either
  * random vectors or previously learned term vectors, and the index searched must contain
- * permuted vectors. 
+ * permuted vectors.
  *
  * <br/><b>balanced permutation</b>
  * Based on Sahlgren at al. (2008). Searches for the term that best matches
@@ -103,7 +103,7 @@ import java.util.LinkedList;
  * 'martin ? king' should retrieve luther as the top ranked match
  * requires the index queried to contain unpermuted vectors, either
  * random vectors or previously learned term vectors, and the index searched must contain
- * permuted vectors. This is a variant of the method, that takes the mean  
+ * permuted vectors. This is a variant of the method, that takes the mean
  * of the two possible search directions (search with index vectors for permuted vectors,
  * or vice versa)
  *
@@ -116,82 +116,82 @@ public class Search {
 
   private static CloseableVectorStore queryVecReader;
   private static CloseableVectorStore searchVecReader;
-	private static LuceneUtils luceneUtils;
-  
-	/**
+  private static LuceneUtils luceneUtils;
+
+  /**
    * Prints the following usage message:
    * <code>
    * <br> Search class in package pitt.search.semanticvectors
    * <br> Usage: java pitt.search.semanticvectors.Search [-queryfile query_vector_file]
    * <br>                                                [-searchfile search_vector_file]
    * <br>                                                [-luceneindexpath path_to_lucene_index]
-	 * <br>                                                [-searchtype TYPE]
-	 * <br>                                                [-numsearchresults num_results]
-	 * <br>                                                [-lowercasequery]
+   * <br>                                                [-searchtype TYPE]
+   * <br>                                                [-numsearchresults num_results]
+   * <br>                                                [-lowercasequery]
    * <br>                                                &lt;QUERYTERMS&gt;
    * <br> -luceneindexpath argument my be used to get term weights from
    * <br>     term frequency, doc frequency, etc. in lucene index.
-	 * <br> -searchtype can be one of SUM, SPARSESUM, SUBSPACE, MAXSIM,
-	 * <br> TENSOR, CONVOLUTION, PERMUTATION, BALANCED_PERMUTATION, PRINTQUERY
+   * <br> -searchtype can be one of SUM, SPARSESUM, SUBSPACE, MAXSIM,
+   * <br> TENSOR, CONVOLUTION, PERMUTATION, BALANCED_PERMUTATION, PRINTQUERY
    * <br> &lt;QUERYTERMS&gt; should be a list of words, separated by spaces.
    * <br> If the term NOT is used, terms after that will be negated.
    * </code>
    */
   public static void usage() {
     String usageMessage = "\nSearch class in package pitt.search.semanticvectors"
-			+ "\nUsage: java pitt.search.semanticvectors.Search [-queryvectorfile query_vector_file]"
-			+ "\n                                               [-searchvectorfile search_vector_file]"
-			+ "\n                                               [-luceneindexpath path_to_lucene_index]"
-			+ "\n                                               [-searchtype TYPE]"
-			+ "\n                                               [-numsearchresults num_results]"
-			+ "\n                                               [-lowercasequery]"
-			+ "\n                                               <QUERYTERMS>"
-			+ "\nIf no query or search file is given, default will be"
-			+ "\n    termvectors.bin in local directory."
-			+ "\n-luceneindexpath argument is needed if to get term weights from"
-			+ "\n    term frequency, doc frequency, etc. in lucene index."
-			+ "\n-searchtype can be one of SUM, SPARSESUM, SUBSPACE, MAXSIM,"
-			+ "\n     TENSOR, CONVOLUTION, BALANCED_PERMUTATION, PERMUTATION, PRINTQUERY"
-			+ "\n<QUERYTERMS> should be a list of words, separated by spaces."
-			+ "\n    If the term NOT is used, terms after that will be negated.";
+        + "\nUsage: java pitt.search.semanticvectors.Search [-queryvectorfile query_vector_file]"
+        + "\n                                               [-searchvectorfile search_vector_file]"
+        + "\n                                               [-luceneindexpath path_to_lucene_index]"
+        + "\n                                               [-searchtype TYPE]"
+        + "\n                                               [-numsearchresults num_results]"
+        + "\n                                               [-lowercasequery]"
+        + "\n                                               <QUERYTERMS>"
+        + "\nIf no query or search file is given, default will be"
+        + "\n    termvectors.bin in local directory."
+        + "\n-luceneindexpath argument is needed if to get term weights from"
+        + "\n    term frequency, doc frequency, etc. in lucene index."
+        + "\n-searchtype can be one of SUM, SPARSESUM, SUBSPACE, MAXSIM,"
+        + "\n     TENSOR, CONVOLUTION, BALANCED_PERMUTATION, PERMUTATION, PRINTQUERY"
+        + "\n<QUERYTERMS> should be a list of words, separated by spaces."
+        + "\n    If the term NOT is used, terms after that will be negated.";
     System.out.println(usageMessage);
   }
-  
+
 
   /**
    * Takes a user's query, creates a query vector, and searches a vector store.
    * @param args See usage();
-	 * @param numResults Number of search results to be returned in a ranked list.
-	 * @return Linked list containing <code>numResults</code> search results.
+   * @param numResults Number of search results to be returned in a ranked list.
+   * @return Linked list containing <code>numResults</code> search results.
    */
   public static LinkedList<SearchResult> RunSearch (String[] args, int numResults)
-		throws IllegalArgumentException {
-		/** 
-		 * The RunSearch function has four main stages:
-		 * i. Parse command line arguments, with a tiny bit of extra logic for vector stores.
-		 * ii. Open corresponding vector and lucene indexes.
-		 * iii. Based on search type, build query vector and perform search.
-		 * iv. Return LinkedList of results, usually for main() to print out.
-		 */
+      throws IllegalArgumentException {
+    /**
+     * The RunSearch function has four main stages:
+     * i. Parse command line arguments, with a tiny bit of extra logic for vector stores.
+     * ii. Open corresponding vector and lucene indexes.
+     * iii. Based on search type, build query vector and perform search.
+     * iv. Return LinkedList of results, usually for main() to print out.
+     */
 
-  	// Stage i. Assemble command line options.
-		args = Flags.parseCommandLineFlags(args);
-		// If Flags.searchvectorfile wasn't set, it defaults to Flags.queryvectorfile.
-		if (Flags.searchvectorfile.equals("")) {
-			Flags.searchvectorfile = Flags.queryvectorfile;
-		}
+    // Stage i. Assemble command line options.
+    args = Flags.parseCommandLineFlags(args);
+    // If Flags.searchvectorfile wasn't set, it defaults to Flags.queryvectorfile.
+    if (Flags.searchvectorfile.equals("")) {
+      Flags.searchvectorfile = Flags.queryvectorfile;
+    }
 
-		// Stage ii. Open vector stores, and Lucene utils.
+    // Stage ii. Open vector stores, and Lucene utils.
     try {
-			// Default VectorStore implementation is (Lucene) VectorStoreReader.
+      // Default VectorStore implementation is (Lucene) VectorStoreReader.
       System.err.println("Opening query vector store from file: " + Flags.queryvectorfile);
       queryVecReader = VectorStoreReader.openVectorStore(Flags.queryvectorfile);
 
       // Open second vector store if search vectors are different from query vectors.
       if (Flags.queryvectorfile.equals(Flags.searchvectorfile)) {
-				searchVecReader = queryVecReader;
-			} else {
-        System.err.println("Opening search vector store from file: " + Flags.queryvectorfile);
+        searchVecReader = queryVecReader;
+      } else {
+        System.err.println("Opening search vector store from file: " + Flags.searchvectorfile);
         searchVecReader = VectorStoreReader.openVectorStore(Flags.searchvectorfile);
       }
 
@@ -201,205 +201,205 @@ public class Search {
           System.err.println("Couldn't open Lucene index at " + Flags.luceneindexpath);
         }
       }
-		}
+    }
     catch (IOException e) {
       e.printStackTrace();
     }
 
-		// This takes the slice of args from argc to end.
+    // This takes the slice of args from argc to end.
     if (!Flags.matchcase) {
-    	for (int i = 0; i < args.length; ++i) {
-    		args[i] = args[i].toLowerCase();
-    	}
+      for (int i = 0; i < args.length; ++i) {
+        args[i] = args[i].toLowerCase();
+      }
     }
-		
-		VectorSearcher vecSearcher;
-		LinkedList<SearchResult> results = new LinkedList<SearchResult>();
-		// Stage iii. Perform search according to which searchType was selected.
-		// Most options have corresponding dedicated VectorSearcher subclasses.
-		if (Flags.searchtype.equals("sum")) {
-		// Create VectorSearcher and search for nearest neighbors.
-			try {
-				vecSearcher =
-					new VectorSearcher.VectorSearcherCosine(queryVecReader,
-																									searchVecReader,
-																									luceneUtils,
-																									args);
-				System.err.print("Searching term vectors, searchtype SUM ... ");
-				results = vecSearcher.getNearestNeighbors(numResults);
-			} catch (ZeroVectorException zve) {
-				System.err.println(zve.getMessage());
-				results = new LinkedList<SearchResult>();
-			}
-		} else if (Flags.searchtype.equals("sparsesum")) {
-			// Option for quantizing to sparse vectors before
-			// comparing. This is for experimental purposes to see how much
-			// we lose by compressing to a sparse bit vector.
-			// Create VectorSearcher and search for nearest neighbors.
-			try {
-				vecSearcher =
-					new VectorSearcher.VectorSearcherCosineSparse(queryVecReader,
-																												searchVecReader,
-																												luceneUtils,
-																												args);
-				System.err.print("Searching term vectors, searchtype SPARSESUM ... ");
-				results = vecSearcher.getNearestNeighbors(numResults);
-			} catch (ZeroVectorException zve) {
-				System.err.println(zve.getMessage());
-				results = new LinkedList<SearchResult>();
-			}
-		} else if (Flags.searchtype.equals("tensor")) {
-			// Tensor product.
-			// Create VectorSearcher and search for nearest neighbors.
-			try {
-				vecSearcher =
-					new VectorSearcher.VectorSearcherTensorSim(queryVecReader,
-																										 searchVecReader,
-																										 luceneUtils,
-																										 args);
-				System.err.print("Searching term vectors, searchtype TENSOR ... ");
-				results = vecSearcher.getNearestNeighbors(numResults);
-			} catch (ZeroVectorException zve) {
-				System.err.println(zve.getMessage());
-				results = new LinkedList<SearchResult>();
-			}				
-		} else if (Flags.searchtype.equals("convolution")) {
-			// Convolution product.
-			// Create VectorSearcher and search for nearest neighbors.
-			try {
-				vecSearcher =
-					new VectorSearcher.VectorSearcherConvolutionSim(queryVecReader,
-																													searchVecReader,
-																													luceneUtils,
-																													args);
-				System.err.print("Searching term vectors, searchtype CONVOLUTION ... ");
-				results = vecSearcher.getNearestNeighbors(numResults);
-			} catch (ZeroVectorException zve) {
-				System.err.println(zve.getMessage());
-				results = new LinkedList<SearchResult>();
-			}
-		} else if (Flags.searchtype.equals("subspace")) {
-			// Quantum disjunction / subspace similarity.
-			// Create VectorSearcher and search for nearest neighbors.
-			try {
-				vecSearcher =
-					new VectorSearcher.VectorSearcherSubspaceSim(queryVecReader,
-																											 searchVecReader,
-																											 luceneUtils,
-																											 args);
 
-				System.err.print("Searching term vectors, searchtype SUBSPACE ... ");
-				results = vecSearcher.getNearestNeighbors(numResults);
-			}	catch (ZeroVectorException zve) {
-				System.err.println(zve.getMessage());
-				results = new LinkedList<SearchResult>();
-			}
-		} else if (Flags.searchtype.equals("maxsim")) {			
-			// Ranks by maximum similarity with any of the query terms.
-			// Create VectorSearcher and search for nearest neighbors.
-			try {
-				vecSearcher =
-					new VectorSearcher.VectorSearcherMaxSim(queryVecReader,
-																									searchVecReader,
-																									luceneUtils,
-																									args);
-				System.err.print("Searching term vectors, searchtype MAXSIM ... ");
-				results = vecSearcher.getNearestNeighbors(numResults);
-			}	catch (ZeroVectorException zve) {
-				System.err.println(zve.getMessage());
-				results = new LinkedList<SearchResult>();
-			}
-		} else if (Flags.searchtype.equals("permutation")) {			
-			// Permutes query vectors such that the most likely term in the position
-			// of the "?" is retrieved
-			try {
-				// Create VectorSearcher and search for nearest neighbors.
-				vecSearcher =
-					new VectorSearcher.VectorSearcherPerm(queryVecReader,
-																								searchVecReader,
-																								luceneUtils,
-																								args);	
-				System.err.print("Searching term vectors, searchtype PERMUTATION ... ");
-				results = vecSearcher.getNearestNeighbors(numResults);
-			} catch (ZeroVectorException zve) {
-				System.err.println(zve.getMessage());
-				results = new LinkedList<SearchResult>();
-			}
-		} else if (Flags.searchtype.equals("balanced_permutation")) {			
-				// Permutes query vectors such that the most likely term in the position
-				// of the "?" is retrieved
-				try {
-					// Create VectorSearcher and search for nearest neighbors.
-					vecSearcher =
-						new VectorSearcher.BalancedVectorSearcherPerm(queryVecReader,
-																									searchVecReader,
-																									luceneUtils,
-																									args);	
-					System.err.print("Searching term vectors, searchtype BALANCED_PERMUTATION ... ");
-					results = vecSearcher.getNearestNeighbors(numResults);
-				} catch (ZeroVectorException zve) {
-					System.err.println(zve.getMessage());
-					results = new LinkedList<SearchResult>();
-				}
-		} else if (Flags.searchtype.equals("printquery")) {
-			// Simply prints out the query vector: doesn't do any searching.
-			float[] queryVector = CompoundVectorBuilder.getQueryVector(queryVecReader,
-																																 luceneUtils,
-																																 args);
-			VectorUtils.printVector(queryVector);
-			return new LinkedList<SearchResult>();
-		} else {		
-			// This shouldn't happen: unrecognized options shouldn't have got past the Flags parsing.
-			System.err.println("Search type unrecognized ...");
-			results = new LinkedList<SearchResult>();
-		}
+    VectorSearcher vecSearcher;
+    LinkedList<SearchResult> results = new LinkedList<SearchResult>();
+    // Stage iii. Perform search according to which searchType was selected.
+    // Most options have corresponding dedicated VectorSearcher subclasses.
+    if (Flags.searchtype.equals("sum")) {
+      // Create VectorSearcher and search for nearest neighbors.
+      try {
+        vecSearcher =
+            new VectorSearcher.VectorSearcherCosine(queryVecReader,
+                                                    searchVecReader,
+                                                    luceneUtils,
+                                                    args);
+        System.err.print("Searching term vectors, searchtype SUM ... ");
+        results = vecSearcher.getNearestNeighbors(numResults);
+      } catch (ZeroVectorException zve) {
+        System.err.println(zve.getMessage());
+        results = new LinkedList<SearchResult>();
+      }
+    } else if (Flags.searchtype.equals("sparsesum")) {
+      // Option for quantizing to sparse vectors before
+      // comparing. This is for experimental purposes to see how much
+      // we lose by compressing to a sparse bit vector.
+      // Create VectorSearcher and search for nearest neighbors.
+      try {
+        vecSearcher =
+            new VectorSearcher.VectorSearcherCosineSparse(queryVecReader,
+                                                          searchVecReader,
+                                                          luceneUtils,
+                                                          args);
+        System.err.print("Searching term vectors, searchtype SPARSESUM ... ");
+        results = vecSearcher.getNearestNeighbors(numResults);
+      } catch (ZeroVectorException zve) {
+        System.err.println(zve.getMessage());
+        results = new LinkedList<SearchResult>();
+      }
+    } else if (Flags.searchtype.equals("tensor")) {
+      // Tensor product.
+      // Create VectorSearcher and search for nearest neighbors.
+      try {
+        vecSearcher =
+            new VectorSearcher.VectorSearcherTensorSim(queryVecReader,
+                                                       searchVecReader,
+                                                       luceneUtils,
+                                                       args);
+        System.err.print("Searching term vectors, searchtype TENSOR ... ");
+        results = vecSearcher.getNearestNeighbors(numResults);
+      } catch (ZeroVectorException zve) {
+        System.err.println(zve.getMessage());
+        results = new LinkedList<SearchResult>();
+      }
+    } else if (Flags.searchtype.equals("convolution")) {
+      // Convolution product.
+      // Create VectorSearcher and search for nearest neighbors.
+      try {
+        vecSearcher =
+            new VectorSearcher.VectorSearcherConvolutionSim(queryVecReader,
+                                                            searchVecReader,
+                                                            luceneUtils,
+                                                            args);
+        System.err.print("Searching term vectors, searchtype CONVOLUTION ... ");
+        results = vecSearcher.getNearestNeighbors(numResults);
+      } catch (ZeroVectorException zve) {
+        System.err.println(zve.getMessage());
+        results = new LinkedList<SearchResult>();
+      }
+    } else if (Flags.searchtype.equals("subspace")) {
+      // Quantum disjunction / subspace similarity.
+      // Create VectorSearcher and search for nearest neighbors.
+      try {
+        vecSearcher =
+            new VectorSearcher.VectorSearcherSubspaceSim(queryVecReader,
+                                                         searchVecReader,
+                                                         luceneUtils,
+                                                         args);
 
-		return results;
-	}
+        System.err.print("Searching term vectors, searchtype SUBSPACE ... ");
+        results = vecSearcher.getNearestNeighbors(numResults);
+      }	catch (ZeroVectorException zve) {
+        System.err.println(zve.getMessage());
+        results = new LinkedList<SearchResult>();
+      }
+    } else if (Flags.searchtype.equals("maxsim")) {
+      // Ranks by maximum similarity with any of the query terms.
+      // Create VectorSearcher and search for nearest neighbors.
+      try {
+        vecSearcher =
+            new VectorSearcher.VectorSearcherMaxSim(queryVecReader,
+                                                    searchVecReader,
+                                                    luceneUtils,
+                                                    args);
+        System.err.print("Searching term vectors, searchtype MAXSIM ... ");
+        results = vecSearcher.getNearestNeighbors(numResults);
+      }	catch (ZeroVectorException zve) {
+        System.err.println(zve.getMessage());
+        results = new LinkedList<SearchResult>();
+      }
+    } else if (Flags.searchtype.equals("permutation")) {
+      // Permutes query vectors such that the most likely term in the position
+      // of the "?" is retrieved
+      try {
+        // Create VectorSearcher and search for nearest neighbors.
+        vecSearcher =
+            new VectorSearcher.VectorSearcherPerm(queryVecReader,
+                                                  searchVecReader,
+                                                  luceneUtils,
+                                                  args);
+        System.err.print("Searching term vectors, searchtype PERMUTATION ... ");
+        results = vecSearcher.getNearestNeighbors(numResults);
+      } catch (ZeroVectorException zve) {
+        System.err.println(zve.getMessage());
+        results = new LinkedList<SearchResult>();
+      }
+    } else if (Flags.searchtype.equals("balanced_permutation")) {
+      // Permutes query vectors such that the most likely term in the position
+      // of the "?" is retrieved
+      try {
+        // Create VectorSearcher and search for nearest neighbors.
+        vecSearcher =
+            new VectorSearcher.BalancedVectorSearcherPerm(queryVecReader,
+                                                          searchVecReader,
+                                                          luceneUtils,
+                                                          args);
+        System.err.print("Searching term vectors, searchtype BALANCED_PERMUTATION ... ");
+        results = vecSearcher.getNearestNeighbors(numResults);
+      } catch (ZeroVectorException zve) {
+        System.err.println(zve.getMessage());
+        results = new LinkedList<SearchResult>();
+      }
+    } else if (Flags.searchtype.equals("printquery")) {
+      // Simply prints out the query vector: doesn't do any searching.
+      float[] queryVector = CompoundVectorBuilder.getQueryVector(queryVecReader,
+                                                                 luceneUtils,
+                                                                 args);
+      VectorUtils.printVector(queryVector);
+      return new LinkedList<SearchResult>();
+    } else {
+      // This shouldn't happen: unrecognized options shouldn't have got past the Flags parsing.
+      System.err.println("Search type unrecognized ...");
+      results = new LinkedList<SearchResult>();
+    }
 
-	/**
-	 * Search wrapper that returns the list of ObjectVectors.
-	 */
-	public static ObjectVector[] getSearchResultVectors(String[] args, int numResults) 
-		throws IllegalArgumentException { 
-		LinkedList<SearchResult> results = Search.RunSearch(args, numResults);
-		ObjectVector[] resultsList = new ObjectVector[results.size()];
-		for (int i = 0; i < results.size(); ++i) {
-			String term = ((ObjectVector)results.get(i).getObject()).getObject().toString();
-			float[] tmpVector = searchVecReader.getVector(term);
-			resultsList[i] = new ObjectVector(term, tmpVector);
-		}
-		return resultsList;
-	}
+    return results;
+  }
+
+  /**
+   * Search wrapper that returns the list of ObjectVectors.
+   */
+  public static ObjectVector[] getSearchResultVectors(String[] args, int numResults)
+      throws IllegalArgumentException {
+    LinkedList<SearchResult> results = Search.RunSearch(args, numResults);
+    ObjectVector[] resultsList = new ObjectVector[results.size()];
+    for (int i = 0; i < results.size(); ++i) {
+      String term = ((ObjectVector)results.get(i).getObject()).getObject().toString();
+      float[] tmpVector = searchVecReader.getVector(term);
+      resultsList[i] = new ObjectVector(term, tmpVector);
+    }
+    return resultsList;
+  }
 
   /**
    * Takes a user's query, creates a query vector, and searches a vector store.
    * @param args See usage();
    */
   public static void main (String[] args)
-		throws IllegalArgumentException {
-		int defaultNumResults = 20;
-		LinkedList<SearchResult> results = RunSearch(args, defaultNumResults);
-		// Print out results.
-		if (results.size() > 0) {
-			System.err.println("Search output follows ...");
-			for (SearchResult result: results) {
-				System.out.println(result.getScore() + ":" +
-													 ((ObjectVector)result.getObject()).getObject().toString());
-			}	
-		} else {
-			System.err.println("No search output.");
-		}
+      throws IllegalArgumentException {
+    int defaultNumResults = 20;
+    LinkedList<SearchResult> results = RunSearch(args, defaultNumResults);
+    // Print out results.
+    if (results.size() > 0) {
+      System.err.println("Search output follows ...");
+      for (SearchResult result: results) {
+        System.out.println(result.getScore() + ":" +
+                           ((ObjectVector)result.getObject()).getObject().toString());
+      }
+    } else {
+      System.err.println("No search output.");
+    }
 
-		// Release filesystem resources.
-		//
-		// TODO(widdows): This is not the cleanest control flow, since these are
-		// opened in RunSearch but also needed in getSearchResultsVectors.
-		// Really there should be a global variable for indexformat (text
-		// or lucene), and general "openIndexes" and "closeIndexes" methods.
-		queryVecReader.close();
-		if (!Flags.queryvectorfile.equals(Flags.searchvectorfile)) {
-			searchVecReader.close();
-		}
-	}
+    // Release filesystem resources.
+    //
+    // TODO(widdows): This is not the cleanest control flow, since these are
+    // opened in RunSearch but also needed in getSearchResultsVectors.
+    // Really there should be a global variable for indexformat (text
+    // or lucene), and general "openIndexes" and "closeIndexes" methods.
+    queryVecReader.close();
+    if (!Flags.queryvectorfile.equals(Flags.searchvectorfile)) {
+      searchVecReader.close();
+    }
+  }
 }

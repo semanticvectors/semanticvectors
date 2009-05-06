@@ -107,7 +107,7 @@ public class IndexBilingualFiles {
     }
 
 
-    INDEX_DIR = new File("index");
+    INDEX_DIR = new File("bilingual_index");
     if (INDEX_DIR.exists()) {
       System.out.println("Cannot save index to '" + INDEX_DIR +
                          "' directory, please delete it first");
@@ -206,7 +206,7 @@ public class IndexBilingualFiles {
   // Main function.
   public static void main(String[] args) {
     String usage = "java pitt.search.preporcessing.IndexBilingualFiles <directory1> <directory2>";
-    if (args.length < 2) {
+    if (args.length != 2) {
       System.err.println("Usage: " + usage);
       System.exit(1);
     }
