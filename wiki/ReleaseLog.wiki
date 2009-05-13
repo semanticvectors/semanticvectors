@@ -3,9 +3,19 @@
 
 Even-numbered versions are releases. Odd-numbered versions are in development. It follows that the most recent code and the `build.xml` file in the SVN repository is always odd-numbered.
 
-=== Version 1.18 ===
+=== Version 1.20 ===
 
 (About to ship.)
+
+Main improvement - new Flags.java for handling all command line flags and command line argument parsing. Still could do with improvements and better documentation, but much better than our previous ad hoc parsing in each class with a main() method.
+
+One positive side effect is that some flags that were unnecessarily specific now work more generally, e.g., regex search works for all vector store clients, not just in [http://semanticvectors.googlecode.com/svn/trunk/doc/pitt/search/semanticvectors/CompareTerms.html CompareTerms].
+
+Addition of balanced_permutation search.
+
+Fixed some bugs in bilingual indexing.
+
+=== Version 1.18 ===
 
 Added regex query generation to [http://semanticvectors.googlecode.com/svn/trunk/doc/pitt/search/semanticvectors/CompareTerms.html CompareTerms]. Not added to main Search yet but would be easy to add here too.
 
