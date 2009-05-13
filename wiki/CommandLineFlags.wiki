@@ -1,12 +1,16 @@
 #summary Command line flags in SemanticVectors - Design doc and Developer guide.
 
+==Current Status==
+
+New flags parsing system released in version 1.20.
+
 == Motivation ==
 
 When the project started, we just had a couple of programs (BuildIndex and Search) that had their own `main()` functions, and it was easy to have them each parse their command line arguments.
 
-Now the package has grown, we have a lot more programs, a lot more `main()` functions, and a lot more configurable arguments. So it's appropriate for BuildIndex, Search, BuildPositionalIndex, ClusterResults, and ClusterVectorStore, all to say (for example) that they'd like to use a text rather than a lucene vector file format. Having each of these programs look after parsing overlapping command line arguments has led to unnecessary code repetition, with all the problems of poor maintainability and sometimes lack of synchronization that you would expect.
+Now the package has grown, we have a lot more programs, a lot more `main()` functions, and a lot more configurable arguments. So it's appropriate for BuildIndex, Search, BuildPositionalIndex, ClusterResults, and ClusterVectorStore, all to say (for example) that they'd like to use a text rather than a lucene vector file format. Having each of these programs look after parsing overlapping command line arguments led to unnecessary code repetition, with all the problems of poor maintainability and sometimes lack of synchronization that you would expect.
 
-== Suggested Solution ==
+== Solution ==
 
 There's a new [http://semanticvectors.googlecode.com/svn/trunk/doc/pitt/search/semanticvectors/Flags.html Flags] class that looks after:
 
@@ -47,12 +51,6 @@ If you're a SemanticVectors user but not a developer, it won't affect you at all
 
 If you're a SemanticVectors developer, it will make it much easier and quicker to prototype new configurable features. Please use your new power wisely!
 
-==Current Status==
-
-Much of the Flags class is written (no support for Boolean values, string value enumerations or printing helpful descriptions yet).
-
-Test implementations are in CompareTerms and ClusterResults. We'll hopefully refactor the main index building and searching classes in a few days, pending feedback from the user group.
-
 
 
 
@@ -62,8 +60,6 @@ Test implementations are in CompareTerms and ClusterResults. We'll hopefully ref
 
 
  
-
-
 
 
 
