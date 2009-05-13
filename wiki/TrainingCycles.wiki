@@ -7,6 +7,6 @@ The basic way in which SemanticVectors builds models is:
 
 The point of training cycles is that the output of stage 3 can be fed back into stage 2 - we can use the computed document vectors as the basic document vectors for computing term vectors.
 
-To take advantage of this functionality, use the `-tc` option to BuildIndex, e.g., `java pitt.search.semanticvectors.BuildIndex -tc 10 <LUCENE_INDEX>`.
+To take advantage of this functionality, use the `-trainingcycles` option to BuildIndex, e.g., `java pitt.search.semanticvectors.BuildIndex -trainingcycles 10 <LUCENE_INDEX>`.
 
 So far, this option only exists for the default indexes - we haven't implemented it yet for PositionalIndexes, PermutationSearch, or BilingualModels.
