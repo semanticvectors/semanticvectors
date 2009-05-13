@@ -70,6 +70,6 @@ This should give you a model that you can now search.
 
 To test the basic Lucene index, try running `java pitt.search.lucene.LuceneSearch -i index -f contents_LANG1 QUERYTERMS`.
 
-To test the bilingual semantic vector search, try running `java pitt.search.semanticvectors.Search -q termvectors_LANG1.bin -s termvectors_LANG2.bin QUERYTERMS`.
+To test the bilingual semantic vector search, try running `java pitt.search.semanticvectors.Search -queryvectorfile termvectors_LANG1.bin -searchvectorfile termvectors_LANG2.bin QUERYTERMS`.
 
 Good luck!
