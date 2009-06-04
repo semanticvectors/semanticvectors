@@ -42,6 +42,7 @@ import java.util.LinkedList;
 /**
  * Command line term vector search utility.
  */
+
 /**
  * List of different types of searches that can be performed. Most
  * involve processing combinations of vectors in different ways, in

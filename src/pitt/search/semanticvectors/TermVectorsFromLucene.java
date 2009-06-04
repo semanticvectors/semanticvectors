@@ -66,7 +66,7 @@ public class TermVectorsFromLucene implements VectorStore {
   private int minFreq;
   private VectorStore basicDocVectors;
 
-	// Basic accessor methods.
+  // Basic accessor methods.
   /**
    * @return The object's basicDocVectors.
    */
@@ -112,7 +112,7 @@ public class TermVectorsFromLucene implements VectorStore {
     IndexModifier modifier = new IndexModifier(indexDir, new StandardAnalyzer(), false);
     modifier.optimize();
     modifier.close();
-    
+
     // Create LuceneUtils Class to filter terms.
     lUtils = new LuceneUtils(indexDir);
 
@@ -121,21 +121,21 @@ public class TermVectorsFromLucene implements VectorStore {
     // Check that basicDocVectors is the right size.
     if (basicDocVectors != null) {
       this.basicDocVectors = basicDocVectors;
-			System.out.println("Reusing basic doc vectors; number of documents: "
-												 + basicDocVectors.getNumVectors());
+      System.out.println("Reusing basic doc vectors; number of documents: "
+                         + basicDocVectors.getNumVectors());
       if (basicDocVectors.getNumVectors() != indexReader.numDocs()) {
         throw new RuntimeException("Wrong number of basicDocVectors " +
                                    "passed into constructor ...");
       }
     } else {
       // Create basic doc vectors in vector store.
-			// Derived term vectors will be linear combinations of these.
+      // Derived term vectors will be linear combinations of these.
       System.err.println("Populating basic sparse doc vector store, number of vectors: " +
                          indexReader.numDocs());
       VectorStoreSparseRAM randomBasicDocVectors = new VectorStoreSparseRAM();
-			randomBasicDocVectors.CreateRandomVectors(indexReader.numDocs(), this.seedLength);
-			this.basicDocVectors = randomBasicDocVectors;
-		}
+      randomBasicDocVectors.CreateRandomVectors(indexReader.numDocs(), this.seedLength);
+      this.basicDocVectors = randomBasicDocVectors;
+    }
 
     termVectors = new Hashtable<String, ObjectVector>();
 
@@ -173,7 +173,7 @@ public class TermVectorsFromLucene implements VectorStore {
       TermDocs tDocs = indexReader.termDocs(term);
       while (tDocs.next()) {
         String docID = Integer.toString(tDocs.doc());
-				float[] docVector = this.basicDocVectors.getVector(docID);
+        float[] docVector = this.basicDocVectors.getVector(docID);
         int freq = tDocs.freq();
 				
         for (int i = 0; i < Flags.dimension; ++i) {
@@ -194,8 +194,8 @@ public class TermVectorsFromLucene implements VectorStore {
     return termVectors.elements();
   }
 
-	public int getNumVectors() {
-		return termVectors.size();
-	}
+  public int getNumVectors() {
+    return termVectors.size();
+  }
 
 }

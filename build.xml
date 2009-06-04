@@ -3,7 +3,7 @@
 
 <project name="pitt semantic vectors" default="build-all" basedir=".">
 
-  <property name="version" value="1.19"/>
+  <property name="version" value="1.21"/>
 
   <property name="basedir" value="."/>
   <property name="builddir" value="${basedir}/build"/>
