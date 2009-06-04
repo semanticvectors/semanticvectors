@@ -41,21 +41,23 @@ import java.util.LinkedList;
 
 /**
  * Command line term vector search utility.
- */
-
-/**
- * List of different types of searches that can be performed. Most
- * involve processing combinations of vectors in different ways, in
- * building a query expression, scoring candidates against these
- * query expressions, or both. Most options here correspond directly
- * to a particular subclass of <code>VectorSearcher</code>
+ *
+ *
  * @see VectorSearcher
+ * Here is a list of different types of searches that can be
+ * performed. Most involve processing combinations of vectors in
+ * different ways, in building a query expression, scoring candidates
+ * against these query expressions, or both. Most options here
+ * correspond directly to a particular subclass of
+ * <code>VectorSearcher</code>
+ *
  * The search option is set using the --searchtype flag. Options include:
+ *
+ * @see VectorSearcher.VectorSearcherCosine
  * <br/> <b>sum</b>:
  * Default option - build a query by adding together (weighted)
  * vectors for each of the query terms, and search using cosine
  * similarity.
- * @see VectorSearcher.VectorSearcherCosine
  *
  * <br/> <b>sparsesum</b>:
  * Build a query as with <code>SUM</code> option, but quantize to
@@ -64,32 +66,33 @@ import java.util.LinkedList;
  * changed by only using the most significant coordinates of a
  * vector.
  *
+ * @see VectorSearcher.VectorSearcherSubspaceSim
  * <br/> <b>subspace</b>:
  * "Quantum disjunction" - get vectors for each query term, create a
  * representation for the subspace spanned by these vectors, and
  * score by measuring cosine similarity with this subspace.
- * @see VectorSearcher.VectorSearcherSubspaceSim
  *
+ * @see VectorSearcher.VectorSearcherMaxSim
  * <br/><b>maxsim</b>:
  * "Closest disjunction" - get vectors for each query term, score
  * by measuring distance to each term and taking the minimum.
- * @see VectorSearcher.VectorSearcherMaxSim
  *
+ * @see VectorSearcher.VectorSearcherTensorSim
  * <br/><b>tensor</b>:
  * A product similarity that trains by taking ordered pairs of
  * terms, a target query term, and searches for the term whose tensor
  * product with the target term gives the largest similarity with training tensor.
  * Will almost certainly not work well until convolution / tensor relations are
  * built into indexing phase.
- * @see VectorSearcher.VectorSearcherTensorSim
  *
+ * @see VectorSearcher.VectorSearcherConvolutionSim
  * <br/><b>convolution</b>:
  * Similar to <code>TENSOR</code>, product similarity that trains
  * by taking ordered pairs of terms, a target query term, and
  * searches for the term whose convolution product with the target
  * term gives the largest similarity with training convolution.
- * @see VectorSearcher.VectorSearcherConvolutionSim
  *
+ * @see VectorSearcher.VectorSearcherPerm
  * <br/><b>permutation</b>
  * Based on Sahlgren at al. (2008). Searches for the term that best matches
  * the position of a "?" in a sequence of terms. For example
@@ -98,7 +101,7 @@ import java.util.LinkedList;
  * random vectors or previously learned term vectors, and the index searched must contain
  * permuted vectors.
  *
- * <br/><b>balanced permutation</b>
+ * <br/><b>balanced_permutation</b>
  * Based on Sahlgren at al. (2008). Searches for the term that best matches
  * the position of a "?" in a sequence of terms. For example
  * 'martin ? king' should retrieve luther as the top ranked match
@@ -106,13 +109,12 @@ import java.util.LinkedList;
  * random vectors or previously learned term vectors, and the index searched must contain
  * permuted vectors. This is a variant of the method, that takes the mean
  * of the two possible search directions (search with index vectors for permuted vectors,
- * or vice versa)
+ * or vice versa).
  *
  * <br/><b>printquery</b>
  * Build an additive query vector (as with <code>SUM</code> and
  * print out the query vector for debugging.
  */
-
 public class Search {
 
   private static CloseableVectorStore queryVecReader;
