@@ -581,7 +581,7 @@ abstract public class VectorSearcher{
                                     ObjectVector firstElement = vecEnum.nextElement();  
                                     score = getScore(firstElement.getVector());     
                                     score2= getScore(vecEnum2.nextElement().getVector());
-                                    results.add(new SearchResult((score+score2)/2, firstElement)); 
+                                    results.add(new SearchResult(Math.max(score,score2), firstElement)); 
                                     continue;                                           
                 }                                                                       
 
@@ -590,7 +590,7 @@ abstract public class VectorSearcher{
                 ObjectVector testElement2 = vecEnum2.nextElement();
                 score1 = getScore(testElement.getVector());       
                 score2 = getScore2(VectorUtils.getNormalizedVector(testElement2.getVector()));
-                score = (score1+score2)/2;
+                score = Math.max(score1,score2);
                
                 // This is a way of using the Lucene Index to get term and
                             // document frequency information to reweight all results. It
