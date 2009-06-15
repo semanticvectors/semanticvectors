@@ -48,6 +48,7 @@ import org.apache.lucene.index.Term;
 import org.apache.lucene.index.TermEnum;
 import org.apache.lucene.index.TermPositionVector;
 
+import pitt.search.semanticvectors.Flags;
 import pitt.search.semanticvectors.ObjectVector;
 import pitt.search.semanticvectors.VectorStore;
 import pitt.search.semanticvectors.VectorStoreRAM;
@@ -187,7 +188,7 @@ public class BeagleNGramVectors implements VectorStore
 	    	// Create zero term vectors for terms that pass filter
 	    	if (tFilter.filter( term ))
 			{
-	    		float[] termVector = new float[ObjectVector.vecLength];
+	    		float[] termVector = new float[Flags.dimension];
 				this.termVectors.putVector(term.text(), termVector);
 			}
 		  }
@@ -256,7 +257,7 @@ public class BeagleNGramVectors implements VectorStore
 					  // Create local term vectors
 					  if (this.termVectors.getVector(docterms[tcn]) != null) {
 						/** retrieve the relevant term vectors**/
-						localtermvectors[tcn] = utils.createZeroVector( ObjectVector.vecLength );
+						localtermvectors[tcn] = utils.createZeroVector( Flags.dimension );
 					  }
 				  }
 
@@ -385,7 +386,3 @@ public class BeagleNGramVectors implements VectorStore
 		}
 
 }
-
-
-
-
