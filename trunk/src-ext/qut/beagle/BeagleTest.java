@@ -108,9 +108,9 @@ public class BeagleTest
 		BeagleTest bt = new BeagleTest();
 		
 		// Some example method calls
-		bt.createNGrams( "KJB", 1024, 5 );
+		bt.createNGrams( "KJB", 512, 3 );
 		
-		bt.testQuery( "TASA_1024_5.bin", "TASA_1024_5_index.bin", "? sea" );		
+		bt.testQuery( "KJB_512_3.bin", "KJB_512_3_index.bin", "king ?" );		
 	}
 
 }

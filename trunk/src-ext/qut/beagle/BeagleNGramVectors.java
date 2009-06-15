@@ -311,16 +311,23 @@ public class BeagleNGramVectors implements VectorStore
 						}
 					}
 
-					// Need to add localtermvectors to termvectors
-					termId = positions[p];
-					float[] v = termVectors.getVector(docterms[termId]);
-
-					for (int i=0; i<v.length; i++)
-					{
-						v[i] += localtermvectors[termId].getQuick(i);
-					}
-
 				  } // positions
+
+				  // Need to add localtermvectors to termvectors
+
+				  // Go through distinct words in this document and add their vectors
+				  // to termVectors.
+				  float[] v;
+				  for (short tcn = 0; tcn < numwords; tcn++)
+				  {
+					  if ((v = termVectors.getVector(docterms[tcn])) != null)
+					  {
+						  for (int i=0; i<v.length; i++)
+						  {
+							  v[i] += localtermvectors[tcn].getQuick(i);
+						  }
+					  }
+				  }
 			}
 		}
 
