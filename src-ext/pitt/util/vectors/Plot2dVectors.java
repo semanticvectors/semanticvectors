@@ -6,8 +6,8 @@ import java.lang.Float;
 import java.lang.Double;
 import java.lang.Math;
 
-import java.awt.*;    
-import javax.swing.*; 
+import java.awt.*;
+import javax.swing.*;
 
 import pitt.search.semanticvectors.*;
 
@@ -69,8 +69,8 @@ public class Plot2dVectors extends JPanel {
 																/ (max1-min1));
 	    c2 = (pad/2) + Math.round(scale*(vectors[i].getVector()[comp2]-min2)
 																/ (max2-min2));
-	    
-	    g.drawString(vectors[i].getObject().toString(), c1, c2);        
+
+	    g.drawString(vectors[i].getObject().toString(), c1, c2);
 	    if( i > maxplot ){
 				break;
 	    }
