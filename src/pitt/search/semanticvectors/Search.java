@@ -179,9 +179,9 @@ public class Search {
 
     // Stage i. Assemble command line options.
     args = Flags.parseCommandLineFlags(args);
-    
+
     if (Flags.numsearchresults > 0) numResults = Flags.numsearchresults;
-    
+
     // If Flags.searchvectorfile wasn't set, it defaults to Flags.queryvectorfile.
     if (Flags.searchvectorfile.equals("")) {
       Flags.searchvectorfile = Flags.queryvectorfile;
