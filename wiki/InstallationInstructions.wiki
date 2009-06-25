@@ -11,6 +11,7 @@ These sketch instructions presume that you're reasonably familiar with Java, Ant
 
  * Make sure you have a Java Development Kit (JDK) installed on your system, and that the `java` and `javac` programs can be seen from you system `PATH` variable.
    * If you type `java` and `javac` at your command line, you should see options and instructions, rather than a "Command not found" error.
+   * On some systems you may need to set your `JAVA_HOME` environment variable.
  * Make sure that you have [http://lucene.apache.org/java/docs/ Apache Lucene] (version 2.2.0 or more recent) running, and that the lucene core and lucene demo files are included in your `CLASSPATH`.
    * To test this, run `java org.apache.lucene.demo.IndexFiles` on the directory containing the corpus from which you'd like to build a SemanticVector model. You'll need to do this anyway, so might as well do it first to check your Lucene installation.
 
@@ -27,7 +28,8 @@ You won't be able to alter the programs beyond the configuration that's possible
 
 ===Prerequisites===
 
-As well as the Lucene and Java prerequisites, you will also need to install [http://ant.apache.org/ Apache Ant]. 
+As well as the Lucene and Java prerequisites, you will also need to install [http://ant.apache.org/ Apache Ant].
+ * You may need to set your `ANT_HOME` environment variable as well.
 
 ===Installation===
 
