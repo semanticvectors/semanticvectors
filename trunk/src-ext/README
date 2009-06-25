@@ -1,15 +1,34 @@
-Vector utilities for use with Semantic Vectors.
+Utilities for use with Semantic Vectors.
 
-In particular, these can be used to generate principal component plots
+This branch contains code that has been submitted to the repository
+for developers to share, but is not (yet) part of Semantic Vectors
+releases.
+
+Because they depend on external dependencies (e.g., Jama,
+ParallelColt), these utils are not compiled as part of the standard
+SemanticVectors "ant" build target.
+
+If you want to compile these utils, make sure all the necessary
+dependencies are in your CLASSPATH and run "ant compile-util".
+
+So far, these utilities include:
+
+***
+Visualization code for generating principal component plots
 of lists of term vectors.
 
-Because they depend on external dependencies (e.g., Jama), these utils
-are not compiled as part of the standard SemanticVectors "ant" build
-target.
+Author: Dominic Widdows (Google Inc.)
 
-If you want to compile these utils, make sure the directory in which
-you placed the Jama distribution is part of your CLASSPATH and run
-"ant compile-util".
+Dependencies: Jama (http://math.nist.gov/javanumerics/jama/).
 
 Run using (e.g.) java pitt.util.vectors.PrincipalComponents <SEARCHARGS>
 (This is similar to usage for java pitt.search.semanticvectors.ClusterResults)
+
+***
+Beagle model implementation. (See http://www.indiana.edu/~clcl/BEAGLE/Jones_Mewhort_PR.pdf)
+
+Author: Lance De Vine, QUT.
+
+Dependencies: ParallelColt (http://sourceforge.net/projects/parallelcolt/)
+
+***
