@@ -80,7 +80,7 @@ public class Flags {
 
   public static String indexfileformat = "lucene";
   public static final String indexfileformatDescription =
-	  	"Format used for serializing / deserializing vectors from disk";
+      "Format used for serializing / deserializing vectors from disk";
   public static final String[] indexfileformatValues = {"lucene", "text"};
 
   public static String queryvectorfile = "termvectors.bin";
@@ -104,6 +104,13 @@ public class Flags {
   public static String[] vectorlookupsyntaxValues = {"exactmatch", "regex"};
 
   public static boolean matchcase = false;
+
+  public static String vectorstorelocation = "ram";
+  public static String vectorstorelocationDescription = "Where to store vectors - in memory or on disk";
+  public static String[] vectorstorelocationValues = {"ram", "disk"};
+
+  public static String batchcompareseparator = "\\|";
+  public static String batchcompareseparatorDescription = "Separator for documents ona single line in batch comparison mode.";
   /**
    * Parse command line flags and create public data structures for accessing them.
    * @param args
@@ -116,7 +123,7 @@ public class Flags {
   public static String[] parseCommandLineFlags(String[] args)
       throws IllegalArgumentException {
     if (args.length == 0) {
-      throw (new IllegalArgumentException("Cannot parse empty list of command line arguments!"));
+      return new String[0];
     }
 
     int argc = 0;
@@ -136,7 +143,12 @@ public class Flags {
         // Parse String arguments.
         if (field.getType().getName().equals("java.lang.String")) {
           // All string values are lowercased.
-          String flagValue = args[argc + 1].toLowerCase();
+          String flagValue;
+          try {
+            flagValue = args[argc + 1].toLowerCase();
+          } catch (ArrayIndexOutOfBoundsException e) {
+            throw new IllegalArgumentException("option -" + flagName + " requires an argument");
+          }
           field.set(field, flagValue);
           // If there is an enum of accepted values, check that it's one of these.
           try {
@@ -158,16 +170,19 @@ public class Flags {
           } catch (NoSuchFieldException e) {
             // This just means there isn't a list of allowed values.
             argc += 2;
-            continue;
           }
           // Parse int arguments.
         } else if (field.getType().getName().equals("int")) {
-          field.setInt(field, Integer.parseInt(args[argc + 1]));
+          try {
+            field.setInt(field, Integer.parseInt(args[argc + 1]));
+          } catch (ArrayIndexOutOfBoundsException e) {
+            throw new IllegalArgumentException("option -" + flagName + " requires an argument");
+          }
           argc += 2;
           // Parse boolean arguments.
         } else if (field.getType().getName().equals("boolean")) {
-        	field.setBoolean(field, true);
-        	++argc;
+          field.setBoolean(field, true);
+          ++argc;
         }
 
       } catch (NoSuchFieldException e) {
