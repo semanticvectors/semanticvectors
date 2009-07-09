@@ -129,7 +129,7 @@ public class CompareTermsBatch{
     LuceneUtils luceneUtils = null;
     int argc = 0;
     String separator = Flags.batchcompareseparator;
-    boolean ramCache = (Flags.vectorstorelocation == "ram");
+    boolean ramCache = (Flags.vectorstorelocation.equals("ram"));
 
     /* reading and searching test */
     try {
