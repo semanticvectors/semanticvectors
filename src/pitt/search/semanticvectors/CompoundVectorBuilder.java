@@ -169,15 +169,15 @@ public class CompoundVectorBuilder {
                                        String[] queryTerms) {
     CompoundVectorBuilder builder = new CompoundVectorBuilder(vecReader, lUtils);
     float[] returnVector = new float[Flags.dimension];
-    /* Check through args to see if we need to do negation. */
-		if (!Flags.suppressnegatedqueries) {
-	    for (int i = 0; i < queryTerms.length; ++i) {
-	      if (queryTerms[i].equals("NOT")) {
-	        /* If, so build negated query and return. */
-	        return builder.getNegatedQueryVector(queryTerms, i);
-	      }
-	    }
-		}
+    // Check through args to see if we need to do negation.
+    if (!Flags.suppressnegatedqueries) {
+      for (int i = 0; i < queryTerms.length; ++i) {
+	if (queryTerms[i].equalsIgnoreCase("NOT")) {
+	  // If, so build negated query and return.
+	  return builder.getNegatedQueryVector(queryTerms, i);
+	}
+      }
+    }
     if (Flags.vectorlookupsyntax.equals("regex")) {
       returnVector = builder.getAdditiveQueryVectorRegex(queryTerms);
     } else {
