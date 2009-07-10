@@ -110,7 +110,11 @@ public class Flags {
   public static String[] vectorstorelocationValues = {"ram", "disk"};
 
   public static String batchcompareseparator = "\\|";
-  public static String batchcompareseparatorDescription = "Separator for documents ona single line in batch comparison mode.";
+  public static String batchcompareseparatorDescription = "Separator for documents on a single line in batch comparison mode.";
+
+  public static boolean suppressnegatedqueries = false;
+  public static String suppressnegatedqueriesDescription = "Suppress checking for the query negation token which indicates subsequent terms are to be negated when comparing terms. If this is set all terms are treated as positive";
+
   /**
    * Parse command line flags and create public data structures for accessing them.
    * @param args
