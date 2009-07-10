@@ -40,38 +40,65 @@ import static org.junit.Assert.*;
 
 public class CompoundVectorBuilderTest {
 
-	private VectorStoreRAM CreateVectorStore() {
-		VectorStoreRAM vectorStore = new VectorStoreRAM();
-		Flags.dimension = 2;
-		float[] vector1 = {1.0f, 2.0f};
-		vectorStore.putVector("vector1", vector1);
-		float[] vector2 = {1.0f, -1.0f};
-		vectorStore.putVector("vector2", vector2);
-		return vectorStore;
-	}
+  private VectorStoreRAM CreateVectorStore() {
+    VectorStoreRAM vectorStore = new VectorStoreRAM();
+    Flags.dimension = 2;
+    float[] vector1 = {1.0f, 2.0f};
+    vectorStore.putVector("vector1", vector1);
+    float[] vector2 = {1.0f, -1.0f};
+    vectorStore.putVector("vector2", vector2);
+    return vectorStore;
+  }
 
-	private CompoundVectorBuilder CreateCompoundVectorBuilder() {
-		VectorStoreRAM vectorStore = CreateVectorStore();
-		CompoundVectorBuilder cvb = new CompoundVectorBuilder(vectorStore);
-		return cvb;
-	}
+  @Test
+    public void TestGetAdditiveQueryVectorTest() {
+    System.err.println("Running tests for CompoundVectorBuilder");
+    VectorStore vectorStore = CreateVectorStore();
+    float[] queryVector =
+      CompoundVectorBuilder.getQueryVectorFromString(vectorStore, null, "vector1 vector2");
+    assertEquals(2, queryVector.length);
+    float norm = (float) Math.sqrt(5);
+    assertEquals(2.0/norm, queryVector[0], 0.0001);
+    assertEquals(1.0/norm, queryVector[1], 0.0001);
 
-	@Test
-		public void TestGetAdditiveQueryVectorTest() {
-		System.err.println("Running tests for CompoundVectorBuilder");
-		VectorStore vectorStore = CreateVectorStore();
-		float[] queryVector =
-			CompoundVectorBuilder.getQueryVectorFromString(vectorStore, null, "vector1 vector2");
-		assertEquals(2, queryVector.length);
-		float norm = (float) Math.sqrt(5);
-		assertEquals(2.0/norm, queryVector[0], 0.0001);
-		assertEquals(1.0/norm, queryVector[1], 0.0001);
+    // Test again to check for side effects.
+    float[] queryVector2 =
+      CompoundVectorBuilder.getQueryVectorFromString(vectorStore, null, "vector1 vector2");
+    assertEquals(2, queryVector.length);
+    assertEquals(2.0/norm, queryVector[0], 0.0001);
+    assertEquals(1.0/norm, queryVector[1], 0.0001);
+  }
 
-		// Test again to check for side effects.
-		float[] queryVector2 =
-			CompoundVectorBuilder.getQueryVectorFromString(vectorStore, null, "vector1 vector2");
-		assertEquals(2, queryVector.length);
-		assertEquals(2.0/norm, queryVector[0], 0.0001);
-		assertEquals(1.0/norm, queryVector[1], 0.0001);
-	}
+  private VectorStoreRAM CreateNormalizedVectorStore() {
+    VectorStoreRAM vectorStore = new VectorStoreRAM();
+    Flags.dimension = 2;
+    float[] vector1 = {1.0f, 2.0f};
+    vector1 = VectorUtils.getNormalizedVector(vector1);
+    vectorStore.putVector("vector1", vector1);
+    float[] vector2 = {1.0f, -1.0f};
+    vector2 = VectorUtils.getNormalizedVector(vector2);
+    vectorStore.putVector("vector2", vector2);
+    return vectorStore;
+  }
+
+  @Test
+    public void TestGetNegatedQueryVectorTest() {
+    VectorStore vectorStore = CreateNormalizedVectorStore();
+    float[] queryVector =
+      CompoundVectorBuilder.getQueryVectorFromString(vectorStore, null, "vector1 vector2");
+    assertEquals(VectorUtils.scalarProduct(queryVector, vectorStore.getVector("vector1")),
+		 VectorUtils.scalarProduct(queryVector, vectorStore.getVector("vector2")),
+		 0.001);
+
+    queryVector =
+      CompoundVectorBuilder.getQueryVectorFromString(vectorStore, null, "vector1 NOT vector2");
+    assertEquals(0, VectorUtils.scalarProduct(queryVector, vectorStore.getVector("vector2")), 0.01);
+
+    Flags.suppressnegatedqueries = true;
+    queryVector =
+      CompoundVectorBuilder.getQueryVectorFromString(vectorStore, null, "vector1 NOT vector2");
+    assertEquals(VectorUtils.scalarProduct(queryVector, vectorStore.getVector("vector1")),
+		 VectorUtils.scalarProduct(queryVector, vectorStore.getVector("vector2")),
+		 0.001);
+  }
 }
