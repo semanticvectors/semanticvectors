@@ -59,7 +59,8 @@ public class DocVectors implements VectorStore {
   private VectorStoreRAM docVectors;
   private TermVectorsFromLucene termVectorData;
   private IndexReader indexReader;
-
+  static private LuceneUtils lUtils;
+  
   /**
    * Constructor that gets everything it needs from a
    * TermVectorsFromLucene object.
@@ -68,7 +69,9 @@ public class DocVectors implements VectorStore {
     this.termVectorData = termVectorData;
     this.indexReader = termVectorData.getIndexReader();
     this.docVectors = new VectorStoreRAM();
-
+    if (this.lUtils == null)
+    this.lUtils = new LuceneUtils(termVectorData.getIndexReader().directory().toString().replaceAll(".*@",""));
+    
     // Intialize doc vector store.
     System.err.println("Initializing document vector store ...");
     for (int i = 0; i < indexReader.numDocs(); ++i) {
@@ -96,17 +99,35 @@ public class DocVectors implements VectorStore {
         float[] termVector = termVectorObject.getVector();
         String word = (String) termVectorObject.getObject();
 
+        
         // Go through checking terms for each fieldName.
         for (String fieldName: termVectorData.getFieldsToIndex()) {
           Term term = new Term(fieldName, word);
+          float globalweight = 1;
+          if (Flags.termweight.equals("logentropy"))
+          	{ 
+        	  //global entropy weighting
+        	  globalweight = globalweight * lUtils.getEntropy(term);
+        	  }
+          
+          
           // Get any docs for this term.
           TermDocs td = this.indexReader.termDocs(term);
           while (td.next()) {
             String docID = Integer.toString(td.doc());
             // Add vector from this term, taking freq into account.
             float[] docVector = this.docVectors.getVector(docID);
+            float localweight = td.freq();
+            
+            if (Flags.termweight.equals("logentropy"))
+            {
+            	//local weighting: 1+ log (local frequency)
+            	localweight = new Double(1 + Math.log(localweight)).floatValue();    	
+            }
+            
             for (int j = 0; j < Flags.dimension; ++j) {
-              docVector[j] += td.freq() * termVector[j];
+              docVector[j] += localweight * globalweight * termVector[j];
+              
             }
           }
         }

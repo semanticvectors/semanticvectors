@@ -53,6 +53,7 @@ public class IncrementalDocVectors {
 	private VectorStore termVectorData;
 	private IndexReader indexReader;
 	private String[] fieldsToIndex;
+	private LuceneUtils lUtils;
 	
 	/**
 	 * Constructor that gets everything it needs from a
@@ -68,7 +69,10 @@ public class IncrementalDocVectors {
 		this.termVectorData = termVectorData;
 		this.indexReader = IndexReader.open(indexDir);
 		this.fieldsToIndex = fieldsToIndex;
-	
+		 if (this.lUtils == null)
+			    this.lUtils = new LuceneUtils(indexDir);
+			   
+		
 		int numdocs = indexReader.numDocs();
 
 		// Open file and write headers.
@@ -116,15 +120,26 @@ public class IncrementalDocVectors {
 					int[] freqs = vex.getTermFrequencies();
 					
 					for (int b = 0; b < freqs.length; ++b) {
-						String term = terms[b];
+						String term_string = terms[b];
 						int freq = freqs[b];
+					      float localweight = freq;
+				           float globalweight = 1;
+				           
+				            if (Flags.termweight.equals("logentropy"))
+				            {
+				            	//local weighting: 1+ log (local frequency)
+				            	localweight = new Double(1 + Math.log(localweight)).floatValue();
+				          	  	Term term = new Term(fieldName,term_string);
+				            	globalweight = globalweight * lUtils.getEntropy(term);
+				            }
+						
 						// Add contribution from this term, excluding terms that
 						// are not represented in termVectorData.
 						try{
-							float[] termVector = termVectorData.getVector(term);
+							float[] termVector = termVectorData.getVector(term_string);
 							if (termVector != null && termVector.length > 0) {
 								for (int j = 0; j < Flags.dimension; ++j) {
-									docVector[j] += freq * termVector[j];
+									docVector[j] += localweight * globalweight *termVector[j];
 								}
 							}
 						} catch (NullPointerException npe) {

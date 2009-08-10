@@ -186,6 +186,73 @@ public class TermVectorsFromLucene implements VectorStore {
     System.err.println("\nCreated " + termVectors.size() + " term vectors ...");
   }
 
+  /**
+	 * This constructor generates an elemental vector for each term. These elemental (random index) vectors will
+	 * be used to construct document vectors, a procedure we have called term-based reflective random indexing 
+	 * @param indexDir			the directory of the Lucene Index
+	 * @param seedLength Number of +1 or -1 entries in basic
+	 * vectors. Should be even to give same number of each.
+	 * @param nonAlphabet 		the number of nonalphabet characters permitted
+	 * @param minFreq The minimum term frequency for a term to be indexed.
+	 * @param fieldsToIndex		the fields to be indexed (most commonly "contents")
+	 * @return
+	 */
+	
+  public TermVectorsFromLucene(String indexDir,  
+		  						int seedLength,
+		  						int minFreq,
+		  						int nonAlphabet,
+		  						String[] fieldsToIndex) throws IOException, RuntimeException 
+  { 
+  	
+  
+	  this.minFreq = minFreq;
+	    this.nonAlphabet = nonAlphabet;
+	    this.fieldsToIndex = fieldsToIndex;
+	    this.seedLength = seedLength;
+
+	    /* This small preprocessing step uses an IndexModifier to make
+	     * sure that the Lucene index is optimized to use contiguous
+	     * integers as identifiers, otherwise exceptions can occur if
+	     * document id's are greater than indexReader.numDocs().
+	     */
+	    IndexModifier modifier = new IndexModifier(indexDir, new StandardAnalyzer(), false);
+	    modifier.optimize();
+	    modifier.close();
+
+	    // Create LuceneUtils Class to filter terms.
+	    lUtils = new LuceneUtils(indexDir);
+
+	    indexReader = IndexReader.open(indexDir);
+	    Random random = new Random();
+     	this.termVectors = new Hashtable<String,ObjectVector>();
+      
+    // For each term in the index
+    
+    TermEnum terms = indexReader.terms();
+    int tc = 0;
+    while(terms.next()){
+      Term term = terms.term();
+     
+      // Skip terms that don't pass the filter.
+
+      if (!lUtils.termFilter(terms.term(), fieldsToIndex, nonAlphabet, minFreq))  {
+        continue;
+      }
+      tc++;
+      
+      short[] indexVector =  VectorUtils.generateRandomVector(seedLength, random);
+      float[] indexVector2 = VectorUtils.getNormalizedVector(VectorUtils.sparseVectorToFloatVector(indexVector, Flags.dimension));
+      // Place each term vector in the vector store.
+   
+      this.termVectors.put(term.text(), new ObjectVector(term.text(),VectorUtils.sparseVectorToFloatVector(indexVector, Flags.dimension)));
+    }
+
+  
+   
+  }
+	
+  
   public float[] getVector(Object term) {
     return termVectors.get(term).getVector();
   }
