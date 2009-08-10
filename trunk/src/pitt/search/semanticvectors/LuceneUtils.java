@@ -40,6 +40,7 @@ import org.apache.lucene.index.Term;
 import org.apache.lucene.index.TermDocs;
 import java.io.IOException;
 import java.lang.Math;
+import java.util.Hashtable;
 
 /**
  * Class to support reading extra information from Lucene indexes,
@@ -48,6 +49,7 @@ import java.lang.Math;
 
 public class LuceneUtils{
 	private IndexReader indexReader;
+	private Hashtable<Term, Float> termEntropy = new Hashtable<Term, Float>();
 
 	/**
 	 * @param path - path to lucene index
@@ -99,6 +101,51 @@ public class LuceneUtils{
 	    return 1;
 		}
 	}
+	
+	/**
+	 * Gets the number of documents
+	 */
+	public int getNumDocs()
+	{return indexReader.numDocs();}
+	
+	/**
+	 * Gets the 1 - entropy (i.e. 1+ plogp) of a term, 
+	 * a function that favors terms that are focally distributed
+	 * We use the definition of log-entropy weighting provided in
+	 * Martin and Berry (2007):
+	 * Entropy = 1 + sum ((Pij log2(Pij)) /  log2(n))
+ 	 * where Pij = frequency of term i in doc j / global frequency of term i
+ 	 * 		 n	 = number of documents in collection
+	 * @param term whose entropy you want
+	 * Thanks to Vidya Vasuki for adding the hash table to
+	 * eliminate redundant calculation
+	 */
+	public float getEntropy(Term term){
+		if(termEntropy.containsKey(term))
+			return termEntropy.get(term);
+		int gf = getGlobalTermFreq(term);
+		double entropy = 0;
+		try {
+			TermDocs tDocs = indexReader.termDocs(term);
+			while( tDocs.next() )
+			{	
+				
+				double p = tDocs.freq(); //frequency in this document
+				p=p/gf;		//frequency across all documents
+				entropy += (p*(Math.log(p)/Math.log(2))); //sum of Plog(P)
+				//System.out.println("entropy "+entropy);
+			}
+			int n= this.getNumDocs();
+			double log2n = Math.log(n)/Math.log(2);
+			entropy = entropy/log2n;
+		}
+		catch (IOException e) {
+			System.err.println("Couldn't get term entropy for term " + term.text());
+		}
+		termEntropy.put(term, 1+(float)entropy);
+		return (float) (1 + entropy);
+	}
+	
 	
 	/**
 	 * Filters out non-alphabetic terms and those of low frequency

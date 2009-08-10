@@ -119,9 +119,20 @@ public class BuildIndex {
     System.err.println("Number non-alphabet characters = " + Flags.maxnonalphabetchars);
     String termFile = "termvectors.bin";
     String docFile = "docvectors.bin";
-
+    VectorStoreRAM initialdocvectors = null;
+    
     try{
-      TermVectorsFromLucene vecStore =
+    	TermVectorsFromLucene vecStore;
+    	
+    	if (Flags.initialtermvectors.equals("random"))
+    	{ //create elemental (random index) term vectors
+    	  //recommended to iterate at least once (i.e. trainincycles = 2) to obtain semantic term vectors
+    		vecStore =
+    	          new TermVectorsFromLucene(luceneIndex, Flags.seedlength,Flags.minfrequency,
+    	                                    Flags.maxnonalphabetchars, fieldsToIndex);
+    	}
+    	else
+    		vecStore =
           new TermVectorsFromLucene(luceneIndex, Flags.seedlength,Flags.minfrequency,
                                     Flags.maxnonalphabetchars, null, fieldsToIndex);
 
