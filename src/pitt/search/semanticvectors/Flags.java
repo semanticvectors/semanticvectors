@@ -78,7 +78,7 @@ public class Flags {
   public static final String[] searchtypeValues = {"sum", "sparsesum", "subspace", "maxsim", "tensor",
                                                    "convolution","balanced_permutation", "permutation", "printquery"};
 
-  public static String termweight;
+  public static String termweight = "logentropy";
   public static final String termweightDescription = "Term weighting used when constructing document vectors.";
   public static final String[] termweightValues = {"logentropy"};
   
