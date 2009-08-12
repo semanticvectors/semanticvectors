@@ -104,12 +104,10 @@ public class DocVectors implements VectorStore {
         for (String fieldName: termVectorData.getFieldsToIndex()) {
           Term term = new Term(fieldName, word);
           float globalweight = 1;
-          if (Flags.termweight.equals("logentropy"))
-          	{ 
-        	  //global entropy weighting
-        	  globalweight = globalweight * lUtils.getEntropy(term);
-        	  }
-          
+          if (Flags.termweight.equals("logentropy")) { 
+	      //global entropy weighting
+	      globalweight = globalweight * lUtils.getEntropy(term);
+	  }
           
           // Get any docs for this term.
           TermDocs td = this.indexReader.termDocs(term);
