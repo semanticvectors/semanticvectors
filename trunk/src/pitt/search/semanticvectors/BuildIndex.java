@@ -62,12 +62,12 @@ public class BuildIndex {
    * <br>     entries in basic vectors), minimum term frequency,
    * <br>     and number of iterative training cycles.
    * <br> To change these use the following command line arguments:
-   * <br> -d [number of dimensions]
-   * <br> -s [seed length]
-   * <br> -m [minimum term frequency]
-   * <br> -n [number non-alphabet characters (-1 for any number)]
-   * <br> -tc [training cycles]
-   * <br> -docs [incremental|inmemory] Switch between building doc vectors incrementally"
+   * <br> -dimension [number of dimensions]
+   * <br> -seedlength [seed length]
+   * <br> -minfrequency [minimum term frequency]
+   * <br> -numnonalphabetchars [number non-alphabet characters (-1 for any number)]
+   * <br> -trainingcycles [training cycles]
+   * <br> -docindexing [incremental|inmemory] Switch between building doc vectors incrementally"
    * <br>       (requires positional index) or all in memory (default case).
    * </code>
    */
@@ -120,21 +120,24 @@ public class BuildIndex {
     String termFile = "termvectors.bin";
     String docFile = "docvectors.bin";
     VectorStoreRAM initialdocvectors = null;
-    
+
     try{
     	TermVectorsFromLucene vecStore;
-    	
-    	if (Flags.initialtermvectors.equals("random"))
-    	{ //create elemental (random index) term vectors
-    	  //recommended to iterate at least once (i.e. trainincycles = 2) to obtain semantic term vectors
-    		vecStore =
-    	          new TermVectorsFromLucene(luceneIndex, Flags.seedlength,Flags.minfrequency,
-    	                                    Flags.maxnonalphabetchars, fieldsToIndex);
-    	}
-    	else
-    		vecStore =
-          new TermVectorsFromLucene(luceneIndex, Flags.seedlength,Flags.minfrequency,
-                                    Flags.maxnonalphabetchars, null, fieldsToIndex);
+
+    	if (Flags.initialtermvectors.equals("random")) {
+          // Create elemental (random index) term vectors. Recommended
+    	  // to iterate at least once (i.e. trainincycles = 2) to
+    	  // obtain semantic term vectors
+          System.err.println("Creating random term vectors ...");
+          vecStore =
+              new TermVectorsFromLucene(luceneIndex, Flags.seedlength,Flags.minfrequency,
+                                        Flags.maxnonalphabetchars, fieldsToIndex);
+    	} else {
+          System.err.println("Creating semantic term vectors ...");
+          vecStore =
+              new TermVectorsFromLucene(luceneIndex, Flags.seedlength,Flags.minfrequency,
+                                        Flags.maxnonalphabetchars, null, fieldsToIndex);
+        }
 
       // Create doc vectors and write vectors to disk.
       if (Flags.docindexing.equals("incremental")) {
