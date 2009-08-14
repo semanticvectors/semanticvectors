@@ -62,7 +62,7 @@ public class BuildPositionalIndex {
    * <br>     vector length (number of dimensions), seed length (number of non-zero
    * <br>     entries in basic vectors), and minimum term frequency.
    * <br> To change these use the following command line arguments:
-   * <br> -dimensions [number of dimensions]
+   * <br> -dimension [number of dimensions]
    * <br> -seedlength [seed length]
    * <br> -mintermfreq [minimum term frequency]
    * <br> -windowradius [window half size]
@@ -79,7 +79,7 @@ public class BuildPositionalIndex {
         + "\n    entries in basic vectors), size of sliding window (including focus term)"
         + "\n and minimum term frequency.\n"
         + "\nTo change these use the command line arguments "
-        + "\n  -dimensions [number of dimensions]"
+        + "\n  -dimension [number of dimensions]"
         + "\n  -seedlength [seed length]"
         + "\n  -mintermfreq [minimum term frequency]"
         + "\n  -initialtermvectors [name of preexisting vectorstore for term vectors]"
