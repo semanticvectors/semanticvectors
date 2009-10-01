@@ -197,6 +197,7 @@ public class RunTests {
     failures += scores[1];
 
     // Run regression tests.
+    System.err.println("Running regression tests ...");
     scores = runJUnitTests(regressionTestClasses);
     successes += scores[0];
     failures += scores[1];

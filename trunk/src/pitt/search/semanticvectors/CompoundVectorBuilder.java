@@ -278,8 +278,8 @@ public class CompoundVectorBuilder {
   protected float[] getNegatedQueryVector(String[] queryTerms, int split) {
     int numNegativeTerms = queryTerms.length - split - 1;
     int numPositiveTerms = split;
-    System.err.println("Numer of negative terms: " + numNegativeTerms);
-    System.err.println("Numer of positive terms: " + numPositiveTerms);
+    System.err.println("Number of negative terms: " + numNegativeTerms);
+    System.err.println("Number of positive terms: " + numPositiveTerms);
     ArrayList<float[]> vectorList = new ArrayList();
     for (int i = 1; i <= numNegativeTerms; ++i) {
       float[] tmpVector = vecReader.getVector(queryTerms[split + i]);

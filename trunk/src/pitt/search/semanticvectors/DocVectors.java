@@ -151,15 +151,18 @@ public class DocVectors implements VectorStore {
     VectorStoreRAM outputVectors = new VectorStoreRAM();
 
     for (int i = 0; i < this.indexReader.numDocs(); ++i) {
-      String docName;
+      String docName = "";
       try {
+	// Default field value for docid is "path". But can be
+	// reconfigured.  For bilingual docs, we index "filename" not
+	// "path", since there are two system paths, one for each
+	// language.
         if (this.indexReader.document(i).getField("path") != null) {
-          docName = this.indexReader.document(i).getField("path").stringValue();
-        } else {
-          // For bilingual docs, we index "filename" not "path",
-          // since there are two system paths, one for each
-          // language. So if there was no "path", get the "filename".
-          docName = this.indexReader.document(i).getField("filename").stringValue();
+          docName = this.indexReader.document(i).getField(Flags.docidfield).stringValue();
+	  if (docName.length() == 0) {
+	    System.err.println("Empty document name!!! This will cause problems ...");
+	    System.err.println("Please set -docidfield to a nonempty field in your Lucene index.");
+	  }
         }
         float[] docVector = this.docVectors.getVector(Integer.toString(i));
         outputVectors.putVector(docName, docVector);

@@ -38,6 +38,8 @@ import java.io.IOException;
 import java.util.Hashtable;
 import java.util.Enumeration;
 import java.util.Random;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.apache.lucene.index.*;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 
@@ -48,6 +50,8 @@ import java.io.IOException;
  * Command line utility for creating bilingual semantic vector indexes.
  */
 public class BuildBilingualIndex{
+  public static Logger logger = Logger.getLogger("pitt.search.semanticvectors");
+
   // These can be modified with command line arguments.
   static int seedLength = 20;
   static int nonAlphabet = 0;
@@ -62,7 +66,7 @@ public class BuildBilingualIndex{
    * <br> in local directory, where LANG1 and LANG2 are obtained from fields in index.
    * </code>
    */
-  public static void usage(){
+  public static void usage() {
     String usageMessage = "\nBuildBilingualIndex class in package pitt.search.semanticvectors"
 			+ "\nUsage: java pitt.search.semanticvectors.BuildBilingualIndex "
 			+ "PATH_TO_LUCENE_INDEX LANG1 LANG2"
@@ -77,11 +81,18 @@ public class BuildBilingualIndex{
    * @see BuildBilingualIndex#usage
    */
   public static void main (String[] args) throws IllegalArgumentException {
+    Flags.docidfield = "filename";
+
     try {
       args = Flags.parseCommandLineFlags(args);
     } catch (IllegalArgumentException e) {
       usage();
       throw e;
+    }
+
+    if (!Flags.docidfield.equals("filename")) {
+      logger.log(Level.WARNING, "Docid field is normally 'filename' for bilingual indexes." + 
+		 " Are you sure you wanted to change this?");
     }
 
     // Only three arguments should remain, the path to Lucene index and the language pair.
