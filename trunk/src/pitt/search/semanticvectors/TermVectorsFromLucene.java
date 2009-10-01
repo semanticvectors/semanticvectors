@@ -195,7 +195,6 @@ public class TermVectorsFromLucene implements VectorStore {
 	 * @param nonAlphabet 		the number of nonalphabet characters permitted
 	 * @param minFreq The minimum term frequency for a term to be indexed.
 	 * @param fieldsToIndex		the fields to be indexed (most commonly "contents")
-	 * @return
 	 */
 	
   public TermVectorsFromLucene(String indexDir,  
