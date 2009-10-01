@@ -5,13 +5,12 @@ Even-numbered versions are releases. Odd-numbered versions are in development. I
 
 === Version 1.22 ===
 
-Added BalancedPermutationVectorSearcher to use maximum score from two possible
+Added [http://semanticvectors.googlecode.com/svn/trunk/doc/pitt/search/semanticvectors/VectorSearcher.BalancedVectorSearcherPerm.html BalancedPermutationVectorSearcher] to use maximum score from two possible
 directions (random index as cue for permuted vectors or vice versa) of search.
 When combined with term weighting (as occurs when -indexFilePath is used with
 Search) this seems to produce reasonable results with reciprocity.
 
-Added CompareTermsBatch and related modifications to Flags, and the convention
-that normalizing the zero vector returns zero. Thanks to Andrew Mackinlay, the newest member of the development team, for these enhancements.
+Added [http://semanticvectors.googlecode.com/svn/trunk/doc/pitt/search/semanticvectors/CompareTermsBatch.html CompareTermsBatch] and related modifications to Flags, and the convention that normalizing the zero vector returns zero. Thanks to Andrew Mackinlay for these enhancements.
 
 Committed implementations of TRRI and RRI as per the Reflective Random Indexing paper (to appear).
 
