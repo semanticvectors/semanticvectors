@@ -192,7 +192,7 @@ public class BeagleUtils
 
 	public DenseFloatMatrix1D normalize( DenseFloatMatrix1D vec )
 	{
-		float sum = vec.zDotProduct( vec, 0, vec.size() );
+	  float sum = vec.zDotProduct( vec, 0, (int)vec.size() );
 		float length = (float)Math.sqrt(sum);
 
 		//if (length==0.0f) System.out.println("\n##########\nERROR - zero norm\n#########");
@@ -284,7 +284,7 @@ public class BeagleUtils
 		// c) complex element-wise multiply
 		// d) inverse fft
 
-		int dim = vec1.size();
+	  int dim = (int) vec1.size();
 		DenseFloatMatrix1D result;
 		DenseFComplexMatrix1D C;
 		DenseFComplexMatrix1D D;
@@ -336,7 +336,7 @@ public class BeagleUtils
 		// complex element-wise multiply
 		// inverse fft
 
-		int dim = vec1.size();
+	  int dim = (int) vec1.size();
 		DenseFloatMatrix1D result;
 		DenseFComplexMatrix1D C = vec1.getFft();
 		DenseFComplexMatrix1D D = vec2.getFft();
@@ -385,9 +385,9 @@ public class BeagleUtils
 
 	public DenseFloatMatrix1D scrambleVector( DenseFloatMatrix1D vec, int[] permVector )
 	{
-		DenseFloatMatrix1D scramVec = new DenseFloatMatrix1D(vec.size());
+	  DenseFloatMatrix1D scramVec = new DenseFloatMatrix1D((int)vec.size());
 
-		if (vec.size()!=permVector.length)
+		if ((int) vec.size() != permVector.length)
 		{
 			System.out.println("scrambleVector: Size of vectors do not match");
 			return scramVec;
@@ -403,14 +403,14 @@ public class BeagleUtils
 
 	public DenseFloatMatrix1D rotateVector( DenseFloatMatrix1D vec, int places )
 	{
-		DenseFloatMatrix1D rotVec = new DenseFloatMatrix1D(vec.size());
+	  DenseFloatMatrix1D rotVec = new DenseFloatMatrix1D((int)vec.size());
 		int idx;
 
 		for (int i=0; i<vec.size(); i++ )
 		{
 			idx = i+places;
-			if (idx>=vec.size()) idx = idx - vec.size();
-			if (idx<0) idx = idx + vec.size();
+			if (idx >= (int)vec.size()) idx = idx - (int)vec.size();
+			if (idx < 0) idx = idx + (int)vec.size();
 
 			rotVec.setQuick( idx, vec.getQuick(i) );
 		}
