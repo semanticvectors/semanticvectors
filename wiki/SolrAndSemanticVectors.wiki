@@ -8,6 +8,4 @@
 
 Some users have reported difficulty in using SemanticVectors in combination with SOLR. I haven't worked with SOLR directly, but one of the main problems seems to be defining which Lucene fields to index. Most SOLR indexes don't come with the `contents` and `path` fields that SemanticVectors is used to indexing and using by default as default document identification strings.
 
-The easiest (and quite correct) way to deal with this is usually to set the `-fields_to_index` command line flag in SemanticVectors to be whatever field keeps your document's contents.
-
-This should be sufficient to create term vectors, it may not help for making document vectors. I'll try to fill this gap soon.
+There is a plaintive TODO comment in BuildIndex.java, line 151, saying that we should make the fields that SemanticVectors indexes configurable. This would be a relatively easy fix with command line flags, though we haven't introduced comma separated list arguments before. A similar fix should enable the document id field to be configurable.
