@@ -50,6 +50,18 @@ public class CompoundVectorBuilderTest {
     return vectorStore;
   }
 
+  private VectorStoreRAM CreateNormalizedVectorStore() {
+    VectorStoreRAM vectorStore = new VectorStoreRAM();
+    Flags.dimension = 2;
+    float[] vector1 = {1.0f, 2.0f};
+    vector1 = VectorUtils.getNormalizedVector(vector1);
+    vectorStore.putVector("vector1", vector1);
+    float[] vector2 = {1.0f, -1.0f};
+    vector2 = VectorUtils.getNormalizedVector(vector2);
+    vectorStore.putVector("vector2", vector2);
+    return vectorStore;
+  }
+
   @Test
     public void TestGetAdditiveQueryVectorTest() {
     System.err.println("Running tests for CompoundVectorBuilder");
@@ -67,18 +79,6 @@ public class CompoundVectorBuilderTest {
     assertEquals(2, queryVector.length);
     assertEquals(2.0/norm, queryVector[0], 0.0001);
     assertEquals(1.0/norm, queryVector[1], 0.0001);
-  }
-
-  private VectorStoreRAM CreateNormalizedVectorStore() {
-    VectorStoreRAM vectorStore = new VectorStoreRAM();
-    Flags.dimension = 2;
-    float[] vector1 = {1.0f, 2.0f};
-    vector1 = VectorUtils.getNormalizedVector(vector1);
-    vectorStore.putVector("vector1", vector1);
-    float[] vector2 = {1.0f, -1.0f};
-    vector2 = VectorUtils.getNormalizedVector(vector2);
-    vectorStore.putVector("vector2", vector2);
-    return vectorStore;
   }
 
   @Test

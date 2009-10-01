@@ -123,6 +123,9 @@ public class Flags {
   public static boolean suppressnegatedqueries = false;
   public static String suppressnegatedqueriesDescription = "Suppress checking for the query negation token which indicates subsequent terms are to be negated when comparing terms. If this is set all terms are treated as positive";
 
+  public static String[] contentsfields = {"contents"};
+  public static String docidfield = "path";
+
   /**
    * Parse command line flags and create public data structures for accessing them.
    * @param args
@@ -183,6 +186,18 @@ public class Flags {
             // This just means there isn't a list of allowed values.
             argc += 2;
           }
+	  // Parse String[] arguments, presuming they are comma-separated.
+	  // String[] arguments do not currently support fixed Value lists.
+	} else if (field.getType().getName().equals("[Ljava.lang.String;")) {
+          // All string values are lowercased.
+          String flagValue;
+          try {
+            flagValue = args[argc + 1].toLowerCase();
+          } catch (ArrayIndexOutOfBoundsException e) {
+            throw new IllegalArgumentException("option -" + flagName + " requires an argument");
+          }
+	  field.set(field, flagValue.split(","));
+	  argc += 2;
           // Parse int arguments.
         } else if (field.getType().getName().equals("int")) {
           try {
@@ -195,8 +210,9 @@ public class Flags {
         } else if (field.getType().getName().equals("boolean")) {
           field.setBoolean(field, true);
           ++argc;
-        }
-
+        } else {
+	  System.err.println("No support for fields of type: "  + field.getType().getName()); 
+	}
       } catch (NoSuchFieldException e) {
         throw new IllegalArgumentException("Command line flag not defined: " + flagName);
       } catch (IllegalAccessException e) {

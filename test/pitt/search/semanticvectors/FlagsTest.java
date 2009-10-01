@@ -39,68 +39,80 @@ import static org.junit.Assert.*;
 
 public class FlagsTest {
 
-	@Test
+  @Test
     public void testParseCommandLineFlags() {
-		String[] args = {"-searchtype", "subspace", "--dimension", "3",
-					"-queryvectorfile", "myvectors.bin", "queryterm"};
-		args = Flags.parseCommandLineFlags(args);
-		assertEquals("subspace", Flags.searchtype);
-		assertEquals(3, Flags.dimension);
-		assertEquals("myvectors.bin", Flags.queryvectorfile);
-		
-		// Test remaining query args correct.
-		assertEquals(1, args.length);
-		assertEquals("queryterm", args[0]);
-	}
+    System.err.println("Running tests for Flags");
+    String[] args = {"-searchtype", "subspace", "--dimension", "3",
+		     "-queryvectorfile", "myvectors.bin", "queryterm"};
+    args = Flags.parseCommandLineFlags(args);
+    assertEquals("subspace", Flags.searchtype);
+    assertEquals(3, Flags.dimension);
+    assertEquals("myvectors.bin", Flags.queryvectorfile);
 
-	@Test
-		public void testThrowsUnrecognizedFlag() {
-		String[] args = {"-notaflag", "notagoodvalue"};
-		boolean failed = false;
-		try {
-			Flags.parseCommandLineFlags(args);
-		} catch (IllegalArgumentException e) {
-			System.out.println(e.getMessage());
-			failed = true;
-		}
-		if (!failed) fail();
-	}
+    // Test remaining query args correct.
+    assertEquals(1, args.length);
+    assertEquals("queryterm", args[0]);
+  }
 
-	@Test
-		public void testThrowsUnrecognizedValue() {
-		String[] args = {"-searchtype", "sum"};
-		try {
-			Flags.parseCommandLineFlags(args);
-		} catch (IllegalArgumentException e) {
-			fail();
-		}
+  @Test
+    public void testParseStringListFlag() {
+    String[] args = {"-contentsfields", "text,moretext"};
+    args = Flags.parseCommandLineFlags(args);
+    assertEquals(2, Flags.contentsfields.length);
+    assertEquals("moretext", Flags.contentsfields[1]);
+    String[] args2 = {"-contentsfields", "contents"};
+    args2 = Flags.parseCommandLineFlags(args2);
+    assertEquals(1, Flags.contentsfields.length);
+  }
 
-		String[] args2 = {"-searchtype", "notagoodvalue"};
-		boolean failed = false;
-		try {
-			Flags.parseCommandLineFlags(args2);
-		} catch (IllegalArgumentException e) {
-			System.out.println(e.getMessage());
-			failed = true;
-		}
-		if (!failed) fail();
-	}
+  @Test
+    public void testThrowsUnrecognizedFlag() {
+    String[] args = {"-notaflag", "notagoodvalue"};
+    boolean failed = false;
+    try {
+      Flags.parseCommandLineFlags(args);
+    } catch (IllegalArgumentException e) {
+      System.out.println(e.getMessage());
+      failed = true;
+    }
+    if (!failed) fail();
+  }
 
-	@org.junit.Test
-		public void testFlagsMetadata() {
-		Field[] allFlagFields = Flags.class.getFields();
-		for (Field field: allFlagFields) {
-			String fieldName = field.getName();
-			if (fieldName.endsWith("Description")) {
-				try {
-					String flagName = fieldName.substring(0, fieldName.length() - 11);
-					Field flagField = Flags.class.getField(flagName);
-				} catch (NoSuchFieldException e) {
-					System.err.println("Description field '" + fieldName
-														 + "' has no corresponding flag defined.");
-					fail();
-				}
-			}
-		}
+  @Test
+    public void testThrowsUnrecognizedValue() {
+    String[] args = {"-searchtype", "sum"};
+    try {
+      Flags.parseCommandLineFlags(args);
+    } catch (IllegalArgumentException e) {
+      fail();
+    }
+
+    String[] args2 = {"-searchtype", "notagoodvalue"};
+    boolean failed = false;
+    try {
+      Flags.parseCommandLineFlags(args2);
+    } catch (IllegalArgumentException e) {
+      System.out.println(e.getMessage());
+      failed = true;
+    }
+    if (!failed) fail();
+  }
+
+  @org.junit.Test
+    public void testFlagsMetadata() {
+    Field[] allFlagFields = Flags.class.getFields();
+    for (Field field: allFlagFields) {
+      String fieldName = field.getName();
+      if (fieldName.endsWith("Description")) {
+	try {
+	  String flagName = fieldName.substring(0, fieldName.length() - 11);
+	  Field flagField = Flags.class.getField(flagName);
+	} catch (NoSuchFieldException e) {
+	  System.err.println("Description field '" + fieldName
+			     + "' has no corresponding flag defined.");
+	  fail();
 	}
+      }
+    }
+  }
 }
