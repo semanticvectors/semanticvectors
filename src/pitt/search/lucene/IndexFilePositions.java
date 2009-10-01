@@ -1,3 +1,4 @@
+
 package pitt.search.lucene;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.index.IndexWriter;
