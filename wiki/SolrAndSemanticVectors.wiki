@@ -1,0 +1,13 @@
+#summary Some pointers on using SemanticVectors with SOLR
+
+= Some pointers on using SemanticVectors with SOLR =
+
+(This article is a stub so far.)
+
+[http://lucene.apache.org/solr/ Apache SOLR] is an enterprise server search implementation based on the Lucene platform.
+
+Some users have reported difficulty in using SemanticVectors in combination with SOLR. I haven't worked with SOLR directly, but one of the main problems seems to be defining which Lucene fields to index. Most SOLR indexes don't come with the `contents` and `path` fields that SemanticVectors is used to indexing and using by default as default document identification strings.
+
+The easiest (and quite correct) way to deal with this is usually to set the `-fields_to_index` command line flag in SemanticVectors to be whatever field keeps your document's contents.
+
+This should be sufficient to create term vectors, it may not help for making document vectors. I'll try to fill this gap soon.
