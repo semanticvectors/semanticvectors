@@ -22,6 +22,7 @@ This design was influenced partly by the europarl corpus, see http://www.statmt.
 To create a set of input corpora from the europarl files:
  # Download the corpus from the above link
  # Run the preprocessing script that ships with the corpus, e.g., `sentence-align-corpus.perl en fr` (it's a perl script, you will need perl for this).
+   # This step is currently buggy, as of September 2009. You need to edit line 16 of `sentence-align-corpus.perl` to read `my $dir = "txt";`.
  # Now copy and run the [http://code.google.com/p/semanticvectors/source/browse/trunk/scripts/europarl/chapters-as-files-align.perl chapter alignment script] from the SemanticVectors scripts directory.
  # This should create a new directory for you in the `aligned-chapters` directory, e.g., `aligned-chapters/en-fr`, with the two directories `en` and `fr` with parallel contents.
 
