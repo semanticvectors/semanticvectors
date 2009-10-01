@@ -3,9 +3,21 @@
 
 Even-numbered versions are releases. Odd-numbered versions are in development. It follows that the most recent code and the `build.xml` file in the SVN repository is always odd-numbered.
 
-=== Version 1.20 ===
+=== Version 1.22 ===
 
-(About to ship.)
+Added BalancedPermutationVectorSearcher to use maximum score from two possible
+directions (random index as cue for permuted vectors or vice versa) of search.
+When combined with term weighting (as occurs when -indexFilePath is used with
+Search) this seems to produce reasonable results with reciprocity.
+
+Added CompareTermsBatch and related modifications to Flags, and the convention
+that normalizing the zero vector returns zero. Thanks to Andrew Mackinlay, the newest member of the development team, for these enhancements.
+
+Committed implementations of TRRI and RRI as per the Reflective Random Indexing paper (to appear).
+
+Fixed "-numsearchresults" argument which was being ignored by Search. Fixed lowercasing problem for negation. Added "-contentsfields" and "-docidfield" arguments, which should give better support for SOLR users and others who use a variety of Lucene fields.
+
+=== Version 1.20 ===
 
 Main improvement - new Flags.java for handling all command line flags and command line argument parsing. Still could do with improvements and better documentation, but much better than our previous ad hoc parsing in each class with a main() method.
 
