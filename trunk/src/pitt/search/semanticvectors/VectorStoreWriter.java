@@ -44,7 +44,6 @@ import java.util.Enumeration;
 import java.util.Hashtable;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.store.IndexOutput;
-import org.apache.lucene.store.MMapDirectory;
 
 /**
  * This class provides methods for serializing a VectorStore to disk.<p>
@@ -74,11 +73,11 @@ public class VectorStoreWriter {
    */
   public boolean WriteVectors(String vectorFileName, VectorStore objectVectors) {
     try {
-			File vectorFile = new File(vectorFileName);
-			String parentPath = vectorFile.getParent();
-			if (parentPath == null) parentPath = "";
-			FSDirectory fsDirectory = FSDirectory.getDirectory(parentPath);
-      IndexOutput outputStream = fsDirectory.createOutput(vectorFile.getName());
+	File vectorFile = new File(vectorFileName);
+	String parentPath = vectorFile.getParent();
+	if (parentPath == null) parentPath = "";
+	FSDirectory fsDirectory = FSDirectory.getDirectory(parentPath);
+	IndexOutput outputStream = fsDirectory.createOutput(vectorFile.getName());
 
       Enumeration<ObjectVector> vecEnum = objectVectors.getAllVectors();
       float[] tmpVector = new float[Flags.dimension];
@@ -105,7 +104,7 @@ public class VectorStoreWriter {
       }
       System.err.println("Finished writing vectors.");
       outputStream.close();
-			fsDirectory.close();
+      fsDirectory.close();
       return true;
     }
     catch (Exception e) {
