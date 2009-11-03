@@ -3,7 +3,7 @@
 
 <project name="pitt semantic vectors" default="build-all" basedir=".">
 
-  <property name="version" value="1.23"/>
+  <property name="version" value="1.25"/>
 
   <property name="basedir" value="."/>
   <property name="builddir" value="${basedir}/build"/>
@@ -101,8 +101,10 @@
     <mkdir dir="${testworkingdir}"/>
     <java fork="true" dir="${testworkingdir}"
           classname="pitt.search.semanticvectors.RunTests"/>
+    <!--
     <delete dir="${testworkingdir}"/>
-    <mkdir dir="${testworkingdir}"/>  	
+    <mkdir dir="${testworkingdir}"/>
+    -->
   </target>
 
 <!-- Compile development extensions ... this is a temporary solution until
