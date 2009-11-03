@@ -3,6 +3,10 @@
 
 Even-numbered versions are releases. Odd-numbered versions are in development. It follows that the most recent code and the `build.xml` file in the SVN repository is always odd-numbered.
 
+=== Version 1.24 ===
+
+Small fix to maintain compatibility with Lucene 2.9.
+
 === Version 1.22 ===
 
 Added [http://semanticvectors.googlecode.com/svn/trunk/doc/pitt/search/semanticvectors/VectorSearcher.BalancedVectorSearcherPerm.html BalancedPermutationVectorSearcher] to use maximum score from two possible
