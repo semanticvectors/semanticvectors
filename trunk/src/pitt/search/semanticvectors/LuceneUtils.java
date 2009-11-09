@@ -68,16 +68,16 @@ public class LuceneUtils{
     int tf = 0;
     try{
       TermDocs tDocs = this.indexReader.termDocs(term);
+      if (tDocs == null) {
+        System.err.println("Couldn't get term frequency for term " + term.text());
+        return 1;
+      }
       tf = tDocs.freq();
       while (tDocs.next()) {
         tf += tDocs.freq();
       }
     }
     catch (IOException e) {
-      System.err.println("Couldn't get term frequency for term " + term.text());
-      return 1;
-    }
-    catch (NullPointerException e) {
       System.err.println("Couldn't get term frequency for term " + term.text());
       return 1;
     }
