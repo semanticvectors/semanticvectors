@@ -131,8 +131,8 @@ public class CompoundVectorBuilder {
             queryVec[i] += tmpVec[i];
           }
         } else {
-					System.err.println("No vector for " + queryTerms[j]);
-				}
+          System.err.println("No vector for " + queryTerms[j]);
+        }
       }
     }
     queryVec = VectorUtils.getNormalizedVector(queryVec);
@@ -240,7 +240,7 @@ public class CompoundVectorBuilder {
     for (int j = 0; j < queryTerms.length; ++j) {
       // Compile a regular expression for matching anything containing this term.
       Pattern pattern = Pattern.compile(queryTerms[j]);
-			System.err.println(pattern.pattern());
+      System.err.println(pattern.pattern());
       Enumeration<ObjectVector> vecEnum = vecReader.getAllVectors();
       while (vecEnum.hasMoreElements()) {
         // Test this element.
