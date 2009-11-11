@@ -72,7 +72,6 @@ public class LuceneUtils{
         System.err.println("Couldn't get term frequency for term " + term.text());
         return 1;
       }
-      tf = tDocs.freq();
       while (tDocs.next()) {
         tf += tDocs.freq();
       }
