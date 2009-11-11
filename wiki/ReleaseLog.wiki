@@ -3,6 +3,10 @@
 
 Even-numbered versions are releases. Odd-numbered versions are in development. It follows that the most recent code and the `build.xml` file in the SVN repository is always odd-numbered.
 
+=== Version 1.26 ===
+
+Small fix necessary to fix bug 19 (http://code.google.com/p/semanticvectors/issues/detail?id), another Lucene 2.9 compatibility issue.
+
 === Version 1.24 ===
 
 Small fix to maintain compatibility with Lucene 2.9.
