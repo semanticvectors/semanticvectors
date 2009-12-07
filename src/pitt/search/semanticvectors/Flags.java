@@ -67,8 +67,8 @@ public class Flags {
   public static int minfrequency;
   public static int maxnonalphabetchars;
 
-  public static int numsearchresults;
-  public static int numclusters;
+  public static int numsearchresults = 20;
+  public static int numclusters = 5;
 
   public static int trainingcycles;
   public static int windowradius = 5;
@@ -81,7 +81,7 @@ public class Flags {
   public static String termweight = "logentropy";
   public static final String termweightDescription = "Term weighting used when constructing document vectors.";
   public static final String[] termweightValues = {"logentropy"};
-  
+
   public static String indexfileformat = "lucene";
   public static final String indexfileformatDescription =
       "Format used for serializing / deserializing vectors from disk";
@@ -93,11 +93,11 @@ public class Flags {
   public static String initialtermvectors = "";
   public static String initialtermvectorsDescription =
       "Use the vectors in this file for initialization instead of new random vectors.";
-  
+
   public static String initialdocumentvectors = "";
   public static String initialdocumentvectorsDescription =
       "Use the vectors in this file for initialization instead of new random vectors.";
-  
+
   public static String docindexing = "inmemory";
   public static String docindexingDescription = "Memory management method used for indexing documents.";
   public static String docindexingValues[] = {"inmemory", "incremental", "none"};
@@ -211,7 +211,7 @@ public class Flags {
           field.setBoolean(field, true);
           ++argc;
         } else {
-	  System.err.println("No support for fields of type: "  + field.getType().getName()); 
+	  System.err.println("No support for fields of type: "  + field.getType().getName());
 	}
       } catch (NoSuchFieldException e) {
         throw new IllegalArgumentException("Command line flag not defined: " + flagName);
