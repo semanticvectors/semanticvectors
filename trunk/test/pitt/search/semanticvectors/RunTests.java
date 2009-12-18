@@ -66,12 +66,15 @@ public class RunTests {
                                             CompoundVectorBuilderTest.class,
                                             FlagsTest.class };
 
-  public static Class[] regressionTestClasses = { RegressionTests.class };
+  public static Class[] regressionTestClasses = { RegressionTests.class,
+						  ThreadSafetyTest.class };
 
   public static boolean testDataPrepared = false;
   
   public static String vectorTextFile = "testtermvectors.txt";
   public static String vectorBinFile = "testtermvectors.bin";
+  public static String luceneIndexDir = "index";
+  public static String lucenePositionalIndexDir = "positional_index";
 
   public static String testVectors = "-dimensions|3\n"
     + "abraham|1.0|0.0|0.0\n"
@@ -131,9 +134,9 @@ public class RunTests {
   }
 
   public static boolean prepareTestData() {
-  	if (testDataPrepared) return true;
+    if (testDataPrepared) return true;
   	
-  	// Create basic vector store files. No Lucene / corpus dependencies here. 
+    // Create basic vector store files. No Lucene / corpus dependencies here. 
     try {
       BufferedWriter outBuf = new BufferedWriter(new FileWriter(vectorTextFile));
       outBuf.write(testVectors);
@@ -161,14 +164,14 @@ public class RunTests {
       luceneIndexer.destroy();
 
       Process lucenePositionsIndexer =
-          runtime.exec("java pitt.search.lucene.IndexFilePositions " + testDataPath);
+	runtime.exec("java pitt.search.lucene.IndexFilePositions " + testDataPath);
       lucenePositionsIndexer.waitFor();
       lucenePositionsIndexer.destroy();
     } catch (Exception e) {
-      System.err.println("Failed to prepare regression test data ... abandoning tests.");
+      System.err.println("Failed to prepare test Lucene index ... abandoning tests.");
       e.printStackTrace();
     }
-    
+  
     testDataPrepared = true;
     return true;
   }
@@ -179,8 +182,8 @@ public class RunTests {
 
   public static void main(String args[]) {
     if (!checkCurrentDirEmpty()) {
-    	System.err.println("The test/testdata/tmp directory should be empty before running tests.\n"
-    				+ "This may skew your results: consider cleaning up this directory first.");
+      System.err.println("The test/testdata/tmp directory should be empty before running tests.\n"
+			 + "This may skew your results: consider cleaning up this directory first.");
     }
 
     int successes = 0;

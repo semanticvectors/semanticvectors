@@ -33,52 +33,58 @@
 
 package pitt.search.semanticvectors;
 
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
+
 import org.junit.*;
 import static org.junit.Assert.*;
 import java.io.IOException;
 
 public class VectorStoreReaderTest {
 
-	@Before
-		public void setUp() { assert(RunTests.prepareTestData()); }
+  @Before
+    public void setUp() { assert(RunTests.prepareTestData()); }
 	
-	@Test
-		public void TestReadFromTestData() {
-		System.err.println("Running tests for VectorStoreReader");
-		try {
-			VectorStoreReaderLucene reader = new VectorStoreReaderLucene(RunTests.vectorBinFile);
-			assertEquals(2, reader.getNumVectors());
-			float[] abraham = reader.getVector("abraham");
-			assertEquals(1.0f, abraham[0], 0.01);
-		} catch (IOException e) {
-			// Not sure if there is a better way to test for exceptions ...
-			fail();
-		}
-	}
+  @Test
+    public void TestReadFromTestData() {
+    System.err.println("Running tests for VectorStoreReader");
+    try {
+      VectorStoreReaderLucene reader = new VectorStoreReaderLucene(RunTests.vectorBinFile);
+      assertEquals(2, reader.getNumVectors());
+      float[] abraham = reader.getVector("abraham");
+      assertEquals(1.0f, abraham[0], 0.01);
+    } catch (IOException e) {
+      // Not sure if there is a better way to test for exceptions ...
+      fail();
+    }
+  }
 
-	@Test
-		public void TestOpensAndCloses() {
-		try {
-			VectorStoreReaderLucene reader;
-			reader = new VectorStoreReaderLucene(RunTests.vectorBinFile);
-			reader.close();
-		}	catch (IOException e) {
-			fail();
-		}
-	}
+  @Test
+    public void TestOpensAndCloses() {
+    try {
+      VectorStoreReaderLucene reader;
+      reader = new VectorStoreReaderLucene(RunTests.vectorBinFile);
+      reader.close();
+    }	catch (IOException e) {
+      fail();
+    }
+  }
 
-	@Test
-	// I'm not sure you *should* be able to open two versions of the
-	// same vector store file open at once, even for reads, but it's
-	// good to test for this somehow.
-		public void TestMultipleOpensForRead() {
-		boolean tested = false;
-		try {
-			VectorStoreReaderLucene reader = new VectorStoreReaderLucene(RunTests.vectorBinFile);
-			VectorStoreReaderLucene reader2 = new VectorStoreReaderLucene(RunTests.vectorBinFile);
-		} catch (IOException e) {
-			// Not sure if there is a better way to test for exceptions ...
-			fail();
-		}
-	}
+  @Test
+  // I'm not sure you *should* be able to open two versions of the
+  // same vector store file open at once, even for reads, but it's
+  // good to test for this somehow.
+    public void TestMultipleOpensForRead() {
+    boolean tested = false;
+    try {
+      VectorStoreReaderLucene reader = new VectorStoreReaderLucene(RunTests.vectorBinFile);
+      VectorStoreReaderLucene reader2 = new VectorStoreReaderLucene(RunTests.vectorBinFile);
+    } catch (IOException e) {
+      // Not sure if there is a better way to test for exceptions ...
+      fail();
+    }
+  }
 }
