@@ -1,6 +1,6 @@
 /**
    @author Yevgeniy Treyvus.
-   TODO: Confirm copyright with author.   
+   TODO: Confirm copyright with author.
 **/
 
 package pitt.search.semanticvectors;
@@ -22,9 +22,9 @@ public class ThreadSafetyTest {
     assert(RunTests.prepareTestData());
     Flags.searchtype = "sum";
   }
-   
+
   @Test
-    public void TestThreadSafety() throws Exception {
+    public void TestSearchThreadSafety() throws Exception {
     List<Thread> threads = new ArrayList<Thread>();
     final String queries[] = new String[]{"jesus", "mary", "peter", "light", "word"};
     final boolean[] done = new boolean[queries.length];
@@ -52,8 +52,8 @@ public class ThreadSafetyTest {
     for(Thread t : threads) {
       t.join();
     }
-  }   
-   
+  }
+
   synchronized /*** Comment out and it will break. ***/
   private static void outputSuggestions(String query) throws Exception  {
     int maxResults = 10;
@@ -62,11 +62,13 @@ public class ThreadSafetyTest {
 				   "-luceneindexpath", RunTests.lucenePositionalIndexDir,
 				   query };
     LinkedList<SearchResult> results = Search.RunSearch(args, maxResults);
-    if (results.size() > 0) {
+
+    boolean verbose = false;
+    if (verbose && results.size() > 0) {
       for (SearchResult result: results) {
 	String suggestion = ((ObjectVector)result.getObject()).getObject().toString();
 	System.out.println("query:"+query + " suggestion:" + suggestion + " score:" + result.getScore());
       }
     }
-  }   
+  }
 }

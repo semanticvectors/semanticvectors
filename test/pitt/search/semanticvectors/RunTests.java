@@ -60,7 +60,7 @@ public class RunTests {
    */
   public static Class[] unitTestClasses = { VectorUtilsTest.class,
                                             VectorStoreRAMTest.class,
-                                            VectorStoreReaderTest.class,
+                                            VectorStoreReaderLuceneTest.class,
                                             VectorStoreSparseRAMTest.class,
                                             VectorStoreWriterTest.class,
                                             CompoundVectorBuilderTest.class,
@@ -70,7 +70,7 @@ public class RunTests {
 						  ThreadSafetyTest.class };
 
   public static boolean testDataPrepared = false;
-  
+
   public static String vectorTextFile = "testtermvectors.txt";
   public static String vectorBinFile = "testtermvectors.bin";
   public static String luceneIndexDir = "index";
