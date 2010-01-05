@@ -133,13 +133,11 @@ public class LuceneUtils{
     double entropy = 0;
     try {
       TermDocs tDocs = indexReader.termDocs(term);
-      while( tDocs.next() )
+      while (tDocs.next())
       {
-
         double p = tDocs.freq(); //frequency in this document
         p=p/gf;		//frequency across all documents
         entropy += (p*(Math.log(p)/Math.log(2))); //sum of Plog(P)
-        //System.out.println("entropy "+entropy);
       }
       int n= this.getNumDocs();
       double log2n = Math.log(n)/Math.log(2);

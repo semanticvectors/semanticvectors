@@ -34,8 +34,10 @@
 package pitt.search.semanticvectors;
 
 import java.io.File;
+import java.lang.InterruptedException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Enumeration;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -43,11 +45,11 @@ import org.junit.*;
 import static org.junit.Assert.*;
 import java.io.IOException;
 
-public class VectorStoreReaderTest {
+public class VectorStoreReaderLuceneTest {
 
   @Before
     public void setUp() { assert(RunTests.prepareTestData()); }
-	
+
   @Test
     public void TestReadFromTestData() {
     System.err.println("Running tests for VectorStoreReader");
@@ -68,7 +70,7 @@ public class VectorStoreReaderTest {
       VectorStoreReaderLucene reader;
       reader = new VectorStoreReaderLucene(RunTests.vectorBinFile);
       reader.close();
-    }	catch (IOException e) {
+    } catch (IOException e) {
       fail();
     }
   }
@@ -85,6 +87,42 @@ public class VectorStoreReaderTest {
     } catch (IOException e) {
       // Not sure if there is a better way to test for exceptions ...
       fail();
+    }
+  }
+
+  @Test
+    public void TestEnumerationThreadSafety() throws Exception {
+    final int maxThreads = 2;
+    final VectorStoreReaderLucene vectorStore = new VectorStoreReaderLucene(RunTests.vectorBinFile);
+    ArrayList<Thread> threads = new ArrayList<Thread>();
+
+    for (int i = 0; i < maxThreads; ++i) {
+      Thread thread = new Thread(new Runnable() {
+	  public void run() {
+            Enumeration<ObjectVector> vecEnum = vectorStore.getAllVectors();
+            while (vecEnum.hasMoreElements()) {
+              try {
+                Thread.sleep(25L);
+              } catch (InterruptedException e) {
+                e.printStackTrace();
+              }
+              try {
+                vecEnum.nextElement();
+              } catch (Exception e) {
+                fail();
+                System.err.println("failed ....");
+                e.printStackTrace();
+              }
+            }
+	  }
+        }
+        );
+      threads.add(thread);
+      thread.start();
+    }
+
+    for (Thread thread: threads) {
+      thread.join();
     }
   }
 }

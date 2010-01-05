@@ -102,25 +102,29 @@ public class VectorStoreReaderLucene implements CloseableVectorStore {
     this.fsDirectory.close();
   }
 
-  public Enumeration getAllVectors() {
+  /***
+   * Poorly documented method ...
+   */
+  public synchronized Enumeration getAllVectors() {
+    IndexInput indexInputClone = (IndexInput) this.indexInput;
     try {
-      indexInput.seek(0);
+      indexInputClone.seek(0);
       if (hasHeader) {
-        indexInput.readString();
-        indexInput.readInt();
+        indexInputClone.readString();
+        indexInputClone.readInt();
       }
     }
     catch (IOException e) {
       e.printStackTrace();
     }
-    return new VectorEnumeration(indexInput);
+    return new VectorEnumeration(indexInputClone);
   }
 
   /**
    * Given an object, get its corresponding vector <br>
    * This implementation only works for string objects so far <br>
    * @param desiredObject - the string you're searching for
-   * @return vector from the VectorStore, or null if not found. 
+   * @return vector from the VectorStore, or null if not found.
    */
   public float[] getVector(Object desiredObject) {
     try {

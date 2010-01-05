@@ -82,6 +82,10 @@ public class Flags {
   public static final String termweightDescription = "Term weighting used when constructing document vectors.";
   public static final String[] termweightValues = {"logentropy"};
 
+  public static boolean usetermweightsinsearch = false;
+  public static final String usetermweightsinsearchDescription =
+      "Set to true only if you want to scale each comparison score by a term weight during search.";
+
   public static String indexfileformat = "lucene";
   public static final String indexfileformatDescription =
       "Format used for serializing / deserializing vectors from disk";
