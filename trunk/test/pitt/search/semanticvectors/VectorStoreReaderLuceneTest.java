@@ -40,6 +40,7 @@ import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 import org.junit.*;
 import static org.junit.Assert.*;
@@ -52,7 +53,7 @@ public class VectorStoreReaderLuceneTest {
 
   @Test
     public void TestReadFromTestData() {
-    System.err.println("Running tests for VectorStoreReader");
+    System.err.println("Running tests for VectorStoreReaderLucene");
     try {
       VectorStoreReaderLucene reader = new VectorStoreReaderLucene(RunTests.vectorBinFile);
       assertEquals(2, reader.getNumVectors());
@@ -91,30 +92,43 @@ public class VectorStoreReaderLuceneTest {
   }
 
   @Test
-    public void TestEnumerationThreadSafety() throws Exception {
-    final int maxThreads = 2;
-    final VectorStoreReaderLucene vectorStore = new VectorStoreReaderLucene(RunTests.vectorBinFile);
+    public void TestEnumerationThreadSafety() {
+    final int maxThreads = 5;
+
+    // It's a bit of a dance to get a VectorStoreReaderLucene that you
+    // can use inside different threads.
+    VectorStoreReaderLucene vectorStoreInit = null;
+    try {
+      vectorStoreInit = new VectorStoreReaderLucene(RunTests.vectorBinFile);
+    } catch (IOException e) {
+      System.err.println("Failed to initialize VectorStoreReaderLucene");
+      e.printStackTrace();
+      fail();
+    }
+    final VectorStoreReaderLucene vectorStore = vectorStoreInit;
     ArrayList<Thread> threads = new ArrayList<Thread>();
 
     for (int i = 0; i < maxThreads; ++i) {
       Thread thread = new Thread(new Runnable() {
-	  public void run() {
+          public void run() {
             Enumeration<ObjectVector> vecEnum = vectorStore.getAllVectors();
             while (vecEnum.hasMoreElements()) {
               try {
                 Thread.sleep(25L);
               } catch (InterruptedException e) {
                 e.printStackTrace();
+                fail();
               }
               try {
                 vecEnum.nextElement();
-              } catch (Exception e) {
-                fail();
-                System.err.println("failed ....");
+              } catch (NoSuchElementException e) {
                 e.printStackTrace();
+                // There is a problem with getting RunTests to report
+                // these failures from within threads properly.
+                fail("There is a problem with concurrent reads from a VectorStore");
               }
             }
-	  }
+          }
         }
         );
       threads.add(thread);
@@ -122,7 +136,12 @@ public class VectorStoreReaderLuceneTest {
     }
 
     for (Thread thread: threads) {
-      thread.join();
+      try {
+        thread.join();
+      } catch (InterruptedException e) {
+        e.printStackTrace();
+        fail();
+      }
     }
   }
 }
