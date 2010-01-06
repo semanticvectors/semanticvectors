@@ -35,17 +35,18 @@
 
 package pitt.search.semanticvectors;
 
-import java.util.Enumeration;
 import java.io.*;
 import java.lang.Float;
 import java.lang.Integer;
+import java.util.Enumeration;
 import java.util.StringTokenizer;
+import java.util.NoSuchElementException;
 
 /**
    This class provides methods for reading a VectorStore from a textfile.<p>
 
-   The textfile should start with an optional header line, 
-	 "<code>-dimensions|N</code>".<br>
+   The textfile should start with an optional header line,
+   "<code>-dimensions|N</code>".<br>
    All subsequent lines should be of the form <br>
    <code>String|Num1|Num2|...|NumN</code><p>
 
@@ -67,7 +68,7 @@ public class VectorStoreReaderText implements CloseableVectorStore {
 
   public VectorStoreReaderText (String vectorFileText) throws IOException {
     this.vectorFileText = vectorFileText;
-		this.fileReader = new FileReader(vectorFileText);
+    this.fileReader = new FileReader(vectorFileText);
     this.inBuf = new BufferedReader(this.fileReader);
     try {
       // Read number of dimensions from header information.
@@ -91,15 +92,15 @@ public class VectorStoreReaderText implements CloseableVectorStore {
     }
   }
 
-	public void close() {
-		try {
-			this.inBuf.close();
-			this.fileReader.close();
-		} catch (IOException e) {
-				System.out.println("Cannot close resources from file: " + this.vectorFileText
-													 + "\n" + e.getMessage());
-		}
-	}
+  public void close() {
+    try {
+      this.inBuf.close();
+      this.fileReader.close();
+    } catch (IOException e) {
+      System.out.println("Cannot close resources from file: " + this.vectorFileText
+                         + "\n" + e.getMessage());
+    }
+  }
 
   public Enumeration getAllVectors() {
     try{
@@ -158,21 +159,21 @@ public class VectorStoreReaderText implements CloseableVectorStore {
     System.err.println("Didn't find it ...");
     return null;
   }
-		
-	/**
-	 * Trivial (costly) implementation of getNumVectors that iterates and counts vectors.
-	 */
-	public int getNumVectors() {
-		Enumeration allVectors = this.getAllVectors();
-		int i = 0;
-		while (allVectors.hasMoreElements()) {
-			allVectors.nextElement();
-			++i;
-		}
-		return i;
-	}
-  
-	/**
+
+  /**
+   * Trivial (costly) implementation of getNumVectors that iterates and counts vectors.
+   */
+  public int getNumVectors() {
+    Enumeration allVectors = this.getAllVectors();
+    int i = 0;
+    while (allVectors.hasMoreElements()) {
+      allVectors.nextElement();
+      ++i;
+    }
+    return i;
+  }
+
+  /**
    * Implements the hasMoreElements() and nextElement() methods
    * to give Enumeration interface from store in VectorTextFile.
    */
@@ -183,6 +184,10 @@ public class VectorStoreReaderText implements CloseableVectorStore {
       this.inBuf = inBuf;
     }
 
+    /**
+     * @return True if more vectors are available. False if vector
+     * store is exhausted, including exceptions from reading past EOF.
+     */
     public boolean hasMoreElements() {
       try {
         char[] cbuf = new char[1];
@@ -201,14 +206,18 @@ public class VectorStoreReaderText implements CloseableVectorStore {
       return false;
     }
 
-    public ObjectVector nextElement() {
+    /**
+     * @return Next element if found.
+     * @throws NoSuchElementException if no element is available.
+     */
+    public ObjectVector nextElement() throws NoSuchElementException {
       try {
         return parseVectorLine(inBuf.readLine());
       }
       catch (IOException e) {
         e.printStackTrace();
+        throw (new NoSuchElementException("Failed to get next element from vector store."));
       }
-      return null;
     }
   }
 }

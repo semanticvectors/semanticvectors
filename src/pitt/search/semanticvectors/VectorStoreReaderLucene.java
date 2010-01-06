@@ -39,6 +39,7 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.Float;
 import java.util.Enumeration;
+import java.util.NoSuchElementException;
 import java.util.StringTokenizer;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.store.IndexInput;
@@ -106,7 +107,7 @@ public class VectorStoreReaderLucene implements CloseableVectorStore {
    * Poorly documented method ...
    */
   public synchronized Enumeration getAllVectors() {
-    IndexInput indexInputClone = (IndexInput) this.indexInput;
+    IndexInput indexInputClone = (IndexInput) this.indexInput.clone();
     try {
       indexInputClone.seek(0);
       if (hasHeader) {
@@ -127,22 +128,23 @@ public class VectorStoreReaderLucene implements CloseableVectorStore {
    * @return vector from the VectorStore, or null if not found.
    */
   public float[] getVector(Object desiredObject) {
+    IndexInput indexInputClone = (IndexInput) this.indexInput.clone();
     try {
-      indexInput.seek(0);
+      indexInputClone.seek(0);
       if (hasHeader) {
-        indexInput.readString();
-        indexInput.readInt();
+        indexInputClone.readString();
+        indexInputClone.readInt();
       }
-      while (indexInput.getFilePointer() < indexInput.length() - 1) {
-        if (indexInput.readString().equals(desiredObject)) {
+      while (indexInputClone.getFilePointer() < indexInputClone.length() - 1) {
+        if (indexInputClone.readString().equals(desiredObject)) {
           float[] vector = new float[Flags.dimension];
           for (int i = 0; i < Flags.dimension; ++i) {
-            vector[i] = Float.intBitsToFloat(indexInput.readInt());
+            vector[i] = Float.intBitsToFloat(indexInputClone.readInt());
           }
           return vector;
         }
         else{
-          indexInput.seek(indexInput.getFilePointer() + 4*Flags.dimension);
+          indexInputClone.seek(indexInputClone.getFilePointer() + 4*Flags.dimension);
         }
       }
     }
@@ -177,11 +179,19 @@ public class VectorStoreReaderLucene implements CloseableVectorStore {
       this.indexInput = indexInput;
     }
 
+    /**
+     * @return True if more vectors are available. False if vector
+     * store is exhausted, including exceptions from reading past EOF.
+     */
     public boolean hasMoreElements() {
       return (indexInput.getFilePointer() < indexInput.length());
     }
 
-    public ObjectVector nextElement() {
+    /**
+     * @return Next element if found.
+     * @throws NoSuchElementException if no element is available.
+     */
+    public ObjectVector nextElement() throws NoSuchElementException {
       String object = null;
       float[] vector = new float[Flags.dimension];
       try {
@@ -191,7 +201,7 @@ public class VectorStoreReaderLucene implements CloseableVectorStore {
         }
       }
       catch (IOException e) {
-        e.printStackTrace();
+        throw (new NoSuchElementException("Failed to get next element from vector store."));
       }
       return new ObjectVector(object, vector);
     }

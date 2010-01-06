@@ -231,7 +231,7 @@ public class Search {
                                                     searchVecReader,
                                                     luceneUtils,
                                                     args);
-        System.err.print("Searching term vectors, searchtype SUM ... ");
+        System.err.print("Searching term vectors, searchtype SUM ... \n");
         results = vecSearcher.getNearestNeighbors(numResults);
       } catch (ZeroVectorException zve) {
         System.err.println(zve.getMessage());
