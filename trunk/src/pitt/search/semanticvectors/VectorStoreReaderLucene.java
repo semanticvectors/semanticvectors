@@ -1,5 +1,6 @@
 /**
    Copyright (c) 2007, University of Pittsburgh
+   Copyright (c) 2008 and ongoing, the SemanticVectors AUTHORS.
 
    All rights reserved.
 
@@ -37,10 +38,8 @@ package pitt.search.semanticvectors;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.Float;
 import java.util.Enumeration;
-import java.util.NoSuchElementException;
-import java.util.StringTokenizer;
+
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.store.IndexInput;
 
@@ -58,8 +57,9 @@ public class VectorStoreReaderLucene implements CloseableVectorStore {
   private String vectorFileName;
   private File vectorFile;
   private FSDirectory fsDirectory;
-  private IndexInput indexInput;
   private boolean hasHeader;
+
+  private ThreadLocal<IndexInput> threadLocalIndexInput;
 
   public FSDirectory fsDirectory() {
     return this.fsDirectory;
@@ -72,12 +72,20 @@ public class VectorStoreReaderLucene implements CloseableVectorStore {
       String parentPath = this.vectorFile.getParent();
       if (parentPath == null) parentPath = "";
       this.fsDirectory = FSDirectory.getDirectory(parentPath);
-      this.indexInput = fsDirectory.openInput(vectorFile.getName());
       // Read number of dimensions from header information.
-      String test = indexInput.readString();
+      threadLocalIndexInput = new ThreadLocal<IndexInput>() {
+        protected IndexInput initialValue() {
+          try {
+            return fsDirectory.openInput(vectorFile.getName());
+          } catch (IOException e) {
+            throw new RuntimeException(e.getMessage(), e);
+          }
+        }
+      };
+      String test = getIndexInput().readString();
       // Include "-" character to avoid unlikely case that first term is "dimensions"!
       if ((test.equalsIgnoreCase("-dimensions"))) {
-        Flags.dimension = indexInput.readInt();
+        Flags.dimension = getIndexInput().readInt();
         this.hasHeader = true;
       }
       else {
@@ -93,9 +101,13 @@ public class VectorStoreReaderLucene implements CloseableVectorStore {
     }
   }
 
+  private IndexInput getIndexInput() {
+    return threadLocalIndexInput.get();
+  }
+
   public void close() {
     try {
-      this.indexInput.close();
+      this.getIndexInput().close();
     }	catch (IOException e) {
       System.err.println("Cannot close resources from file: " + this.vectorFile
                          + "\n" + e.getMessage());
@@ -103,22 +115,18 @@ public class VectorStoreReaderLucene implements CloseableVectorStore {
     this.fsDirectory.close();
   }
 
-  /***
-   * Poorly documented method ...
-   */
-  public synchronized Enumeration getAllVectors() {
-    IndexInput indexInputClone = (IndexInput) this.indexInput.clone();
+  public Enumeration getAllVectors() {
     try {
-      indexInputClone.seek(0);
+      getIndexInput().seek(0);
       if (hasHeader) {
-        indexInputClone.readString();
-        indexInputClone.readInt();
+        getIndexInput().readString();
+        getIndexInput().readInt();
       }
     }
     catch (IOException e) {
       e.printStackTrace();
     }
-    return new VectorEnumeration(indexInputClone);
+    return new VectorEnumeration(getIndexInput());
   }
 
   /**
@@ -128,23 +136,22 @@ public class VectorStoreReaderLucene implements CloseableVectorStore {
    * @return vector from the VectorStore, or null if not found.
    */
   public float[] getVector(Object desiredObject) {
-    IndexInput indexInputClone = (IndexInput) this.indexInput.clone();
     try {
-      indexInputClone.seek(0);
+      getIndexInput().seek(0);
       if (hasHeader) {
-        indexInputClone.readString();
-        indexInputClone.readInt();
+        getIndexInput().readString();
+        getIndexInput().readInt();
       }
-      while (indexInputClone.getFilePointer() < indexInputClone.length() - 1) {
-        if (indexInputClone.readString().equals(desiredObject)) {
+      while (getIndexInput().getFilePointer() < getIndexInput().length() - 1) {
+        if (getIndexInput().readString().equals(desiredObject)) {
           float[] vector = new float[Flags.dimension];
           for (int i = 0; i < Flags.dimension; ++i) {
-            vector[i] = Float.intBitsToFloat(indexInputClone.readInt());
+            vector[i] = Float.intBitsToFloat(getIndexInput().readInt());
           }
           return vector;
         }
         else{
-          indexInputClone.seek(indexInputClone.getFilePointer() + 4*Flags.dimension);
+          getIndexInput().seek(getIndexInput().getFilePointer() + 4*Flags.dimension);
         }
       }
     }
@@ -179,19 +186,11 @@ public class VectorStoreReaderLucene implements CloseableVectorStore {
       this.indexInput = indexInput;
     }
 
-    /**
-     * @return True if more vectors are available. False if vector
-     * store is exhausted, including exceptions from reading past EOF.
-     */
     public boolean hasMoreElements() {
       return (indexInput.getFilePointer() < indexInput.length());
     }
 
-    /**
-     * @return Next element if found.
-     * @throws NoSuchElementException if no element is available.
-     */
-    public ObjectVector nextElement() throws NoSuchElementException {
+    public ObjectVector nextElement() {
       String object = null;
       float[] vector = new float[Flags.dimension];
       try {
@@ -201,7 +200,7 @@ public class VectorStoreReaderLucene implements CloseableVectorStore {
         }
       }
       catch (IOException e) {
-        throw (new NoSuchElementException("Failed to get next element from vector store."));
+        e.printStackTrace();
       }
       return new ObjectVector(object, vector);
     }
