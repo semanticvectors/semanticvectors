@@ -216,10 +216,7 @@ public static void main(String[] args) throws Exception
 	DMat vT = svdR.Vt;
 	DMat uT = svdR.Ut;
 	
-	System.out.println("vT rows "+vT.rows+" vT cols "+vT.cols);
-	System.out.println("uT rows "+uT.rows+" uT cols "+uT.cols);
-	
-			    	
+				    	
 			    	
 			    	// Open file and write headers.
 					MMapDirectory dir = new MMapDirectory();
