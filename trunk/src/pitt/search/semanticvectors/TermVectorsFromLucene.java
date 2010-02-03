@@ -204,7 +204,7 @@ public class TermVectorsFromLucene implements VectorStore {
 		  						String[] fieldsToIndex) throws IOException, RuntimeException 
   { 
   	
-  
+	  
 	  this.minFreq = minFreq;
 	    this.nonAlphabet = nonAlphabet;
 	    this.fieldsToIndex = fieldsToIndex;
@@ -227,7 +227,9 @@ public class TermVectorsFromLucene implements VectorStore {
      	this.termVectors = new Hashtable<String,ObjectVector>();
       
     // For each term in the index
-    
+   if (Flags.initialtermvectors.equals("random")) 
+     	{
+	   System.err.println("Creating random term vectors");
     TermEnum terms = indexReader.terms();
     int tc = 0;
     while(terms.next()){
@@ -246,7 +248,26 @@ public class TermVectorsFromLucene implements VectorStore {
    
       this.termVectors.put(term.text(), new ObjectVector(term.text(),VectorUtils.sparseVectorToFloatVector(indexVector, Flags.dimension)));
     }
-
+     	}
+   else
+   { System.err.println("Using semantic term vectors from file "+Flags.initialtermvectors);
+   	  VectorStore inputReader = new VectorStoreReaderLucene(Flags.initialtermvectors);
+   	  Enumeration<ObjectVector> termEnumeration = inputReader.getAllVectors();
+   	  int count = 0;
+   	 
+   	  while (termEnumeration.hasMoreElements())
+   	  {
+   		  ObjectVector next = termEnumeration.nextElement();
+   		  String term = next.getObject().toString();
+   		  this.termVectors.put(term, next);
+   		  count++;
+   	  }
+   	  
+   	 
+  
+   	 
+	   System.err.println("Read in "+count+" vectors");
+   }
   
    
   }

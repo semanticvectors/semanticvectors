@@ -125,21 +125,27 @@ public class BuildIndex {
     try{
     	TermVectorsFromLucene vecStore;
 
-    	if (Flags.initialtermvectors.equals("random")) {
-          // Create elemental (random index) term vectors. Recommended
-    	  // to iterate at least once (i.e. trainincycles = 2) to
+    	if (Flags.initialtermvectors.length() > 0) {
+          // If Flags.initialtermvectors="random" create elemental (random index) 
+    	  // term vectors. Recommended to iterate at least once (i.e. trainincycles = 2) to
     	  // obtain semantic term vectors
-          System.err.println("Creating random term vectors ...");
+    	  // Otherwise attempt to load pre-existing semantic term vectors
+    		
+          System.err.println("Creating term vectors ...");
           vecStore =
               new TermVectorsFromLucene(luceneIndex, Flags.seedlength, Flags.minfrequency,
                                         Flags.maxnonalphabetchars, Flags.contentsfields);
-    	} else {
-          System.err.println("Creating semantic term vectors ...");
+    	}
+    	
+    	else {
+          System.err.println("Creating elemental document vectors ...");
           vecStore =
               new TermVectorsFromLucene(luceneIndex, Flags.seedlength,Flags.minfrequency,
                                         Flags.maxnonalphabetchars, null, Flags.contentsfields);
         }
 
+    	
+    	
       // Create doc vectors and write vectors to disk.
       if (Flags.docindexing.equals("incremental")) {
         VectorStoreWriter vecWriter = new VectorStoreWriter();
