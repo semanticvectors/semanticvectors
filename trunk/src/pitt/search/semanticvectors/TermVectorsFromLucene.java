@@ -98,7 +98,7 @@ public class TermVectorsFromLucene implements VectorStore {
                                int nonAlphabet,
                                VectorStore basicDocVectors,
                                String[] fieldsToIndex)
-      throws IOException, RuntimeException {
+    throws IOException, RuntimeException {
     this.minFreq = minFreq;
     this.nonAlphabet = nonAlphabet;
     this.fieldsToIndex = fieldsToIndex;
@@ -187,44 +187,44 @@ public class TermVectorsFromLucene implements VectorStore {
   }
 
   /**
-	 * This constructor generates an elemental vector for each term. These elemental (random index) vectors will
-	 * be used to construct document vectors, a procedure we have called term-based reflective random indexing 
-	 * @param indexDir			the directory of the Lucene Index
-	 * @param seedLength Number of +1 or -1 entries in basic
-	 * vectors. Should be even to give same number of each.
-	 * @param nonAlphabet 		the number of nonalphabet characters permitted
-	 * @param minFreq The minimum term frequency for a term to be indexed.
-	 * @param fieldsToIndex		the fields to be indexed (most commonly "contents")
-	 */
+   * This constructor generates an elemental vector for each term. These elemental (random index) vectors will
+   * be used to construct document vectors, a procedure we have called term-based reflective random indexing 
+   * @param indexDir			the directory of the Lucene Index
+   * @param seedLength Number of +1 or -1 entries in basic
+   * vectors. Should be even to give same number of each.
+   * @param nonAlphabet 		the number of nonalphabet characters permitted
+   * @param minFreq The minimum term frequency for a term to be indexed.
+   * @param fieldsToIndex		the fields to be indexed (most commonly "contents")
+   */
 	
   public TermVectorsFromLucene(String indexDir,  
-		  						int seedLength,
-		  						int minFreq,
-		  						int nonAlphabet,
-		  						String[] fieldsToIndex) throws IOException, RuntimeException 
+			       int seedLength,
+			       int minFreq,
+			       int nonAlphabet,
+			       String[] fieldsToIndex) throws IOException, RuntimeException 
   { 
   	
 	  
-	  this.minFreq = minFreq;
-	    this.nonAlphabet = nonAlphabet;
-	    this.fieldsToIndex = fieldsToIndex;
-	    this.seedLength = seedLength;
+    this.minFreq = minFreq;
+    this.nonAlphabet = nonAlphabet;
+    this.fieldsToIndex = fieldsToIndex;
+    this.seedLength = seedLength;
 
-	    /* This small preprocessing step uses an IndexModifier to make
-	     * sure that the Lucene index is optimized to use contiguous
-	     * integers as identifiers, otherwise exceptions can occur if
-	     * document id's are greater than indexReader.numDocs().
-	     */
-	    IndexModifier modifier = new IndexModifier(indexDir, new StandardAnalyzer(), false);
-	    modifier.optimize();
-	    modifier.close();
+    /* This small preprocessing step uses an IndexModifier to make
+     * sure that the Lucene index is optimized to use contiguous
+     * integers as identifiers, otherwise exceptions can occur if
+     * document id's are greater than indexReader.numDocs().
+     */
+    IndexModifier modifier = new IndexModifier(indexDir, new StandardAnalyzer(), false);
+    modifier.optimize();
+    modifier.close();
 
-	    // Create LuceneUtils Class to filter terms.
-	    lUtils = new LuceneUtils(indexDir);
+    // Create LuceneUtils Class to filter terms.
+    lUtils = new LuceneUtils(indexDir);
 
-	    indexReader = IndexReader.open(indexDir);
-	    Random random = new Random();
-     	this.termVectors = new Hashtable<String,ObjectVector>();
+    indexReader = IndexReader.open(indexDir);
+    Random random = new Random();
+    this.termVectors = new Hashtable<String,ObjectVector>();
       
     // For each term in the index
    if (Flags.initialtermvectors.equals("random")) 

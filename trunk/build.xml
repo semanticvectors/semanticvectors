@@ -23,7 +23,14 @@
     <mkdir dir="${distdir}"/>
   </target>
 
-  <target name="compile" depends="init">
+  <target name="compile-deps" depends="init">
+    <javac srcdir="./thirdparty"
+           destdir="${buildclassesdir}"
+           debug="on"
+           />
+  </target>
+
+  <target name="compile" depends="init,compile-deps">
     <javac srcdir="${srcdir}"
            destdir="${buildclassesdir}"
            debug="on"

@@ -1,0 +1,5 @@
+<Summary>
+thirdparty contains external code and binaries used in semanticvectors.
+The packages under thirdparty are open source. Please see individual packages and directories for licensing terms.
+Please don't check anything in here that is not open source. Contact the semanticvectors development team instead.
+</Summary>

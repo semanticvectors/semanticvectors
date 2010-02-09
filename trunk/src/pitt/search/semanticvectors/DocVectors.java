@@ -157,7 +157,7 @@ public class DocVectors implements VectorStore {
 	// reconfigured.  For bilingual docs, we index "filename" not
 	// "path", since there are two system paths, one for each
 	// language.
-        if (this.indexReader.document(i).getField("path") != null) {
+        if (this.indexReader.document(i).getField(Flags.docidfield) != null) {
           docName = this.indexReader.document(i).getField(Flags.docidfield).stringValue();
 	  if (docName.length() == 0) {
 	    System.err.println("Empty document name!!! This will cause problems ...");

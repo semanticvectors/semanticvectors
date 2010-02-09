@@ -132,7 +132,6 @@ public class BuildPositionalIndex {
     if (Flags.positionalmethod.equals("permutation")) termFile = "permtermvectors.bin";
     else if (Flags.positionalmethod.equals("directional")) termFile = "drxntermvectors.bin";
 
-    String[] fieldsToIndex = {"contents"};
     System.err.println("Lucene index = " + luceneIndex);
     System.err.println("Seedlength = " + Flags.seedlength);
     System.err.println("Vector length = " + Flags.dimension);
@@ -148,7 +147,7 @@ public class BuildPositionalIndex {
                                         Flags.maxnonalphabetchars,
                                         2 * Flags.windowradius + 1,
                                         newBasicTermVectors,
-                                        fieldsToIndex);
+                                        Flags.contentsfields);
       VectorStoreWriter vecWriter = new VectorStoreWriter();
       System.err.println("Writing term vectors to " + termFile);
       vecWriter.WriteVectors(termFile, vecStore);
@@ -162,7 +161,7 @@ public class BuildPositionalIndex {
                                                  Flags.maxnonalphabetchars,
                                                  2 * Flags.windowradius + 1,
                                                  newBasicTermVectors,
-                                                 fieldsToIndex);
+						 Flags.contentsfields);
       }
 
       if (trainingCycles > 1) {
@@ -172,7 +171,7 @@ public class BuildPositionalIndex {
         vecWriter.WriteVectors(termFile, vecStore);
       }
       IncrementalDocVectors docVectors =
-          new IncrementalDocVectors(vecStore, luceneIndex, fieldsToIndex, "incremental_"+docFile);
+          new IncrementalDocVectors(vecStore, luceneIndex, Flags.contentsfields, "incremental_"+docFile);
     }
     catch (IOException e) {
       e.printStackTrace();
