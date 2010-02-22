@@ -12,6 +12,8 @@ Empirical Distributional Semantics: Methods and Biomedical Applications. Trevor 
 
 _Please let us know if you have any articles to add to this list, it is really good for the project to know what results people have obtained using the software._
 
+*New!* Newton, G. & A. Callahan & M. Dumontier. 2009. Semantic Journal Mapping for Search Visualization in a Large Scale Article Digital Library. Second Workshop on Very Large Digital Libraries at the European Conference on Digital Libraries (ECDL) 2009. http://gnewton.ca/u/gn/2009/ecdl2009Newton_20090723.pdf.
+
 [http://www.puttypeg.com/papers/semantic-vector-products.pdf Semantic Vector Products: Some Initial Investigations]. Dominic Widdows, Proceedings of the Second AAAI Symposium on Quantum Interaction, 2008.
 
 [http://www.puttypeg.com/papers/synopticvectors.pdf Semantic Vector Combinations and the Synoptic Gospels]. Dominic Widdows, Trevor Cohen, Third International Symposium on Quantum Interaction, 2009.
