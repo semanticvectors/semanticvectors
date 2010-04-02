@@ -417,7 +417,7 @@ abstract public class VectorSearcher{
      * @param testVector Vector being tested.
      */
     public float getScore(float[] testVector) {
-      return VectorUtils.getSumScalarProduct(testVector, disjunctSpace);
+      return VectorUtils.compareWithProjection(testVector, disjunctSpace);
     }
   }
 
