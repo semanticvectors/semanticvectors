@@ -76,7 +76,7 @@ public class VectorStoreWriter {
 	File vectorFile = new File(vectorFileName);
 	String parentPath = vectorFile.getParent();
 	if (parentPath == null) parentPath = "";
-	FSDirectory fsDirectory = FSDirectory.getDirectory(parentPath);
+	FSDirectory fsDirectory = FSDirectory.open(new File(parentPath));
 	IndexOutput outputStream = fsDirectory.createOutput(vectorFile.getName());
 
       Enumeration<ObjectVector> vecEnum = objectVectors.getAllVectors();

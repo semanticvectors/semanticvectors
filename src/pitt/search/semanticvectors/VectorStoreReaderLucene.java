@@ -71,7 +71,7 @@ public class VectorStoreReaderLucene implements CloseableVectorStore {
     try {
       String parentPath = this.vectorFile.getParent();
       if (parentPath == null) parentPath = "";
-      this.fsDirectory = FSDirectory.getDirectory(parentPath);
+      this.fsDirectory = FSDirectory.open(new File(parentPath));
       // Read number of dimensions from header information.
       threadLocalIndexInput = new ThreadLocal<IndexInput>() {
         protected IndexInput initialValue() {

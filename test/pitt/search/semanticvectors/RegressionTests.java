@@ -34,6 +34,7 @@
 package pitt.search.semanticvectors;
 
 import java.io.File;
+import java.util.logging.*;
 import java.util.*;
 
 import org.junit.*;
@@ -50,9 +51,12 @@ import static org.junit.Assert.*;
  * RunTests class.
  */
 public class RegressionTests {
+  private static Logger logger = Logger.getLogger("RegressionTests");
 
   @Before
-  public void setUp() { assert(RunTests.prepareTestData()); }
+  public void setUp() {
+    assert(RunTests.prepareTestData());
+  }
 
   @Test
   public void testBuildAndSearchBasicIndex() {
@@ -74,10 +78,19 @@ public class RegressionTests {
   public void testBuildAndSearchPositionalIndex() {
     assert(!(new File("termtermvectors.bin")).isFile());
     assert(!(new File("incremental_docvectors.bin")).isFile());
+
     String[] args2 = {"-dimension", "200", "positional_index"};
+
+    logger.info("************ Building positional index ...");
+
     BuildPositionalIndex.main(args2);
+
+    logger.info("*********** Finished building positional index.");
+
     assert((new File("termtermvectors.bin")).isFile());
     assert((new File("incremental_docvectors.bin")).isFile());
+
+    logger.info("Built positional index.");
 
     Scanner results = TestUtils.getCommandOutput(
         "java pitt.search.semanticvectors.Search -queryvectorfile termtermvectors.bin martha");
@@ -85,6 +98,7 @@ public class RegressionTests {
     boolean foundMary = false;
     while (i < 5) {
       String nextTerm = TestUtils.termFromResult(results.next());
+      System.err.println("\tResult term is: '" + nextTerm);
       if (nextTerm.equals("mary")) {
         foundMary = true;
         System.err.println("Found mary in line: " + i);
@@ -108,6 +122,7 @@ public class RegressionTests {
     // First result should be "peter".
     String firstLine = results.next();
     String firstTerm = TestUtils.termFromResult(firstLine);
+    System.err.println("\tResult term is: '" + firstTerm);
     assertEquals("peter", firstTerm);
 
     Scanner results2 = TestUtils.getCommandOutput(
@@ -117,6 +132,7 @@ public class RegressionTests {
     // First result should be "peter".
     String firstLine2 = results2.next();
     String firstTerm2 = TestUtils.termFromResult(firstLine2);
+    System.err.println("\tResult term is: '" + firstTerm2);
     assertEquals("peter", firstTerm2);
   }
 }

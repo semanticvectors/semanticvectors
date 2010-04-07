@@ -1,5 +1,5 @@
 package pitt.search.semanticvectors;
-import org.apache.lucene.index.IndexModifier;
+
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.index.TermDocs;
@@ -71,8 +71,8 @@ public class LSA {
 
     //initiate IndexReader and LuceneUtils
     File file = new File(fileName);
-    IndexReader indexReader = IndexReader.open(file);
-    pitt.search.semanticvectors.LuceneUtils lUtils = new pitt.search.semanticvectors.LuceneUtils(fileName);
+    IndexReader indexReader = IndexReader.open(FSDirectory.open(file));
+    LuceneUtils lUtils = new LuceneUtils(fileName);
 
     int[][] index;
     int nonalphabet = Flags.maxnonalphabetchars;
@@ -220,7 +220,7 @@ public class LSA {
 
     // Open file and write headers.
     String termFile = "svd_termvectors.bin";
-    FSDirectory fsDirectory = FSDirectory.getDirectory(".");
+    FSDirectory fsDirectory = FSDirectory.open(new File("."));
     IndexOutput outputStream = fsDirectory.createOutput(termFile);
     float[] tmpVector = new float[Flags.dimension];
 
@@ -273,7 +273,7 @@ public class LSA {
 
     //initiate IndexReader and LuceneUtils
     File file = new File(args[0]);
-    IndexReader indexReader = IndexReader.open(file);
+    IndexReader indexReader = IndexReader.open(FSDirectory.open(file));
 
     // Write out document vectors
     for (cnt = 0; cnt < uT.cols; cnt++)

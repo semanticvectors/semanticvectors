@@ -35,12 +35,15 @@
 
 package pitt.search.semanticvectors;
 
-import org.apache.lucene.index.IndexReader;
-import org.apache.lucene.index.Term;
-import org.apache.lucene.index.TermDocs;
+import java.io.File;
 import java.io.IOException;
 import java.lang.Math;
 import java.util.Hashtable;
+
+import org.apache.lucene.index.IndexReader;
+import org.apache.lucene.index.Term;
+import org.apache.lucene.index.TermDocs;
+import org.apache.lucene.store.FSDirectory;
 
 /**
  * Class to support reading extra information from Lucene indexes,
@@ -55,7 +58,7 @@ public class LuceneUtils{
    * @param path - path to lucene index
    */
   public LuceneUtils (String path) throws IOException {
-    this.indexReader = IndexReader.open(path);
+    this.indexReader = IndexReader.open(FSDirectory.open(new File(path)));
   }
 
   /**
@@ -150,7 +153,6 @@ public class LuceneUtils{
     return (float) (1 + entropy);
   }
 
-
   /**
    * Filters out non-alphabetic terms and those of low frequency
    * @param term - Term to be filtered.
@@ -195,5 +197,9 @@ public class LuceneUtils{
     // If we've passed each filter, return true.
     return true;
   }
+
+  /**
+   *
+   */
 
 }
