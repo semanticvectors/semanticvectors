@@ -132,7 +132,7 @@ public class RegressionTests {
     // First result should be "peter".
     String firstLine2 = results2.next();
     String firstTerm2 = TestUtils.termFromResult(firstLine2);
-    System.err.println("\tResult term is: '" + firstTerm2);
+    System.err.println("\tResult term is: '" + firstTerm2 + "'");
     assertEquals("peter", firstTerm2);
   }
 }

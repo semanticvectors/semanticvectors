@@ -281,17 +281,14 @@ public class TermVectorsFromLucene implements VectorStore {
     }
   }
 
-  @Override
   public float[] getVector(Object term) {
     return termVectors.get(term).getVector();
   }
 
-  @Override
   public Enumeration getAllVectors() {
     return termVectors.elements();
   }
 
-  @Override
   public int getNumVectors() {
     return termVectors.size();
   }
