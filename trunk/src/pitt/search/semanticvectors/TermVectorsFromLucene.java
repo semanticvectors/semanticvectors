@@ -35,17 +35,21 @@
 
 package pitt.search.semanticvectors;
 
+import java.io.File;
+import java.io.IOException;
+import java.lang.RuntimeException;
 import java.util.Hashtable;
 import java.util.Enumeration;
 import java.util.Random;
-import java.io.IOException;
-import java.lang.RuntimeException;
-import org.apache.lucene.index.IndexModifier;
 import org.apache.lucene.index.IndexReader;
+import org.apache.lucene.index.IndexWriter;
+import org.apache.lucene.index.IndexWriter.MaxFieldLength;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.index.TermDocs;
 import org.apache.lucene.index.TermEnum;
+import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
+import org.apache.lucene.util.Version;
 
 /**
  * Implementation of vector store that creates term vectors by
@@ -98,25 +102,29 @@ public class TermVectorsFromLucene implements VectorStore {
                                int nonAlphabet,
                                VectorStore basicDocVectors,
                                String[] fieldsToIndex)
-    throws IOException, RuntimeException {
+      throws IOException, RuntimeException {
     this.minFreq = minFreq;
     this.nonAlphabet = nonAlphabet;
     this.fieldsToIndex = fieldsToIndex;
     this.seedLength = seedLength;
 
-    /* This small preprocessing step uses an IndexModifier to make
-     * sure that the Lucene index is optimized to use contiguous
-     * integers as identifiers, otherwise exceptions can occur if
-     * document id's are greater than indexReader.numDocs().
+    /* This small preprocessing step makes sure that the Lucene index
+     * is optimized to use contiguous integers as identifiers.
+     * Otherwise exceptions can occur if document id's are greater
+     * than indexReader.numDocs().
      */
-    IndexModifier modifier = new IndexModifier(indexDir, new StandardAnalyzer(), false);
-    modifier.optimize();
-    modifier.close();
+    IndexWriter compressor = new IndexWriter(
+        FSDirectory.open(new File(indexDir)),
+        new StandardAnalyzer(Version.LUCENE_30),
+        false,
+        MaxFieldLength.UNLIMITED);
+    compressor.optimize();
+    compressor.close();
 
     // Create LuceneUtils Class to filter terms.
     lUtils = new LuceneUtils(indexDir);
 
-    indexReader = IndexReader.open(indexDir);
+    indexReader = IndexReader.open(FSDirectory.open(new File(indexDir)));
 
     // Check that basicDocVectors is the right size.
     if (basicDocVectors != null) {
@@ -175,7 +183,7 @@ public class TermVectorsFromLucene implements VectorStore {
         String docID = Integer.toString(tDocs.doc());
         float[] docVector = this.basicDocVectors.getVector(docID);
         int freq = tDocs.freq();
-				
+
         for (int i = 0; i < Flags.dimension; ++i) {
           termVector[i] += freq * docVector[i];
         }
@@ -187,8 +195,11 @@ public class TermVectorsFromLucene implements VectorStore {
   }
 
   /**
-   * This constructor generates an elemental vector for each term. These elemental (random index) vectors will
-   * be used to construct document vectors, a procedure we have called term-based reflective random indexing 
+   * This constructor generates an elemental vector for each
+   * term. These elemental (random index) vectors will be used to
+   * construct document vectors, a procedure we have called term-based
+   * reflective random indexing.
+   *
    * @param indexDir			the directory of the Lucene Index
    * @param seedLength Number of +1 or -1 entries in basic
    * vectors. Should be even to give same number of each.
@@ -196,91 +207,91 @@ public class TermVectorsFromLucene implements VectorStore {
    * @param minFreq The minimum term frequency for a term to be indexed.
    * @param fieldsToIndex		the fields to be indexed (most commonly "contents")
    */
-	
-  public TermVectorsFromLucene(String indexDir,  
+
+  public TermVectorsFromLucene(String indexDir,
 			       int seedLength,
 			       int minFreq,
 			       int nonAlphabet,
-			       String[] fieldsToIndex) throws IOException, RuntimeException 
-  { 
-  	
-	  
+			       String[] fieldsToIndex)
+      throws IOException, RuntimeException {
+
     this.minFreq = minFreq;
     this.nonAlphabet = nonAlphabet;
     this.fieldsToIndex = fieldsToIndex;
     this.seedLength = seedLength;
 
-    /* This small preprocessing step uses an IndexModifier to make
-     * sure that the Lucene index is optimized to use contiguous
-     * integers as identifiers, otherwise exceptions can occur if
-     * document id's are greater than indexReader.numDocs().
+    /* This small preprocessing step makes sure that the Lucene index
+     * is optimized to use contiguous integers as identifiers.
+     * Otherwise exceptions can occur if document id's are greater
+     * than indexReader.numDocs().
      */
-    IndexModifier modifier = new IndexModifier(indexDir, new StandardAnalyzer(), false);
-    modifier.optimize();
-    modifier.close();
+    IndexWriter compressor = new IndexWriter(
+        FSDirectory.open(new File(indexDir)),
+        new StandardAnalyzer(Version.LUCENE_30),
+        false,
+        MaxFieldLength.UNLIMITED);
+    compressor.optimize();
+    compressor.close();
 
     // Create LuceneUtils Class to filter terms.
     lUtils = new LuceneUtils(indexDir);
 
-    indexReader = IndexReader.open(indexDir);
+    indexReader = IndexReader.open(FSDirectory.open(new File(indexDir)));
     Random random = new Random();
     this.termVectors = new Hashtable<String,ObjectVector>();
-      
-    // For each term in the index
-   if (Flags.initialtermvectors.equals("random")) 
-     	{
-	   System.err.println("Creating random term vectors");
-    TermEnum terms = indexReader.terms();
-    int tc = 0;
-    while(terms.next()){
-      Term term = terms.term();
-     
-      // Skip terms that don't pass the filter.
 
-      if (!lUtils.termFilter(terms.term(), fieldsToIndex, nonAlphabet, minFreq))  {
-        continue;
+    // For each term in the index
+    if (Flags.initialtermvectors.equals("random")) {
+      System.err.println("Creating random term vectors");
+      TermEnum terms = indexReader.terms();
+      int tc = 0;
+      while(terms.next()){
+        Term term = terms.term();
+
+        // Skip terms that don't pass the filter.
+
+        if (!lUtils.termFilter(terms.term(), fieldsToIndex, nonAlphabet, minFreq))  {
+          continue;
+        }
+        tc++;
+
+        short[] indexVector =  VectorUtils.generateRandomVector(seedLength, random);
+        float[] indexVector2 = VectorUtils.getNormalizedVector(
+            VectorUtils.sparseVectorToFloatVector(indexVector, Flags.dimension));
+        // Place each term vector in the vector store.
+
+        this.termVectors.put(term.text(),
+                             new ObjectVector(term.text(),
+                                              VectorUtils.sparseVectorToFloatVector(
+                                                  indexVector, Flags.dimension)));
       }
-      tc++;
-      
-      short[] indexVector =  VectorUtils.generateRandomVector(seedLength, random);
-      float[] indexVector2 = VectorUtils.getNormalizedVector(VectorUtils.sparseVectorToFloatVector(indexVector, Flags.dimension));
-      // Place each term vector in the vector store.
-   
-      this.termVectors.put(term.text(), new ObjectVector(term.text(),VectorUtils.sparseVectorToFloatVector(indexVector, Flags.dimension)));
+    } else {
+      System.err.println("Using semantic term vectors from file " + Flags.initialtermvectors);
+      VectorStore inputReader = new VectorStoreReaderLucene(Flags.initialtermvectors);
+      Enumeration<ObjectVector> termEnumeration = inputReader.getAllVectors();
+      int count = 0;
+
+      while (termEnumeration.hasMoreElements()) {
+        ObjectVector next = termEnumeration.nextElement();
+        String term = next.getObject().toString();
+        this.termVectors.put(term, next);
+        count++;
+      }
+      System.err.println("Read in "+count+" vectors");
     }
-     	}
-   else
-   { System.err.println("Using semantic term vectors from file "+Flags.initialtermvectors);
-   	  VectorStore inputReader = new VectorStoreReaderLucene(Flags.initialtermvectors);
-   	  Enumeration<ObjectVector> termEnumeration = inputReader.getAllVectors();
-   	  int count = 0;
-   	 
-   	  while (termEnumeration.hasMoreElements())
-   	  {
-   		  ObjectVector next = termEnumeration.nextElement();
-   		  String term = next.getObject().toString();
-   		  this.termVectors.put(term, next);
-   		  count++;
-   	  }
-   	  
-   	 
-  
-   	 
-	   System.err.println("Read in "+count+" vectors");
-   }
-  
-   
   }
-	
-  
+
+  @Override
   public float[] getVector(Object term) {
     return termVectors.get(term).getVector();
   }
 
+  @Override
   public Enumeration getAllVectors() {
     return termVectors.elements();
   }
 
+  @Override
   public int getNumVectors() {
     return termVectors.size();
   }

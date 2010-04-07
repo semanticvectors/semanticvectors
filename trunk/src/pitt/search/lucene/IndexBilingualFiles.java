@@ -33,17 +33,20 @@
 
 package pitt.search.lucene;
 
-import org.apache.lucene.analysis.standard.StandardAnalyzer;
+
+import org.apache.lucene.document.DateTools;
+import org.apache.lucene.document.Document;
+import org.apache.lucene.document.Field;
+import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.index.IndexWriter;
+import org.apache.lucene.index.IndexWriter.MaxFieldLength;
+import org.apache.lucene.analysis.standard.StandardAnalyzer;
+import org.apache.lucene.util.Version;
 
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.Date;
-
-import org.apache.lucene.document.DateTools;
-import org.apache.lucene.document.Document;
-import org.apache.lucene.document.Field;
 
 /**
  * Index pairs of bilingual texts in a parallel corpus.  See <a
@@ -116,7 +119,9 @@ public class IndexBilingualFiles {
 
     Date start = new Date();
     try {
-      IndexWriter writer = new IndexWriter(INDEX_DIR, new StandardAnalyzer(), true);
+      IndexWriter writer = new IndexWriter(FSDirectory.open(INDEX_DIR),
+                                           new StandardAnalyzer(Version.LUCENE_30),
+                                           true, MaxFieldLength.UNLIMITED);
       System.out.println("Indexing to directory '" + INDEX_DIR + "'...");
       for (int i = 0; i < files1.length; ++i) {
         System.out.println("adding " + files1[i]);
@@ -168,7 +173,7 @@ public class IndexBilingualFiles {
     doc.add(new Field("filename",
                       file1.getName(),
                       Field.Store.YES,
-                      Field.Index.UN_TOKENIZED));
+                      Field.Index.NOT_ANALYZED));
 
     // Add the contents of the file to a fields named
     // "contents_LANGUAGE1" and "contents_LANGUAGE2".  Specify a

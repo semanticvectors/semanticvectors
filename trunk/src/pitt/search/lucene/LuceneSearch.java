@@ -36,11 +36,13 @@
 package pitt.search.lucene;
 
 import java.io.*;
-import org.apache.lucene.analysis.*;
+import org.apache.lucene.analysis.standard.*;
 import org.apache.lucene.document.*;
 import org.apache.lucene.index.*;
 import org.apache.lucene.search.*;
+import org.apache.lucene.store.*;
 import org.apache.lucene.queryParser.*;
+import org.apache.lucene.util.Version;
 
 /**
  * Simple standalone class for searching a lucene index.
@@ -49,7 +51,9 @@ import org.apache.lucene.queryParser.*;
  */
 public class LuceneSearch {
 
-  public static void usage(){
+  public static final int MAX_RESULTS = 20;
+
+  public static void usage() {
     System.out.println("Lucene Search Wrapper");
     System.out.println("Usage: java pitt.search.lucene.LuceneWrapper [-i path_to_index] " +
                        "[-f lucene_field] query terms ...");
@@ -59,15 +63,13 @@ public class LuceneSearch {
     System.exit(0);
   }
 
-  public static void main( String[] args ){
+  public static void main (String[] args) {
 
-    if (args.length == 0) {usage();}
+    if (args.length == 0) usage();
 
     IndexSearcher searcher = null;
     String luceneIndex = "index";
     String luceneField = "contents";
-    Hits hits = null;
-    Query query = null;
     int argc = 0, startIndex=0, maxPage=10, thisPage=0;
     boolean error = false;
 
@@ -81,29 +83,31 @@ public class LuceneSearch {
       argc += 2;
     }
     String queryString = "";
-    for( int i=argc; i<args.length; i++ ){
+    for (int i = argc; i < args.length; i++) {
       queryString += args[i] + " ";
     }
 
-    /* try to open index ... note that this takes longer than searching for
+    /* try to open index ... note that this takes longer than searching in
        large indexes, so a more scalable solution is to have the index open
        in a running webapp, rather than opening it each time in a standalone */
     try {
-      searcher = new IndexSearcher(luceneIndex);
+      searcher = new IndexSearcher(FSDirectory.open(new File(luceneIndex)));
     } catch (Exception e) {
-      System.err.println("Error parsing query ...");
+      System.err.println("Error opening index at: '" + luceneIndex + "'");
       e.printStackTrace();
       error = true;
     }
 
     /* some of the rest of this code is instructed by Lucene's
      * results.jsp in the web demo */
-    Analyzer analyzer = new StopAnalyzer();
-    QueryParser queryParser = new QueryParser(luceneField, analyzer);
+    StandardAnalyzer analyzer = new StandardAnalyzer(Version.LUCENE_CURRENT);
+    Query query = null;
+    TopDocs hits = null;
     try {
-      query = queryParser.parse(queryString);
+      QueryParser qp = new QueryParser(Version.LUCENE_CURRENT, luceneField, analyzer);
+      query = qp.parse(queryString);
     } catch (ParseException e) {
-      System.err.println("Error parsing query ...");
+      System.err.println("Error when parsing query ...");
       e.printStackTrace();
       error = true;
     }
@@ -111,29 +115,29 @@ public class LuceneSearch {
     if (error == false && searcher != null) {
       thisPage = maxPage;   // default last element to maxPage
       try{
-        hits = searcher.search(query);    // run the query
+        hits = searcher.search(query, MAX_RESULTS);    // run the query
       } catch (Exception e) {
         System.err.println("Error when searching ...");
         e.printStackTrace();
         error = true;
       }
 
-      if (hits.length() == 0) {       // if we got no results tell the user
+      if (hits.totalHits == 0) {       // if we got no results tell the user
         System.out.println("<p> I'm sorry, there were no Lucene results. </p>");
         error = true;
       }
     }
 
-    if ((startIndex + maxPage) > hits.length()) {
-      thisPage = hits.length() - startIndex;   // set the max index to maxPage or last
-    }                                            // actual search result whichever is less
+    if ((startIndex + maxPage) > hits.totalHits) {
+      thisPage = hits.totalHits - startIndex;   // set the max index to maxPage or last
+    }                                           // actual search result whichever is less
 
     for (int i = startIndex; i < (thisPage + startIndex); i++) {
       try {
-        float score = hits.score(i);
-        Document doc = hits.doc(i);                 // get the next document
-        String title = doc.get("title");            // get its title
-        String url = doc.get("url");                // get its url field
+        float score = hits.scoreDocs[i].score;
+        Document doc = searcher.doc(hits.scoreDocs[i].doc);  // get the next document
+        String title = doc.get("title");                     // get its title
+        String url = doc.get("url");                         // get its url field
         String filename = doc.get("path");
         // For bilingual docs, we index "filename" not "path",
         // since there are two system paths, one for each

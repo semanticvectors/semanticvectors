@@ -1,11 +1,16 @@
 
 package pitt.search.lucene;
-import org.apache.lucene.analysis.standard.StandardAnalyzer;
-import org.apache.lucene.index.IndexWriter;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Date;
+
+import org.apache.lucene.analysis.standard.StandardAnalyzer;
+import org.apache.lucene.index.IndexWriter;
+import org.apache.lucene.index.IndexWriter.MaxFieldLength;
+import org.apache.lucene.store.FSDirectory;
+import org.apache.lucene.util.Version;
 
 /** Index all text files under a directory. This class makes minor
  * modifications to <code>org.apache.lucene.demos.IndexFiles</code>
@@ -32,16 +37,19 @@ public class IndexFilePositions {
       System.exit(1);
     }
     try {
-      //  Create StandardAnalyzer with the default StandardAnalyzer stopword list.
-      IndexWriter writer = new IndexWriter(INDEX_DIR, new StandardAnalyzer(),true);
+      IndexWriter writer = new IndexWriter(FSDirectory.open(INDEX_DIR),
+                                           new StandardAnalyzer(Version.LUCENE_30),
+                                           true, MaxFieldLength.UNLIMITED);
 
       if (args.length ==2) {
         // Use a stop-list passed as a parameter.
         String stopfile = args[1];
         try {
           File stoplist = new File(stopfile);
-          writer = new IndexWriter(INDEX_DIR, new StandardAnalyzer(stoplist), true);
-          System.out.println("Using stoplist: "+stopfile);
+          writer = new IndexWriter(FSDirectory.open(INDEX_DIR),
+                                   new StandardAnalyzer(Version.LUCENE_30, stoplist),
+                                   true, MaxFieldLength.UNLIMITED);
+          System.out.println("Using stoplist: " + stopfile);
         } catch (IOException e){
           e.printStackTrace();
         }
