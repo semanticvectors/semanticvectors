@@ -187,7 +187,6 @@ public class TermTermVectorsFromLucene implements VectorStore {
      * "is" twice.
      */
     int numdocs = this.indexReader.numDocs();
-
     for (int dc = 0; dc < numdocs; ++dc) {
       /* output progress counter */
       if ((dc % 10000 == 0) || (dc < 10000 && dc % 1000 == 0)) {
@@ -207,8 +206,10 @@ public class TermTermVectorsFromLucene implements VectorStore {
         int numwords = freqs.length;
         int numpositions = 0;
         for (int i = 0; i < numwords; ++i) {
-          numpositions += freqs[i];
+          numpositions += freqs[i] + 10;
         }
+
+	// System.err.println("numpositions set to: " + numpositions);
 
         // Create local random index and term vectors for relevant terms.
         if (retraining)
@@ -229,12 +230,12 @@ public class TermTermVectorsFromLucene implements VectorStore {
             // Set position of index vector to local
             // (document-specific) index of term in this position.
 
-            // TODO(This contains printf debugging code - fix and get rid of this.
-            System.err.print("Here with pc= " + pc + " out of " + posns.length);
+            // TODO(widdows): This contains printf debugging code - fix and get rid of this.
+            //System.err.print("Here with pc = " + pc + " out of " + posns.length);
             int position = posns[pc];
-            System.err.print(" ... OK so far ...");
+            //System.err.print(" ... OK so far ... looking for item in position:" + position);
             positions[position] = tcn;
-            System.err.println(" added.");
+            //System.err.println(" added.");
           }
 
           // Only terms that have passed the term filter are included in the VectorStores.
