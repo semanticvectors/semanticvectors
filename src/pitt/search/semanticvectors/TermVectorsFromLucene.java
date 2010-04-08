@@ -108,18 +108,7 @@ public class TermVectorsFromLucene implements VectorStore {
     this.fieldsToIndex = fieldsToIndex;
     this.seedLength = seedLength;
 
-    /* This small preprocessing step makes sure that the Lucene index
-     * is optimized to use contiguous integers as identifiers.
-     * Otherwise exceptions can occur if document id's are greater
-     * than indexReader.numDocs().
-     */
-    IndexWriter compressor = new IndexWriter(
-        FSDirectory.open(new File(indexDir)),
-        new StandardAnalyzer(Version.LUCENE_30),
-        false,
-        MaxFieldLength.UNLIMITED);
-    compressor.optimize();
-    compressor.close();
+    LuceneUtils.CompressIndex(indexDir);
 
     // Create LuceneUtils Class to filter terms.
     lUtils = new LuceneUtils(indexDir);
@@ -220,18 +209,7 @@ public class TermVectorsFromLucene implements VectorStore {
     this.fieldsToIndex = fieldsToIndex;
     this.seedLength = seedLength;
 
-    /* This small preprocessing step makes sure that the Lucene index
-     * is optimized to use contiguous integers as identifiers.
-     * Otherwise exceptions can occur if document id's are greater
-     * than indexReader.numDocs().
-     */
-    IndexWriter compressor = new IndexWriter(
-        FSDirectory.open(new File(indexDir)),
-        new StandardAnalyzer(Version.LUCENE_30),
-        false,
-        MaxFieldLength.UNLIMITED);
-    compressor.optimize();
-    compressor.close();
+    LuceneUtils.CompressIndex(indexDir);
 
     // Create LuceneUtils Class to filter terms.
     lUtils = new LuceneUtils(indexDir);
