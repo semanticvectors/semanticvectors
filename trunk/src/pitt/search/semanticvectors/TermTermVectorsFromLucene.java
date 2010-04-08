@@ -45,13 +45,11 @@ import java.lang.RuntimeException;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
-import org.apache.lucene.index.IndexWriter.MaxFieldLength;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.index.TermDocs;
 import org.apache.lucene.index.TermEnum;
 import org.apache.lucene.index.TermPositionVector;
 import org.apache.lucene.store.FSDirectory;
-import org.apache.lucene.util.Version;
 
 /**
  * Implementation of vector store that creates term by term
@@ -111,18 +109,7 @@ public class TermTermVectorsFromLucene implements VectorStore {
     this.fieldsToIndex = fieldsToIndex;
     this.seedLength = seedLength;
 
-    /* This small preprocessing step makes sure that the Lucene index
-     * is optimized to use contiguous integers as identifiers.
-     * Otherwise exceptions can occur if document id's are greater
-     * than indexReader.numDocs().
-     */
-    IndexWriter compressor = new IndexWriter(
-        FSDirectory.open(new File(indexDir)),
-        new StandardAnalyzer(Version.LUCENE_30),
-        false,
-        MaxFieldLength.UNLIMITED);
-    compressor.optimize();
-    compressor.close();
+    LuceneUtils.CompressIndex(indexDir);
 
     // Create an index vector for each term.
     this.indexReader = IndexReader.open(FSDirectory.open(new File(indexDir)));
@@ -177,7 +164,6 @@ public class TermTermVectorsFromLucene implements VectorStore {
         ((VectorStoreSparseRAM) this.indexVectors).putVector(term.text(), indexVector);
     }
     System.err.println("There are " + tc + " terms (and " + indexReader.numDocs() + " docs)");
-
 
     /* Iterate through documents. For each term, add term index vector
      * for any term occurring within a window of size windowSize such

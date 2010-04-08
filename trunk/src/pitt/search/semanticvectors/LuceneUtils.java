@@ -37,13 +37,19 @@ package pitt.search.semanticvectors;
 
 import java.io.File;
 import java.io.IOException;
+
 import java.lang.Math;
 import java.util.Hashtable;
 
+import org.apache.lucene.analysis.standard.StandardAnalyzer;
+import org.apache.lucene.index.CorruptIndexException;
 import org.apache.lucene.index.IndexReader;
+import org.apache.lucene.index.IndexWriter;
+import org.apache.lucene.index.IndexWriter.MaxFieldLength;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.index.TermDocs;
 import org.apache.lucene.store.FSDirectory;
+import org.apache.lucene.util.Version;
 
 /**
  * Class to support reading extra information from Lucene indexes,
@@ -199,7 +205,26 @@ public class LuceneUtils{
   }
 
   /**
+   * Static method for compressing an index.
    *
+   * This small preprocessing step makes sure that the Lucene index
+   * is optimized to use contiguous integers as identifiers.
+   * Otherwise exceptions can occur if document id's are greater
+   * than indexReader.numDocs().
    */
-
+  static void CompressIndex(String indexDir) 
+    throws IOException, CorruptIndexException {
+    try {
+      IndexWriter compressor = new IndexWriter(FSDirectory.open(new File(indexDir)),
+					       new StandardAnalyzer(Version.LUCENE_30),
+					       false,
+					       MaxFieldLength.UNLIMITED);
+      compressor.optimize();
+      compressor.close();
+    } catch (CorruptIndexException e) {
+      e.printStackTrace();
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+  }
 }
