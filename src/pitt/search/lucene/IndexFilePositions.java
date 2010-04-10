@@ -5,7 +5,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Date;
-
+import java.util.TreeSet;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriter.MaxFieldLength;
@@ -38,7 +38,7 @@ public class IndexFilePositions {
     }
     try {
       IndexWriter writer = new IndexWriter(FSDirectory.open(INDEX_DIR),
-                                           new StandardAnalyzer(Version.LUCENE_30),
+                                           new StandardAnalyzer(Version.LUCENE_30, new TreeSet()),
                                            true, MaxFieldLength.UNLIMITED);
 
       if (args.length ==2) {
