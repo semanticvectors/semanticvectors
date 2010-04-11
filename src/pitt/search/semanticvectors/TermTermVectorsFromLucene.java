@@ -192,7 +192,7 @@ public class TermTermVectorsFromLucene implements VectorStore {
         int numwords = freqs.length;
         int numpositions = 0;
         for (int i = 0; i < numwords; ++i) {
-          numpositions += freqs[i] + 10;
+          numpositions += freqs[i];
         }
 
 	// System.err.println("numpositions set to: " + numpositions);

@@ -109,10 +109,8 @@ public class TermVectorsFromLucene implements VectorStore {
     this.seedLength = seedLength;
 
     LuceneUtils.CompressIndex(indexDir);
-
     // Create LuceneUtils Class to filter terms.
     lUtils = new LuceneUtils(indexDir);
-
     indexReader = IndexReader.open(FSDirectory.open(new File(indexDir)));
 
     // Check that basicDocVectors is the right size.
@@ -135,7 +133,6 @@ public class TermVectorsFromLucene implements VectorStore {
     }
 
     termVectors = new Hashtable<String, ObjectVector>();
-
     // Iterate through an enumeration of terms and create termVector table.
     System.err.println("Creating term vectors ...");
     TermEnum terms = this.indexReader.terms();
@@ -155,7 +152,6 @@ public class TermVectorsFromLucene implements VectorStore {
       tc++;
 
       Term term = terms.term();
-
       // Skip terms that don't pass the filter.
       if (!lUtils.termFilter(terms.term(), fieldsToIndex, nonAlphabet, minFreq)) {
         continue;
@@ -196,7 +192,6 @@ public class TermVectorsFromLucene implements VectorStore {
    * @param minFreq The minimum term frequency for a term to be indexed.
    * @param fieldsToIndex		the fields to be indexed (most commonly "contents")
    */
-
   public TermVectorsFromLucene(String indexDir,
 			       int seedLength,
 			       int minFreq,
@@ -225,9 +220,7 @@ public class TermVectorsFromLucene implements VectorStore {
       int tc = 0;
       while(terms.next()){
         Term term = terms.term();
-
         // Skip terms that don't pass the filter.
-
         if (!lUtils.termFilter(terms.term(), fieldsToIndex, nonAlphabet, minFreq))  {
           continue;
         }
@@ -237,7 +230,6 @@ public class TermVectorsFromLucene implements VectorStore {
         float[] indexVector2 = VectorUtils.getNormalizedVector(
             VectorUtils.sparseVectorToFloatVector(indexVector, Flags.dimension));
         // Place each term vector in the vector store.
-
         this.termVectors.put(term.text(),
                              new ObjectVector(term.text(),
                                               VectorUtils.sparseVectorToFloatVector(
@@ -259,6 +251,7 @@ public class TermVectorsFromLucene implements VectorStore {
     }
   }
 
+  // Implementation of basic VectorStore methods.
   public float[] getVector(Object term) {
     return termVectors.get(term).getVector();
   }
@@ -270,5 +263,4 @@ public class TermVectorsFromLucene implements VectorStore {
   public int getNumVectors() {
     return termVectors.size();
   }
-
 }
