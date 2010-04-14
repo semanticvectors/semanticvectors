@@ -1,7 +1,7 @@
 
 /**
    Copyright (c) 2007, University of Pittsburgh
-	 Copyright (c) 2008 and ongoing, the SemanticVectors authors
+   Copyright (c) 2008 and ongoing, the SemanticVectors authors
 
    All rights reserved.
 
@@ -60,9 +60,9 @@ public class CompoundVectorBuilder {
     this.lUtils = lUtils;
   }
 
-	/**
-	 * Constructor that defaults LuceneUtils to null.
-	 */
+  /**
+   * Constructor that defaults LuceneUtils to null.
+   */
   public CompoundVectorBuilder (VectorStore vecReader) {
     this.vecReader = vecReader;
     this.lUtils = null;
@@ -114,14 +114,12 @@ public class CompoundVectorBuilder {
         tmpVec = vecReader.getVector(queryTerms[j]);
         int permutation = j - queryTermPosition;
 
-        // try to get term weight; assume field is "contents"
         if (lUtils != null) {
-          weight = lUtils.getGlobalTermFreq(new Term("contents", queryTerms[j]));
-          weight = 1/weight;
+          weight = lUtils.getGlobalTermWeightFromString(queryTerms[j]);
           System.err.println("Term " + queryTerms[j] + " weight " + weight);
         } else {
-					weight = 1;
-				}
+	  weight = 1;
+	}
 
         if (tmpVec != null) {
           tmpVec = VectorUtils.permuteVector(tmpVec.clone(), permutation);
@@ -203,21 +201,20 @@ public class CompoundVectorBuilder {
     for (int j = 0; j < queryTerms.length; ++j) {
       tmpVec = vecReader.getVector(queryTerms[j]);
 
-      // try to get term weight; assume field is "contents"
       if (lUtils != null) {
-        weight = lUtils.getGlobalTermWeight(new Term("contents", queryTerms[j]));
+        weight = lUtils.getGlobalTermWeightFromString(queryTerms[j]);
       } else {
-				weight = 1;
-			}
+	weight = 1;
+      }
 
       if (tmpVec != null) {
         for (int i = 0; i < Flags.dimension; ++i) {
           queryVec[i] += tmpVec[i] * weight;
         }
       } else {
-				System.err.println("No vector for " + queryTerms[j]);
-			}
-		}
+	System.err.println("No vector for " + queryTerms[j]);
+      }
+    }
 
     queryVec = VectorUtils.getNormalizedVector(queryVec);
     return queryVec;
@@ -249,10 +246,8 @@ public class CompoundVectorBuilder {
         if (matcher.find()) {
           float[] tmpVec = testElement.getVector();
 
-          // Try to get term weight; assume field is "contents".
           if (lUtils != null) {
-            weight = lUtils.getGlobalTermWeight(
-                new Term("contents", testElement.getObject().toString()));
+            weight = lUtils.getGlobalTermWeightFromString(testElement.getObject().toString());
           }
           else { weight = 1; }
 

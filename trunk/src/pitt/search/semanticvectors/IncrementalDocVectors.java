@@ -97,9 +97,7 @@ public class IncrementalDocVectors {
         System.err.print(dc + " ... ");
       }
 
-
       String docID = Integer.toString(dc);
-
       // Use filename and path rather than Lucene index number for document vector.
       if (this.indexReader.document(dc).getField("path") != null) {
         docID = this.indexReader.document(dc).getField("path").stringValue();
@@ -127,8 +125,7 @@ public class IncrementalDocVectors {
             float localweight = freq;
             float globalweight = 1;
 
-            if (Flags.termweight.equals("logentropy"))
-            {
+            if (Flags.termweight.equals("logentropy")) {
               //local weighting: 1+ log (local frequency)
               localweight = new Double(1 + Math.log(localweight)).floatValue();
               Term term = new Term(fieldName,term_string);
@@ -137,7 +134,7 @@ public class IncrementalDocVectors {
 
             // Add contribution from this term, excluding terms that
             // are not represented in termVectorData.
-            try{
+            try {
               float[] termVector = termVectorData.getVector(term_string);
               if (termVector != null && termVector.length > 0) {
                 for (int j = 0; j < Flags.dimension; ++j) {
@@ -168,18 +165,12 @@ public class IncrementalDocVectors {
     fsDirectory.close();
   }
 
-
-
-  public static void main(String[] args) throws Exception
-  {//vector store (terms)
-    //index
-    String[] fieldsToIndex = {"contents"};
+  public static void main(String[] args) throws Exception {
     String vectorFile = args[0].replaceAll("\\.bin","")+"_docvectors.bin";
     VectorStoreRAM vsr = new VectorStoreRAM();
     vsr.InitFromFile(args[0]);
 
     new IncrementalDocVectors(vsr, args[1],
-                              fieldsToIndex, vectorFile);
+                              Flags.contentsfields, vectorFile);
   }
-
 }
