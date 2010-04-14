@@ -75,12 +75,12 @@ public class CompareTerms{
    */
   public static void usage(){
     String usageMessage = "CompareTerms class in package pitt.search.semanticvectors"
-			+ "\nUsage: java pitt.search.semanticvectors.CompareTerms"
-			+ "\n                                        \"<QUERYTERMS1>\" \"<QUERYTERMS2>\""
-			+ "\n<QUERYTERMS1,2> should be lists of words, separated by spaces."
-			+ "\nThe quotes are mandatory unless you are comparing two single words."
-			+ "\nIf the term NOT is used in one of the lists, subsequent terms in "
-			+ "\nthat list will be negated (as in Search class).";
+      + "\nUsage: java pitt.search.semanticvectors.CompareTerms"
+      + "\n                                        \"<QUERYTERMS1>\" \"<QUERYTERMS2>\""
+      + "\n<QUERYTERMS1,2> should be lists of words, separated by spaces."
+      + "\nThe quotes are mandatory unless you are comparing two single words."
+      + "\nIf the term NOT is used in one of the lists, subsequent terms in "
+      + "\nthat list will be negated (as in Search class).";
     System.out.println(usageMessage);
   }
 
@@ -89,7 +89,7 @@ public class CompareTerms{
    * @param args See usage();
    */
   public static void main (String[] args) throws IllegalArgumentException {
-		args = Flags.parseCommandLineFlags(args);
+    args = Flags.parseCommandLineFlags(args);
 
     LuceneUtils luceneUtils = null;
 		
@@ -107,8 +107,8 @@ public class CompareTerms{
 
       if (Flags.luceneindexpath != null) {
         try {
-					luceneUtils = new LuceneUtils(Flags.luceneindexpath);
-				} catch (IOException e) {
+	  luceneUtils = new LuceneUtils(Flags.luceneindexpath);
+	} catch (IOException e) {
           System.err.println("Couldn't open Lucene index at " + Flags.luceneindexpath);
         }
       }
