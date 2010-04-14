@@ -136,12 +136,20 @@ public class LuceneUtils{
   }
 
   /**
-   * This is a hacky wrapper to get an approximate term weight for a string.
+   * Gets a term weight for a string, adding frequency over occurences
+   * in all contents fields.
+   * Currently returns some power of inverse document frequency - you can experiment.
    */
   public float getGlobalTermWeightFromString(String termString) {
-    Term term = new Term("contents", termString);
-    float weight = (float) getGlobalTermWeight(term);
-    return weight;
+    try {
+      int freq = 0;
+      for (String field: Flags.contentsfields)
+	freq += indexReader.docFreq(new Term(field, termString));
+      return (float) Math.pow(freq, -0.05);
+    } catch (IOException e) {
+      System.err.println("Couldn't get term weight for term '" + termString + "'");
+      return 1;
+    }
   }
 
   /**
@@ -153,9 +161,8 @@ public class LuceneUtils{
   public float getGlobalTermWeight(Term term) {
     try {
       return (float) Math.pow(indexReader.docFreq(term), -0.05);
-    }
-    catch (IOException e) {
-      System.err.println("Couldn't get term weight for term " + term.text());
+    } catch (IOException e) {
+      System.err.println("Couldn't get term weight for term '" + term.text() + "'");
       return 1;
     }
   }
