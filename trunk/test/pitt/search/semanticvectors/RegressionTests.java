@@ -93,20 +93,20 @@ public class RegressionTests {
     logger.info("Built positional index.");
 
     Scanner results = TestUtils.getCommandOutput(
-        "java pitt.search.semanticvectors.Search -queryvectorfile termtermvectors.bin martha");
+        "java pitt.search.semanticvectors.Search -queryvectorfile termtermvectors.bin simon");
     int i = 0;
-    boolean foundMary = false;
+    boolean foundPeter = false;
     while (i < 5) {
       String nextTerm = TestUtils.termFromResult(results.next());
       System.err.println("\tResult term is: '" + nextTerm);
-      if (nextTerm.equals("mary")) {
-        foundMary = true;
-        System.err.println("Found mary in line: " + i);
+      if (nextTerm.equals("peter")) {
+        foundPeter = true;
+        System.err.println("Found peter in line: " + i);
         break;
       }
       ++i;
     }
-    assertTrue(foundMary);
+    assertTrue(foundPeter);
   }
 
   @Test
