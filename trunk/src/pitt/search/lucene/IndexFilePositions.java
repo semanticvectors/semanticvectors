@@ -25,8 +25,7 @@ public class IndexFilePositions {
 
   /** Index all text files under a directory. */
   public static void main(String[] args) {
-    String usage = "java pitt.search.lucene.IndexFilePositions <root_directory> " +
-        "[optional stoplist file]";
+    String usage = "java pitt.search.lucene.IndexFilePositions <root_directory> ";
     if (args.length == 0) {
       System.err.println("Usage: " + usage);
       System.exit(1);
@@ -37,24 +36,13 @@ public class IndexFilePositions {
       System.exit(1);
     }
     try {
+    	
+    	/** create IndexWriter using StandardAnalyzer without any stopword list**/
       IndexWriter writer = new IndexWriter(FSDirectory.open(INDEX_DIR),
                                            new StandardAnalyzer(Version.LUCENE_30, new TreeSet()),
                                            true, MaxFieldLength.UNLIMITED);
 
-      if (args.length ==2) {
-        // Use a stop-list passed as a parameter.
-        String stopfile = args[1];
-        try {
-          File stoplist = new File(stopfile);
-          writer = new IndexWriter(FSDirectory.open(INDEX_DIR),
-                                   new StandardAnalyzer(Version.LUCENE_30, stoplist),
-                                   true, MaxFieldLength.UNLIMITED);
-          System.out.println("Using stoplist: " + stopfile);
-        } catch (IOException e){
-          e.printStackTrace();
-        }
-      }
-
+   
       final File docDir = new File(args[0]);
       if (!docDir.exists() || !docDir.canRead()) {
         System.err.println("Document directory '" + docDir.getAbsolutePath() +
