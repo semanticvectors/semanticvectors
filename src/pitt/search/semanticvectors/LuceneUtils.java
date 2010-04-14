@@ -35,11 +35,14 @@
 
 package pitt.search.semanticvectors;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 
 import java.lang.Math;
 import java.util.Hashtable;
+import java.util.TreeSet;
 
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.index.CorruptIndexException;
@@ -51,6 +54,7 @@ import org.apache.lucene.index.TermDocs;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.util.Version;
 
+
 /**
  * Class to support reading extra information from Lucene indexes,
  * including term frequency, doc frequency.
@@ -59,13 +63,52 @@ import org.apache.lucene.util.Version;
 public class LuceneUtils{
   private IndexReader indexReader;
   private Hashtable<Term, Float> termEntropy = new Hashtable<Term, Float>();
-
+  private TreeSet stopwords = null;
+  
   /**
    * @param path - path to lucene index
    */
   public LuceneUtils (String path) throws IOException {
     this.indexReader = IndexReader.open(FSDirectory.open(new File(path)));
+    if (Flags.stoplistfile.length() > 0)
+    	loadStopWords(Flags.stoplistfile);
   }
+  
+  
+  /**
+   * Loads the stopword file into memory 
+   * @param stoppath - path to stopword file
+   * @throws IOException
+   */
+  
+  public void loadStopWords(String stoppath) throws IOException
+  {  System.err.println("Using stopword file: "+stoppath);
+	  stopwords = new TreeSet<String>();
+  	try{
+  BufferedReader readIn = new BufferedReader(new FileReader(stoppath));
+  String in = readIn.readLine();
+  while (in != null)
+  {stopwords.add(in);
+  in = readIn.readLine();
+  }	
+  }
+  catch (IOException e) 
+  {throw new IOException("Couldn't open file "+stoppath);}
+  }
+
+  /**
+   * Test if term is in stoplist (returns false if no stoplist)
+   * @param x
+   * @return
+   */
+  
+
+  public boolean stoplistContains(String x)
+  {	
+	  if (stopwords == null) return false;
+  	return stopwords.contains(x);}
+  	
+  
 
   /**
    * Gets the global term frequency of a term,
@@ -179,6 +222,11 @@ public class LuceneUtils{
         isDesiredField = true;
       }
     }
+    
+    // Stoplist (if active) 
+    if (stoplistContains(term.text()))
+    	return false;
+    
     if (!isDesiredField) {
       return false;
     }

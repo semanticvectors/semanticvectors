@@ -92,6 +92,7 @@ public class Flags {
   public static final String[] indexfileformatValues = {"lucene", "text"};
 
   public static String queryvectorfile = "termvectors.bin";
+  public static String stoplistfile = "";
   public static String searchvectorfile = "";
   public static String luceneindexpath = "";
   public static String initialtermvectors = "";
