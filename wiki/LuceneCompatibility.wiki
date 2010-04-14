@@ -2,7 +2,6 @@
 
 SemanticVectors depends on Apache Lucene, but not with all versions of Apache Lucene.
 
-The current SV release, version 1.26, works with Lucene versions greater than 2.2.0 and higher, but not with the recent Lucene 3.0.
+SV version 1.30 and higher works with Lucene 3.0 and higher, but not with Lucene 2.X.
 
-We are currently looking into this: it does not seem possible to write code that works with Lucene I/O classes for versions 2.`*` and 3.0. Probably we will ship a new version of SV soon that requires Lucene 3.0, while apologizing for the inconvenience to existing users.
-
+SV version 1.26 and earlier works with Lucene versions greater than 2.2.0 and higher, but not with Lucene 3.0.
