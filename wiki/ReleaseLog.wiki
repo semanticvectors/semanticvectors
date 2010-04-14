@@ -3,7 +3,7 @@
 
 Even-numbered versions are releases. Odd-numbered versions are in development. It follows that the most recent code and the `build.xml` file in the SVN repository is always odd-numbered.
 
-=== Version 1.28 ===
+=== Version 1.30 ===
 
 Updated to Lucene 3.0 and 3.0.1. No attempt to maintain backwards compatibility with earlier Lucene versions. (Fixes issue 18.)
 
