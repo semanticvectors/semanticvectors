@@ -91,7 +91,7 @@ public class IncrementalDocVectors {
     outputStream.writeInt(Flags.dimension);
 
     // Iterate through documents.
-    for (int dc=0; dc < numdocs; dc++) {
+    for (int dc = 0; dc < numdocs; dc++) {
       /* output progress counter */
       if (( dc % 10000 == 0 ) || ( dc < 10000 && dc % 1000 == 0 )) {
         System.err.print(dc + " ... ");
@@ -99,13 +99,12 @@ public class IncrementalDocVectors {
 
       String docID = Integer.toString(dc);
       // Use filename and path rather than Lucene index number for document vector.
-      if (this.indexReader.document(dc).getField("path") != null) {
-        docID = this.indexReader.document(dc).getField("path").stringValue();
-      } else {
-        // For bilingual docs, we index "filename" not "path",
-        // since there are two system paths, one for each
-        // language. So if there was no "path", get the "filename".
-        docID = this.indexReader.document(dc).getField("filename").stringValue();
+      if (this.indexReader.document(dc).getField(Flags.docidfield) != null) {
+	docID = this.indexReader.document(dc).getField(Flags.docidfield).stringValue();
+	if (docID.length() == 0) {
+	  System.err.println("Empty document name!!! This will cause problems ...");
+	  System.err.println("Please set -docidfield to a nonempty field in your Lucene index.");
+	}
       }
 
       float[] docVector = new float[Flags.dimension];
@@ -114,7 +113,7 @@ public class IncrementalDocVectors {
         TermFreqVector vex =
             indexReader.getTermFreqVector(dc, fieldName);
 
-        if (vex !=null) {
+        if (vex != null) {
           // Get terms in document and term frequencies.
           String[] terms = vex.getTerms();
           int[] freqs = vex.getTermFrequencies();
