@@ -3,6 +3,16 @@
 
 Even-numbered versions are releases. Odd-numbered versions are in development. It follows that the most recent code and the `build.xml` file in the SVN repository is always odd-numbered.
 
+=== Version 1.28 ===
+
+Updated to Lucene 3.0 and 3.0.1. No attempt to maintain backwards compatibility with earlier Lucene versions. (Fixes issue 18.)
+
+Added thread safety for reading. (Fixes issue 21.)
+
+Better support for command line flags for setting Lucene fields. (Fixes issue 22.)
+
+Added LSA / SVD support, though not fully integrated into standard options yet.
+
 === Version 1.26 ===
 
 Small fix necessary to fix bug 19 (http://code.google.com/p/semanticvectors/issues/detail?id), another Lucene 2.9 compatibility issue.
