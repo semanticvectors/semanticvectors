@@ -136,6 +136,7 @@ public class BuildPositionalIndex {
     System.err.println("Seedlength = " + Flags.seedlength);
     System.err.println("Vector length = " + Flags.dimension);
     System.err.println("Minimum frequency = " + Flags.minfrequency);
+    System.err.println("Maximum frequency = " + Flags.maxfrequency);
     System.err.println("Number non-alphabet characters = " + Flags.maxnonalphabetchars);
     System.err.println("Window radius = " + Flags.windowradius);
 

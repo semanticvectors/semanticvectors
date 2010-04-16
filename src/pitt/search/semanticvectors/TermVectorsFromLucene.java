@@ -153,7 +153,7 @@ public class TermVectorsFromLucene implements VectorStore {
 
       Term term = terms.term();
       // Skip terms that don't pass the filter.
-      if (!lUtils.termFilter(terms.term(), fieldsToIndex, nonAlphabet, minFreq)) {
+      if (!lUtils.termFilter(terms.term(), fieldsToIndex)) {
         continue;
       }
 
@@ -221,7 +221,7 @@ public class TermVectorsFromLucene implements VectorStore {
       while(terms.next()){
         Term term = terms.term();
         // Skip terms that don't pass the filter.
-        if (!lUtils.termFilter(terms.term(), fieldsToIndex, nonAlphabet, minFreq))  {
+        if (!lUtils.termFilter(terms.term(), fieldsToIndex))  {
           continue;
         }
         tc++;

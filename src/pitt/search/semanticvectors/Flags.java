@@ -65,6 +65,7 @@ public class Flags {
   "Number of +1 and number of -1 entries in a sparse random vector";
 
   public static int minfrequency;
+  public static int maxfrequency = Integer.MAX_VALUE;
   public static int maxnonalphabetchars;
 
   public static int numsearchresults = 20;

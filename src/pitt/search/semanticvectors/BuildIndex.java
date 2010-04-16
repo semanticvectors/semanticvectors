@@ -115,6 +115,7 @@ public class BuildIndex {
     System.err.println("Seedlength = " + Flags.seedlength);
     System.err.println("Dimension = " + Flags.dimension);
     System.err.println("Minimum frequency = " + Flags.minfrequency);
+    System.err.println("Maximum frequency = " + Flags.maxfrequency);
     System.err.println("Number non-alphabet characters = " + Flags.maxnonalphabetchars);
     String termFile = "termvectors.bin";
     String docFile = "docvectors.bin";
