@@ -82,7 +82,7 @@ public class LSA {
     TermEnum terms = indexReader.terms();
     int tc = 0;
     while(terms.next()){
-      if (lUtils.termFilter(terms.term(),desiredFields,nonalphabet,minfreq))
+      if (lUtils.termFilter(terms.term(),desiredFields))
         tc++;
     }
 
@@ -96,7 +96,7 @@ public class LSA {
 
     while(terms.next()){
       org.apache.lucene.index.Term term = terms.term();
-      if (lUtils.termFilter(term,desiredFields,nonalphabet,minfreq))
+      if (lUtils.termFilter(term,desiredFields))
       {	theTerms[tc] = term.text();
 
         /**
@@ -142,7 +142,7 @@ public class LSA {
     while(terms.next()){
 
       org.apache.lucene.index.Term term = terms.term();
-      if (lUtils.termFilter(term,desiredFields,nonalphabet,minfreq))
+      if (lUtils.termFilter(term,desiredFields))
       {
         TermDocs td = indexReader.termDocs(term);
         S.pointr[tc] = nn;  // index of first non-zero entry (document) of each column (term)
@@ -202,6 +202,7 @@ public class LSA {
     System.err.println("Seedlength = " + Flags.seedlength);
     System.err.println("Dimension = " + Flags.dimension);
     System.err.println("Minimum frequency = " + Flags.minfrequency);
+    System.err.println("Maximum frequency = " + Flags.maxfrequency);
     System.err.println("Number non-alphabet characters = " + Flags.maxnonalphabetchars);
 
     le = Flags.termweight.equals("logentropy");

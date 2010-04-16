@@ -218,10 +218,14 @@ public class LuceneUtils{
    * @param minFreq - min global frequency allowed
    * Thanks to Vidya Vasuki for refactoring and bug repair
    */
-  protected boolean termFilter (Term term, String[] desiredFields,
-                                int nonAlphabet, int minFreq)
+  protected boolean termFilter (Term term, String[] desiredFields)
       throws IOException {
 
+	  int nonAlphabet = Flags.maxnonalphabetchars;
+	  int minFreq = Flags.minfrequency;
+	  int maxFreq = Flags.maxfrequency;
+	  
+	  
     // Field filter.
     boolean isDesiredField = false;
     for (int i = 0; i < desiredFields.length; ++i) {
@@ -251,7 +255,8 @@ public class LuceneUtils{
     }
 
     // Freqency filter.
-    if (getGlobalTermFreq(term) < minFreq)  {
+    int termfreq = getGlobalTermFreq(term);
+    if (termfreq < minFreq | termfreq > maxFreq)  {
       return false;
     }
 
