@@ -130,6 +130,7 @@ public class BuildPositionalIndex {
     String docFile = "docvectors.bin";
 
     if (Flags.positionalmethod.equals("permutation")) termFile = "permtermvectors.bin";
+    else if (Flags.positionalmethod.equals("permutation_plus_basic")) termFile = "permplustermvectors.bin";
     else if (Flags.positionalmethod.equals("directional")) termFile = "drxntermvectors.bin";
 
     System.err.println("Lucene index = " + luceneIndex);

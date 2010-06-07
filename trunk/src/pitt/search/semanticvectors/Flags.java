@@ -110,7 +110,7 @@ public class Flags {
 
   public static String positionalmethod = "basic";
   public static String positionalmethodDescription = "Method used for positional indexing.";
-  public static String positionalmethodValues[] = {"basic", "directional", "permutation"};
+  public static String positionalmethodValues[] = {"basic", "directional", "permutation","permutation_plus_basic"};
 
   public static String vectorlookupsyntax = "exactmatch";
   public static final String vectorlookupsyntaxDescription =
