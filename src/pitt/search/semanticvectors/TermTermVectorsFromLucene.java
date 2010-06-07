@@ -174,15 +174,23 @@ public class TermTermVectorsFromLucene implements VectorStore {
     int numdocs = this.indexReader.numDocs();
     for (int dc = 0; dc < numdocs; ++dc) {
       /* output progress counter */
-      if ((dc % 10000 == 0) || (dc < 10000 && dc % 1000 == 0)) {
+    	 if ((dc % 10000 == 0) || (dc < 10000 && dc % 1000 == 0)) {
         System.err.print(dc + " ... ");
       }
+    
+    	 try {
+    	 
       for (String field: fieldsToIndex) {
 	TermPositionVector vex = (TermPositionVector) indexReader.getTermFreqVector(dc, field);
 	if (vex != null) processTermPositionVector(vex);
       }
+    	 } 		
+    	catch (Exception e)
+    	{
+    		System.err.println("\nFailed to process document "+indexReader.document(dc).get("path")+"\n");
+    	}
     }
-
+    	
     System.err.println("\nCreated " + termVectors.getNumVectors() + " term vectors ...");
     System.err.println("\nNormalizing term vectors");
     Enumeration e = termVectors.getAllVectors();
@@ -194,9 +202,17 @@ public class TermTermVectorsFromLucene implements VectorStore {
     }
 
     // If building a permutation index, these need to be written out to be reused.
-    if (Flags.positionalmethod.equals("permutation") && !retraining) {
+    if ((Flags.positionalmethod.equals("permutation") | (Flags.positionalmethod.equals("permutation_plus_basic") ))&& !retraining) {
       String randFile = "randomvectors.bin";
       System.err.println("\nWriting random vectors to "+randFile);
+      System.err.println("\nNormalizing random vectors");
+      Enumeration f = indexVectors.getAllVectors();
+      while (f.hasMoreElements())	{
+        ObjectVector temp = (ObjectVector) f.nextElement();
+        float[] next = temp.getVector();
+        next = VectorUtils.getNormalizedVector(next);
+        temp.setVector(next);
+      }
       new VectorStoreWriter().WriteVectors(randFile, this.indexVectors);
     }
   }
@@ -214,7 +230,7 @@ public class TermTermVectorsFromLucene implements VectorStore {
      * document. The index of a particular term within this array
      * will be referred to as the 'local index' in comments.
      */
-  private void processTermPositionVector(TermPositionVector vex) {
+  private void processTermPositionVector(TermPositionVector vex) throws java.lang.ArrayIndexOutOfBoundsException {
     int[] freqs = vex.getTermFrequencies();
 
     // Find number of positions in document (across all terms).
@@ -287,8 +303,20 @@ public class TermTermVectorsFromLucene implements VectorStore {
 	short[] localsparseindex = new short[0];
 	if (retraining) localindex = localindexvectors[coterm].clone();
 	else localsparseindex = localsparseindexvectors[coterm].clone();
-
-	if (Flags.positionalmethod.equals("permutation")) {
+	
+	//combine 'content' and 'order' information - first add the unpermuted vector
+	if (Flags.positionalmethod.equals("permutation_plus_basic"))
+	{
+		// docterms[coterm] contains the term in position[w] in this document.
+		if (this.indexVectors.getVector(docterms[coterm]) != null && localtermvectors[focusterm] != null) {
+		  if (retraining)
+		    VectorUtils.addVectors(localtermvectors[focusterm],localindex,1);
+		  else
+		    VectorUtils.addVectors(localtermvectors[focusterm],localsparseindex,1);
+		}
+	}
+	
+	if (Flags.positionalmethod.equals("permutation") | Flags.positionalmethod.equals("permutation_plus_basic")) {
 	  int permutation = w - focusposn;
 	  if (retraining)
 	    localindex = VectorUtils.permuteVector(localindex , permutation);
