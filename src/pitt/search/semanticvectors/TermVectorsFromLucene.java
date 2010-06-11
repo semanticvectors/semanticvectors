@@ -86,6 +86,20 @@ public class TermVectorsFromLucene implements VectorStore {
    */
   public String[] getFieldsToIndex(){ return this.fieldsToIndex; }
 
+
+  // Implementation of basic VectorStore methods.
+  public float[] getVector(Object term) {
+    return termVectors.get(term).getVector();
+  }
+
+  public Enumeration getAllVectors() {
+    return termVectors.elements();
+  }
+
+  public int getNumVectors() {
+    return termVectors.size();
+  }
+
   /**
    * @param indexDir Directory containing Lucene index.
    * @param seedLength Number of +1 or -1 entries in basic
@@ -132,6 +146,11 @@ public class TermVectorsFromLucene implements VectorStore {
       this.basicDocVectors = randomBasicDocVectors;
     }
 
+    createTermVectors();
+  }
+
+  // Training method for term vectors.
+  private void createTermVectors() throws IOException {
     termVectors = new Hashtable<String, ObjectVector>();
     // Iterate through an enumeration of terms and create termVector table.
     System.err.println("Creating term vectors ...");
@@ -227,8 +246,6 @@ public class TermVectorsFromLucene implements VectorStore {
         tc++;
 
         short[] indexVector =  VectorUtils.generateRandomVector(seedLength, random);
-        float[] indexVector2 = VectorUtils.getNormalizedVector(
-            VectorUtils.sparseVectorToFloatVector(indexVector, Flags.dimension));
         // Place each term vector in the vector store.
         this.termVectors.put(term.text(),
                              new ObjectVector(term.text(),
@@ -251,16 +268,4 @@ public class TermVectorsFromLucene implements VectorStore {
     }
   }
 
-  // Implementation of basic VectorStore methods.
-  public float[] getVector(Object term) {
-    return termVectors.get(term).getVector();
-  }
-
-  public Enumeration getAllVectors() {
-    return termVectors.elements();
-  }
-
-  public int getNumVectors() {
-    return termVectors.size();
-  }
 }

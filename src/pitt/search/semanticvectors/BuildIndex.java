@@ -66,7 +66,7 @@ public class BuildIndex {
    * <br> -dimension [number of dimensions]
    * <br> -seedlength [seed length]
    * <br> -minfrequency [minimum term frequency]
-   * <br> -numnonalphabetchars [number non-alphabet characters (-1 for any number)]
+   * <br> -maxnonalphabetchars [number non-alphabet characters (-1 for any number)]
    * <br> -trainingcycles [training cycles]
    * <br> -docindexing [incremental|inmemory] Switch between building doc vectors incrementally"
    * <br>       (requires positional index) or all in memory (default case).
@@ -84,7 +84,7 @@ public class BuildIndex {
         + "\n  -dimension [number of dimensions]"
         + "\n  -seedlength [seed length]"
         + "\n  -minfrequency [minimum term frequency]"
-        + "\n  -numnonalphabetchars [number non-alphabet characters (-1 for any number)]"
+        + "\n  -maxnonalphabetchars [number non-alphabet characters (-1 for any number)]"
         + "\n  -trainingcycles [training cycles]"
         + "\n  -docindexing [incremental|inmemory|none] Switch between building doc vectors incrementally"
         + "\n        (requires positional index), all in memory (default case), or not at all";

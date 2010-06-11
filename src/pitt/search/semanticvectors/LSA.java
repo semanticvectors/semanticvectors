@@ -38,7 +38,7 @@ public class LSA {
    * <br> To change these use the following command line arguments:
    * <br> -dimension [number of dimensions]
    * <br> -minfrequency [minimum term frequency]
-   * <br> -numnonalphabetchars [number non-alphabet characters (-1 for any number)]
+   * <br> -maxnonalphabetchars [number non-alphabet characters (-1 for any number)]
    * </code>
    */
 
@@ -52,7 +52,7 @@ public class LSA {
         + "\nTo change these use the command line arguments "
         + "\n  -dimension [number of dimensions]"
         + "\n  -minfrequency [minimum term frequency]"
-        + "\n  -numnonalphabetchars [number non-alphabet characters (-1 for any number)]";
+        + "\n  -maxnonalphabetchars [number non-alphabet characters (-1 for any number)]";
 
     System.out.println(usageMessage);
   }
