@@ -15,11 +15,11 @@ public class FilePositionDoc  {
 
   public static Document Document(File f)
        throws java.io.FileNotFoundException {
-		Document doc = new Document();
+    Document doc = new Document();
     doc.add(new Field("path", f.getPath(), Field.Store.YES, Field.Index.NOT_ANALYZED));
     doc.add(new Field("modified",
                       DateTools.timeToString(f.lastModified(), DateTools.Resolution.MINUTE),
-                      Field.Store.YES, Field.Index.NOT_ANALYZED ));
+                      Field.Store.YES, Field.Index.NOT_ANALYZED));
     doc.add(new Field("contents", new FileReader(f), Field.TermVector.WITH_POSITIONS));
     return doc;
   }
