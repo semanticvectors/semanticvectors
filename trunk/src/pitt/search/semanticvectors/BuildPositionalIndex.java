@@ -172,9 +172,13 @@ public class BuildPositionalIndex {
         System.err.println("Writing term vectors to " + termFile);
         vecWriter.WriteVectors(termFile, vecStore);
       }
+      
+      if (! Flags.docindexing.equals("none"))
+      {
       IncrementalDocVectors docVectors =
           new IncrementalDocVectors(vecStore, luceneIndex, Flags.contentsfields, "incremental_"+docFile);
-    }
+      }
+      }
     catch (IOException e) {
       e.printStackTrace();
     }
