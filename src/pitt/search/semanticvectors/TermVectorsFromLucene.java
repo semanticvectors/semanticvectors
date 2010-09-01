@@ -185,12 +185,18 @@ public class TermVectorsFromLucene implements VectorStore {
       TermDocs tDocs = indexReader.termDocs(term);
       while (tDocs.next()) {
         String docID = Integer.toString(tDocs.doc());
-        float[] docVector = this.basicDocVectors.getVector(docID);
         int freq = tDocs.freq();
-
-        for (int i = 0; i < Flags.dimension; ++i) {
-          termVector[i] += freq * docVector[i];
+        
+        if (this.basicDocVectors.getClass().equals(VectorStoreSparseRAM.class)) //random docvectors
+        {
+        	termVector = VectorUtils.addVectors(termVector, ((VectorStoreSparseRAM) this.basicDocVectors).getSparseVector(docID), freq); 
         }
+        else  //pretrained docvectors
+        {
+        termVector = VectorUtils.addVectors(termVector, this.basicDocVectors.getVector(docID),freq);
+        }
+        
+
       }
       termVector = VectorUtils.getNormalizedVector(termVector);
       termVectors.put(term.text(), new ObjectVector(term.text(), termVector));
