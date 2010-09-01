@@ -41,45 +41,44 @@ import java.lang.IllegalArgumentException;
  * store between the optimized Lucene format and plain text.
  */
 public class VectorStoreTranslater {
-
-		/**
-		 * Prints the following usage message:
-		 * <br> VectorStoreTranslater class in pitt.search.semanticvectors
-		 * <br> Usage: java pitt.search.semanticvector.VectorStoreTranslater -option INFILE OUTFILE"
-		 * <br> -option can be: -lucenetotext or -texttolucene"
-		 */
+  /**
+   * Prints the following usage message:
+   * <br> VectorStoreTranslater class in pitt.search.semanticvectors
+   * <br> Usage: java pitt.search.semanticvector.VectorStoreTranslater -option INFILE OUTFILE"
+   * <br> -option can be: -lucenetotext or -texttolucene"
+   */
   public static void usage() {
     String usageMessage = "VectorStoreTranslater class in pitt.search.semanticvectors"
-        + "\nUsage: java pitt.search.semanticvector.VectorStoreTranslater -option INFILE OUTFILE"
-        + "\n -option can be: -lucenetotext or -texttolucene";
+      + "\nUsage: java pitt.search.semanticvector.VectorStoreTranslater -option INFILE OUTFILE"
+      + "\n -option can be: -lucenetotext or -texttolucene";
     System.out.println(usageMessage);
   }
 
   private enum Options { LUCENE_TO_TEXT, TEXT_TO_LUCENE }
 
-		/**
-		 * Command line method for performing index translation.
-		 * @see #usage
-		 */
+  /**
+   * Command line method for performing index translation.
+   * @see #usage
+   */
   public static void main(String[] args) {
     // Parse command line args.
     if (args.length != 3) {
       System.err.println("You gave " + args.length + " arguments ...");
-			usage();
-			throw new IllegalArgumentException();
+      usage();
+      throw new IllegalArgumentException();
     }
     Options option = null;
     if (args[0].equalsIgnoreCase("-lucenetotext")) { option = Options.LUCENE_TO_TEXT; }
     else if (args[0].equalsIgnoreCase("-texttolucene")) { option = Options.TEXT_TO_LUCENE; }
     else {
-			usage();
-			throw new IllegalArgumentException();
-		}
+      usage();
+      throw new IllegalArgumentException();
+    }
 
     String infile = args[1];
     String outfile = args[2];
 
-		// Convert Lucene-style index to plain text.
+    // Convert Lucene-style index to plain text.
     if (option == Options.LUCENE_TO_TEXT) {
       try {
         VectorStoreReaderLucene vecReader = new VectorStoreReaderLucene(infile);
@@ -92,7 +91,7 @@ public class VectorStoreTranslater {
       }
     }
 
-		// Convert plain text index to Lucene-style.
+    // Convert plain text index to Lucene-style.
     if (option == Options.TEXT_TO_LUCENE) {
       try {
         VectorStoreReaderText vecReader = new VectorStoreReaderText(infile);
