@@ -50,56 +50,56 @@ import java.util.StringTokenizer;
 
    The class is constructed by creating a VectorStoreReader class,
    iterating through vectors and reading them into memory.
-	 @see VectorStoreReaderLucene
+   @see VectorStoreReaderLucene
    @see ObjectVector
 **/
 public class VectorStoreRAM implements VectorStore {
-	private Hashtable<Object, ObjectVector> objectVectors;
+  private Hashtable<Object, ObjectVector> objectVectors;
 
-	// Default constructor.
-	public VectorStoreRAM() {
+  // Default constructor.
+  public VectorStoreRAM() {
     this.objectVectors = new Hashtable<Object, ObjectVector>();
-	};
+  };
 
-	// Initialization routine.
+  // Initialization routine.
   public void InitFromFile (String vectorFile) throws IOException {
-		VectorStoreReaderLucene vectorReaderDisk = new VectorStoreReaderLucene(vectorFile);
-		Enumeration<ObjectVector> vectorEnumeration = vectorReaderDisk.getAllVectors();
+    VectorStoreReaderLucene vectorReaderDisk = new VectorStoreReaderLucene(vectorFile);
+    Enumeration<ObjectVector> vectorEnumeration = vectorReaderDisk.getAllVectors();
 		
-		System.err.println("Reading vectors from store on disk into memory cache  ...");
-		while (vectorEnumeration.hasMoreElements()) {
-			ObjectVector objectVector = vectorEnumeration.nextElement();
-			this.objectVectors.put(objectVector.getObject().toString(), objectVector);
-		}
-		System.err.println("Cached " + objectVectors.size() + " vectors.");
+    System.err.println("Reading vectors from store on disk into memory cache  ...");
+    while (vectorEnumeration.hasMoreElements()) {
+      ObjectVector objectVector = vectorEnumeration.nextElement();
+      this.objectVectors.put(objectVector.getObject().toString(), objectVector);
+    }
+    System.err.println("Cached " + objectVectors.size() + " vectors.");
   }
 
-	// Add a single vector.
-	public void putVector(Object key, float[] vector) {
-		ObjectVector objectVector = new ObjectVector(key, vector);
-		this.objectVectors.put(key, objectVector);
-	}
+  // Add a single vector.
+  public void putVector(Object key, float[] vector) {
+    ObjectVector objectVector = new ObjectVector(key, vector);
+    this.objectVectors.put(key, objectVector);
+  }
 
   public Enumeration getAllVectors() {
     return this.objectVectors.elements();
   }
 
-	public int getNumVectors() {
-		return this.objectVectors.size();
-	}
+  public int getNumVectors() {
+    return this.objectVectors.size();
+  }
 
   /**
    * Given an object, get its corresponding vector <br>
    * This implementation only works for string objects so far <br>
    * @param desiredObject - the string you're searching for
-	 * @return vector from the VectorStore, or null if not found. 
+   * @return vector from the VectorStore, or null if not found. 
    */
   public float[] getVector(Object desiredObject) {
-		ObjectVector objectVector = this.objectVectors.get(desiredObject);
-		if (objectVector != null) {
-			return objectVector.getVector();
-		} else {
-			return null;
-		}
+    ObjectVector objectVector = this.objectVectors.get(desiredObject);
+    if (objectVector != null) {
+      return objectVector.getVector();
+    } else {
+      return null;
+    }
   }
 }
