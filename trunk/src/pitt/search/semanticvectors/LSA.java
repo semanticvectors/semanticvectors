@@ -68,12 +68,16 @@ public class LSA {
   static SMat smatFromIndex(String fileName) throws Exception {
     SMat S;
     int i, j, n;
-
+    
+    
     //initiate IndexReader and LuceneUtils
     File file = new File(fileName);
     IndexReader indexReader = IndexReader.open(FSDirectory.open(file));
+    LuceneUtils.CompressIndex(fileName);
     LuceneUtils lUtils = new LuceneUtils(fileName);
-
+    
+    //calculate norm of each doc vector so as to normalize these before SVD
+    double[] docvectornorms = new double[indexReader.numDocs()]; 
     int[][] index;
     int nonalphabet = Flags.maxnonalphabetchars;
     int minfreq = Flags.minfrequency;
@@ -118,11 +122,36 @@ public class LSA {
         td = indexReader.termDocs(term);
         count = 0;
         while (td.next())
-        {index[tc][count++] = td.doc();}
+        {index[tc][count++] = td.doc();
+        
+        /**
+         * calculate length of document vectors ahead of time
+         */
+        
+        float value = td.freq();
+
+        /**
+         * if log-entropy weighting is to be used
+         */
+
+        if (le)
+        {float entropy = lUtils.getEntropy(term);
+          float log1plus = (float) Math.log10(1+value);
+          value = entropy*log1plus;
+        }
+        
+         docvectornorms[td.doc()] += Math.pow(value,2);
+        }
 
         tc++;	//next term
       }
     }
+    
+    /* 
+     * calculate vector length of document vectors sqrt(square of value in each dimension)
+     */
+    for (int x =0; x < docvectornorms.length; x++)
+    	docvectornorms[x] = Math.sqrt(docvectornorms[x]);
 
     /**
      * initialize "SVDLIBJ" sparse data structure
@@ -169,7 +198,7 @@ public class LSA {
           }
 
           S.rowind[nn] = td.doc();  //set row index to document number
-          S.value[nn] = value;  	  //set value to frequency (with/without weighting)
+          S.value[nn] = value/docvectornorms[td.doc()];  	  //set value to frequency (with/without weighting)
           nn++;
         }
         tc++;
@@ -205,7 +234,9 @@ public class LSA {
     System.err.println("Maximum frequency = " + Flags.maxfrequency);
     System.err.println("Number non-alphabet characters = " + Flags.maxnonalphabetchars);
 
-    le = Flags.termweight.equals("logentropy");
+    if (Flags.termweight.equals("logentropy")) le = true;
+    else le = false;
+    
     if (le)
       System.err.println("Term weighting: log-entropy");
 
