@@ -4,7 +4,7 @@ This is a large topic on which much has been written. There are many many more p
 
 ===Papers that talk about the SemanticVectors Package itself===
 
-[http://www.puttypeg.com/papers/semanticvectors.v2.pdf Semantic Vectors: A Scalable Open Source Package and Online Technology Management Application]. Dominic Widdows, Kathleen Ferraro, 2008.
+[http://www.puttypeg.net/papers/semanticvectors.v2.pdf Semantic Vectors: A Scalable Open Source Package and Online Technology Management Application]. Dominic Widdows, Kathleen Ferraro, 2008.
 
 Empirical Distributional Semantics: Methods and Biomedical Applications. Trevor Cohen, Dominic Widdows, Journal of Biomedical Informatics (2009) (to appear).
 
@@ -16,9 +16,9 @@ See also ProjectsUsingSemanticVectors.
 
 *New!* Newton, G. & A. Callahan & M. Dumontier. 2009. Semantic Journal Mapping for Search Visualization in a Large Scale Article Digital Library. Second Workshop on Very Large Digital Libraries at the European Conference on Digital Libraries (ECDL) 2009. http://gnewton.ca/u/gn/2009/ecdl2009Newton_20090723.pdf.
 
-[http://www.puttypeg.com/papers/semantic-vector-products.pdf Semantic Vector Products: Some Initial Investigations]. Dominic Widdows, Proceedings of the Second AAAI Symposium on Quantum Interaction, 2008.
+[http://www.puttypeg.net/papers/semantic-vector-products.pdf Semantic Vector Products: Some Initial Investigations]. Dominic Widdows, Proceedings of the Second AAAI Symposium on Quantum Interaction, 2008.
 
-[http://www.puttypeg.com/papers/synopticvectors.pdf Semantic Vector Combinations and the Synoptic Gospels]. Dominic Widdows, Trevor Cohen, Third International Symposium on Quantum Interaction, 2009.
+[http://www.puttypeg.net/papers/synopticvectors.pdf Semantic Vector Combinations and the Synoptic Gospels]. Dominic Widdows, Trevor Cohen, Third International Symposium on Quantum Interaction, 2009.
 
 ===Core Papers on Random Projection===
 
@@ -34,7 +34,7 @@ Ella Bingham and Heikki Mannila. [http://citeseer.ist.psu.edu/bingham01random.ht
 
 ===Introductory Material on Semantic Vector Spaces===
 
-[http://www.puttypeg.com/book/ Geometry and Meaning], Dominic Widdows, CSLI Publications, 2004. The [http://infomap.stanford.edu/papers/vector-chapter.pdf sample chapter] may be particularly useful to those unfamiliar with vectors.
+[http://www.puttypeg.net/book/ Geometry and Meaning], Dominic Widdows, CSLI Publications, 2004. The [http://infomap.stanford.edu/papers/vector-chapter.pdf sample chapter] may be particularly useful to those unfamiliar with vectors.
 
 ==Papers about Semantic Spaces more generally==
 
