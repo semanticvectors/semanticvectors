@@ -447,7 +447,7 @@ public class Svdlib {
     }
 
     /* Converts a dense matrix to a sparse one (without affecting the dense one) */
-    static SMat svdConvertDtoS(DMat D) {
+    public static SMat svdConvertDtoS(DMat D) {
         SMat S;
         int i, j, n;
         // n = number of non-zero elements
