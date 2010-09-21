@@ -1,9 +1,32 @@
 <?xml version="1.0"?>
 <!DOCTYPE project>
-
+<!-- 
+  To make external JARs (e.g. Lucene) available to this build, you can do any
+  of the following:
+  * add them to the CLASSPATH environment variable
+  * set the environment variable SEMVEC_LIBDIR to the directory that
+    contains them
+  * create a file build.properties and specify the directory that
+    contains the JARs with a line "libdir=directorypath"
+  * create a directory with the name "lib" in the current directory
+    and copy or link the JAR files into that directory
+-->
+  
 <project name="pitt semantic vectors" default="build-all" basedir=".">
 
   <property name="version" value="1.31"/>
+  <property file="build.properties" />
+  <echo message="initially libdir is: ${libdir}"/>
+
+  <property environment="env"/>
+  <condition property="libdir" value="${env.SEMVEC_LIBDIR}">
+    <isset property="env.SEMVEC_LIBDIR"/>
+  </condition>
+  <condition property="libdir" value="./lib" else=".">
+    <available file="./lib"/>
+  </condition>
+
+  <echo message="now libdir is: ${libdir}"/>
 
   <property name="basedir" value="."/>
   <property name="builddir" value="${basedir}/build"/>
@@ -15,6 +38,13 @@
   <property name="testdir" value="${basedir}/test"/>
   <property name="testworkingdir" value="${testdir}/testdata/tmp"/>
   <property name="extdir" value="${basedir}/src-ext"/>
+
+  <path id="compile.classpath">
+    <fileset dir="${libdir}">
+      <include name="*.jar" />
+    </fileset>
+    
+  </path>
 
   <target name="init">
     <mkdir dir="${docdir}"/>
@@ -32,6 +62,7 @@
 
   <target name="compile" depends="init,compile-deps">
     <javac srcdir="${srcdir}"
+           classpathref="compile.classpath"
            destdir="${buildclassesdir}"
            debug="on"
            />
@@ -41,6 +72,7 @@
     <javadoc sourcepath="${srcdir}"
              packagenames="pitt.search.semanticvectors,pitt.search.lucene"
              destdir="${docdir}"
+             classpathref="compile.classpath"
              author="true"
              use="true"
              />
