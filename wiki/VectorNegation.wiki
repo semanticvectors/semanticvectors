@@ -6,4 +6,4 @@ SemanticVectors now has a vector negation feature. This enables the user to remo
 
 Vector negation works by projecting the positive query vector onto the subspace orthogonal to all the negative query vectors. It turns out that the same negation operator is used in Quantum Logic, as described in the 1930's by Garrett Birkhoff and John von Neumann.
 
-A more thorough description can be found in Chapter 7 of [http://infomap.stanford.edu/book/chapters/chapter7.html Geometry and Meaning].
+A more thorough description can be found in Chapter 7 of [http://www.puttypeg.net/book/chapters/chapter7.html Geometry and Meaning].
