@@ -37,7 +37,7 @@ As well as the Lucene and Java prerequisites, you will also need to install [htt
 
  * Download the most recent `semanticvectors-*.*.tar.gz` or `semanticvectors-*.*.zip` archive and expand the archive (using `tar -zxvf` or `unzip`).
  * Change directory to the new `semanticvectors-*.*` that has just been created. Check that you can see the `build.xml' file and `src/` directory.
- * The locations of the lucene core and demo jar files can be specified by one of the following methods:
+ * The locations of the lucene core and demo jar files can be specified by one of the following methods (only setting `CLASSPATH` works for versions prior to 2010-09-21):
    * add them to your `CLASSPATH` environment variable
    * set the environment variable `SEMVEC_LIBDIR` to the directory that contains them
    * create a file build.properties that contains a line `libdir=directorypath` where `directorypath` is the path to the directory that contains the jars
