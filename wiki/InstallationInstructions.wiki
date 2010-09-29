@@ -12,7 +12,7 @@ These sketch instructions presume that you're reasonably familiar with Java, Ant
  * Make sure you have a Java Development Kit (JDK) installed on your system, and that the `java` and `javac` programs can be seen from you system `PATH` variable.
    * If you type `java` and `javac` at your command line, you should see options and instructions, rather than a "Command not found" error.
    * On some systems you may need to set your `JAVA_HOME` environment variable.
- * Make sure that you have [http://lucene.apache.org/java/docs/ Apache Lucene] running, and that the lucene core and lucene demo files are included in your `CLASSPATH`.
+ * Make sure that you have the [http://lucene.apache.org/java/docs/ Apache Lucene] core and demo jar files.
    * Unfortunately SemanticVectors doesn't work with all Lucene versions. See the page on LuceneCompatibility.
    * To test this, run `java org.apache.lucene.demo.IndexFiles` on the directory containing the corpus from which you'd like to build a SemanticVector model. You'll need to do this anyway, so might as well do it first to check your Lucene installation.
 
@@ -21,6 +21,7 @@ These sketch instructions presume that you're reasonably familiar with Java, Ant
 This is the simplest approach for just getting SemanticVectors working.
 
  * Download the most recent `semanticvectors-*.*.jar` distribution from this site.
+ * Add the Lucene core and demo jar files to your `CLASSPATH`.
  * Add the file (including full path) to your `CLASSPATH`.
 
 You won't be able to alter the programs beyond the configuration that's possible with command line flags. If you want to do that, you need to build from source.
@@ -36,6 +37,11 @@ As well as the Lucene and Java prerequisites, you will also need to install [htt
 
  * Download the most recent `semanticvectors-*.*.tar.gz` or `semanticvectors-*.*.zip` archive and expand the archive (using `tar -zxvf` or `unzip`).
  * Change directory to the new `semanticvectors-*.*` that has just been created. Check that you can see the `build.xml' file and `src/` directory.
+ * The locations of the lucene core and demo jar files can be specified by one of the following methods:
+   * add them to your `CLASSPATH` environment variable
+   * set the environment variable `SEMVEC_LIBDIR` to the directory that contains them
+   * create a file build.properties that contains a line `libdir=directorypath` where `directorypath` is the path to the directory that contains the jars
+   * create a directory with the name `lib` in the current directory and add the jar files to that  directory
  * Compile just by typing `ant` at the command line. This should create `build` and `doc` directories. The compiles classes are in the `build` directory. 
  * Make sure that either the resulting `build/classes` directory or `build/*.jar` file is in your `CLASSPATH`.
 
