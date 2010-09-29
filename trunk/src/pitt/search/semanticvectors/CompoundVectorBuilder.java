@@ -37,12 +37,12 @@
 
 package pitt.search.semanticvectors;
 
-import java.lang.IllegalArgumentException;
 import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
-import org.apache.lucene.index.Term;
 
 /**
  * This class contains methods for manipulating queries, e.g., taking
@@ -54,6 +54,9 @@ import org.apache.lucene.index.Term;
 public class CompoundVectorBuilder {
   private VectorStore vecReader;
   private LuceneUtils lUtils;
+
+  private static final Logger logger =
+    Logger.getLogger(CompoundVectorBuilder.class.getCanonicalName());
 
   public CompoundVectorBuilder (VectorStore vecReader, LuceneUtils lUtils) {
     this.vecReader = vecReader;
@@ -86,7 +89,7 @@ public class CompoundVectorBuilder {
           queryTermPosition = j;
         } else {
           // If we get to here, there was more than one "?" argument.
-          System.err.println("Illegal query argument: arguments to getPermutedQueryVector must " +
+          logger.severe("Illegal query argument: arguments to getPermutedQueryVector must " +
                              "have only one '?' string to denote target term position.");
           throw new IllegalArgumentException();
         }
@@ -94,7 +97,7 @@ public class CompoundVectorBuilder {
     }
     // If we get to here, there were no "?" arguments.
     if (queryTermPosition == -1) {
-      System.err.println("Illegal query argument: arguments to getPermutedQueryVector must " +
+      logger.severe("Illegal query argument: arguments to getPermutedQueryVector must " +
                          "have exactly one '?' string to denote target term position.");
       throw new IllegalArgumentException();
     }
@@ -116,7 +119,7 @@ public class CompoundVectorBuilder {
 
         if (lUtils != null) {
           weight = lUtils.getGlobalTermWeightFromString(queryTerms[j]);
-          System.err.println("Term " + queryTerms[j] + " weight " + weight);
+          logger.log(Level.INFO, "Term {0} weight {1}", new Object[]{queryTerms[j], weight});
         } else {
 	  weight = 1;
 	}
@@ -129,7 +132,7 @@ public class CompoundVectorBuilder {
             queryVec[i] += tmpVec[i];
           }
         } else {
-          System.err.println("No vector for " + queryTerms[j]);
+          logger.log(Level.WARNING, "No vector for {0}", queryTerms[j]);
         }
       }
     }
@@ -212,7 +215,7 @@ public class CompoundVectorBuilder {
           queryVec[i] += tmpVec[i] * weight;
         }
       } else {
-	System.err.println("No vector for " + queryTerms[j]);
+	logger.log(Level.WARNING, "No vector for {0}", queryTerms[j]);
       }
     }
 
@@ -237,7 +240,7 @@ public class CompoundVectorBuilder {
     for (int j = 0; j < queryTerms.length; ++j) {
       // Compile a regular expression for matching anything containing this term.
       Pattern pattern = Pattern.compile(queryTerms[j]);
-      System.err.println(pattern.pattern());
+      logger.log(Level.FINER,"Query term pattern: {0}",pattern.pattern());
       Enumeration<ObjectVector> vecEnum = vecReader.getAllVectors();
       while (vecEnum.hasMoreElements()) {
         // Test this element.
@@ -273,9 +276,9 @@ public class CompoundVectorBuilder {
   protected float[] getNegatedQueryVector(String[] queryTerms, int split) {
     int numNegativeTerms = queryTerms.length - split - 1;
     int numPositiveTerms = split;
-    System.err.println("Number of negative terms: " + numNegativeTerms);
-    System.err.println("Number of positive terms: " + numPositiveTerms);
-    ArrayList<float[]> vectorList = new ArrayList();
+    logger.log(Level.FINER, "Number of negative terms: {0}", numNegativeTerms);
+    logger.log(Level.FINER, "Number of positive terms: {0}", numPositiveTerms);
+    ArrayList<float[]> vectorList = new ArrayList<float[]>();
     for (int i = 1; i <= numNegativeTerms; ++i) {
       float[] tmpVector = vecReader.getVector(queryTerms[split + i]);
       if (tmpVector != null) {
