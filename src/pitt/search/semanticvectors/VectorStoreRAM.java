@@ -36,10 +36,10 @@
 package pitt.search.semanticvectors;
 
 import java.io.IOException;
-import java.lang.Float;
 import java.util.Enumeration;
 import java.util.Hashtable;
-import java.util.StringTokenizer;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
    This class provides methods for reading a VectorStore into memory
@@ -56,6 +56,9 @@ import java.util.StringTokenizer;
 public class VectorStoreRAM implements VectorStore {
   private Hashtable<Object, ObjectVector> objectVectors;
 
+  private static final Logger logger =
+    Logger.getLogger(VectorStoreRAM.class.getCanonicalName());
+
   // Default constructor.
   public VectorStoreRAM() {
     this.objectVectors = new Hashtable<Object, ObjectVector>();
@@ -66,12 +69,12 @@ public class VectorStoreRAM implements VectorStore {
     VectorStoreReaderLucene vectorReaderDisk = new VectorStoreReaderLucene(vectorFile);
     Enumeration<ObjectVector> vectorEnumeration = vectorReaderDisk.getAllVectors();
 		
-    System.err.println("Reading vectors from store on disk into memory cache  ...");
+    logger.fine("Reading vectors from store on disk into memory cache  ...");
     while (vectorEnumeration.hasMoreElements()) {
       ObjectVector objectVector = vectorEnumeration.nextElement();
       this.objectVectors.put(objectVector.getObject().toString(), objectVector);
     }
-    System.err.println("Cached " + objectVectors.size() + " vectors.");
+    logger.log(Level.FINE, "Cached {0} vectors.", objectVectors.size());
   }
 
   // Add a single vector.
