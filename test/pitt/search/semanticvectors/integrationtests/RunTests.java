@@ -7,15 +7,15 @@
    modification, are permitted provided that the following conditions are
    met:
 
-   * Redistributions of source code must retain the above copyright
+ * Redistributions of source code must retain the above copyright
    notice, this list of conditions and the following disclaimer.
 
-   * Redistributions in binary form must reproduce the above
+ * Redistributions in binary form must reproduce the above
    copyright notice, this list of conditions and the following
    disclaimer in the documentation and/or other materials provided
    with the distribution.
 
-   * Neither the name of the University of Pittsburgh nor the names
+ * Neither the name of the University of Pittsburgh nor the names
    of its contributors may be used to endorse or promote products
    derived from this software without specific prior written
    permission.
@@ -31,21 +31,19 @@
    LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
    NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
    SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-**/
+ **/
 
-package pitt.search.semanticvectors;
+package pitt.search.semanticvectors.integrationtests;
 
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.lang.InterruptedException;
-import java.lang.Process;
-import java.lang.Runtime;
 
-import org.junit.runner.notification.Failure;
-import org.junit.runner.JUnitCore;
 import org.junit.runner.Result;
+import org.junit.runner.notification.Failure;
+
+import pitt.search.semanticvectors.*;
 
 /**
  * Class for running unit tests and regression tests.
@@ -58,16 +56,11 @@ public class RunTests {
    * Important: you need to add your test class to this list for it to
    * be run by runUnitTests().
    */
-  public static Class[] unitTestClasses = { VectorUtilsTest.class,
-                                            VectorStoreRAMTest.class,
-                                            VectorStoreReaderLuceneTest.class,
-                                            VectorStoreSparseRAMTest.class,
-                                            VectorStoreWriterTest.class,
-                                            CompoundVectorBuilderTest.class,
-                                            FlagsTest.class };
-
-  public static Class[] regressionTestClasses = { RegressionTests.class,
-						  ThreadSafetyTest.class };
+  public static Class<?>[] integrationTestClasses = {
+    RegressionTests.class,
+    ThreadSafetyTest.class,
+    VectorStoreReaderLuceneTest.class,
+    VectorStoreWriterTest.class };
 
   public static boolean testDataPrepared = false;
 
@@ -89,39 +82,10 @@ public class RunTests {
   }
 
   /**
-   * @deprecated Use ant delete target instead, it's more reliable.
-   * Recursively delete a directory. Do not attempt to delete dot files.
-   * Return true on success; return false and quit at first failure.
-   */
-  public static boolean deleteDir(File dir) {
-    if (dir.isDirectory()) {
-      String[] files = dir.list();
-      for (String file: files) {
-        // I don't know why, but sometimes dot files get generated on
-        // Linux and are hard to get rid of.
-        if (file.charAt(0) == '.') continue;
-
-        boolean success = deleteDir(new File(dir, file));
-        if (!success) {
-          System.err.println("Failed to delete file: " + file);
-          return false;
-        }
-      }
-    }
-    // The directory is now empty so delete it.
-    boolean success = true;
-    if (dir.getName().charAt(0) != '.') {
-      success = dir.delete();
-      if (!success) System.err.println("Failed to delete directory: " + dir);
-    }
-    return success;
-  }
-
-  /**
    * Convenience method for running JUnit tests and displaying failure results.
    * @return int[2] {num_successes, num_failures}.
    */
-  private static int[] runJUnitTests(Class[] classes) {
+  private static int[] runJUnitTests(Class<?>[] classes) {
     Result results = org.junit.runner.JUnitCore.runClasses(classes);
     for (Failure failure: results.getFailures()) {
       System.out.println("FAILURE!!!");
@@ -129,13 +93,13 @@ public class RunTests {
       System.out.println("FAILURE!!!");
     }
     int[] resultCounts = { results.getRunCount() - results.getFailureCount(),
-                           results.getFailureCount() };
+        results.getFailureCount() };
     return resultCounts;
   }
 
   public static boolean prepareTestData() {
     if (testDataPrepared) return true;
-  	
+
     // Create basic vector store files. No Lucene / corpus dependencies here. 
     try {
       BufferedWriter outBuf = new BufferedWriter(new FileWriter(vectorTextFile));
@@ -164,26 +128,22 @@ public class RunTests {
       luceneIndexer.destroy();
 
       Process lucenePositionsIndexer =
-	runtime.exec("java pitt.search.lucene.IndexFilePositions " + testDataPath);
+        runtime.exec("java pitt.search.lucene.IndexFilePositions " + testDataPath);
       lucenePositionsIndexer.waitFor();
       lucenePositionsIndexer.destroy();
     } catch (Exception e) {
       System.err.println("Failed to prepare test Lucene index ... abandoning tests.");
       e.printStackTrace();
     }
-  
+
     testDataPrepared = true;
     return true;
-  }
-
-  private static boolean cleanupTestData() {
-    return deleteDir(new File("."));
   }
 
   public static void main(String args[]) {
     if (!checkCurrentDirEmpty()) {
       System.err.println("The test/testdata/tmp directory should be empty before running tests.\n"
-			 + "This may skew your results: consider cleaning up this directory first.");
+          + "This may skew your results: consider cleaning up this directory first.");
     }
 
     int successes = 0;
@@ -192,16 +152,10 @@ public class RunTests {
 
     System.err.println("Preparing test data ...");    
     if (!prepareTestData()) System.out.println("Failed.");
-    
-    // Run unit tests.
-    System.err.println("Running unit tests ...");
-    scores = runJUnitTests(unitTestClasses);
-    successes += scores[0];
-    failures += scores[1];
 
     // Run regression tests.
     System.err.println("Running regression tests ...");
-    scores = runJUnitTests(regressionTestClasses);
+    scores = runJUnitTests(integrationTestClasses);
     successes += scores[0];
     failures += scores[1];
 

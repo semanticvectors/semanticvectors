@@ -90,7 +90,7 @@ public class CompoundVectorBuilder {
         } else {
           // If we get to here, there was more than one "?" argument.
           logger.severe("Illegal query argument: arguments to getPermutedQueryVector must " +
-                             "have only one '?' string to denote target term position.");
+			"have only one '?' string to denote target term position.");
           throw new IllegalArgumentException();
         }
       }

@@ -33,11 +33,13 @@
 
 package pitt.search.semanticvectors;
 
-import org.junit.*;
-import static org.junit.Assert.*;
-import java.util.*;
+import java.util.ArrayList;
 
-public class VectorUtilsTest {
+import junit.framework.TestCase;
+
+import org.junit.Test;
+
+public class VectorUtilsTest extends TestCase {
 
 	@Test
     public void testScalarProduct() {
@@ -53,7 +55,7 @@ public class VectorUtilsTest {
 		float[] vec1 = new float[] {1, 2, 1};
 		float[] vec2 = new float[] {2, 3, 1};
 		float[] vec3 = new float[] {2, 1, 1};
-		ArrayList<float[]> list = new ArrayList();
+		ArrayList<float[]> list = new ArrayList<float[]>();
 		list.add(vec1);
 		list.add(vec2);
 		list.add(vec3);
@@ -95,7 +97,7 @@ public class VectorUtilsTest {
 		assertEquals((short) -4, sparseVector[1]);
 
 		float[] floatVector2 = {1.0f, 2.3f, 0.1f, -1.0f, 0f, 0f, 0f, 0f};
-		sparseVector = VectorUtils.floatVectorToSparseVector(floatVector, 4);
+		sparseVector = VectorUtils.floatVectorToSparseVector(floatVector2, 4);
 		assertEquals(4, sparseVector.length);
 		assertEquals((short) 2, sparseVector[0]);
 		assertEquals((short) -4, sparseVector[2]);

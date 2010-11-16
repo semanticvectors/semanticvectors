@@ -122,24 +122,34 @@
     </delete>
   </target>
 
-        <!-- Compile and run tests. -->
-        <!-- Tests do not currently ship with standard distributions; to
-             compile and run tests, check out test dir from the svn repository.
-             You will also need to install junit (www.junit.org) -->
+  <!-- Compile and run tests. -->
+  <!-- Tests do not currently ship with standard distributions; to
+       compile and run tests, check out test dir from the svn repository.
+       You will also need to install junit (www.junit.org) -->
   <target name="compile-tests" depends="compile">
     <javac srcdir="${testdir}"
            destdir="${buildclassesdir}"
            debug="on"
            />
   </target>
-
-  <target name="run-tests" depends="compile-tests">
+	
+	<target name="run-unit-tests" depends="compile-tests">
+	  <junit fork="yes" haltonfailure="yes">
+	    <test name="pitt.search.semanticvectors.AllTests" />
+	    <formatter type="plain" usefile="false" />
+	    <classpath>
+	      <pathelement location="${buildclassesdir}"/>
+	    </classpath>
+	  </junit>
+	</target>
+	
+  <target name="run-integration-tests" depends="compile-tests">
   	<!-- This test configuration includes some quick and dirty filesystem
       	 operations to make sure that the working dir starts and finishes empty. -->
     <delete dir="${testworkingdir}"/>
     <mkdir dir="${testworkingdir}"/>
     <java fork="true" dir="${testworkingdir}"
-          classname="pitt.search.semanticvectors.RunTests"/>
+          classname="pitt.search.semanticvectors.integrationtests.RunTests"/>
     <!--
     <delete dir="${testworkingdir}"/>
     <mkdir dir="${testworkingdir}"/>

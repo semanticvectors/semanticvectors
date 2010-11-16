@@ -1,4 +1,4 @@
-package pitt.search.semanticvectors;
+package pitt.search.semanticvectors.integrationtests;
 
 import java.io.IOException;
 import java.util.Scanner;
