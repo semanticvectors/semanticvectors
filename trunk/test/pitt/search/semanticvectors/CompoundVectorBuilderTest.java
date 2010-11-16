@@ -34,11 +34,12 @@
 package pitt.search.semanticvectors;
 
 import java.lang.Math;
-import java.util.*;
-import org.junit.*;
-import static org.junit.Assert.*;
 
-public class CompoundVectorBuilderTest {
+import junit.framework.TestCase;
+
+import org.junit.*;
+
+public class CompoundVectorBuilderTest extends TestCase {
 
   private VectorStoreRAM CreateVectorStore() {
     VectorStoreRAM vectorStore = new VectorStoreRAM();
@@ -63,7 +64,7 @@ public class CompoundVectorBuilderTest {
   }
 
   @Test
-    public void TestGetAdditiveQueryVectorTest() {
+    public void testGetAdditiveQueryVector() {
     System.err.println("Running tests for CompoundVectorBuilder");
     VectorStore vectorStore = CreateVectorStore();
     float[] queryVector =
@@ -74,6 +75,7 @@ public class CompoundVectorBuilderTest {
     assertEquals(1.0/norm, queryVector[1], 0.0001);
 
     // Test again to check for side effects.
+    @SuppressWarnings("unused")
     float[] queryVector2 =
       CompoundVectorBuilder.getQueryVectorFromString(vectorStore, null, "vector1 vector2");
     assertEquals(2, queryVector.length);
@@ -82,7 +84,7 @@ public class CompoundVectorBuilderTest {
   }
 
   @Test
-    public void TestGetNegatedQueryVectorTest() {
+    public void testGetNegatedQueryVector() {
     VectorStore vectorStore = CreateNormalizedVectorStore();
     float[] queryVector =
       CompoundVectorBuilder.getQueryVectorFromString(vectorStore, null, "vector1 vector2");

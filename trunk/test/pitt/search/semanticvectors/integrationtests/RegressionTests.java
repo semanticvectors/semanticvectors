@@ -31,13 +31,17 @@
    THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 **/
 
-package pitt.search.semanticvectors;
+package pitt.search.semanticvectors.integrationtests;
 
 import java.io.File;
 import java.util.logging.*;
 import java.util.*;
 
 import org.junit.*;
+
+import pitt.search.semanticvectors.BuildIndex;
+import pitt.search.semanticvectors.BuildPositionalIndex;
+import pitt.search.semanticvectors.integrationtests.RunTests;
 import static org.junit.Assert.*;
 
 /**

@@ -34,13 +34,13 @@
 package pitt.search.semanticvectors;
 
 import org.junit.*;
-import static org.junit.Assert.*;
-import java.util.*;
 
-public class VectorStoreSparseRAMTest {
+import junit.framework.TestCase;
+
+public class VectorStoreSparseRAMTest extends TestCase {
 
 	@Test
-		public void TestCreateAndRead() {
+		public void testCreateAndRead() {
 		System.err.println("\nRunning tests for VectorStoreSparseRAMTest");
 		VectorStoreSparseRAM sparseVectorStore = new VectorStoreSparseRAM();
 		Flags.dimension = 200;

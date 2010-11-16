@@ -391,7 +391,7 @@ abstract public class VectorSearcher{
                                      String[] queryTerms)
         throws ZeroVectorException {
       super(queryVecStore, searchVecStore, luceneUtils);
-      this.disjunctSpace = new ArrayList();
+      this.disjunctSpace = new ArrayList<float[]>();
 
       for (int i = 0; i < queryTerms.length; ++i) {
         System.out.println("\t" + queryTerms[i]);
@@ -438,7 +438,7 @@ abstract public class VectorSearcher{
                                 String[] queryTerms)
         throws ZeroVectorException {
       super(queryVecStore, searchVecStore, luceneUtils);
-      this.disjunctVectors = new ArrayList();
+      this.disjunctVectors = new ArrayList<float[]>();
 
       for (int i = 0; i < queryTerms.length; ++i) {
         // There may be compound disjuncts, e.g., "A NOT B" as a single argument.

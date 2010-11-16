@@ -34,10 +34,12 @@
 package pitt.search.semanticvectors;
 
 import java.lang.reflect.Field;
-import org.junit.*;
-import static org.junit.Assert.*;
 
-public class FlagsTest {
+import junit.framework.TestCase;
+
+import org.junit.*;
+
+public class FlagsTest extends TestCase {
 
   @Test
     public void testParseCommandLineFlags() {
@@ -106,7 +108,8 @@ public class FlagsTest {
       if (fieldName.endsWith("Description")) {
 	try {
 	  String flagName = fieldName.substring(0, fieldName.length() - 11);
-	  Field flagField = Flags.class.getField(flagName);
+	  @SuppressWarnings("unused")
+    Field flagField = Flags.class.getField(flagName);
 	} catch (NoSuchFieldException e) {
 	  System.err.println("Description field '" + fieldName
 			     + "' has no corresponding flag defined.");

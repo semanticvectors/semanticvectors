@@ -34,13 +34,13 @@
 package pitt.search.semanticvectors;
 
 import org.junit.*;
-import static org.junit.Assert.*;
-import java.util.*;
 
-public class VectorStoreRAMTest {
+import junit.framework.TestCase;
+
+public class VectorStoreRAMTest extends TestCase {
 
 	@Test
-		public void TestCreateWriteAndRead() {
+		public void testCreateWriteAndRead() {
 		System.err.println("\nRunning tests for VectorStoreRAMTest");
 		VectorStoreRAM vectorStore = new VectorStoreRAM();
 		Flags.dimension = 2;
@@ -53,7 +53,7 @@ public class VectorStoreRAMTest {
 	}
 
 	@Test
-		public void TestRepeatReads() {
+		public void testRepeatReads() {
 		VectorStoreRAM vectorStore = new VectorStoreRAM();
 		Flags.dimension = 2;
 		assertEquals(0, vectorStore.getNumVectors());

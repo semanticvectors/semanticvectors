@@ -31,20 +31,21 @@
    THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 **/
 
-package pitt.search.semanticvectors;
+package pitt.search.semanticvectors.integrationtests;
 
-import java.io.File;
-import java.lang.InterruptedException;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
+
+import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Enumeration;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.NoSuchElementException;
 
-import org.junit.*;
-import static org.junit.Assert.*;
-import java.io.IOException;
+import org.junit.Before;
+import org.junit.Test;
+
+import pitt.search.semanticvectors.ObjectVector;
+import pitt.search.semanticvectors.VectorStoreReaderLucene;
 
 public class VectorStoreReaderLuceneTest {
 
@@ -81,9 +82,10 @@ public class VectorStoreReaderLuceneTest {
   // same vector store file open at once, even for reads, but it's
   // good to test for this somehow.
     public void TestMultipleOpensForRead() {
-    boolean tested = false;
     try {
+      @SuppressWarnings("unused")
       VectorStoreReaderLucene reader = new VectorStoreReaderLucene(RunTests.vectorBinFile);
+      @SuppressWarnings("unused")
       VectorStoreReaderLucene reader2 = new VectorStoreReaderLucene(RunTests.vectorBinFile);
     } catch (IOException e) {
       // Not sure if there is a better way to test for exceptions ...

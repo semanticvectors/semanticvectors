@@ -31,9 +31,14 @@
    THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 **/
 
-package pitt.search.semanticvectors;
+package pitt.search.semanticvectors.integrationtests;
 
 import org.junit.*;
+
+import pitt.search.semanticvectors.VectorStoreRAM;
+import pitt.search.semanticvectors.VectorStoreReaderLucene;
+import pitt.search.semanticvectors.VectorStoreWriter;
+
 import java.io.IOException;
 
 public class VectorStoreWriterTest {

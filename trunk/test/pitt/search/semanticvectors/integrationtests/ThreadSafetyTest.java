@@ -6,15 +6,15 @@
    modification, are permitted provided that the following conditions are
    met:
 
-   * Redistributions of source code must retain the above copyright
+ * Redistributions of source code must retain the above copyright
    notice, this list of conditions and the following disclaimer.
 
-   * Redistributions in binary form must reproduce the above
+ * Redistributions in binary form must reproduce the above
    copyright notice, this list of conditions and the following disclaimer
    in the documentation and/or other materials provided with the
    distribution.
 
-   * Neither the name of Google Inc. nor the names of its
+ * Neither the name of Google Inc. nor the names of its
    contributors may be used to endorse or promote products derived from
    this software without specific prior written permission.
 
@@ -31,52 +31,55 @@
    THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
    @author Yevgeniy Treyvus.
-**/
+ **/
 
-package pitt.search.semanticvectors;
+package pitt.search.semanticvectors.integrationtests;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.junit.*;
-import static org.junit.Assert.*;
-import java.io.IOException;
+import org.junit.Before;
+import org.junit.Test;
+
+import pitt.search.semanticvectors.Flags;
+import pitt.search.semanticvectors.ObjectVector;
+import pitt.search.semanticvectors.Search;
+import pitt.search.semanticvectors.SearchResult;
 
 public class ThreadSafetyTest {
 
   @Before
-    public void setUp() {
+  public void setUp() {
     assert(RunTests.prepareTestData());
     Flags.searchtype = "sum";
   }
 
   @Test
-    public void TestSearchThreadSafety() throws Exception {
+  public void TestSearchThreadSafety() throws Exception {
     List<Thread> threads = new ArrayList<Thread>();
     final String queries[] = new String[]{"jesus", "mary", "peter", "light", "word"};
     final boolean[] done = new boolean[queries.length];
     for(final String query : queries) {
       Thread t = new Thread(new Runnable(){
-	  public void run() {
-	    try {
-	      outputSuggestions(query);
-	      done[Arrays.asList(queries).indexOf(query)] = true;
-	    } catch (Exception e) {
-	      throw new RuntimeException(e.getMessage(), e);
-	    }
-	  }}, "query: " + query);
+        public void run() {
+          try {
+            outputSuggestions(query);
+            done[Arrays.asList(queries).indexOf(query)] = true;
+          } catch (Exception e) {
+            throw new RuntimeException(e.getMessage(), e);
+          }
+        }}, "query: " + query);
       t.start();
       threads.add(t);
     }
     int counter = 0;
     while(counter < queries.length) {
       for(boolean b : done) {
-	if(b) {
-	  counter++;
-	}
+        if(b) {
+          counter++;
+        }
       }
     }
     for(Thread t : threads) {
@@ -88,16 +91,16 @@ public class ThreadSafetyTest {
   private static void outputSuggestions(String query) throws Exception  {
     int maxResults = 10;
     String[] args = new String[] { "-searchvectorfile", "termvectors.bin",
-				   "-queryvectorfile", "termvectors.bin",
-				   "-luceneindexpath", RunTests.lucenePositionalIndexDir,
-				   query };
+        "-queryvectorfile", "termvectors.bin",
+        "-luceneindexpath", RunTests.lucenePositionalIndexDir,
+        query };
     LinkedList<SearchResult> results = Search.RunSearch(args, maxResults);
 
     boolean verbose = false;
     if (verbose && results.size() > 0) {
       for (SearchResult result: results) {
-	String suggestion = ((ObjectVector)result.getObject()).getObject().toString();
-	System.out.println("query:"+query + " suggestion:" + suggestion + " score:" + result.getScore());
+        String suggestion = ((ObjectVector)result.getObject()).getObject().toString();
+        System.out.println("query:"+query + " suggestion:" + suggestion + " score:" + result.getScore());
       }
     }
   }
