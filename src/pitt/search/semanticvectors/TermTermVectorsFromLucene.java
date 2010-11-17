@@ -35,6 +35,7 @@
 
 package pitt.search.semanticvectors;
 
+import java.util.Arrays;
 import java.util.Hashtable;
 import java.util.Enumeration;
 import java.util.Random;
@@ -75,6 +76,8 @@ public class TermTermVectorsFromLucene implements VectorStore {
   private short[][] localsparseindexvectors;
   private LuceneUtils lUtils;
   private int nonAlphabet;
+
+  static final short NONEXISTENT = -1;
 
   /**
    * @return The object's indexReader.
@@ -236,9 +239,13 @@ public class TermTermVectorsFromLucene implements VectorStore {
     // Find number of positions in document (across all terms).
     int numwords = freqs.length;
     int numpositions = 0;
-    for (int i = 0; i < numwords; ++i) {
-      numpositions += freqs[i];
+    for (short tcn = 0; tcn < numwords; ++tcn) {
+      int[] posns = vex.getTermPositions(tcn);
+      for (int pc = 0; pc < posns.length; ++pc) {
+        numpositions = Math.max(numpositions, posns[pc]);
+      }
     }
+		numpositions += 1; //convert from zero-based index to count
 
     // Create local random index and term vectors for relevant terms.
     if (retraining)
@@ -250,6 +257,7 @@ public class TermTermVectorsFromLucene implements VectorStore {
 
     // Create index with one space for each position.
     short[] positions = new short[numpositions];
+    Arrays.fill(positions, NONEXISTENT);
     String[] docterms = vex.getTerms();
 
     for (short tcn = 0; tcn < numwords; ++tcn) {
@@ -283,6 +291,7 @@ public class TermTermVectorsFromLucene implements VectorStore {
     for (int p = 0; p < positions.length; ++p) {
       int focusposn = p;
       int focusterm = positions[focusposn];
+      if (focusterm == NONEXISTENT) continue;
       int windowstart = Math.max(0, p - w2);
       int windowend = Math.min(focusposn + w2, positions.length - 1);
 
@@ -297,6 +306,7 @@ public class TermTermVectorsFromLucene implements VectorStore {
       for (int w = windowstart; w <= windowend; w++) {
 	if (w == focusposn) continue;
 	int coterm = positions[w];
+        if (coterm == NONEXISTENT) continue;
 	// calculate permutation required for either Sahlgren (2008) implementation
 	// encoding word order, or encoding direction as in Burgess and Lund's HAL
 	float[] localindex= new float[0];
