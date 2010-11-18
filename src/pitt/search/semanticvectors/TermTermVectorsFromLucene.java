@@ -205,7 +205,7 @@ public class TermTermVectorsFromLucene implements VectorStore {
     }
 
     // If building a permutation index, these need to be written out to be reused.
-    if ((Flags.positionalmethod.equals("permutation") | (Flags.positionalmethod.equals("permutation_plus_basic") ))&& !retraining) {
+    if ((Flags.positionalmethod.equals("permutation") || (Flags.positionalmethod.equals("permutation_plus_basic") ))&& !retraining) {
       String randFile = "randomvectors.bin";
       System.err.println("\nWriting random vectors to "+randFile);
       System.err.println("\nNormalizing random vectors");
@@ -326,7 +326,7 @@ public class TermTermVectorsFromLucene implements VectorStore {
 		}
 	}
 	
-	if (Flags.positionalmethod.equals("permutation") | Flags.positionalmethod.equals("permutation_plus_basic")) {
+	if (Flags.positionalmethod.equals("permutation") || Flags.positionalmethod.equals("permutation_plus_basic")) {
 	  int permutation = w - focusposn;
 	  if (retraining)
 	    localindex = VectorUtils.permuteVector(localindex , permutation);
