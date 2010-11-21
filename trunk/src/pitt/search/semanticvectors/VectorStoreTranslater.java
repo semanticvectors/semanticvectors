@@ -85,6 +85,7 @@ public class VectorStoreTranslater {
         VectorStoreWriter vecWriter = new VectorStoreWriter();
         System.err.println("Writing term vectors to " + outfile);
         vecWriter.WriteVectorsAsText(outfile, vecReader);
+        vecReader.close();
       }
       catch (IOException e) {
         e.printStackTrace();
@@ -98,6 +99,7 @@ public class VectorStoreTranslater {
         VectorStoreWriter vecWriter = new VectorStoreWriter();
         System.err.println("Writing term vectors to " + outfile);
         vecWriter.WriteVectors(outfile, vecReader);
+        vecReader.close();
       }
       catch (IOException e) {
         e.printStackTrace();
