@@ -149,7 +149,6 @@ public class Flags {
 
     int argc = 0;
     while (args[argc].charAt(0) == '-') {
-      boolean recognized = false;
       String flagName = args[argc];
       // Ignore trivial flags (without raising an error).
       if (flagName.equals("-")) continue;
@@ -163,10 +162,9 @@ public class Flags {
 
         // Parse String arguments.
         if (field.getType().getName().equals("java.lang.String")) {
-          // All string values are lowercased.
           String flagValue;
           try {
-            flagValue = args[argc + 1].toLowerCase();
+            flagValue = args[argc + 1];
           } catch (ArrayIndexOutOfBoundsException e) {
             throw new IllegalArgumentException("option -" + flagName + " requires an argument");
           }
