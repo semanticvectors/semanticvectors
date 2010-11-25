@@ -16,7 +16,6 @@
 
   <property name="version" value="1.31"/>
   <property file="build.properties" />
-  <echo message="initially libdir is: ${libdir}"/>
 
   <property environment="env"/>
   <condition property="libdir" value="${env.SEMVEC_LIBDIR}">
@@ -25,8 +24,6 @@
   <condition property="libdir" value="./lib" else=".">
     <available file="./lib"/>
   </condition>
-
-  <echo message="now libdir is: ${libdir}"/>
 
   <property name="basedir" value="."/>
   <property name="builddir" value="${basedir}/build"/>
