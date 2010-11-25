@@ -36,10 +36,7 @@
 package pitt.search.semanticvectors;
 
 import java.io.IOException;
-import java.lang.IllegalArgumentException;
 import java.util.Arrays;
-import java.util.Enumeration;
-import java.util.LinkedList;
 
 /**
  * Command line utility for creating semantic vector indexes.
@@ -132,13 +129,22 @@ public class BuildIndex {
         // Otherwise attempt to load pre-existing semantic term vectors.
         System.err.println("Creating term vectors ...");
         vecStore =
-            new TermVectorsFromLucene(luceneIndex, Flags.seedlength, Flags.minfrequency,
-                                      Flags.maxnonalphabetchars, Flags.contentsfields);
+            new TermVectorsFromLucene(luceneIndex,
+                                      Flags.seedlength,
+                                      Flags.minfrequency,
+                                      Flags.maxnonalphabetchars,
+                                      Flags.initialtermvectors,
+                                      Flags.contentsfields);
       } else {
         System.err.println("Creating elemental document vectors ...");
         vecStore =
-            new TermVectorsFromLucene(luceneIndex, Flags.seedlength,Flags.minfrequency,
-                                      Flags.maxnonalphabetchars, null, Flags.contentsfields);
+            new TermVectorsFromLucene(luceneIndex, 
+                                      Flags.dimension,
+                                      Flags.seedlength,
+                                      Flags.minfrequency,
+                                      Flags.maxnonalphabetchars,
+                                      null,
+                                      Flags.contentsfields);
       }
 
       // Create doc vectors and write vectors to disk.
@@ -153,6 +159,7 @@ public class BuildIndex {
         for (int i = 1; i < Flags.trainingcycles; ++i) {
           System.err.println("\nRetraining with learned document vectors ...");
           vecStore = new TermVectorsFromLucene(luceneIndex,
+                                               Flags.dimension,
                                                Flags.seedlength,
                                                Flags.minfrequency,
                                                Flags.maxnonalphabetchars,
