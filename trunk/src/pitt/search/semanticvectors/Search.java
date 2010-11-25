@@ -36,7 +36,6 @@
 package pitt.search.semanticvectors;
 
 import java.io.IOException;
-import java.lang.IllegalArgumentException;
 import java.util.LinkedList;
 
 /**
