@@ -36,7 +36,6 @@
 package pitt.search.semanticvectors;
 
 import java.io.IOException;
-import java.lang.IllegalArgumentException;
 import java.util.LinkedList;
 
 /**
@@ -144,10 +143,12 @@ public class BuildPositionalIndex {
     try {
       TermTermVectorsFromLucene vecStore =
           new TermTermVectorsFromLucene(luceneIndex,
+                                        Flags.dimension,
                                         Flags.seedlength,
                                         Flags.minfrequency,
                                         Flags.maxnonalphabetchars,
                                         2 * Flags.windowradius + 1,
+                                        Flags.positionalmethod,
                                         newBasicTermVectors,
                                         Flags.contentsfields);
       VectorStoreWriter vecWriter = new VectorStoreWriter();
@@ -158,10 +159,12 @@ public class BuildPositionalIndex {
         newBasicTermVectors = vecStore.getBasicTermVectors();
         System.err.println("\nRetraining with learned term vectors ...");
         vecStore = new TermTermVectorsFromLucene(luceneIndex,
+                                                 Flags.dimension,
                                                  Flags.seedlength,
                                                  Flags.minfrequency,
                                                  Flags.maxnonalphabetchars,
                                                  2 * Flags.windowradius + 1,
+                                                 Flags.positionalmethod,
                                                  newBasicTermVectors,
 						 Flags.contentsfields);
       }
