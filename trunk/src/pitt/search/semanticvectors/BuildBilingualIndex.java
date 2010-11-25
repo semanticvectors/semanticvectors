@@ -33,17 +33,9 @@
 
 package pitt.search.semanticvectors;
 
-import java.lang.IllegalArgumentException;
-import java.io.IOException;
-import java.util.Hashtable;
-import java.util.Enumeration;
-import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.apache.lucene.index.*;
-import org.apache.lucene.analysis.standard.StandardAnalyzer;
 
-import java.util.LinkedList;
 import java.io.IOException;
 
 /**
@@ -118,7 +110,8 @@ public class BuildBilingualIndex{
     System.err.println("Minimum frequency = " + Flags.minfrequency);
     try{
       TermVectorsFromLucene vecStore1 =
-          new TermVectorsFromLucene(luceneIndex, Flags.seedlength, Flags.minfrequency,
+          new TermVectorsFromLucene(luceneIndex, Flags.dimension,
+                                    Flags.seedlength, Flags.minfrequency,
                                     Flags.maxnonalphabetchars, null, fields1);
       VectorStoreWriter vecWriter = new VectorStoreWriter();
       System.err.println("Writing term vectors to " + termFile1);
@@ -130,7 +123,8 @@ public class BuildBilingualIndex{
       VectorStore basicDocVectors = vecStore1.getBasicDocVectors();
       System.out.println("Keeping basic doc vectors, number: " + basicDocVectors.getNumVectors());
       TermVectorsFromLucene vecStore2 =
-          new TermVectorsFromLucene(luceneIndex, Flags.seedlength, Flags.minfrequency,
+          new TermVectorsFromLucene(luceneIndex, Flags.dimension,
+                                    Flags.seedlength, Flags.minfrequency,
                                     Flags.maxnonalphabetchars, basicDocVectors, fields2);
       System.err.println("Writing term vectors to " + termFile2);
       vecWriter.WriteVectors(termFile2, vecStore2);
