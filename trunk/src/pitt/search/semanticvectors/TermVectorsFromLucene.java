@@ -37,19 +37,14 @@ package pitt.search.semanticvectors;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.RuntimeException;
 import java.util.Hashtable;
 import java.util.Enumeration;
 import java.util.Random;
 import org.apache.lucene.index.IndexReader;
-import org.apache.lucene.index.IndexWriter;
-import org.apache.lucene.index.IndexWriter.MaxFieldLength;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.index.TermDocs;
 import org.apache.lucene.index.TermEnum;
 import org.apache.lucene.store.FSDirectory;
-import org.apache.lucene.analysis.standard.StandardAnalyzer;
-import org.apache.lucene.util.Version;
 
 /**
  * Implementation of vector store that creates term vectors by
@@ -69,6 +64,8 @@ public class TermVectorsFromLucene implements VectorStore {
   private int nonAlphabet;
   private int minFreq;
   private VectorStore basicDocVectors;
+  private int dimension;
+  private String initialtermvectors;
 
   // Basic accessor methods.
   /**
@@ -105,12 +102,53 @@ public class TermVectorsFromLucene implements VectorStore {
    * @param seedLength Number of +1 or -1 entries in basic
    * vectors. Should be even to give same number of each.
    * @param minFreq The minimum term frequency for a term to be indexed.
+   * @param nonAlphabet 
    * @param basicDocVectors The store of basic document vectors. Null
    * is an acceptable value, in which case the constructor will build
    * this table. If non-null, the identifiers must correspond to the Lucene doc numbers.
    * @param fieldsToIndex These fields will be indexed. If null, all fields will be indexed.
+   * @throws IOException
+   * @throws RuntimeException
+   * @deprecated use the constructor that allows the specification of the
+   * vectordimension instead.
+   */
+  @Deprecated
+  public TermVectorsFromLucene(String indexDir,
+                               int seedLength,
+                               int minFreq,
+                               int nonAlphabet,
+                               VectorStore basicDocVectors,
+                               String[] fieldsToIndex)
+      throws IOException, RuntimeException {
+    this.dimension = Flags.dimension;
+    doConstruct1(indexDir,seedLength,minFreq,nonAlphabet,basicDocVectors,fieldsToIndex);
+  }
+  /**
+   * @param indexDir Directory containing Lucene index.
+   * @param dimension
+   * @param seedLength Number of +1 or -1 entries in basic
+   * vectors. Should be even to give same number of each.
+   * @param minFreq The minimum term frequency for a term to be indexed.
+   * @param nonAlphabet
+   * @param basicDocVectors The store of basic document vectors. Null
+   * is an acceptable value, in which case the constructor will build
+   * this table. If non-null, the identifiers must correspond to the Lucene doc numbers.
+   * @param fieldsToIndex These fields will be indexed. If null, all fields will be indexed.
+   * @throws IOException
+   * @throws RuntimeException
    */
   public TermVectorsFromLucene(String indexDir,
+                               int dimension,
+                               int seedLength,
+                               int minFreq,
+                               int nonAlphabet,
+                               VectorStore basicDocVectors,
+                               String[] fieldsToIndex)
+      throws IOException, RuntimeException {
+    this.dimension = dimension;
+    doConstruct1(indexDir,seedLength,minFreq,nonAlphabet,basicDocVectors,fieldsToIndex);
+  }
+  private void doConstruct1(String indexDir,
                                int seedLength,
                                int minFreq,
                                int nonAlphabet,
@@ -177,8 +215,8 @@ public class TermVectorsFromLucene implements VectorStore {
       }
 
       // Initialize new termVector.
-      float[] termVector = new float[Flags.dimension];
-      for (int i = 0; i < Flags.dimension; ++i) {
+      float[] termVector = new float[dimension];
+      for (int i = 0; i < dimension; ++i) {
         termVector[i] = 0;
       }
 
@@ -216,6 +254,10 @@ public class TermVectorsFromLucene implements VectorStore {
    * @param nonAlphabet 		the number of nonalphabet characters permitted
    * @param minFreq The minimum term frequency for a term to be indexed.
    * @param fieldsToIndex		the fields to be indexed (most commonly "contents")
+   * @throws IOException 
+   * @throws RuntimeException 
+   * @deprecated use the constructor that allows the speficification of the
+   * initialtermvectors parameter
    */
   public TermVectorsFromLucene(String indexDir,
 			       int seedLength,
@@ -223,7 +265,42 @@ public class TermVectorsFromLucene implements VectorStore {
 			       int nonAlphabet,
 			       String[] fieldsToIndex)
       throws IOException, RuntimeException {
+    this.initialtermvectors = Flags.initialtermvectors;
+    doConstruct2(indexDir,seedLength,minFreq,nonAlphabet,fieldsToIndex);
+  }
+  /**
+   * This constructor generates an elemental vector for each
+   * term. These elemental (random index) vectors will be used to
+   * construct document vectors, a procedure we have called term-based
+   * reflective random indexing.
+   *
+   * @param indexDir			the directory of the Lucene Index
+   * @param seedLength Number of +1 or -1 entries in basic
+   * vectors. Should be even to give same number of each.
+   * @param nonAlphabet 		the number of nonalphabet characters permitted
+   * @param minFreq The minimum term frequency for a term to be indexed.
+   * @param initialtermvectors 
+   * @param fieldsToIndex		the fields to be indexed (most commonly "contents")
+   * @throws IOException 
+   * @throws RuntimeException 
+   */
+  public TermVectorsFromLucene(String indexDir,
+			       int seedLength,
+			       int minFreq,
+			       int nonAlphabet,
+                               String initialtermvectors,
+			       String[] fieldsToIndex)
+      throws IOException, RuntimeException {
+    this.initialtermvectors = initialtermvectors;
+    doConstruct2(indexDir,seedLength,minFreq,nonAlphabet,fieldsToIndex);
+  }
 
+  private void doConstruct2(String indexDir,
+			       int seedLength,
+			       int minFreq,
+			       int nonAlphabet,
+			       String[] fieldsToIndex)
+      throws IOException, RuntimeException {
     this.minFreq = minFreq;
     this.nonAlphabet = nonAlphabet;
     this.fieldsToIndex = fieldsToIndex;
@@ -239,7 +316,7 @@ public class TermVectorsFromLucene implements VectorStore {
     this.termVectors = new Hashtable<String,ObjectVector>();
 
     // For each term in the index
-    if (Flags.initialtermvectors.equals("random")) {
+    if (initialtermvectors.equals("random")) {
       System.err.println("Creating random term vectors");
       TermEnum terms = indexReader.terms();
       int tc = 0;
@@ -259,8 +336,8 @@ public class TermVectorsFromLucene implements VectorStore {
                                                   indexVector, Flags.dimension)));
       }
     } else {
-      System.err.println("Using semantic term vectors from file " + Flags.initialtermvectors);
-      VectorStore inputReader = new VectorStoreReaderLucene(Flags.initialtermvectors);
+      System.err.println("Using semantic term vectors from file " + initialtermvectors);
+      VectorStore inputReader = new VectorStoreReaderLucene(initialtermvectors);
       Enumeration<ObjectVector> termEnumeration = inputReader.getAllVectors();
       int count = 0;
 
