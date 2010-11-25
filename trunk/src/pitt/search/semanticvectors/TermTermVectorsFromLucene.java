@@ -49,7 +49,7 @@ import org.apache.lucene.store.FSDirectory;
 
 /**
  * Implementation of vector store that creates term by term
- * cooccurence vectors by iterating through all the documents in a
+ * co-occurrence vectors by iterating through all the documents in a
  * Lucene index.  This class implements a sliding context window
  * approach, as used by Burgess and Lund (HAL) and Schutze amongst
  * others Uses a sparse representation for the basic document vectors,
