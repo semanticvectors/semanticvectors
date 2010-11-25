@@ -36,18 +36,13 @@
 package pitt.search.semanticvectors;
 
 import java.util.Arrays;
-import java.util.Hashtable;
 import java.util.Enumeration;
 import java.util.Random;
 import java.io.File;
 import java.io.IOException;
-import java.lang.RuntimeException;
 
-import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.index.IndexReader;
-import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.Term;
-import org.apache.lucene.index.TermDocs;
 import org.apache.lucene.index.TermEnum;
 import org.apache.lucene.index.TermPositionVector;
 import org.apache.lucene.store.FSDirectory;
@@ -76,6 +71,9 @@ public class TermTermVectorsFromLucene implements VectorStore {
   private short[][] localsparseindexvectors;
   private LuceneUtils lUtils;
   private int nonAlphabet;
+  
+  private int dimension;
+  private String positionalmethod;
 
   static final short NONEXISTENT = -1;
 
@@ -105,12 +103,20 @@ public class TermTermVectorsFromLucene implements VectorStore {
   }
 
   /**
+   * This constructor uses all the values passed as arguments and in addition
+   * the parameters dimension and positionalmethod from Flags.
    * @param indexDir Directory containing Lucene index.
    * @param seedLength Number of +1 or -1 entries in basic
    * vectors. Should be even to give same number of each.
    * @param minFreq The minimum term frequency for a term to be indexed.
+   * @param nonAlphabet
    * @param windowSize The size of the sliding context window.
+   * @param basicTermVectors
    * @param fieldsToIndex These fields will be indexed.
+   * @throws IOException
+   * @throws RuntimeException 
+   * @deprecated use the constructor that explicitly specifies all needed
+   * values from Flags.
    */
   public TermTermVectorsFromLucene(String indexDir,
                                    int seedLength,
@@ -120,6 +126,51 @@ public class TermTermVectorsFromLucene implements VectorStore {
                                    VectorStore basicTermVectors,
                                    String[] fieldsToIndex)
     throws IOException, RuntimeException {
+    this.dimension = Flags.dimension;
+    this.positionalmethod = Flags.positionalmethod;
+    doConstructor(indexDir,seedLength,minFreq,nonAlphabet,
+        windowSize,basicTermVectors,fieldsToIndex);
+  }
+  /**
+   * This constructor uses only the values passed, no parameters from Flag.
+   * @param indexDir Directory containing Lucene index.
+   * @dimension number of dimensions to use for the vectors
+   * @param dimension
+   * @param seedLength Number of +1 or -1 entries in basic
+   * vectors. Should be even to give same number of each.
+   * @param minFreq The minimum term frequency for a term to be indexed.
+   * @param nonAlphabet 
+   * @param windowSize The size of the sliding context window.
+   * @param positionalmethod 
+   * @param basicTermVectors 
+   * @param fieldsToIndex These fields will be indexed.
+   * @throws IOException
+   * @throws RuntimeException 
+   */
+  public TermTermVectorsFromLucene(String indexDir,
+                                   int dimension,
+                                   int seedLength,
+                                   int minFreq,
+                                   int nonAlphabet,
+                                   int windowSize,
+                                   String positionalmethod,
+                                   VectorStore basicTermVectors,
+                                   String[] fieldsToIndex)
+    throws IOException, RuntimeException {
+    this.dimension = dimension;
+    this.positionalmethod = positionalmethod;
+    doConstructor(indexDir,seedLength,minFreq,nonAlphabet,
+        windowSize,basicTermVectors,fieldsToIndex);
+  }
+  private void doConstructor(String indexDir,
+                                   int seedLength,
+                                   int minFreq,
+                                   int nonAlphabet,
+                                   int windowSize,
+                                   VectorStore basicTermVectors,
+                                   String[] fieldsToIndex)
+    throws IOException, RuntimeException {
+
     this.minFreq = minFreq;
     this.nonAlphabet = nonAlphabet;
     this.fieldsToIndex = fieldsToIndex;
@@ -162,7 +213,7 @@ public class TermTermVectorsFromLucene implements VectorStore {
         continue;
       }
       tc++;
-      float[] termVector = new float[Flags.dimension];
+      float[] termVector = new float[dimension];
       // Place each term vector in the vector store.
       this.termVectors.putVector(term.text(), termVector);
       // Do the same for random index vectors unless retraining with trained term vectors
@@ -205,7 +256,7 @@ public class TermTermVectorsFromLucene implements VectorStore {
     }
 
     // If building a permutation index, these need to be written out to be reused.
-    if ((Flags.positionalmethod.equals("permutation") || (Flags.positionalmethod.equals("permutation_plus_basic") ))&& !retraining) {
+    if ((positionalmethod.equals("permutation") || (positionalmethod.equals("permutation_plus_basic") ))&& !retraining) {
       String randFile = "randomvectors.bin";
       System.err.println("\nWriting random vectors to "+randFile);
       System.err.println("\nNormalizing random vectors");
@@ -249,11 +300,11 @@ public class TermTermVectorsFromLucene implements VectorStore {
 
     // Create local random index and term vectors for relevant terms.
     if (retraining)
-      localindexvectors = new float[numwords][Flags.dimension];
+      localindexvectors = new float[numwords][dimension];
     else
       localsparseindexvectors = new short[numwords][seedLength];
 
-    float[][] localtermvectors = new float[numwords][Flags.dimension];
+    float[][] localtermvectors = new float[numwords][dimension];
 
     // Create index with one space for each position.
     short[] positions = new short[numpositions];
@@ -315,7 +366,7 @@ public class TermTermVectorsFromLucene implements VectorStore {
 	else localsparseindex = localsparseindexvectors[coterm].clone();
 	
 	//combine 'content' and 'order' information - first add the unpermuted vector
-	if (Flags.positionalmethod.equals("permutation_plus_basic"))
+	if (positionalmethod.equals("permutation_plus_basic"))
 	{
 		// docterms[coterm] contains the term in position[w] in this document.
 		if (this.indexVectors.getVector(docterms[coterm]) != null && localtermvectors[focusterm] != null) {
@@ -325,13 +376,13 @@ public class TermTermVectorsFromLucene implements VectorStore {
 		    VectorUtils.addVectors(localtermvectors[focusterm],localsparseindex,1);
 		}
 	}
-	
-	if (Flags.positionalmethod.equals("permutation") || Flags.positionalmethod.equals("permutation_plus_basic")) {
+
+	if (positionalmethod.equals("permutation") || positionalmethod.equals("permutation_plus_basic")) {
 	  int permutation = w - focusposn;
 	  if (retraining)
 	    localindex = VectorUtils.permuteVector(localindex , permutation);
 	  else localsparseindex =  VectorUtils.permuteVector(localsparseindex, permutation);
-	} else if (Flags.positionalmethod.equals("directional")) {
+	} else if (positionalmethod.equals("directional")) {
 	  if (retraining)
 	    localindex = VectorUtils.permuteVector(localindex, new Float(Math.signum(w-focusposn)).intValue());
 	  else localsparseindex = VectorUtils.permuteVector(localsparseindex, new Float(Math.signum(w-focusposn)).intValue());
