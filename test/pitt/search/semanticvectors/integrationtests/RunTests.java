@@ -40,10 +40,15 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 
+import java.util.ArrayList;
+
 import org.junit.runner.Result;
 import org.junit.runner.notification.Failure;
 
 import pitt.search.semanticvectors.*;
+
+import org.apache.lucene.demo.IndexFiles;
+import pitt.search.lucene.IndexFilePositions;
 
 /**
  * Class for running unit tests and regression tests.
@@ -118,19 +123,17 @@ public class RunTests {
     //
     // Explicitly trying to use Runtime constructs instead of (more reliable)
     // imported class APIs, in the hope that we fail faster with Runtime constructs.
-    Runtime runtime = Runtime.getRuntime();
     String testDataPath = "../John";
     File testDataDir = new File(testDataPath);
     if (!testDataDir.isDirectory()) return false;
+    ArrayList<String> args = new ArrayList<String>();
+    args.add(testDataPath);
     try {
-      Process luceneIndexer = runtime.exec("java org.apache.lucene.demo.IndexFiles " + testDataPath);
-      luceneIndexer.waitFor();
-      luceneIndexer.destroy();
+      Process luceneIndexer = TestUtils.spawnChildProcess(IndexFiles.class, args, null, null, null);
+      TestUtils.waitForAndDestroy(luceneIndexer);
 
-      Process lucenePositionsIndexer =
-        runtime.exec("java pitt.search.lucene.IndexFilePositions " + testDataPath);
-      lucenePositionsIndexer.waitFor();
-      lucenePositionsIndexer.destroy();
+      Process lucenePositionsIndexer = TestUtils.spawnChildProcess(IndexFilePositions.class, args, null, null, null);
+      TestUtils.waitForAndDestroy(lucenePositionsIndexer);
     } catch (Exception e) {
       System.err.println("Failed to prepare test Lucene index ... abandoning tests.");
       e.printStackTrace();

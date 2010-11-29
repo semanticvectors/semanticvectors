@@ -71,11 +71,14 @@ public class RegressionTests {
     assert((new File("termvectors.bin")).isFile());
     assert((new File("docvectors.bin")).isFile());
 
-    Scanner results = TestUtils.getCommandOutput("java pitt.search.semanticvectors.Search peter");
+    ArrayList<String> arguments = new ArrayList<String>();
+    arguments.add("peter");
+    Scanner results = TestUtils.getCommandOutput(pitt.search.semanticvectors.Search.class, arguments);
     // Iterate to second line and check result.
     results.next();
     String secondTerm = TestUtils.termFromResult(results.next());
     assertEquals("simon", secondTerm);
+    results.close();
   }
 
   @Test
@@ -96,8 +99,11 @@ public class RegressionTests {
 
     logger.info("Built positional index.");
 
-    Scanner results = TestUtils.getCommandOutput(
-        "java pitt.search.semanticvectors.Search -queryvectorfile termtermvectors.bin simon");
+    ArrayList<String> arguments = new ArrayList<String>();
+    arguments.add("-queryvectorfile");
+    arguments.add("termtermvectors.bin");
+    arguments.add("simon");
+    Scanner results = TestUtils.getCommandOutput(pitt.search.semanticvectors.Search.class, arguments);
     int i = 0;
     boolean foundPeter = false;
     while (i < 5) {
@@ -111,6 +117,7 @@ public class RegressionTests {
       ++i;
     }
     assertTrue(foundPeter);
+    results.close();
   }
 
   @Test
@@ -119,24 +126,38 @@ public class RegressionTests {
                       "permutation", "positional_index"};
     BuildPositionalIndex.main(args3);
 
-    Scanner results = TestUtils.getCommandOutput(
-        "java pitt.search.semanticvectors.Search " +
-        "	-searchtype permutation -queryvectorfile randomvectors.bin " +
-        "	-searchvectorfile permtermvectors.bin simon ?");
+    ArrayList<String> arguments = new ArrayList<String>();
+    arguments.add("-searchtype");
+    arguments.add("permutation");
+    arguments.add("-queryvectorfile");
+    arguments.add("randomvectors.bin");
+    arguments.add("-searchvectorfile");
+    arguments.add("permtermvectors.bin");
+    arguments.add("simon");
+    arguments.add("?");
+    Scanner results = TestUtils.getCommandOutput(pitt.search.semanticvectors.Search.class, arguments);
     // First result should be "peter".
     String firstLine = results.next();
     String firstTerm = TestUtils.termFromResult(firstLine);
     System.err.println("\tResult term is: '" + firstTerm);
     assertEquals("peter", firstTerm);
+    results.close();
 
-    Scanner results2 = TestUtils.getCommandOutput(
-        "java pitt.search.semanticvectors.Search " +
-        "	-searchtype balanced_permutation -queryvectorfile randomvectors.bin " +
-        "	-searchvectorfile permtermvectors.bin simon ?");
+    arguments.clear();
+    arguments.add("-searchtype");
+    arguments.add("balanced_permutation");
+    arguments.add("-queryvectorfile");
+    arguments.add("randomvectors.bin");
+    arguments.add("-searchvectorfile");
+    arguments.add("permtermvectors.bin");
+    arguments.add("simon");
+    arguments.add("?");
+    Scanner results2 = TestUtils.getCommandOutput(pitt.search.semanticvectors.Search.class, arguments);
     // First result should be "peter".
     String firstLine2 = results2.next();
     String firstTerm2 = TestUtils.termFromResult(firstLine2);
     System.err.println("\tResult term is: '" + firstTerm2 + "'");
     assertEquals("peter", firstTerm2);
+    results2.close();
   }
 }
