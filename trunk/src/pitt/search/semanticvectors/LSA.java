@@ -228,7 +228,6 @@ public class LSA {
                                           + " arguments, instead of the expected 1."));
     }
 
-    System.err.println("Seedlength = " + Flags.seedlength);
     System.err.println("Dimension = " + Flags.dimension);
     System.err.println("Minimum frequency = " + Flags.minfrequency);
     System.err.println("Maximum frequency = " + Flags.maxfrequency);
