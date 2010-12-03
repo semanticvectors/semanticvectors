@@ -1,3 +1,3 @@
 #summary Javadoc redirect.
 
-See http://semanticvectors.googlecode.com/svn/trunk/doc/pitt/search/semanticvectors/ClusterResults.html
+See http://semanticvectors.googlecode.com/svn/javadoc/latest-stable/pitt/search/semanticvectors/ClusterResults.html
