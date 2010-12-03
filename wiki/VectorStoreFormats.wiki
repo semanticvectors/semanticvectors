@@ -6,19 +6,19 @@ As of version 1.6, the SemanticVectors package has the option of storing vectors
 
 === Optimized Lucene Format ===
 
-Created by the [http://semanticvectors.googlecode.com/svn/trunk/doc/pitt/search/semanticvectors/VectorStoreWriter.html VectorStoreWriter] class, this is the default used by the SemanticVectors package. Lucene's I/O routines are very fast, and the indexes are quite small (e.g., the termvectors.bin index for the King James Bible corpus is ~2.8M).
+Created by the [http://semanticvectors.googlecode.com/svn/javadoc/latest-stable/pitt/search/semanticvectors/VectorStoreWriter.html VectorStoreWriter] class, this is the default used by the SemanticVectors package. Lucene's I/O routines are very fast, and the indexes are quite small (e.g., the termvectors.bin index for the King James Bible corpus is ~2.8M).
 
-The format is read by the [http://semanticvectors.googlecode.com/svn/trunk/doc/pitt/search/semanticvectors/VectorStoreReader.html VectorStoreReader] class
+The format is read by the [http://semanticvectors.googlecode.com/svn/javadoc/latest-stable/pitt/search/semanticvectors/VectorStoreReader.html VectorStoreReader] class
 
 === Plain Text Format ===
 
-Also created by the [http://semanticvectors.googlecode.com/svn/trunk/doc/pitt/search/semanticvectors/VectorStoreWriter.html VectorStoreWriter] class, this was implemented mainly to enable vector stores to be input from and output to a plain text format for exchanging data with other environments (e.g., sending SemanticVectors data out for analysis in Matlab).
+Also created by the [http://semanticvectors.googlecode.com/svn/javadoc/latest-stable/pitt/search/semanticvectors/VectorStoreWriter.html VectorStoreWriter] class, this was implemented mainly to enable vector stores to be input from and output to a plain text format for exchanging data with other environments (e.g., sending SemanticVectors data out for analysis in Matlab).
 
 Each vector is output on a single line, of the form
 `string_object_name|num_1|num_2|...|num_n`
 where `n` is the number of dimensions stored in `ObjectVector.vecLength`.
 
-The plain text indexes are bigger (e.g., the index for the bible termvectors is ~6.7M) and noticeably slower for searching. Nonetheless, they are read using the [http://semanticvectors.googlecode.com/svn/trunk/doc/pitt/search/semanticvectors/VectorStoreReaderText.html VectorStoreReaderText] class which implements the [http://semanticvectors.googlecode.com/svn/trunk/doc/pitt/search/semanticvectors/VectorStore.html VectorStore] interface, so they can be used just like the optimized Lucene indexes.
+The plain text indexes are bigger (e.g., the index for the bible termvectors is ~6.7M) and noticeably slower for searching. Nonetheless, they are read using the [http://semanticvectors.googlecode.com/svn/javadoc/latest-stable/pitt/search/semanticvectors/VectorStoreReaderText.html VectorStoreReaderText] class which implements the [http://semanticvectors.googlecode.com/svn/javadoc/latest-stable/pitt/search/semanticvectors/VectorStore.html VectorStore] interface, so they can be used just like the optimized Lucene indexes.
 However, if you care about space and time, you'll probably want to translate such indexes using the translation tool described below.
 
 === Header Information ===
@@ -31,7 +31,7 @@ When reading a vector store, SemanticVectors will look for such a header, but if
 
 === Translating Between Formats ===
 
-SemanticVectors version 1.6 shipped with a [http://semanticvectors.googlecode.com/svn/trunk/doc/pitt/search/semanticvectors/VectorStoreTranslater.html VectorStoreTranslater] which enables users to translate between the two formats above.
+SemanticVectors version 1.6 shipped with a [http://semanticvectors.googlecode.com/svn/javadoc/latest-stable/pitt/search/semanticvectors/VectorStoreTranslater.html VectorStoreTranslater] which enables users to translate between the two formats above.
 This is invoked with the command
 `java pitt.search.semanticvectors.VectorStoreTranslater -OPTION infile outfile`
 where -OPTION is currently one of `-lucenetotext` and `texttolucene`.
