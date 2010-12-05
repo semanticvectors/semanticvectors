@@ -68,6 +68,7 @@ public class VectorStoreRAM implements VectorStore {
   public void InitFromFile (String vectorFile) throws IOException {
     VectorStoreReaderLucene vectorReaderDisk = new VectorStoreReaderLucene(vectorFile);
     Enumeration<ObjectVector> vectorEnumeration = vectorReaderDisk.getAllVectors();
+    vectorReaderDisk.close();
 		
     logger.fine("Reading vectors from store on disk into memory cache  ...");
     while (vectorEnumeration.hasMoreElements()) {
