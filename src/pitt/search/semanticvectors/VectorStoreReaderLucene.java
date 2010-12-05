@@ -115,6 +115,15 @@ public class VectorStoreReaderLucene implements CloseableVectorStore {
     this.fsDirectory.close();
   }
 
+  public void closeIndexInput() {
+    try {
+      this.getIndexInput().close();
+    } catch (IOException e) {
+      System.err.println("Cannot close resources from file: " + this.vectorFile
+                         + "\n" + e.getMessage());
+    }
+  }
+
   public Enumeration getAllVectors() {
     try {
       getIndexInput().seek(0);
