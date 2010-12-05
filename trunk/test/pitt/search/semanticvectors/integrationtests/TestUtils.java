@@ -25,7 +25,7 @@ public class TestUtils {
 		try {
 			Runtime runtime = Runtime.getRuntime();
 			Process process = runtime.exec(command);
-			Scanner output = new Scanner(process.getInputStream()).useDelimiter("\\n");
+			Scanner output = new Scanner(process.getInputStream()).useDelimiter(System.getProperty("line.separator"));
 			process.waitFor();
 			return output;
 		}
@@ -42,7 +42,7 @@ public class TestUtils {
 		OutputScanner outputScanner = new OutputScanner();
 		OutputStream outputStream = outputScanner.getOutputStream();
 		Scanner scan = outputScanner.getScanner();
-		scan.useDelimiter("\\n");
+		scan.useDelimiter(System.getProperty("line.separator"));
 		try {
 			Process p = spawnChildProcess(childMain, args, null, outputStream, null);
 			waitForAndDestroy(p);
