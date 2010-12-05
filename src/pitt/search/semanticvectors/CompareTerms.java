@@ -123,6 +123,7 @@ public class CompareTerms{
       float[] vec2 = CompoundVectorBuilder.getQueryVectorFromString(vecReader,
                                                                     luceneUtils,
                                                                     args[1]);
+      vecReader.close();
       float simScore = VectorUtils.scalarProduct(vec1, vec2);
       // Printing prompt to stderr and score to stdout, this should enable
       // easier batch scripting to combine input and output data.

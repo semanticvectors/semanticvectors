@@ -171,7 +171,9 @@ public class CompareTermsBatch{
         float[] vec2 = CompoundVectorBuilder.getQueryVectorFromString(vecReader,
                                                                     luceneUtils,
                                                                     elems[1]);
-
+        if (vecReader instanceof VectorStoreReaderLucene) {
+          ((VectorStoreReaderLucene)vecReader).close();
+        }
         float simScore = VectorUtils.scalarProduct(vec1, vec2);
         System.err.println("score=" + simScore);
       // Printing prompt to stderr and score to stdout, this should enable
