@@ -59,6 +59,7 @@ public class VectorStoreReaderLuceneTest {
       VectorStoreReaderLucene reader = new VectorStoreReaderLucene(RunTests.vectorBinFile);
       assertEquals(2, reader.getNumVectors());
       float[] abraham = reader.getVector("abraham");
+      reader.close();
       assertEquals(1.0f, abraham[0], 0.01);
     } catch (IOException e) {
       // Not sure if there is a better way to test for exceptions ...
@@ -87,6 +88,8 @@ public class VectorStoreReaderLuceneTest {
       VectorStoreReaderLucene reader = new VectorStoreReaderLucene(RunTests.vectorBinFile);
       @SuppressWarnings("unused")
       VectorStoreReaderLucene reader2 = new VectorStoreReaderLucene(RunTests.vectorBinFile);
+      reader.close();
+      reader2.close();
     } catch (IOException e) {
       // Not sure if there is a better way to test for exceptions ...
       fail();
@@ -130,6 +133,7 @@ public class VectorStoreReaderLuceneTest {
                 fail("There is a problem with concurrent reads from a VectorStore");
               }
             }
+            vectorStore.closeIndexInput();
           }
         }
         );
@@ -145,5 +149,6 @@ public class VectorStoreReaderLuceneTest {
         fail();
       }
     }
+    vectorStoreInit.close();
   }
 }
