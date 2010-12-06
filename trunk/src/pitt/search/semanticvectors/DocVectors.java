@@ -179,7 +179,7 @@ public class DocVectors implements VectorStore {
     return this.docVectors.getVector(id);
   }
 
-  public Enumeration getAllVectors() {
+  public Enumeration<ObjectVector> getAllVectors() {
     return this.docVectors.getAllVectors();
   }
 

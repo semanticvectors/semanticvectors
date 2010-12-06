@@ -63,7 +63,7 @@ import org.apache.lucene.util.Version;
 public class LuceneUtils{
   private IndexReader indexReader;
   private Hashtable<Term, Float> termEntropy = new Hashtable<Term, Float>();
-  private TreeSet stopwords = null;
+  private TreeSet<String> stopwords = null;
   
   /**
    * @param path - path to lucene index

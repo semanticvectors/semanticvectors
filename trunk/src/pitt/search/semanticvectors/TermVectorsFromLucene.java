@@ -89,7 +89,7 @@ public class TermVectorsFromLucene implements VectorStore {
     return termVectors.get(term).getVector();
   }
 
-  public Enumeration getAllVectors() {
+  public Enumeration<ObjectVector> getAllVectors() {
     return termVectors.elements();
   }
 
