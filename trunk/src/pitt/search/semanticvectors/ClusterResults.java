@@ -55,7 +55,12 @@ public class ClusterResults {
 
     // Initialize cluster mappings randomly.
     for (int i = 0; i < objectVectors.length; ++i) {
-      clusterMappings[i] = Math.abs(rand.nextInt()) % numClusters;
+      int randInt = rand.nextInt();
+      while (randInt == Integer.MIN_VALUE) {
+        //fix strange result where abs(MIN_VALUE) returns a negative number
+        randInt = rand.nextInt();
+      }
+      clusterMappings[i] = Math.abs(randInt) % numClusters;
     }
 
     System.out.println("Iterating k-means assignment ...");

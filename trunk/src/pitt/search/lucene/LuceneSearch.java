@@ -128,7 +128,7 @@ public class LuceneSearch {
       }
     }
 
-    if ((startIndex + maxPage) > hits.totalHits) {
+    if (hits != null && (startIndex + maxPage) > hits.totalHits) {
       thisPage = hits.totalHits - startIndex;   // set the max index to maxPage or last
     }                                           // actual search result whichever is less
 
