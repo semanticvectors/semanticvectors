@@ -84,7 +84,7 @@ public class VectorStoreRAM implements VectorStore {
     this.objectVectors.put(key, objectVector);
   }
 
-  public Enumeration getAllVectors() {
+  public Enumeration<ObjectVector> getAllVectors() {
     return this.objectVectors.elements();
   }
 

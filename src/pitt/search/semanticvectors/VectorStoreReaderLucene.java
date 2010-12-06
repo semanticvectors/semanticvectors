@@ -124,7 +124,7 @@ public class VectorStoreReaderLucene implements CloseableVectorStore {
     }
   }
 
-  public Enumeration getAllVectors() {
+  public Enumeration<ObjectVector> getAllVectors() {
     try {
       getIndexInput().seek(0);
       if (hasHeader) {
@@ -188,7 +188,7 @@ public class VectorStoreReaderLucene implements CloseableVectorStore {
    * Implements the hasMoreElements() and nextElement() methods
    * to give Enumeration interface from store on disk.
    */
-  public class VectorEnumeration implements Enumeration {
+  public class VectorEnumeration implements Enumeration<ObjectVector> {
     IndexInput indexInput;
 
     public VectorEnumeration (IndexInput indexInput) {

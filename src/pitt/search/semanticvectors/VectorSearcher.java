@@ -569,8 +569,8 @@ abstract public class VectorSearcher{
      * @param numResults the number of results / length of the result list.
      */
 
-    public LinkedList getNearestNeighbors(int numResults) {
-      LinkedList<SearchResult> results = new LinkedList();
+    public LinkedList<SearchResult> getNearestNeighbors(int numResults) {
+      LinkedList<SearchResult> results = new LinkedList<SearchResult>();
       float score,score1, score2, threshold = -1;
 
       Enumeration<ObjectVector> vecEnum  = searchVecStore.getAllVectors();

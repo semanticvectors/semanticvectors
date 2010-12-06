@@ -116,7 +116,7 @@ public class VectorStoreSparseRAM implements VectorStore {
    * Implements the hasMoreElements() and nextElement() methods
    * to give Enumeration interface from sparse vector store.
    */
-  public class SparseVectorEnumeration implements Enumeration {
+  public class SparseVectorEnumeration implements Enumeration<ObjectVector> {
 		VectorStoreSparseRAM sparseVectorStore;
 		Enumeration keys;
 

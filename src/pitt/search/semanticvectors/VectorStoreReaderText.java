@@ -102,7 +102,7 @@ public class VectorStoreReaderText implements CloseableVectorStore {
     }
   }
 
-  public Enumeration getAllVectors() {
+  public Enumeration<ObjectVector> getAllVectors() {
     try{
       this.inBuf = new BufferedReader(new FileReader (vectorFileText));
       if (hasHeader) {
@@ -177,7 +177,7 @@ public class VectorStoreReaderText implements CloseableVectorStore {
    * Implements the hasMoreElements() and nextElement() methods
    * to give Enumeration interface from store in VectorTextFile.
    */
-  public class VectorEnumerationText implements Enumeration {
+  public class VectorEnumerationText implements Enumeration<ObjectVector> {
     BufferedReader inBuf;
 
     public VectorEnumerationText(BufferedReader inBuf) {
