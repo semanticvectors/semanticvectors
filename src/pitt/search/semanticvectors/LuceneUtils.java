@@ -64,7 +64,7 @@ public class LuceneUtils{
   private IndexReader indexReader;
   private Hashtable<Term, Float> termEntropy = new Hashtable<Term, Float>();
   private TreeSet<String> stopwords = null;
-  
+
   /**
    * @param path - path to lucene index
    */
@@ -73,14 +73,14 @@ public class LuceneUtils{
     if (Flags.stoplistfile.length() > 0)
     	loadStopWords(Flags.stoplistfile);
   }
-  
-  
+
+
   /**
-   * Loads the stopword file into memory 
+   * Loads the stopword file into memory
    * @param stoppath - path to stopword file
    * @throws IOException
    */
-  
+
   public void loadStopWords(String stoppath) throws IOException
   {  System.err.println("Using stopword file: "+stoppath);
 	  stopwords = new TreeSet<String>();
@@ -90,25 +90,19 @@ public class LuceneUtils{
   while (in != null)
   {stopwords.add(in);
   in = readIn.readLine();
-  }	
   }
-  catch (IOException e) 
+  }
+  catch (IOException e)
   {throw new IOException("Couldn't open file "+stoppath);}
   }
 
   /**
-   * Test if term is in stoplist (returns false if no stoplist)
-   * @param x
-   * @return
+   * Returns true if term is in stoplist (returns false if no stoplist)
    */
-  
-
-  public boolean stoplistContains(String x)
-  {	
-	  if (stopwords == null) return false;
-  	return stopwords.contains(x);}
-  	
-  
+  public boolean stoplistContains(String x) {
+    if (stopwords == null) return false;
+    return stopwords.contains(x);
+  }
 
   /**
    * Gets the global term frequency of a term,
@@ -213,19 +207,14 @@ public class LuceneUtils{
    * Filters out non-alphabetic terms and those of low frequency
    * @param term - Term to be filtered.
    * @param desiredFields - Terms in only these fields are filtered in
-   * @param nonAlphabet - number of allowed non-alphabetic characters in the term
-   *                      -1 if we want no character filtering
-   * @param minFreq - min global frequency allowed
    * Thanks to Vidya Vasuki for refactoring and bug repair
    */
   protected boolean termFilter (Term term, String[] desiredFields)
       throws IOException {
+    int nonAlphabet = Flags.maxnonalphabetchars;
+    int minFreq = Flags.minfrequency;
+    int maxFreq = Flags.maxfrequency;
 
-	  int nonAlphabet = Flags.maxnonalphabetchars;
-	  int minFreq = Flags.minfrequency;
-	  int maxFreq = Flags.maxfrequency;
-	  
-	  
     // Field filter.
     boolean isDesiredField = false;
     for (int i = 0; i < desiredFields.length; ++i) {
@@ -233,11 +222,11 @@ public class LuceneUtils{
         isDesiredField = true;
       }
     }
-    
-    // Stoplist (if active) 
+
+    // Stoplist (if active)
     if (stoplistContains(term.text()))
     	return false;
-    
+
     if (!isDesiredField) {
       return false;
     }
@@ -272,7 +261,7 @@ public class LuceneUtils{
    * Otherwise exceptions can occur if document id's are greater
    * than indexReader.numDocs().
    */
-  static void CompressIndex(String indexDir) 
+  static void CompressIndex(String indexDir)
     throws IOException, CorruptIndexException {
     try {
       IndexWriter compressor = new IndexWriter(FSDirectory.open(new File(indexDir)),

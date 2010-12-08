@@ -18,6 +18,9 @@
   <property file="build.properties" />
 
   <property environment="env"/>
+  <condition property="envclasspath" value="${env.CLASSPATH}" else=".">
+    <isset property="env.CLASSPATH"/>
+  </condition>
   <condition property="libdir" value="${env.SEMVEC_LIBDIR}">
     <isset property="env.SEMVEC_LIBDIR"/>
   </condition>
@@ -40,7 +43,7 @@
     <fileset dir="${libdir}">
       <include name="*.jar" />
     </fileset>
-    
+    <pathelement path="${envclasspath}"/>
   </path>
 
   <target name="init">
