@@ -54,6 +54,7 @@
     <javac srcdir="./thirdparty"
            destdir="${buildclassesdir}"
            debug="on"
+           classpathref="compile.classpath"
            includeantruntime="false"
            />
   </target>
@@ -129,6 +130,7 @@
     <javac srcdir="${testdir}"
            destdir="${buildclassesdir}"
            debug="on"
+           classpathref="compile.classpath"
            includeantruntime="false"
            />
   </target>
@@ -163,6 +165,7 @@
     <javac srcdir="${extdir}"
            destdir="${buildclassesdir}"
            debug="on"
+           classpathref="compile.classpath"
            includeantruntime="false"
            />
   </target>
