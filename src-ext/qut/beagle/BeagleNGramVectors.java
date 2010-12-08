@@ -385,7 +385,7 @@ public class BeagleNGramVectors implements VectorStore
     return termVectors.getVector(term);
   }
 
-  public Enumeration getAllVectors() {
+  public Enumeration<ObjectVector> getAllVectors() {
     return termVectors.getAllVectors();
   }
 
