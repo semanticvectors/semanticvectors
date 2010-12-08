@@ -41,6 +41,8 @@ public class BeagleTest
 			// Create VectorSearcher and search for nearest neighbors.
 			vs = new BeagleVectorSearcher( queryVecReader, searchVecReader, lUtils, queryTerms);
 			System.err.print("Searching term vectors, searchtype BEAGLE ... ");
+			queryVecReader.close();
+			searchVecReader.close();
 
 			results = vs.getNearestNeighbors(numResults);
 

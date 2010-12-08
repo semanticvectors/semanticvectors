@@ -155,23 +155,19 @@ public class ClusterVectorStore {
 
     // Figure out how many vectors we need.
     System.err.println("Counting vectors in store ...");
-    Enumeration<ObjectVector> vecEnum = vecReader.getAllVectors();
-    int numVectors = 0;
-    while (vecEnum.hasMoreElements()) {
-      vecEnum.nextElement();
-      ++numVectors;
-    }
+    int numVectors = vecReader.getNumVectors();
 
     // Allocate vector memory and read vectors from store.
     System.err.println("Reading vectors into memory ...");
     ObjectVector[] resultsVectors = new ObjectVector[numVectors];
-    vecEnum = vecReader.getAllVectors();
+    Enumeration<ObjectVector> vecEnum = vecReader.getAllVectors();
     int offset = 0;
     while (vecEnum.hasMoreElements()) {
       resultsVectors[offset] = vecEnum.nextElement();
       // VectorUtils.printVector(resultsVectors[offset].getVector());
       ++offset;
     }
+    vecReader.close();
 
     // Peform clustering and print out results.
     System.err.println("Clustering vectors ...");
