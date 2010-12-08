@@ -63,13 +63,11 @@ import java.util.NoSuchElementException;
 public class VectorStoreReaderText implements CloseableVectorStore {
   private String vectorFileText;
   private boolean hasHeader;
-  private FileReader fileReader;
   private BufferedReader inBuf;
 
   public VectorStoreReaderText (String vectorFileText) throws IOException {
     this.vectorFileText = vectorFileText;
-    this.fileReader = new FileReader(vectorFileText);
-    this.inBuf = new BufferedReader(this.fileReader);
+    this.inBuf = new BufferedReader(new FileReader(vectorFileText));
     try {
       // Read number of dimensions from header information.
       String firstLine = inBuf.readLine();
@@ -94,8 +92,7 @@ public class VectorStoreReaderText implements CloseableVectorStore {
 
   public void close() {
     try {
-      this.inBuf.close();
-      this.fileReader.close();
+      this.inBuf.close(); //closes underlying filereader too
     } catch (IOException e) {
       System.out.println("Cannot close resources from file: " + this.vectorFileText
                          + "\n" + e.getMessage());
@@ -103,16 +100,20 @@ public class VectorStoreReaderText implements CloseableVectorStore {
   }
 
   public Enumeration<ObjectVector> getAllVectors() {
+    //create new buffered reader to guarantee that it closes properly
+    BufferedReader vecBuf;
     try{
-      this.inBuf = new BufferedReader(new FileReader (vectorFileText));
+      vecBuf = new BufferedReader(new FileReader (vectorFileText));
       if (hasHeader) {
-        inBuf.readLine();
+        vecBuf.readLine();
       }
     }
     catch (IOException e) {
+      //empty, nextElement will always return false
+      vecBuf = new BufferedReader(new StringReader(""));
       e.printStackTrace();
     }
-    return new VectorEnumerationText(this.inBuf);
+    return new VectorEnumerationText(vecBuf);
   }
 
   /**
@@ -140,6 +141,7 @@ public class VectorStoreReaderText implements CloseableVectorStore {
   public float[] getVector(Object desiredObject) {
     System.err.print("Seeking vector for ... " + desiredObject + " ... ");
     try {
+      this.close();
       inBuf = new BufferedReader(new FileReader (vectorFileText));
       if (this.hasHeader) {
         inBuf.readLine();
@@ -178,10 +180,10 @@ public class VectorStoreReaderText implements CloseableVectorStore {
    * to give Enumeration interface from store in VectorTextFile.
    */
   public class VectorEnumerationText implements Enumeration<ObjectVector> {
-    BufferedReader inBuf;
+    BufferedReader vecBuf;
 
-    public VectorEnumerationText(BufferedReader inBuf) {
-      this.inBuf = inBuf;
+    public VectorEnumerationText(BufferedReader vecBuf) {
+      this.vecBuf = vecBuf;
     }
 
     /**
@@ -191,12 +193,13 @@ public class VectorStoreReaderText implements CloseableVectorStore {
     public boolean hasMoreElements() {
       try {
         char[] cbuf = new char[1];
-        inBuf.mark(10);
-        if (inBuf.read(cbuf, 0, 1) != -1) {
-          inBuf.reset();
+        vecBuf.mark(10);
+        if (vecBuf.read(cbuf, 0, 1) != -1) {
+          vecBuf.reset();
           return true;
         }
         else {
+          vecBuf.close();
           return false;
         }
       }
@@ -212,7 +215,7 @@ public class VectorStoreReaderText implements CloseableVectorStore {
      */
     public ObjectVector nextElement() throws NoSuchElementException {
       try {
-        return parseVectorLine(inBuf.readLine());
+        return parseVectorLine(vecBuf.readLine());
       }
       catch (IOException e) {
         e.printStackTrace();
