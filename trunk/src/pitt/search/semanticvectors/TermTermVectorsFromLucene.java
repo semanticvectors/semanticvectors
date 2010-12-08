@@ -71,7 +71,7 @@ public class TermTermVectorsFromLucene implements VectorStore {
   private short[][] localsparseindexvectors;
   private LuceneUtils lUtils;
   private int nonAlphabet;
-  
+
   private int dimension;
   private String positionalmethod;
 
@@ -114,7 +114,7 @@ public class TermTermVectorsFromLucene implements VectorStore {
    * @param basicTermVectors
    * @param fieldsToIndex These fields will be indexed.
    * @throws IOException
-   * @throws RuntimeException 
+   * @throws RuntimeException
    * @deprecated use the constructor that explicitly specifies all needed
    * values from Flags.
    */
@@ -134,18 +134,17 @@ public class TermTermVectorsFromLucene implements VectorStore {
   /**
    * This constructor uses only the values passed, no parameters from Flag.
    * @param indexDir Directory containing Lucene index.
-   * @dimension number of dimensions to use for the vectors
-   * @param dimension
+   * @param dimension number of dimensions to use for the vectors
    * @param seedLength Number of +1 or -1 entries in basic
    * vectors. Should be even to give same number of each.
    * @param minFreq The minimum term frequency for a term to be indexed.
-   * @param nonAlphabet 
+   * @param nonAlphabet
    * @param windowSize The size of the sliding context window.
-   * @param positionalmethod 
-   * @param basicTermVectors 
+   * @param positionalmethod
+   * @param basicTermVectors
    * @param fieldsToIndex These fields will be indexed.
    * @throws IOException
-   * @throws RuntimeException 
+   * @throws RuntimeException
    */
   public TermTermVectorsFromLucene(String indexDir,
                                    int dimension,
@@ -190,7 +189,7 @@ public class TermTermVectorsFromLucene implements VectorStore {
     lUtils = new LuceneUtils(indexDir);
 
     // If basicTermVectors was passed in, set state accordingly.
-    if (basicTermVectors != null) { 
+    if (basicTermVectors != null) {
       retraining = true;
       this.indexVectors = basicTermVectors;
       System.out.println("Reusing basic term vectors; number of terms: "
@@ -201,7 +200,7 @@ public class TermTermVectorsFromLucene implements VectorStore {
     Random random = new Random();
     this.termVectors = new VectorStoreRAM();
 
-    // Iterate through an enumeration of terms and allocate termVector memory. 
+    // Iterate through an enumeration of terms and allocate termVector memory.
     // If not retraining, create random elemental vectors as well.
     System.err.println("Creating basic term vectors ...");
     TermEnum terms = this.indexReader.terms();
@@ -231,20 +230,20 @@ public class TermTermVectorsFromLucene implements VectorStore {
     	 if ((dc % 10000 == 0) || (dc < 10000 && dc % 1000 == 0)) {
         System.err.print(dc + " ... ");
       }
-    
+
     	 try {
-    	 
+
       for (String field: fieldsToIndex) {
 	TermPositionVector vex = (TermPositionVector) indexReader.getTermFreqVector(dc, field);
 	if (vex != null) processTermPositionVector(vex);
       }
-    	 } 		
+    	 }
     	catch (Exception e)
     	{
     		System.err.println("\nFailed to process document "+indexReader.document(dc).get("path")+"\n");
     	}
     }
-    	
+
     System.err.println("\nCreated " + termVectors.getNumVectors() + " term vectors ...");
     System.err.println("\nNormalizing term vectors");
     Enumeration e = termVectors.getAllVectors();
@@ -364,7 +363,7 @@ public class TermTermVectorsFromLucene implements VectorStore {
 	short[] localsparseindex = new short[0];
 	if (retraining) localindex = localindexvectors[coterm].clone();
 	else localsparseindex = localsparseindexvectors[coterm].clone();
-	
+
 	//combine 'content' and 'order' information - first add the unpermuted vector
 	if (positionalmethod.equals("permutation_plus_basic"))
 	{
