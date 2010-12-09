@@ -54,12 +54,13 @@ import java.util.Enumeration;
  * @param vectorFile Filename for the document vectors
  * @author Trevor Cohen, Dominic Widdows
  */
-public class IncrementalTermVectors {
+public class IncrementalTermVectors implements VectorStore {
   private VectorStoreRAM termVectorData;
   private IndexReader indexReader;
   private String[] fieldsToIndex = null;
   private static LuceneUtils lUtils = null;
-
+  private int dimension;
+  
   /**
    * Constructor that gets everything it needs from a
    * TermVectorsFromLucene object and writes to a named file.
@@ -67,14 +68,16 @@ public class IncrementalTermVectors {
    * @param fieldsToIndex String[] containing fields indexed when generating termVectorData
    * @param vectorFileName Filename for the document vectors
    */
-  public IncrementalTermVectors(String indexDir,
+  public IncrementalTermVectors(String indexDir, int dimension, 
                                 String[] fieldsToIndex, String vectorFileName)
       throws IOException {
     this.indexReader = IndexReader.open(FSDirectory.open(new File(indexDir)));
     this.fieldsToIndex = fieldsToIndex;
+    this.dimension = dimension;
     if (this.lUtils == null)
       this.lUtils = new LuceneUtils(indexDir);
 
+    
     int numdocs = indexReader.numDocs();
 
     // Open file and write headers.
@@ -84,7 +87,7 @@ public class IncrementalTermVectors {
     FSDirectory fsDirectory = FSDirectory.open(new File(parentPath));
     IndexInput inputStream = fsDirectory.openInput(vectorFileName.replaceAll(".*/", ""));
 
-    float[] tmpVector = new float[Flags.dimension];
+    float[] tmpVector = new float[dimension];
     int counter = 0;
     System.err.println("Read vectors incrementally from file " + vectorFile);
 
@@ -94,7 +97,7 @@ public class IncrementalTermVectors {
     String test = inputStream.readString();
     // Include "-" character to avoid unlikely case that first term is "dimensions"!
     if ((test.equalsIgnoreCase("-dimensions"))) {
-      Flags.dimension = inputStream.readInt();
+      dimension = inputStream.readInt();
     }
     else {
       System.err.println("No file header for file " + vectorFile +
@@ -120,7 +123,7 @@ public class IncrementalTermVectors {
       if (!lUtils.termFilter(terms.term(), fieldsToIndex))
         continue;
       tc++;
-      float[] termVector = new float[Flags.dimension];
+      float[] termVector = new float[dimension];
 
       // Place each term vector in the vector store.
       termVectorData.putVector(term.text(), termVector);
@@ -137,11 +140,11 @@ public class IncrementalTermVectors {
       String docID = Integer.toString(dc);
       int dcount = dc;
       String docName = "";
-      float[] docVector = new float[Flags.dimension];
+      float[] docVector = new float[dimension];
 
       try {
         docName = inputStream.readString();
-        for (int i = 0; i < Flags.dimension; ++i) {
+        for (int i = 0; i < dimension; ++i) {
           docVector[i] = Float.intBitsToFloat(inputStream.readInt());
         }
 
@@ -177,7 +180,7 @@ public class IncrementalTermVectors {
             }
             // Exclude terms that are not represented in termVectorData
             if (termVector != null && termVector.length > 0) {
-              for (int j = 0; j < Flags.dimension; ++j) {
+              for (int j = 0; j < dimension; ++j) {
                 termVector[j] += freq * docVector[j];
               }
             }
@@ -192,15 +195,30 @@ public class IncrementalTermVectors {
     int k=0;
     while (allVectors.hasMoreElements())
     {ObjectVector obVec = (ObjectVector) allVectors.nextElement();
-      float[] termVector = obVec.getVector();
+      float[] termVector = obVec.getVector();  
       termVector = VectorUtils.getNormalizedVector(termVector);
+      obVec.setVector(termVector);
+
     }
 
-    new VectorStoreWriter().WriteVectors("incremental_termvectors.bin", termVectorData);
-
+    
     inputStream.close();
     indexReader.close();
   }
+  
+  // Basic VectorStore interface methods implemented through termVectors.
+  public float[] getVector(Object term) {
+    return termVectorData.getVector(term);
+  }
+
+  public Enumeration<ObjectVector> getAllVectors() {
+    return termVectorData.getAllVectors();
+  }
+
+  public int getNumVectors() {
+    return termVectorData.getNumVectors();
+  }
+  
 
   /**
    * Prints the following usage message:
@@ -264,6 +282,9 @@ public class IncrementalTermVectors {
     String vectorFile = args[0];
     String luceneIndex = args[1];
 
-    new IncrementalTermVectors(luceneIndex, Flags.contentsfields, vectorFile);
+    VectorStore termVectors =
+    new IncrementalTermVectors(luceneIndex, Flags.dimension, Flags.contentsfields, vectorFile);
+    new VectorStoreWriter().WriteVectors("incremental_termvectors.bin", termVectors);
+
   }
 }
