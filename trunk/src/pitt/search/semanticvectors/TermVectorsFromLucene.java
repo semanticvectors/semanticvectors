@@ -339,7 +339,6 @@ public class TermVectorsFromLucene implements VectorStore {
       System.err.println("Using semantic term vectors from file " + initialtermvectors);
       VectorStoreReaderLucene inputReader = new VectorStoreReaderLucene(initialtermvectors);
       Enumeration<ObjectVector> termEnumeration = inputReader.getAllVectors();
-      inputReader.close();
       int count = 0;
 
       while (termEnumeration.hasMoreElements()) {
@@ -348,6 +347,7 @@ public class TermVectorsFromLucene implements VectorStore {
         this.termVectors.put(term, next);
         count++;
       }
+      inputReader.close();
       System.err.println("Read in "+count+" vectors");
     }
   }
