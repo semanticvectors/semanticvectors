@@ -69,8 +69,12 @@ public class DocVectors implements VectorStore {
     this.termVectorData = termVectorData;
     this.indexReader = termVectorData.getIndexReader();
     this.docVectors = new VectorStoreRAM();
-    if (this.lUtils == null)
-    this.lUtils = new LuceneUtils(termVectorData.getIndexReader().directory().toString().replaceAll(".*@",""));
+    if (this.lUtils == null) {
+      String indexReaderDir = termVectorData.getIndexReader().directory().toString();
+      indexReaderDir = indexReaderDir.replaceAll("^[^@]+@","");
+      indexReaderDir = indexReaderDir.replaceAll(" lockFactory=.+$","");
+      this.lUtils = new LuceneUtils(indexReaderDir);
+    }
     
     // Intialize doc vector store.
     System.err.println("Initializing document vector store ...");
