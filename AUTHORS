@@ -4,6 +4,9 @@ Portions Copyright 2008 and ongoing, Arizona State University.
 Portions Copyright 2009 and ongoing, Queensland University of Technology
 Portions Copyright 2009 and ongoing, Andrew MacKinlay
 Portions Copyright 2009 and ongoing, Yevgeniy Treyvus
+Portions Copyright 2010 and ongoing, Austrian Research Institute for Artificial Intelligence
+Portions Copyright 2010 and ongoing, Tom Richmond
+
 
 SemanticVectors was first created by Dominic Widdows (MAYA Design) and
 Kathleen Ferraro (University of Pittsburgh), funded and owned by the
@@ -13,5 +16,7 @@ Subsequent SemanticVectors authors and affiliations include:
 Dominic Widdows, Google Inc.
 Trevor Cohen, Arizona State University.
 Lance De Vine, Queensland University of Technology
+Johann Petrak, Austrian Research Institute for Artificial Intelligence
+Tom Richmond
 Andrew Mackinlay
 Yevgeniy Treyvus
