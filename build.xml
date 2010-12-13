@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <!DOCTYPE project>
 <!-- 
-  To make external JARs (e.g. Lucene) available to this build, you can do any
-  of the following:
+  To make external JARs (e.g. Lucene, junit) available to this build, 
+  you can do any of the following:
   * add them to the CLASSPATH environment variable
   * set the environment variable SEMVEC_LIBDIR to the directory that
     contains them
@@ -38,6 +38,7 @@
   <property name="testdir" value="${basedir}/test"/>
   <property name="testworkingdir" value="${testdir}/testdata/tmp"/>
   <property name="extdir" value="${basedir}/src-ext"/>
+  <property name="dist-doc.dir" value="./../javadoc/latest-stable-test"/>
 
   <path id="compile.classpath">
     <fileset dir="${libdir}">
@@ -45,6 +46,11 @@
     </fileset>
     <pathelement path="${envclasspath}"/>
   </path>
+  <path id="run.classpath">
+    <path refid="compile.classpath"/>
+    <pathelement location="${builddir}/${distname}.jar"/>
+  </path>
+  
 
   <target name="init">
     <mkdir dir="${docdir}"/>
@@ -81,7 +87,7 @@
              />
   </target>
 
-  <target name="jardist" depends="init">
+  <target name="jardist" depends="compile,init">
     <jar destfile="${builddir}/${distname}.jar" 
          basedir="${buildclassesdir}"/>
   </target>
@@ -129,11 +135,11 @@
   <!-- Tests do not currently ship with standard distributions; to
        compile and run tests, check out test dir from the svn repository.
        You will also need to install junit (www.junit.org) -->
-  <target name="compile-tests" depends="compile">
+  <target name="compile-tests" depends="jardist,compile">
     <javac srcdir="${testdir}"
+           classpathref="compile.classpath"
            destdir="${buildclassesdir}"
            debug="on"
-           classpathref="compile.classpath"
            includeantruntime="false"
            />
   </target>
@@ -143,7 +149,7 @@
 	    <test name="pitt.search.semanticvectors.AllTests" />
 	    <formatter type="plain" usefile="false" />
 	    <classpath>
-	      <pathelement location="${buildclassesdir}"/>
+	      <path refid="run.classpath"/>
 	    </classpath>
 	  </junit>
 	</target>
@@ -154,6 +160,7 @@
     <delete dir="${testworkingdir}"/>
     <mkdir dir="${testworkingdir}"/>
     <java fork="true" dir="${testworkingdir}"
+          classpathref="run.classpath"
           classname="pitt.search.semanticvectors.integrationtests.RunTests"/>
     <!--
     <delete dir="${testworkingdir}"/>
