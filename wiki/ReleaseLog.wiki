@@ -3,6 +3,27 @@
 
 Even-numbered versions are releases. Odd-numbered versions are in development. It follows that the most recent code and the `build.xml` file in the SVN repository is always odd-numbered.
 
+=== Version 1.31 ===
+
+(Current development version, shortly to be released as version 1.32 or 2.0.)
+
+Updated to Lucene 3.0.3. (Fixes issue 34.)
+
+Moved javadocs to latest-stable directory.
+
+Removed lowercasing of flag-values.
+
+Fixed out-of-bounds error in BuildPositionalIndex.
+
+For the most part, using Java logging instead of printing to stderr.
+
+Several internal, procedural and testing improvements.
+- Better type safety.
+- Tests refactored into unit tests and integration tests; unit tests work in Eclipse.
+- Some better exception handling instead of crashing!
+- Removed redundant JAMA dependency.
+- Build file gives more thorough options for managing dependencies and classpaths.
+
 === Version 1.30 ===
 
 Updated to Lucene 3.0 and 3.0.1. No attempt to maintain backwards compatibility with earlier Lucene versions. (Fixes issue 18.)
