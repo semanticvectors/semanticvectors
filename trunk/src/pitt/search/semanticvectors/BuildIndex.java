@@ -154,6 +154,26 @@ public class BuildIndex {
         vecWriter.WriteVectors(termFile, vecStore);
         IncrementalDocVectors idocVectors =
             new IncrementalDocVectors(vecStore, luceneIndex, Flags.contentsfields, "incremental_"+docFile);
+        IncrementalTermVectors itermVectors = null;
+        
+        for (int i = 1; i < Flags.trainingcycles; ++i) {
+            
+        itermVectors =
+        	new IncrementalTermVectors(luceneIndex,  Flags.dimension, 
+                                Flags.contentsfields, "incremental_"+docFile);
+        
+        new VectorStoreWriter().WriteVectors("incremental_termvectors"+Flags.trainingcycles+".bin", itermVectors);
+       
+        //Write over previous cycle's docvectors until final iteration, then rename according to number cycles
+        if (i == Flags.trainingcycles-1) docFile = "docvectors"+Flags.trainingcycles+".bin";
+        
+        idocVectors =
+            new IncrementalDocVectors(itermVectors, luceneIndex, Flags.contentsfields, "incremental_"+docFile);
+       
+        
+        }
+       
+           
       } else if (Flags.docindexing.equals("inmemory")) {
         DocVectors docVectors = new DocVectors(vecStore);
         for (int i = 1; i < Flags.trainingcycles; ++i) {
