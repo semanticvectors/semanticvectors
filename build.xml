@@ -135,7 +135,7 @@
   <!-- Tests do not currently ship with standard distributions; to
        compile and run tests, check out test dir from the svn repository.
        You will also need to install junit (www.junit.org) -->
-  <target name="compile-tests" depends="jardist,compile">
+  <target name="compile-tests" depends="compile">
     <javac srcdir="${testdir}"
            classpathref="compile.classpath"
            destdir="${buildclassesdir}"
@@ -144,7 +144,7 @@
            />
   </target>
 	
-	<target name="run-unit-tests" depends="compile-tests">
+	<target name="run-unit-tests" depends="compile-tests,jardist">
 	  <junit fork="yes" haltonfailure="yes">
 	    <test name="pitt.search.semanticvectors.AllTests" />
 	    <formatter type="plain" usefile="false" />
@@ -154,7 +154,7 @@
 	  </junit>
 	</target>
 	
-  <target name="run-integration-tests" depends="compile-tests">
+  <target name="run-integration-tests" depends="compile-tests,jardist">
   	<!-- This test configuration includes some quick and dirty filesystem
       	 operations to make sure that the working dir starts and finishes empty. -->
     <delete dir="${testworkingdir}"/>
