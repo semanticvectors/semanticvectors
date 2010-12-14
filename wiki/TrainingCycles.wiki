@@ -9,4 +9,6 @@ The point of training cycles is that the output of stage 3 can be fed back into 
 
 To take advantage of this functionality, use the `-trainingcycles` option to BuildIndex, e.g., `java pitt.search.semanticvectors.BuildIndex -trainingcycles 10 <LUCENE_INDEX>`.
 
+The use of several training cycles was explored and published under the title ReflectiveRandomIndexing.
+
 So far, this option only exists for the default indexes - we haven't implemented it yet for PositionalIndexes, PermutationSearch, or BilingualModels.
