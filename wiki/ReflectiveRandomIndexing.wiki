@@ -1,0 +1,5 @@
+#summary Reflective Random Indexing - the use of several training cycles to make semantic indexes.
+
+Reflective Random Indexing (RRI) is the name given to the process of training a semantic model in several phases, starting with RandomProjection and then using several TrainingCycles.
+
+See [http://www.biomedsearch.com/nih/Reflective-Random-Indexing-indirect-inference/19761870.html Reflective Random Indexing and indirect inference: a scalable method for discovery of implicit connections]. RRI has been used to infer accurate connections between concepts that do not occur together explicitly in text - much as LSA, but at a much smaller computational cost.
