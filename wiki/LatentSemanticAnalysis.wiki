@@ -1,0 +1,9 @@
+#summary Latent Semantic Analysis.
+
+Latent Semantic Analysis, or LSA, was one of the earliest methods for compressing distributional semantic models and learning implicit semantic information in the process (see http://lsa.colorado.edu/).
+
+LSA usually refers specifically to the use of Singular Value Decomposition (SVD) to compress a term-document matrix, though the term has sometimes been used more generally to cover more types of distributional semantic methods.
+
+Traditional LSA is implemented in SemanticVectors: instead of using `java pitt.search.semanticvectors.BuildIndex`, use `java pitt.search.semanticvectors.LSA` in just the same way.
+
+For large corpora, LSA takes much more time and memory than RandomProjection.
