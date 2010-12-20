@@ -44,6 +44,7 @@
     <fileset dir="${libdir}">
       <include name="*.jar" />
     </fileset>
+    <pathelement path="${buildclassesdir}"/>
     <pathelement path="${envclasspath}"/>
   </path>
   <path id="run.classpath">
@@ -51,7 +52,6 @@
     <pathelement location="${builddir}/${distname}.jar"/>
   </path>
   
-
   <target name="init">
     <mkdir dir="${docdir}"/>
     <mkdir dir="${builddir}"/>
@@ -77,7 +77,7 @@
            />
   </target>
 
-  <target name="doc" depends="init">
+  <target name="doc" depends="init,compile">
     <javadoc sourcepath="${srcdir}"
              packagenames="pitt.search.semanticvectors,pitt.search.lucene"
              destdir="${docdir}"
