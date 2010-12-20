@@ -3,14 +3,13 @@
 package pitt.util.vectors;
 
 import pitt.search.semanticvectors.*;
-
-import Jama.Matrix;
-import Jama.SingularValueDecomposition;
+import ch.akuhn.edu.mit.tedlab.*;
 
 public class PrincipalComponents {
 	ObjectVector[] vectorInput;
-	Matrix matrix;
-	SingularValueDecomposition svd;
+	DMat matrix;
+	Svdlib svd;
+	SVDRec svdR;
 	int dimension;
 
 	public PrincipalComponents (ObjectVector[] vectorInput) {
@@ -24,20 +23,29 @@ public class PrincipalComponents {
 				vectorArray[i][j] = (double) tempVec[j];
 	    }
 		}
-		this.matrix = new Matrix(vectorArray);
-		System.err.println("Created matrix from search results ... preforming svd ...");
-		this.svd = new SingularValueDecomposition(matrix);
+		this.matrix = new DMat(vectorArray.length, vectorArray[0].length);
+		matrix.value = vectorArray;
+		
+		System.err.println("Created matrix ... performing svd ...");
+		 Svdlib svd = new Svdlib();
+
+		    System.err.println("Starting SVD using algorithm LAS2");
+
+		    svdR = svd.svdLAS2A(Svdlib.svdConvertDtoS(matrix), matrix.cols);
+		
+		
+		
 	}
 
 	// Now we have an object with the reduced matrices, plot some reduced vectors.
 	public void plotVectors() {
-		Matrix reducedVectors = this.svd.getU();
+		DMat reducedVectors = this.svdR.Ut;
 		ObjectVector[] plotVectors = new ObjectVector[vectorInput.length];
 		int truncate = 4;
 		for (int i = 0; i < vectorInput.length; i++) {
 	    float[] tempVec = new float[truncate];
 	    for (int j = 0; j < truncate; ++j) {
-				tempVec[j] = (float) reducedVectors.get(i, j);
+				tempVec[j] = (float) (reducedVectors.value[j][i]);
 	    }
 	    plotVectors[i] = new ObjectVector(vectorInput[i].getObject().toString(), tempVec);
 		}

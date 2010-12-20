@@ -39,6 +39,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.logging.Logger;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -49,6 +50,7 @@ import pitt.search.semanticvectors.Search;
 import pitt.search.semanticvectors.SearchResult;
 
 public class ThreadSafetyTest {
+  private static final Logger logger = Logger.getLogger(ThreadSafetyTest.class.getCanonicalName());
 
   @Before
   public void setUp() {
@@ -90,17 +92,16 @@ public class ThreadSafetyTest {
   // synchronized /*** Comment out and it will break. ***/
   private static void outputSuggestions(String query) throws Exception  {
     int maxResults = 10;
-    String[] args = new String[] { "-searchvectorfile", "termvectors.bin",
-        "-queryvectorfile", "termvectors.bin",
+    String[] args = new String[] { "-searchvectorfile", "testtermvectors.bin",
+        "-queryvectorfile", "testtermvectors.bin",
         "-luceneindexpath", RunTests.lucenePositionalIndexDir,
         query };
     LinkedList<SearchResult> results = Search.RunSearch(args, maxResults);
 
-    boolean verbose = false;
-    if (verbose && results.size() > 0) {
+    if (results.size() > 0) {
       for (SearchResult result: results) {
         String suggestion = ((ObjectVector)result.getObject()).getObject().toString();
-        System.out.println("query:"+query + " suggestion:" + suggestion + " score:" + result.getScore());
+        logger.finer("query:"+query + " suggestion:" + suggestion + " score:" + result.getScore());
       }
     }
   }

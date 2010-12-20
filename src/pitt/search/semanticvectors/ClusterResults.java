@@ -7,15 +7,15 @@
    modification, are permitted provided that the following conditions are
    met:
 
-   * Redistributions of source code must retain the above copyright
+ * Redistributions of source code must retain the above copyright
    notice, this list of conditions and the following disclaimer.
 
-   * Redistributions in binary form must reproduce the above
+ * Redistributions in binary form must reproduce the above
    copyright notice, this list of conditions and the following
    disclaimer in the documentation and/or other materials provided
    with the distribution.
 
-   * Neither the name of the University of Pittsburgh nor the names
+ * Neither the name of the University of Pittsburgh nor the names
    of its contributors may be used to endorse or promote products
    derived from this software without specific prior written
    permission.
@@ -31,16 +31,24 @@
    LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
    NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
    SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-**/
+ **/
 
 package pitt.search.semanticvectors;
 
 import java.util.Random;
+import java.util.logging.Logger;
 
+/**
+ * Clusters search results using a simple k-means algorithm.
+ * 
+ * @author widdows@google.com (Your Name Here)
+ */
 public class ClusterResults {
-
+  private static final Logger logger = Logger.getLogger(ClusterResults.class.getCanonicalName());
+  
   /** 
-   * Simple k-means clustering algorithm. 
+   * Simple k-means clustering algorithm.
+   * 
    * @param objectVectors Array of object vectors to be clustered.
    * @return Integer array parallel to objectVectors saying which
    * cluster each vector belongs to.
@@ -51,7 +59,7 @@ public class ClusterResults {
     int dim = objectVectors[0].getVector().length;
     float[][] centroids = new float[numClusters][dim];
 
-    System.out.println("Initializing clusters ...");
+    logger.info("Initializing clusters ...");
 
     // Initialize cluster mappings randomly.
     for (int i = 0; i < objectVectors.length; ++i) {
@@ -63,41 +71,41 @@ public class ClusterResults {
       clusterMappings[i] = Math.abs(randInt) % numClusters;
     }
 
-    System.out.println("Iterating k-means assignment ...");
+    logger.info("Iterating k-means assignment ...");
 
     // Loop that computes centroids and reassigns members.
     while (true) {
       // Clear centroid register.
       for (int i = 0; i < centroids.length; ++i) {
-	for (int j = 0; j < dim; ++j) {
-	  centroids[i][j] = 0;
-	}
+        for (int j = 0; j < dim; ++j) {
+          centroids[i][j] = 0;
+        }
       }
       // Generate new cluster centroids.
       for (int i = 0; i < objectVectors.length; ++i) {
-	for (int j = 0; j < dim; ++j) {
-	  centroids[clusterMappings[i]][j] += objectVectors[i].getVector()[j];
-	}
+        for (int j = 0; j < dim; ++j) {
+          centroids[clusterMappings[i]][j] += objectVectors[i].getVector()[j];
+        }
       }
       for (int i = 0; i < numClusters; ++i) {
-	centroids[i] = VectorUtils.getNormalizedVector(centroids[i]);
+        centroids[i] = VectorUtils.getNormalizedVector(centroids[i]);
       }
 
       boolean changeFlag = false;
       // Map items to clusters.
       for (int i = 0; i < objectVectors.length; i++) {
-	int j = VectorUtils.getNearestVector(objectVectors[i].getVector(), centroids);
-	if (j != clusterMappings[i]) {
-	  changeFlag = true;
-	  clusterMappings[i] = j;
-	}
+        int j = VectorUtils.getNearestVector(objectVectors[i].getVector(), centroids);
+        if (j != clusterMappings[i]) {
+          changeFlag = true;
+          clusterMappings[i] = j;
+        }
       }
       if (changeFlag == false) {
-	break;
+        break;
       }
     }
 
-    System.err.println("Got to stable clusters ...");
+    logger.info("Got to stable clusters ...");
     return clusterMappings;
   }
 
@@ -120,7 +128,7 @@ public class ClusterResults {
       + "\n                        -numclusters [number of clusters]"
       + "\n                        <SEARCH ARGS>"
       + "\nwhere SEARCH ARGS is an expression passed to Search class.";
-    System.out.println(usageMessage);
+    System.err.println(usageMessage);
   }
 
   /**
@@ -129,18 +137,18 @@ public class ClusterResults {
    * @param args
    * @see ClusterResults#usage
    */
-  public static void main (String[] args) throws IllegalArgumentException, ZeroVectorException {
+  public static void main (String[] args) throws IllegalArgumentException {
     args = Flags.parseCommandLineFlags(args);
-	  
+
     // Get search results, perform clustering, and print out results.		
     ObjectVector[] resultsVectors = Search.getSearchResultVectors(args, Flags.numsearchresults);
     int[] clusterMappings = kMeansCluster(resultsVectors, Flags.numclusters);
     for (int i = 0; i < Flags.numclusters; ++i) {
       System.out.println("Cluster " + i);
       for (int j = 0; j < clusterMappings.length; ++j) {
-	if (clusterMappings[j] == i) {
-	  System.out.print(resultsVectors[j].getObject() + " ");
-	}
+        if (clusterMappings[j] == i) {
+          System.out.print(resultsVectors[j].getObject() + " ");
+        }
       }
       System.out.println();
     }

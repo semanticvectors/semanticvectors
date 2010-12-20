@@ -40,25 +40,25 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.Integer;
 import org.apache.lucene.index.*;
-import org.apache.lucene.store.IndexOutput;
 import org.apache.lucene.store.IndexInput;
 import org.apache.lucene.store.FSDirectory;
 
 import java.util.Arrays;
 import java.util.Enumeration;
+import java.util.logging.Logger;
 
 /**
  * generates term vectors incrementally (i.e. one document at a time)
- * requires a
- * @param termVectorData Has all the information needed to create term vectors.
- * @param vectorFile Filename for the document vectors
  * @author Trevor Cohen, Dominic Widdows
  */
 public class IncrementalTermVectors implements VectorStore {
+  private static final Logger logger = Logger.getLogger(
+      IncrementalTermVectors.class.getCanonicalName());
+  
   private VectorStoreRAM termVectorData;
   private IndexReader indexReader;
   private String[] fieldsToIndex = null;
-  private static LuceneUtils lUtils = null;
+  private LuceneUtils lUtils = null;
   private int dimension;
   
   /**
@@ -77,7 +77,6 @@ public class IncrementalTermVectors implements VectorStore {
     if (this.lUtils == null)
       this.lUtils = new LuceneUtils(indexDir);
 
-    
     int numdocs = indexReader.numDocs();
 
     // Open file and write headers.
@@ -89,7 +88,7 @@ public class IncrementalTermVectors implements VectorStore {
 
     float[] tmpVector = new float[dimension];
     int counter = 0;
-    System.err.println("Read vectors incrementally from file " + vectorFile);
+    logger.info("Read vectors incrementally from file " + vectorFile);
 
     boolean hasHeader = false;
 
@@ -100,18 +99,14 @@ public class IncrementalTermVectors implements VectorStore {
       dimension = inputStream.readInt();
     }
     else {
-      System.err.println("No file header for file " + vectorFile +
+      logger.info("No file header for file " + vectorFile +
                          "\nAttempting to process with default vector length: " +
                          Flags.dimension +
                          "\nIf this fails, consider rebuilding indexes - existing " +
                          "ones were probably created with old version of software.");
     }
 
-
-
-    System.err.println("Opening index at "+indexDir);
-
-
+    logger.info("Opening index at "+indexDir);
     termVectorData = new VectorStoreRAM();
     TermEnum terms = this.indexReader.terms();
     int tc = 0;
@@ -120,7 +115,8 @@ public class IncrementalTermVectors implements VectorStore {
       Term term = terms.term();
 
       // Skip terms that don't pass the filter.
-      if (!lUtils.termFilter(terms.term(), fieldsToIndex))
+      if (!lUtils.termFilter(terms.term(), fieldsToIndex,
+          Flags.minfrequency, Flags.maxfrequency, Flags.maxnonalphabetchars))
         continue;
       tc++;
       float[] termVector = new float[dimension];
@@ -128,13 +124,13 @@ public class IncrementalTermVectors implements VectorStore {
       // Place each term vector in the vector store.
       termVectorData.putVector(term.text(), termVector);
     }
-    System.err.println("There are " + tc + " terms (and " + indexReader.numDocs() + " docs)");
+    logger.info("There are " + tc + " terms (and " + indexReader.numDocs() + " docs)");
 
     // Iterate through documents.
     for (int dc=0; dc < numdocs; dc++) {
       /* output progress counter */
       if (( dc % 10000 == 0 ) || ( dc < 10000 && dc % 1000 == 0 )) {
-        System.err.print(dc + " ... ");
+        logger.info(dc + " ... ");
       }
 
       String docID = Integer.toString(dc);
@@ -157,8 +153,7 @@ public class IncrementalTermVectors implements VectorStore {
       }
 
       for (String fieldName: fieldsToIndex) {
-        TermFreqVector vex =
-            (TermFreqVector) indexReader.getTermFreqVector(dcount, fieldName);
+        TermFreqVector vex = indexReader.getTermFreqVector(dcount, fieldName);
 
         if (vex !=null) {
           // Get terms in document and term frequencies.
@@ -176,7 +171,7 @@ public class IncrementalTermVectors implements VectorStore {
             } catch (NullPointerException npe) {
               // Don't normally print anything - too much data!
               // TODO(dwiddows): Replace with a configurable logging system.
-              // System.err.println("term "+term+ " not represented");
+              // logger.info("term "+term+ " not represented");
             }
             // Exclude terms that are not represented in termVectorData
             if (termVector != null && termVector.length > 0) {
@@ -191,10 +186,10 @@ public class IncrementalTermVectors implements VectorStore {
     } // Finish iterating through documents.
 
     // Normalize vectors
-    Enumeration allVectors = termVectorData.getAllVectors();
+    Enumeration<ObjectVector> allVectors = termVectorData.getAllVectors();
     int k=0;
     while (allVectors.hasMoreElements())
-    {ObjectVector obVec = (ObjectVector) allVectors.nextElement();
+    {ObjectVector obVec = allVectors.nextElement();
       float[] termVector = obVec.getVector();  
       termVector = VectorUtils.getNormalizedVector(termVector);
       obVec.setVector(termVector);
@@ -274,10 +269,10 @@ public class IncrementalTermVectors implements VectorStore {
                                           + " arguments, instead of the expected 2."));
     }
 
-    System.err.println("Minimum frequency = " + Flags.minfrequency);
-    System.err.println("Maximum frequency = " + Flags.maxfrequency);
-    System.err.println("Number non-alphabet characters = " + Flags.maxnonalphabetchars);
-    System.err.println("Contents fields are: " + Arrays.toString(Flags.contentsfields));
+    logger.info("Minimum frequency = " + Flags.minfrequency);
+    logger.info("Maximum frequency = " + Flags.maxfrequency);
+    logger.info("Number non-alphabet characters = " + Flags.maxnonalphabetchars);
+    logger.info("Contents fields are: " + Arrays.toString(Flags.contentsfields));
 
     String vectorFile = args[0];
     String luceneIndex = args[1];

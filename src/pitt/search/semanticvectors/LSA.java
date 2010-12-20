@@ -1,13 +1,13 @@
 package pitt.search.semanticvectors;
 
 import org.apache.lucene.index.IndexReader;
-import org.apache.lucene.index.Term;
 import org.apache.lucene.index.TermDocs;
 import org.apache.lucene.index.TermEnum;
-import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.store.IndexOutput;
 import org.apache.lucene.store.FSDirectory;
 import java.io.File;
+import java.util.logging.Logger;
+
 import ch.akuhn.edu.mit.tedlab.*;
 
 /**
@@ -17,11 +17,10 @@ import ch.akuhn.edu.mit.tedlab.*;
  *
  * This class will produce two files, svd_termvectors.bin and svd_docvectors.bin from a Lucene index
  * Command line arguments are consistent with the rest of the Semantic Vectors Package
- *
  */
-
 public class LSA {
-
+  private static final Logger logger = Logger.getLogger(LSA.class.getCanonicalName());
+  
   static boolean le = false;
   static String[] theTerms;
 
@@ -41,7 +40,6 @@ public class LSA {
    * <br> -maxnonalphabetchars [number non-alphabet characters (-1 for any number)]
    * </code>
    */
-
   public static void usage() {
     String usageMessage = "\nLSA class in package pitt.search.semanticvectors"
         + "\nUsage: java pitt.search.semanticvectors.LSA PATH_TO_LUCENE_INDEX"
@@ -57,18 +55,10 @@ public class LSA {
     System.out.println(usageMessage);
   }
 
-  /**
-   * Builds term vector and document vector stores from a Lucene index, using SVD to reduce dimensions
-   * @param args
-   * @see LSA#usage
-   */
-
-
   /* Converts a dense matrix to a sparse one (without affecting the dense one) */
   static SMat smatFromIndex(String fileName) throws Exception {
     SMat S;
     int i, j, n;
-    
     
     //initiate IndexReader and LuceneUtils
     File file = new File(fileName);
@@ -86,11 +76,12 @@ public class LSA {
     TermEnum terms = indexReader.terms();
     int tc = 0;
     while(terms.next()){
-      if (lUtils.termFilter(terms.term(),desiredFields))
+      if (lUtils.termFilter(terms.term(), desiredFields, 
+          Flags.minfrequency, Flags.maxfrequency, Flags.maxnonalphabetchars))
         tc++;
     }
 
-    System.err.println("There are " + tc + " terms (and " + indexReader.numDocs() + " docs)");
+    logger.info("There are " + tc + " terms (and " + indexReader.numDocs() + " docs)");
     theTerms = new String[tc];
     index = new int[tc][];
 
@@ -100,9 +91,10 @@ public class LSA {
 
     while(terms.next()){
       org.apache.lucene.index.Term term = terms.term();
-      if (lUtils.termFilter(term,desiredFields))
-      {	theTerms[tc] = term.text();
-
+      if (lUtils.termFilter(term, desiredFields,
+          Flags.minfrequency, Flags.maxfrequency, Flags.maxnonalphabetchars)) {
+        theTerms[tc] = term.text();
+        
         /**
          * create matrix of nonzero indices
          */
@@ -171,13 +163,13 @@ public class LSA {
     while(terms.next()){
 
       org.apache.lucene.index.Term term = terms.term();
-      if (lUtils.termFilter(term,desiredFields))
-      {
+      if (lUtils.termFilter(term, desiredFields,
+          Flags.minfrequency, Flags.maxfrequency, Flags.maxnonalphabetchars)) {
         TermDocs td = indexReader.termDocs(term);
         S.pointr[tc] = nn;  // index of first non-zero entry (document) of each column (term)
 
-        while (td.next())
-        {  /** public int[] pointr; For each col (plus 1), index of
+        while (td.next()) {
+          /** public int[] pointr; For each col (plus 1), index of
             *  first non-zero entry.  we'll represent the matrix as a
             *  document x term matrix such that terms are columns
             *  (otherwise it would be difficult to extract this
@@ -191,14 +183,14 @@ public class LSA {
            * if log-entropy weighting is to be used
            */
 
-          if (le)
-          {float entropy = lUtils.getEntropy(term);
+          if (le) { 
+            float entropy = lUtils.getEntropy(term);
             float log1plus = (float) Math.log10(1+value);
             value = entropy*log1plus;
           }
 
-          S.rowind[nn] = td.doc();  //set row index to document number
-          S.value[nn] = value/docvectornorms[td.doc()];  	  //set value to frequency (with/without weighting)
+          S.rowind[nn] = td.doc();  // set row index to document number
+          S.value[nn] = value/docvectornorms[td.doc()];  // set value to frequency (with/without weighting)
           nn++;
         }
         tc++;
@@ -209,11 +201,7 @@ public class LSA {
     return S;
   }
 
-
-
-
-  public static void main(String[] args) throws Exception
-  {
+  public static void main(String[] args) throws Exception {
     try {
       args = Flags.parseCommandLineFlags(args);
     } catch (IllegalArgumentException e) {
@@ -228,22 +216,21 @@ public class LSA {
                                           + " arguments, instead of the expected 1."));
     }
 
-    System.err.println("Dimension = " + Flags.dimension);
-    System.err.println("Minimum frequency = " + Flags.minfrequency);
-    System.err.println("Maximum frequency = " + Flags.maxfrequency);
-    System.err.println("Number non-alphabet characters = " + Flags.maxnonalphabetchars);
+    logger.info("Dimension = " + Flags.dimension);
+    logger.info("Minimum frequency = " + Flags.minfrequency);
+    logger.info("Maximum frequency = " + Flags.maxfrequency);
+    logger.info("Number non-alphabet characters = " + Flags.maxnonalphabetchars);
 
     if (Flags.termweight.equals("logentropy")) le = true;
     else le = false;
     
     if (le)
-      System.err.println("Term weighting: log-entropy");
-
+      logger.info("Term weighting: log-entropy");
 
     SMat A = smatFromIndex(args[0]);
     Svdlib svd = new Svdlib();
 
-    System.err.println("Starting SVD using algorithm LAS2");
+    logger.info("Starting SVD using algorithm LAS2");
 
     SVDRec svdR = svd.svdLAS2A(A, Flags.dimension);
     DMat vT = svdR.Vt;
@@ -256,7 +243,7 @@ public class LSA {
     float[] tmpVector = new float[Flags.dimension];
 
     int counter = 0;
-    System.err.println("Write vectors incrementally to file " + termFile);
+    logger.info("Write vectors incrementally to file " + termFile);
 
     // Write header giving number of dimensions for all vectors.
     outputStream.writeString("-dimensions");
@@ -264,8 +251,7 @@ public class LSA {
 
     int cnt;
     // Write out term vectors
-    for (cnt = 0; cnt < vT.cols; cnt++)
-    {
+    for (cnt = 0; cnt < vT.cols; cnt++) {
       outputStream.writeString(theTerms[cnt]);
 
       float[] termVector = new float[Flags.dimension];
@@ -274,29 +260,24 @@ public class LSA {
         termVector[i] = (float) vT.value[i][cnt];
       termVector = VectorUtils.getNormalizedVector(termVector);
 
-
       for (int i = 0; i < Flags.dimension; ++i) {
-
         outputStream.writeInt(Float.floatToIntBits(termVector[i]));
       }
     }
 
-    System.err.println("Wrote "+cnt+" term vectors to "+termFile);
+    logger.info("Wrote "+cnt+" term vectors to "+termFile);
     outputStream.flush();
     outputStream.close();
-
 
     /*
      * Write document vectors
      */
-
     // Open file and write headers.
-
     String docFile = "svd_docvectors.bin";
     outputStream = fsDirectory.createOutput(docFile);
     tmpVector = new float[Flags.dimension];
     counter = 0;
-    System.err.println("Write vectors incrementally to file " + docFile);
+    logger.info("Write vectors incrementally to file " + docFile);
 
     // Write header giving number of dimensions for all vectors.
     outputStream.writeString("-dimensions");
@@ -307,8 +288,7 @@ public class LSA {
     IndexReader indexReader = IndexReader.open(FSDirectory.open(file));
 
     // Write out document vectors
-    for (cnt = 0; cnt < uT.cols; cnt++)
-    {
+    for (cnt = 0; cnt < uT.cols; cnt++) {
       String thePath = indexReader.document(cnt).get("path");
       outputStream.writeString(thePath);
       float[] docVector = new float[Flags.dimension];
@@ -322,11 +302,8 @@ public class LSA {
         outputStream.writeInt(Float.floatToIntBits(docVector[i]));
       }
     }
-    System.err.println("Wrote "+cnt+" document vectors to "+docFile);
+    logger.info("Wrote "+cnt+" document vectors to "+docFile);
     outputStream.flush();
     outputStream.close();
-
-
   }
-
 }

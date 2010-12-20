@@ -44,11 +44,6 @@ import java.io.IOException;
 public class BuildBilingualIndex{
   public static Logger logger = Logger.getLogger("pitt.search.semanticvectors");
 
-  // These can be modified with command line arguments.
-  static int seedLength = 20;
-  static int nonAlphabet = 0;
-  static int minFreq = 10;
-
   /**
    * Prints the following usage message:
    * <code>
@@ -104,32 +99,32 @@ public class BuildBilingualIndex{
     String[] fields1 = new String[] {"contents_" + lang1};
     String[] fields2 = new String[] {"contents_" + lang2};
 
-    System.err.println("seedLength = " + Flags.seedlength);
-    System.err.println("Vector length = " + Flags.dimension);
-    System.err.println("Non-alphabet characters = " + Flags.maxnonalphabetchars);
-    System.err.println("Minimum frequency = " + Flags.minfrequency);
+    logger.info("seedLength = " + Flags.seedlength);
+    logger.info("Vector length = " + Flags.dimension);
+    logger.info("Non-alphabet characters = " + Flags.maxnonalphabetchars);
+    logger.info("Minimum frequency = " + Flags.minfrequency);
     try{
       TermVectorsFromLucene vecStore1 =
-          new TermVectorsFromLucene(luceneIndex, Flags.dimension,
-                                    Flags.seedlength, Flags.minfrequency,
+          TermVectorsFromLucene.createTermVectorsFromLucene(luceneIndex, Flags.dimension,
+                                    Flags.seedlength, Flags.minfrequency, Flags.maxfrequency,
                                     Flags.maxnonalphabetchars, null, fields1);
       VectorStoreWriter vecWriter = new VectorStoreWriter();
-      System.err.println("Writing term vectors to " + termFile1);
+      logger.info("Writing term vectors to " + termFile1);
       vecWriter.WriteVectors(termFile1, vecStore1);
       DocVectors docVectors = new DocVectors(vecStore1);
-      System.err.println("Writing doc vectors to " + docFile1);
+      logger.info("Writing doc vectors to " + docFile1);
       vecWriter.WriteVectors(docFile1, docVectors.makeWriteableVectorStore());
 
       VectorStore basicDocVectors = vecStore1.getBasicDocVectors();
       System.out.println("Keeping basic doc vectors, number: " + basicDocVectors.getNumVectors());
       TermVectorsFromLucene vecStore2 =
-          new TermVectorsFromLucene(luceneIndex, Flags.dimension,
-                                    Flags.seedlength, Flags.minfrequency,
+          TermVectorsFromLucene.createTermVectorsFromLucene(luceneIndex, Flags.dimension,
+                                    Flags.seedlength, Flags.minfrequency, Flags.maxfrequency,
                                     Flags.maxnonalphabetchars, basicDocVectors, fields2);
-      System.err.println("Writing term vectors to " + termFile2);
+      logger.info("Writing term vectors to " + termFile2);
       vecWriter.WriteVectors(termFile2, vecStore2);
       docVectors = new DocVectors(vecStore2);
-      System.err.println("Writing doc vectors to " + docFile2);
+      logger.info("Writing doc vectors to " + docFile2);
       vecWriter.WriteVectors(docFile2, docVectors.makeWriteableVectorStore());
     }
     catch (IOException e) {

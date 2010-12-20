@@ -35,20 +35,17 @@
 
 package pitt.search.semanticvectors;
 
-import java.lang.IllegalArgumentException;
-import java.lang.Integer;
-import java.lang.Math;
-import java.lang.Exception;
 import java.util.ArrayList;
 import java.util.LinkedList;
-import java.util.Enumeration;
 import java.util.Random;
+import java.util.logging.Logger;
 
 /**
  * This class provides standard vector methods, e.g., cosine measure,
  * normalization, tensor utils.
  */
 public class VectorUtils {
+  private static final Logger logger = Logger.getLogger(VectorUtils.class.getCanonicalName());
 
   public static void printVector(float[] vector) {
     for (int i = 0; i < vector.length - 1; ++i) {
@@ -336,7 +333,7 @@ public class VectorUtils {
     for (int k = 0; k < vectors.size(); ++k) {
       float[] kthVector = vectors.get(k);
       if (kthVector.length != Flags.dimension) {
-        System.err.println("In orthogonalizeVector: not all vectors have required dimension.");
+        logger.info("In orthogonalizeVector: not all vectors have required dimension.");
         return false;
       }
       // Go up to vector k, parameterized by j.
@@ -408,7 +405,7 @@ public class VectorUtils {
   public static short[] getNLargestPositions(float[] values, int numResults) {
     // TODO(dwiddows): Find some apprpriate "CHECK" function to use here.
     if (numResults > values.length) {
-      System.err.println("Asking for highest " + numResults
+      logger.info("Asking for highest " + numResults
                          + " entries out of only " + values.length);
       throw new IllegalArgumentException();
     }
@@ -443,7 +440,7 @@ public class VectorUtils {
 
     // CHECK
     if (largestPositions.size() != numResults) {
-      System.err.println("We have " + largestPositions.size()
+      logger.info("We have " + largestPositions.size()
                          + " results. Expecting " + numResults);			
       throw new IllegalArgumentException();
     }
@@ -461,7 +458,7 @@ public class VectorUtils {
   public static short[] floatVectorToSparseVector(float[] floatVector, int seedLength) {
     // TODO(dwiddows): Find some appropriate "CHECK" function to use here.
     if (seedLength > floatVector.length) {
-      System.err.println("Asking sparse form of length " + seedLength +
+      logger.info("Asking sparse form of length " + seedLength +
                          " from float vector of length " + floatVector.length);
       throw new IllegalArgumentException();
     }

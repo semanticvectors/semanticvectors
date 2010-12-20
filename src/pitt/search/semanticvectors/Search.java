@@ -37,6 +37,7 @@ package pitt.search.semanticvectors;
 
 import java.io.IOException;
 import java.util.LinkedList;
+import java.util.logging.Logger;
 
 /**
  * Command line term vector search utility.
@@ -115,6 +116,7 @@ import java.util.LinkedList;
  * print out the query vector for debugging.
  */
 public class Search {
+  private static final Logger logger = Logger.getLogger(Search.class.getCanonicalName());
 
   private static CloseableVectorStore queryVecReader;
   private static CloseableVectorStore searchVecReader;
@@ -189,21 +191,21 @@ public class Search {
     // Stage ii. Open vector stores, and Lucene utils.
     try {
       // Default VectorStore implementation is (Lucene) VectorStoreReader.
-      System.err.println("Opening query vector store from file: " + Flags.queryvectorfile);
+      logger.info("Opening query vector store from file: " + Flags.queryvectorfile);
       queryVecReader = VectorStoreReader.openVectorStore(Flags.queryvectorfile);
 
       // Open second vector store if search vectors are different from query vectors.
       if (Flags.queryvectorfile.equals(Flags.searchvectorfile)) {
         searchVecReader = queryVecReader;
       } else {
-        System.err.println("Opening search vector store from file: " + Flags.searchvectorfile);
+        logger.info("Opening search vector store from file: " + Flags.searchvectorfile);
         searchVecReader = VectorStoreReader.openVectorStore(Flags.searchvectorfile);
       }
 
       if (Flags.luceneindexpath != "") {
         try { luceneUtils = new LuceneUtils(Flags.luceneindexpath); }
         catch (IOException e) {
-          System.err.println("Couldn't open Lucene index at " + Flags.luceneindexpath);
+          logger.info("Couldn't open Lucene index at " + Flags.luceneindexpath);
         }
       }
     }
@@ -230,10 +232,10 @@ public class Search {
                                                     searchVecReader,
                                                     luceneUtils,
                                                     args);
-        System.err.print("Searching term vectors, searchtype SUM ... \n");
+        logger.info("Searching term vectors, searchtype SUM ... \n");
         results = vecSearcher.getNearestNeighbors(numResults);
       } catch (ZeroVectorException zve) {
-        System.err.println(zve.getMessage());
+        logger.info(zve.getMessage());
         results = new LinkedList<SearchResult>();
       }
     } else if (Flags.searchtype.equals("sparsesum")) {
@@ -247,10 +249,10 @@ public class Search {
                                                           searchVecReader,
                                                           luceneUtils,
                                                           args);
-        System.err.print("Searching term vectors, searchtype SPARSESUM ... ");
+        logger.info("Searching term vectors, searchtype SPARSESUM ... ");
         results = vecSearcher.getNearestNeighbors(numResults);
       } catch (ZeroVectorException zve) {
-        System.err.println(zve.getMessage());
+        logger.info(zve.getMessage());
         results = new LinkedList<SearchResult>();
       }
     } else if (Flags.searchtype.equals("tensor")) {
@@ -262,10 +264,10 @@ public class Search {
                                                        searchVecReader,
                                                        luceneUtils,
                                                        args);
-        System.err.print("Searching term vectors, searchtype TENSOR ... ");
+        logger.info("Searching term vectors, searchtype TENSOR ... ");
         results = vecSearcher.getNearestNeighbors(numResults);
       } catch (ZeroVectorException zve) {
-        System.err.println(zve.getMessage());
+        logger.info(zve.getMessage());
         results = new LinkedList<SearchResult>();
       }
     } else if (Flags.searchtype.equals("convolution")) {
@@ -277,10 +279,10 @@ public class Search {
                                                             searchVecReader,
                                                             luceneUtils,
                                                             args);
-        System.err.print("Searching term vectors, searchtype CONVOLUTION ... ");
+        logger.info("Searching term vectors, searchtype CONVOLUTION ... ");
         results = vecSearcher.getNearestNeighbors(numResults);
       } catch (ZeroVectorException zve) {
-        System.err.println(zve.getMessage());
+        logger.info(zve.getMessage());
         results = new LinkedList<SearchResult>();
       }
     } else if (Flags.searchtype.equals("subspace")) {
@@ -293,10 +295,10 @@ public class Search {
                                                          luceneUtils,
                                                          args);
 
-        System.err.print("Searching term vectors, searchtype SUBSPACE ... ");
+        logger.info("Searching term vectors, searchtype SUBSPACE ... ");
         results = vecSearcher.getNearestNeighbors(numResults);
       }	catch (ZeroVectorException zve) {
-        System.err.println(zve.getMessage());
+        logger.info(zve.getMessage());
         results = new LinkedList<SearchResult>();
       }
     } else if (Flags.searchtype.equals("maxsim")) {
@@ -308,10 +310,10 @@ public class Search {
                                                     searchVecReader,
                                                     luceneUtils,
                                                     args);
-        System.err.print("Searching term vectors, searchtype MAXSIM ... ");
+        logger.info("Searching term vectors, searchtype MAXSIM ... ");
         results = vecSearcher.getNearestNeighbors(numResults);
       }	catch (ZeroVectorException zve) {
-        System.err.println(zve.getMessage());
+        logger.info(zve.getMessage());
         results = new LinkedList<SearchResult>();
       }
     } else if (Flags.searchtype.equals("permutation")) {
@@ -324,10 +326,10 @@ public class Search {
                                                   searchVecReader,
                                                   luceneUtils,
                                                   args);
-        System.err.print("Searching term vectors, searchtype PERMUTATION ... ");
+        logger.info("Searching term vectors, searchtype PERMUTATION ... ");
         results = vecSearcher.getNearestNeighbors(numResults);
       } catch (ZeroVectorException zve) {
-        System.err.println(zve.getMessage());
+        logger.info(zve.getMessage());
         results = new LinkedList<SearchResult>();
       }
     } else if (Flags.searchtype.equals("balanced_permutation")) {
@@ -340,10 +342,10 @@ public class Search {
                                                           searchVecReader,
                                                           luceneUtils,
                                                           args);
-        System.err.print("Searching term vectors, searchtype BALANCED_PERMUTATION ... ");
+        logger.info("Searching term vectors, searchtype BALANCED_PERMUTATION ... ");
         results = vecSearcher.getNearestNeighbors(numResults);
       } catch (ZeroVectorException zve) {
-        System.err.println(zve.getMessage());
+        logger.info(zve.getMessage());
         results = new LinkedList<SearchResult>();
       }
     } else if (Flags.searchtype.equals("printquery")) {
@@ -355,7 +357,7 @@ public class Search {
       return new LinkedList<SearchResult>();
     } else {
       // This shouldn't happen: unrecognized options shouldn't have got past the Flags parsing.
-      System.err.println("Search type unrecognized ...");
+      logger.info("Search type unrecognized ...");
       results = new LinkedList<SearchResult>();
     }
 
@@ -387,13 +389,13 @@ public class Search {
     LinkedList<SearchResult> results = RunSearch(args, defaultNumResults);
     // Print out results.
     if (results.size() > 0) {
-      System.err.println("Search output follows ...");
+      logger.info("Search output follows ...");
       for (SearchResult result: results) {
         System.out.println(result.getScore() + ":" +
                            ((ObjectVector)result.getObject()).getObject().toString());
       }
     } else {
-      System.err.println("No search output.");
+      logger.info("No search output.");
     }
 
     // Release filesystem resources.

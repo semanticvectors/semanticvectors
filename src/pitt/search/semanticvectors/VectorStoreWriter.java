@@ -35,15 +35,14 @@
 
 package pitt.search.semanticvectors;
 
-import java.io.BufferedWriter;
-import java.io.FileWriter;
-import java.io.File;
-import java.io.IOException;
-import java.lang.Float;
-import java.util.Enumeration;
-import java.util.Hashtable;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.store.IndexOutput;
+
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.util.Enumeration;
+import java.util.logging.Logger;
 
 /**
  * This class provides methods for serializing a VectorStore to disk.<p>
@@ -60,6 +59,7 @@ import org.apache.lucene.store.IndexOutput;
  * @see ObjectVector
  */
 public class VectorStoreWriter {
+  private static final Logger logger = Logger.getLogger(VectorStoreWriter.class.getCanonicalName());
 
   /**
    * Empty constructor method to give you a notional "instance" from which to call
@@ -82,8 +82,8 @@ public class VectorStoreWriter {
       Enumeration<ObjectVector> vecEnum = objectVectors.getAllVectors();
       float[] tmpVector = new float[Flags.dimension];
 
-      int counter = 0;
-      System.err.println("About to write vectors to file " + vectorFile);
+      logger.info("About to write " + objectVectors.getNumVectors()
+          + " vectors to file: " + vectorFile);
 
       /* Write header giving number of dimensions for all vectors. */
       outputStream.writeString("-dimensions");
@@ -91,10 +91,6 @@ public class VectorStoreWriter {
 
       /* Write each vector. */
       while (vecEnum.hasMoreElements()) {
-        if ((counter % 10000 == 0) || (counter < 10000 && counter % 1000 == 0)) {
-          System.err.print(counter + " ... ");
-        }
-        ++counter;
         ObjectVector objectVector = vecEnum.nextElement();
         outputStream.writeString(objectVector.getObject().toString());
         tmpVector = objectVector.getVector();
@@ -102,7 +98,7 @@ public class VectorStoreWriter {
           outputStream.writeInt(Float.floatToIntBits(tmpVector[i]));
         }
       }
-      System.err.println("Finished writing vectors.");
+      logger.info("Finished writing vectors.");
       outputStream.close();
       fsDirectory.close();
       return true;
@@ -123,18 +119,14 @@ public class VectorStoreWriter {
       BufferedWriter outBuf = new BufferedWriter(new FileWriter(vectorTextFile));
       Enumeration<ObjectVector> vecEnum = objectVectors.getAllVectors();
 
-      int counter = 0;
-      System.err.println("About to write vectors to text file: " + vectorTextFile);
+      logger.info("About to write " + objectVectors.getNumVectors()
+           + " vectors to text file: " + vectorTextFile);
 
       /* Write header giving number of dimensions for all vectors. */
       outBuf.write("-dimensions|" + Flags.dimension + "\n");
 
       /* Write each vector. */
       while (vecEnum.hasMoreElements()) {
-        if ((counter % 10000 == 0) || (counter < 10000 && counter % 1000 == 0)) {
-          System.err.print(counter + " ... ");
-        }
-        ++counter;
         ObjectVector objectVector = vecEnum.nextElement();
         outBuf.write(objectVector.getObject().toString() + "|");
         float[] tmpVector = objectVector.getVector();
@@ -147,7 +139,7 @@ public class VectorStoreWriter {
         outBuf.write("\n");
       }
       outBuf.close();
-      System.err.println("Finished writing vectors.");
+      logger.info("Finished writing vectors.");
       return true;
     }
     catch (Exception e) {

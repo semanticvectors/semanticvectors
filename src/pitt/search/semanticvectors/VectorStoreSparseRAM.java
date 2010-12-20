@@ -7,15 +7,15 @@
    modification, are permitted provided that the following conditions are
    met:
 
-   * Redistributions of source code must retain the above copyright
+ * Redistributions of source code must retain the above copyright
    notice, this list of conditions and the following disclaimer.
 
-   * Redistributions in binary form must reproduce the above
+ * Redistributions in binary form must reproduce the above
    copyright notice, this list of conditions and the following
    disclaimer in the documentation and/or other materials provided
    with the distribution.
 
-   * Neither the name of the University of Pittsburgh nor the names
+ * Neither the name of the University of Pittsburgh nor the names
    of its contributors may be used to endorse or promote products
    derived from this software without specific prior written
    permission.
@@ -31,7 +31,7 @@
    LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
    NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
    SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-**/
+ **/
 
 package pitt.search.semanticvectors;
 
@@ -39,6 +39,7 @@ import java.lang.Integer;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Random;
+import java.util.logging.Logger;
 
 /**
    This class provides methods for reading a VectorStore into memory
@@ -51,74 +52,77 @@ import java.util.Random;
    iterating through vectors and reading them into memory.
 	 @see VectorStoreReaderLucene
    @see ObjectVector
-**/
+ **/
 public class VectorStoreSparseRAM implements VectorStore {
-	private Hashtable<String, short[]> sparseVectors;
-	int seedLength;
+  private static final Logger logger = Logger.getLogger(
+      VectorStoreSparseRAM.class.getCanonicalName());
 
-	// Default constructor.
-	public VectorStoreSparseRAM() {
+  private Hashtable<String, short[]> sparseVectors;
+  int seedLength;
+
+  // Default constructor.
+  public VectorStoreSparseRAM() {
     this.sparseVectors = new Hashtable<String, short[]>();
-	};
-
-	public Enumeration getKeys() { return this.sparseVectors.keys(); }
-
-	// Initialization routine.
-  public void CreateRandomVectors (int numVectors, int seedLength) {
-		this.seedLength = seedLength;
-
-		Random random = new Random();
-
-		System.err.println("Creating store of sparse vectors  ...");
-		for (int i = 0; i < numVectors; ++i) {
-			short[] sparseVector = VectorUtils.generateRandomVector(seedLength, random);
-			this.sparseVectors.put(Integer.toString(i), sparseVector);
-		}
-		System.err.println("Created " + sparseVectors.size() + " sparse random vectors.");
   }
 
-	public void putVector(String key, short[] sparseVector) {
-		this.sparseVectors.put(key, sparseVector);
-	}
+  public Enumeration<String> getKeys() { return this.sparseVectors.keys(); }
+
+  // Initialization routine.
+  public void CreateRandomVectors (int numVectors, int seedLength) {
+    this.seedLength = seedLength;
+
+    Random random = new Random();
+
+    logger.info("Creating store of sparse vectors  ...");
+    for (int i = 0; i < numVectors; ++i) {
+      short[] sparseVector = VectorUtils.generateRandomVector(seedLength, random);
+      this.sparseVectors.put(Integer.toString(i), sparseVector);
+    }
+    logger.info("Created " + sparseVectors.size() + " sparse random vectors.");
+  }
+
+  public void putVector(String key, short[] sparseVector) {
+    this.sparseVectors.put(key, sparseVector);
+  }
 
   /**
    * Given an object, get its corresponding vector <br>
    * This implementation only works for string objects so far <br>
    * @param desiredObject - the string you're searching for
-	 * @return vector from the VectorStore, or null if not found. 
+   * @return vector from the VectorStore, or null if not found. 
    */
   public float[] getVector(Object desiredObject) {
-		short[] sparseVector = this.sparseVectors.get(desiredObject);
-		if (sparseVector != null) {
-			return VectorUtils.sparseVectorToFloatVector(sparseVector, Flags.dimension);
-		} else {
-			return null;
-		}
+    short[] sparseVector = this.sparseVectors.get(desiredObject);
+    if (sparseVector != null) {
+      return VectorUtils.sparseVectorToFloatVector(sparseVector, Flags.dimension);
+    } else {
+      return null;
+    }
   }
 
-	/**
-	 * Returns the sparse vector without going through the float[] interface.
-	 */
+  /**
+   * Returns the sparse vector without going through the float[] interface.
+   */
   public short[] getSparseVector(Object desiredObject) {
-		return this.sparseVectors.get(desiredObject);
+    return this.sparseVectors.get(desiredObject);
   }
 
 
-	public int getNumVectors() {
-		return this.sparseVectors.size();
-	}
+  public int getNumVectors() {
+    return this.sparseVectors.size();
+  }
 
   public Enumeration<ObjectVector> getAllVectors() {
-		return new SparseVectorEnumeration(this);
-	}
+    return new SparseVectorEnumeration(this);
+  }
 
   /**
    * Implements the hasMoreElements() and nextElement() methods
    * to give Enumeration interface from sparse vector store.
    */
   public class SparseVectorEnumeration implements Enumeration<ObjectVector> {
-		VectorStoreSparseRAM sparseVectorStore;
-		Enumeration keys;
+    VectorStoreSparseRAM sparseVectorStore;
+    Enumeration<String> keys;
 
     public SparseVectorEnumeration(VectorStoreSparseRAM sparseVectorStore) {
       this.sparseVectorStore = sparseVectorStore;

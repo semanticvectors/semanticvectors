@@ -39,6 +39,7 @@ package pitt.search.semanticvectors;
 import java.io.File;
 import java.io.IOException;
 import java.util.Enumeration;
+import java.util.logging.Logger;
 
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.store.IndexInput;
@@ -54,6 +55,9 @@ import org.apache.lucene.store.IndexInput;
    @see ObjectVector
 **/
 public class VectorStoreReaderLucene implements CloseableVectorStore {
+  private static final Logger logger = Logger.getLogger(
+      VectorStoreReaderLucene.class.getCanonicalName());
+  
   private String vectorFileName;
   private File vectorFile;
   private FSDirectory fsDirectory;
@@ -65,7 +69,7 @@ public class VectorStoreReaderLucene implements CloseableVectorStore {
     return this.fsDirectory;
   }
 
-  public VectorStoreReaderLucene (String vectorFileName) throws IOException {
+  public VectorStoreReaderLucene (String vectorFileName) {
     this.vectorFileName = vectorFileName;
     this.vectorFile = new File(vectorFileName);
     try {
@@ -89,7 +93,7 @@ public class VectorStoreReaderLucene implements CloseableVectorStore {
         this.hasHeader = true;
       }
       else {
-        System.err.println("No file header for file " + vectorFile +
+        logger.info("No file header for file " + vectorFile +
                            "\nAttempting to process with default vector length: " +
                            Flags.dimension +
                            "\nIf this fails, consider rebuilding indexes - existing " +
@@ -114,7 +118,7 @@ public class VectorStoreReaderLucene implements CloseableVectorStore {
     try {
       this.getIndexInput().close();
     } catch (IOException e) {
-      System.err.println("Cannot close resources from file: " + this.vectorFile
+      logger.info("Cannot close resources from file: " + this.vectorFile
                          + "\n" + e.getMessage());
     }
   }
@@ -162,7 +166,7 @@ public class VectorStoreReaderLucene implements CloseableVectorStore {
     catch (IOException e) {
       e.printStackTrace();
     }
-    System.err.println("Didn't find vector for '" + desiredObject + "'");
+    logger.info("Didn't find vector for '" + desiredObject + "'");
     return null;
   }
 
@@ -170,7 +174,7 @@ public class VectorStoreReaderLucene implements CloseableVectorStore {
    * Trivial (costly) implementation of getNumVectors that iterates and counts vectors.
    */
   public int getNumVectors() {
-    Enumeration allVectors = this.getAllVectors();
+    Enumeration<ObjectVector> allVectors = this.getAllVectors();
     int i = 0;
     while (allVectors.hasMoreElements()) {
       allVectors.nextElement();

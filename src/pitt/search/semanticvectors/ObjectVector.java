@@ -43,8 +43,8 @@ public class ObjectVector{
   private Object object;
   private float[] vector;
 
-  public Object getObject(){return object;};
-  public float[] getVector(){return vector;};
+  public Object getObject(){return object;}
+  public float[] getVector(){return vector;}
 
   public void setVector(float[] newVector){
     this.vector = newVector;
