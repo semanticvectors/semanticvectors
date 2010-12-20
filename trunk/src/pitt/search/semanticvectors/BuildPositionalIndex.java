@@ -7,15 +7,15 @@
    modification, are permitted provided that the following conditions are
    met:
 
-   * Redistributions of source code must retain the above copyright
+ * Redistributions of source code must retain the above copyright
    notice, this list of conditions and the following disclaimer.
 
-   * Redistributions in binary form must reproduce the above
+ * Redistributions in binary form must reproduce the above
    copyright notice, this list of conditions and the following
    disclaimer in the documentation and/or other materials provided
    with the distribution.
 
-   * Neither the name of the University of Pittsburgh nor the names
+ * Neither the name of the University of Pittsburgh nor the names
    of its contributors may be used to endorse or promote products
    derived from this software without specific prior written
    permission.
@@ -31,24 +31,20 @@
    LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
    NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
    SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-**/
+ **/
 
 package pitt.search.semanticvectors;
 
 import java.io.IOException;
-import java.util.LinkedList;
+import java.util.logging.Logger;
 
 /**
  * Command line utility for creating semantic vector indexes using the
  * sliding context window approach (see work on HAL, and by Shutze).
  */
 public class BuildPositionalIndex {
-  /* These can now be modified with command line arguments */
-  static int seedLength = 20;
-  static int nonAlphabet = 0;
-  static int minFreq = 10;
-  static int windowLength = 5;
-  static int trainingCycles = 1;
+  public static final Logger logger = Logger.getLogger(
+      BuildPositionalIndex.class.getCanonicalName());
   static VectorStore newBasicTermVectors = null;
 
   /**
@@ -70,20 +66,20 @@ public class BuildPositionalIndex {
    */
   public static void usage() {
     String usageMessage = "\nBuildPositionalIndex class in package pitt.search.semanticvectors"
-        + "\nUsage: java pitt.search.semanticvectors.BuildPositionalIndex PATH_TO_LUCENE_INDEX"
-        + "\nBuildPositionalIndex creates file termtermvectors.bin in local directory."
-        + "\nOther parameters that can be changed include vector length,"
-        + "\n windowlength (size of sliding context window),"
-        + "\n    (number of dimensions), seed length (number of non-zero"
-        + "\n    entries in basic vectors), size of sliding window (including focus term)"
-        + "\n and minimum term frequency.\n"
-        + "\nTo change these use the command line arguments "
-        + "\n  -dimension [number of dimensions]"
-        + "\n  -seedlength [seed length]"
-        + "\n  -mintermfreq [minimum term frequency]"
-        + "\n  -initialtermvectors [name of preexisting vectorstore for term vectors]"
-        + "\n  -windowradius [window size]"
-        + "\n  -positionalmethod [positional indexing method: basic (default), directional (HAL), permutation (Sahlgren 2008)";
+      + "\nUsage: java pitt.search.semanticvectors.BuildPositionalIndex PATH_TO_LUCENE_INDEX"
+      + "\nBuildPositionalIndex creates file termtermvectors.bin in local directory."
+      + "\nOther parameters that can be changed include vector length,"
+      + "\n windowlength (size of sliding context window),"
+      + "\n    (number of dimensions), seed length (number of non-zero"
+      + "\n    entries in basic vectors), size of sliding window (including focus term)"
+      + "\n and minimum term frequency.\n"
+      + "\nTo change these use the command line arguments "
+      + "\n  -dimension [number of dimensions]"
+      + "\n  -seedlength [seed length]"
+      + "\n  -mintermfreq [minimum term frequency]"
+      + "\n  -initialtermvectors [name of preexisting vectorstore for term vectors]"
+      + "\n  -windowradius [window size]"
+      + "\n  -positionalmethod [positional indexing method: basic (default), directional (HAL), permutation (Sahlgren 2008)";
 
     System.out.println(usageMessage);
   }
@@ -105,11 +101,11 @@ public class BuildPositionalIndex {
     if (args.length != 1) {
       usage();
       throw (new IllegalArgumentException("After parsing command line flags, there were "
-					  + args.length
-                                          + " arguments, instead of the expected 1."));
+          + args.length
+          + " arguments, instead of the expected 1."));
     }
     String luceneIndex = args[0];
-    System.err.println("Lucene positional index being set to: " + luceneIndex);
+    logger.info("Lucene positional index being set to: " + luceneIndex);
 
     //If initialtermvectors is defined, read these vectors.
     if (!Flags.initialtermvectors.equals("")) {
@@ -117,9 +113,9 @@ public class BuildPositionalIndex {
         VectorStoreRAM vsr = new VectorStoreRAM();
         vsr.InitFromFile(Flags.initialtermvectors);
         newBasicTermVectors = vsr;
-        System.err.println("Using trained index vectors from vector store " + Flags.initialtermvectors);
+        logger.info("Using trained index vectors from vector store " + Flags.initialtermvectors);
       } catch (IOException e) {
-        System.err.println("Could not read from vector store " + Flags.initialtermvectors);
+        logger.info("Could not read from vector store " + Flags.initialtermvectors);
         usage();
         throw new IllegalArgumentException();
       }
@@ -132,56 +128,46 @@ public class BuildPositionalIndex {
     else if (Flags.positionalmethod.equals("permutation_plus_basic")) termFile = "permplustermvectors.bin";
     else if (Flags.positionalmethod.equals("directional")) termFile = "drxntermvectors.bin";
 
-    System.err.println("Lucene index = " + luceneIndex);
-    System.err.println("Seedlength = " + Flags.seedlength);
-    System.err.println("Vector length = " + Flags.dimension);
-    System.err.println("Minimum frequency = " + Flags.minfrequency);
-    System.err.println("Maximum frequency = " + Flags.maxfrequency);
-    System.err.println("Number non-alphabet characters = " + Flags.maxnonalphabetchars);
-    System.err.println("Window radius = " + Flags.windowradius);
+    logger.info("Lucene index = " + luceneIndex
+        + "\nSeedlength = " + Flags.seedlength
+        + "\nVector length = " + Flags.dimension
+        + "\nMinimum frequency = " + Flags.minfrequency
+        + "\nMaximum frequency = " + Flags.maxfrequency
+        + "\nNumber non-alphabet characters = " + Flags.maxnonalphabetchars
+        + "\nWindow radius = " + Flags.windowradius
+        + "\nFields to index = " + Flags.joinStringArray(Flags.contentsfields));
 
     try {
-      TermTermVectorsFromLucene vecStore =
-          new TermTermVectorsFromLucene(luceneIndex,
-                                        Flags.dimension,
-                                        Flags.seedlength,
-                                        Flags.minfrequency,
-                                        Flags.maxnonalphabetchars,
-                                        2 * Flags.windowradius + 1,
-                                        Flags.positionalmethod,
-                                        newBasicTermVectors,
-                                        Flags.contentsfields);
+      TermTermVectorsFromLucene vecStore = new TermTermVectorsFromLucene(
+          luceneIndex, Flags.dimension, Flags.seedlength, Flags.minfrequency, Flags.maxfrequency,
+            Flags.maxnonalphabetchars, 2 * Flags.windowradius + 1, Flags.positionalmethod,
+            newBasicTermVectors, Flags.contentsfields);
+      
       VectorStoreWriter vecWriter = new VectorStoreWriter();
-      System.err.println("Writing term vectors to " + termFile);
+      logger.info("Writing term vectors to " + termFile);
       vecWriter.WriteVectors(termFile, vecStore);
 
-      for (int i = 1; i < trainingCycles; ++i) {
+      for (int i = 1; i < Flags.trainingcycles; ++i) {
         newBasicTermVectors = vecStore.getBasicTermVectors();
-        System.err.println("\nRetraining with learned term vectors ...");
-        vecStore = new TermTermVectorsFromLucene(luceneIndex,
-                                                 Flags.dimension,
-                                                 Flags.seedlength,
-                                                 Flags.minfrequency,
-                                                 Flags.maxnonalphabetchars,
-                                                 2 * Flags.windowradius + 1,
-                                                 Flags.positionalmethod,
-                                                 newBasicTermVectors,
-						 Flags.contentsfields);
+        logger.info("\nRetraining with learned term vectors ...");
+        vecStore = new TermTermVectorsFromLucene(
+            luceneIndex, Flags.dimension, Flags.seedlength, Flags.minfrequency, Flags.maxfrequency,
+            Flags.maxnonalphabetchars, 2 * Flags.windowradius + 1, Flags.positionalmethod,
+            newBasicTermVectors, Flags.contentsfields);
       }
 
-      if (trainingCycles > 1) {
-        termFile = termFile.replaceAll("\\..*", "") + trainingCycles + ".bin";
-        docFile = "docvectors" + trainingCycles + ".bin";
-        System.err.println("Writing term vectors to " + termFile);
+      if (Flags.trainingcycles > 1) {
+        termFile = termFile.replaceAll("\\..*", "") + Flags.trainingcycles + ".bin";
+        docFile = "docvectors" + Flags.trainingcycles + ".bin";
+        logger.info("Writing term vectors to " + termFile);
         vecWriter.WriteVectors(termFile, vecStore);
       }
-      
-      if (! Flags.docindexing.equals("none"))
-      {
-      IncrementalDocVectors docVectors =
-          new IncrementalDocVectors(vecStore, luceneIndex, Flags.contentsfields, "incremental_"+docFile);
+
+      if (! Flags.docindexing.equals("none")) {
+        IncrementalDocVectors docVectors = new IncrementalDocVectors(
+            vecStore, luceneIndex, Flags.contentsfields, "incremental_"+docFile);
       }
-      }
+    }
     catch (IOException e) {
       e.printStackTrace();
     }

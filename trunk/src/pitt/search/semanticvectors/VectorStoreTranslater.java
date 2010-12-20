@@ -35,12 +35,16 @@ package pitt.search.semanticvectors;
 
 import java.io.IOException;
 import java.lang.IllegalArgumentException;
+import java.util.logging.Logger;
 
 /**
  * Class providing command-line interface for transforming vector
  * store between the optimized Lucene format and plain text.
  */
 public class VectorStoreTranslater {
+  private static final Logger logger = Logger.getLogger(
+      VectorStoreTranslater.class.getCanonicalName());
+
   /**
    * Prints the following usage message:
    * <br> VectorStoreTranslater class in pitt.search.semanticvectors
@@ -63,7 +67,7 @@ public class VectorStoreTranslater {
   public static void main(String[] args) {
     // Parse command line args.
     if (args.length != 3) {
-      System.err.println("You gave " + args.length + " arguments ...");
+      logger.info("You gave " + args.length + " arguments ...");
       usage();
       throw new IllegalArgumentException();
     }
@@ -80,16 +84,11 @@ public class VectorStoreTranslater {
 
     // Convert Lucene-style index to plain text.
     if (option == Options.LUCENE_TO_TEXT) {
-      try {
-        VectorStoreReaderLucene vecReader = new VectorStoreReaderLucene(infile);
-        VectorStoreWriter vecWriter = new VectorStoreWriter();
-        System.err.println("Writing term vectors to " + outfile);
-        vecWriter.WriteVectorsAsText(outfile, vecReader);
-        vecReader.close();
-      }
-      catch (IOException e) {
-        e.printStackTrace();
-      }
+      VectorStoreReaderLucene vecReader = new VectorStoreReaderLucene(infile);
+      VectorStoreWriter vecWriter = new VectorStoreWriter();
+      logger.info("Writing term vectors to " + outfile);
+      vecWriter.WriteVectorsAsText(outfile, vecReader);
+      vecReader.close();
     }
 
     // Convert plain text index to Lucene-style.
@@ -97,7 +96,7 @@ public class VectorStoreTranslater {
       try {
         VectorStoreReaderText vecReader = new VectorStoreReaderText(infile);
         VectorStoreWriter vecWriter = new VectorStoreWriter();
-        System.err.println("Writing term vectors to " + outfile);
+        logger.info("Writing term vectors to " + outfile);
         vecWriter.WriteVectors(outfile, vecReader);
         vecReader.close();
       }

@@ -39,6 +39,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Hashtable;
+import java.util.logging.Logger;
 
 /**
  * This class is used for performing kMeans clustering on an entire
@@ -48,6 +49,9 @@ import java.util.Hashtable;
  * @see ClusterResults 
  */
 public class ClusterVectorStore {
+  private static final Logger logger = Logger.getLogger(
+      ClusterVectorStore.class.getCanonicalName());
+
   /**
    * Prints the following usage message:
    * <code>
@@ -149,16 +153,16 @@ public class ClusterVectorStore {
       vecReader = VectorStoreReader.openVectorStore(args[0]);
     } catch (IOException e) {
       System.out.println("Failed to open vector store from file: '" + args[0] + "'");
-      System.err.println(e.getMessage());
+      logger.info(e.getMessage());
       throw new IllegalArgumentException("Failed to parse arguments for ClusterVectorStore");
     }
 
     // Figure out how many vectors we need.
-    System.err.println("Counting vectors in store ...");
+    logger.info("Counting vectors in store ...");
     int numVectors = vecReader.getNumVectors();
 
     // Allocate vector memory and read vectors from store.
-    System.err.println("Reading vectors into memory ...");
+    logger.info("Reading vectors into memory ...");
     ObjectVector[] resultsVectors = new ObjectVector[numVectors];
     Enumeration<ObjectVector> vecEnum = vecReader.getAllVectors();
     int offset = 0;
@@ -169,8 +173,8 @@ public class ClusterVectorStore {
     }
     vecReader.close();
 
-    // Peform clustering and print out results.
-    System.err.println("Clustering vectors ...");
+    // Perform clustering and print out results.
+    logger.info("Clustering vectors ...");
     int[] clusterMappings = ClusterResults.kMeansCluster(resultsVectors, Flags.numclusters);
     for (int i = 0; i < Flags.numclusters; ++i) {
       System.out.println("Cluster " + i);

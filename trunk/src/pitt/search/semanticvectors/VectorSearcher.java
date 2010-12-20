@@ -39,6 +39,7 @@ import java.lang.IllegalArgumentException;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.Enumeration;
+import java.util.logging.Logger;
 
 import pitt.search.semanticvectors.LuceneUtils;
 import pitt.search.semanticvectors.VectorSearcher;
@@ -50,7 +51,9 @@ import pitt.search.semanticvectors.VectorUtils;
  * Each VectorSearcher implements a particular scoring function which is
  * normally query dependent, so each query needs its own VectorSearcher.
  */
-abstract public class VectorSearcher{
+abstract public class VectorSearcher {
+  private static final Logger logger = Logger.getLogger(VectorSearcher.class.getCanonicalName());
+  
   private VectorStore queryVecStore;
   private VectorStore searchVecStore;
   private LuceneUtils luceneUtils;
@@ -244,10 +247,10 @@ abstract public class VectorSearcher{
       // Collect tensor training relations.
       int i = 0;
       while (queryTerms[i].indexOf("~") > 0) {
-        System.err.println("Training pair: " + queryTerms[i]);
+        logger.info("Training pair: " + queryTerms[i]);
         String[] trainingTerms = queryTerms[i].split("~");
         if (trainingTerms.length != 2) {
-          System.err.println("Tensor training terms must be pairs split by individual"
+          logger.info("Tensor training terms must be pairs split by individual"
                              + " '~' character. Error with: '" + queryTerms[i] + "'");
         }
         float[] trainingVec1 = queryVecStore.getVector(trainingTerms[0]);
@@ -282,9 +285,10 @@ abstract public class VectorSearcher{
     }
 
     /**
-     * @param testVector Vector being tested.
      * Scores are hopefully high when the relationship between queryVector
      * and testVector is analogous to the relationship between rel1 and rel2.
+     * 
+     * @param testVector Vector being tested.
      */
     public float getScore(float[] testVector) {
       float[][] testTensor =
@@ -325,10 +329,10 @@ abstract public class VectorSearcher{
       // Collect tensor training relations.
       int i = 0;
       while (queryTerms[i].indexOf("~") > 0) {
-        System.err.println("Training pair: " + queryTerms[i]);
+        logger.info("Training pair: " + queryTerms[i]);
         String[] trainingTerms = queryTerms[i].split("~");
         if (trainingTerms.length != 2) {
-          System.err.println("Tensor training terms must be pairs split by individual"
+          logger.info("Tensor training terms must be pairs split by individual"
                              + " '~' character. Error with: '" + queryTerms[i] + "'");
         }
         float[] trainingVec1 = queryVecStore.getVector(trainingTerms[0]);
@@ -364,7 +368,7 @@ abstract public class VectorSearcher{
     /**
      * @param testVector Vector being tested.
      * Scores are hopefully high when the relationship between queryVector
-     * and testVector is analogoues to the relationship between rel1 and rel2.
+     * and testVector is analogous to the relationship between rel1 and rel2.
      */
     public float getScore(float[] testVector) {
       float[] testConvolution =
@@ -501,7 +505,7 @@ abstract public class VectorSearcher{
         theAvg = pitt.search.semanticvectors.CompoundVectorBuilder.
             getPermutedQueryVector(queryVecStore,luceneUtils,queryTerms);
       } catch (IllegalArgumentException e) {
-        System.err.println("Couldn't create permutation VectorSearcher ...");
+        logger.info("Couldn't create permutation VectorSearcher ...");
         throw e;
       }
 
@@ -554,7 +558,7 @@ abstract public class VectorSearcher{
         otherDirection = pitt.search.semanticvectors.CompoundVectorBuilder.
             getPermutedQueryVector(searchVecStore,luceneUtils,queryTerms);
       } catch (IllegalArgumentException e) {
-        System.err.println("Couldn't create permutation VectorSearcher ...");
+        logger.info("Couldn't create permutation VectorSearcher ...");
         throw e;
       }
 

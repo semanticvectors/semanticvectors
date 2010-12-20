@@ -7,15 +7,15 @@
    modification, are permitted provided that the following conditions are
    met:
 
-   * Redistributions of source code must retain the above copyright
+ * Redistributions of source code must retain the above copyright
    notice, this list of conditions and the following disclaimer.
 
-   * Redistributions in binary form must reproduce the above
+ * Redistributions in binary form must reproduce the above
    copyright notice, this list of conditions and the following
    disclaimer in the documentation and/or other materials provided
    with the distribution.
 
-   * Neither the name of the University of Pittsburgh nor the names
+ * Neither the name of the University of Pittsburgh nor the names
    of its contributors may be used to endorse or promote products
    derived from this software without specific prior written
    permission.
@@ -31,14 +31,12 @@
    LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
    NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
    SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-**/
+ **/
 
 package pitt.search.semanticvectors;
 
 import java.io.IOException;
-import java.lang.IllegalArgumentException;
-import java.util.LinkedList;
-import org.apache.lucene.index.Term;
+import java.util.logging.Logger;
 
 /**
  * Command line term vector comparison utility. This enables users to
@@ -57,9 +55,11 @@ import org.apache.lucene.index.Term;
 
  <br> If the term NOT is used in one of the lists, subsequent terms in 
  that list will be negated.
-*/
+ */
 
 public class CompareTerms{
+  private static final Logger logger = Logger.getLogger(CompareTerms.class.getCanonicalName());
+
   /**
    * Prints the following usage message: 
    * <code>
@@ -92,47 +92,41 @@ public class CompareTerms{
     args = Flags.parseCommandLineFlags(args);
 
     LuceneUtils luceneUtils = null;
-		
+
     if (args.length != 2) {
-      System.err.println("After parsing command line options there must be " +
-                         "exactly two queryterm expressions to compare.");
+      logger.info("After parsing command line options there must be " +
+      "exactly two queryterm expressions to compare.");
       usage();
       throw new IllegalArgumentException();
     }
 
-    // Reading and searching data.
-    try {
-      VectorStoreReaderLucene vecReader = new VectorStoreReaderLucene(Flags.queryvectorfile);
-      System.err.println("Opening query vector store from file: " + Flags.queryvectorfile);
+    VectorStoreReaderLucene vecReader = new VectorStoreReaderLucene(Flags.queryvectorfile);
+    logger.info("Opening query vector store from file: " + Flags.queryvectorfile);
 
-      if (Flags.luceneindexpath != null) {
-        try {
-	  luceneUtils = new LuceneUtils(Flags.luceneindexpath);
-	} catch (IOException e) {
-          System.err.println("Couldn't open Lucene index at " + Flags.luceneindexpath);
-        }
+    if (Flags.luceneindexpath != null) {
+      try {
+        luceneUtils = new LuceneUtils(Flags.luceneindexpath);
+      } catch (IOException e) {
+        logger.info("Couldn't open Lucene index at " + Flags.luceneindexpath);
       }
-      if (luceneUtils == null) {
-        System.err.println("No Lucene index for query term weighting, "
-                           + "so all query terms will have same weight.");
-      }
+    }
+    if (luceneUtils == null) {
+      logger.info("No Lucene index for query term weighting, "
+          + "so all query terms will have same weight.");
+    }
 
-      float[] vec1 = CompoundVectorBuilder.getQueryVectorFromString(vecReader,
-                                                                    luceneUtils,
-                                                                    args[0]);
-      float[] vec2 = CompoundVectorBuilder.getQueryVectorFromString(vecReader,
-                                                                    luceneUtils,
-                                                                    args[1]);
-      vecReader.close();
-      float simScore = VectorUtils.scalarProduct(vec1, vec2);
-      // Printing prompt to stderr and score to stdout, this should enable
-      // easier batch scripting to combine input and output data.
-      System.err.println("Outputting similarity of \"" + args[0]
-                         + "\" with \"" + args[1] + "\" ...");
-      System.out.println(simScore);
-    }
-    catch (IOException e) {
-      e.printStackTrace();
-    }
+    float[] vec1 = CompoundVectorBuilder.getQueryVectorFromString(vecReader,
+        luceneUtils,
+        args[0]);
+    float[] vec2 = CompoundVectorBuilder.getQueryVectorFromString(vecReader,
+        luceneUtils,
+        args[1]);
+    vecReader.close();
+    float simScore = VectorUtils.scalarProduct(vec1, vec2);
+    // Printing prompt to stderr and score to stdout, this should enable
+    // easier batch scripting to combine input and output data.
+    logger.info("Outputting similarity of \"" + args[0]
+                                                     + "\" with \"" + args[1] + "\" ...");
+    System.out.println(simScore);
   }
 }

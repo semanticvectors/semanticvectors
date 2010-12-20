@@ -35,12 +35,13 @@
 
 package pitt.search.semanticvectors;
 
-import java.io.*;
-import java.lang.Float;
-import java.lang.Integer;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.StringReader;
 import java.util.Enumeration;
-import java.util.StringTokenizer;
 import java.util.NoSuchElementException;
+import java.util.logging.Logger;
 
 /**
    This class provides methods for reading a VectorStore from a textfile.<p>
@@ -61,6 +62,9 @@ import java.util.NoSuchElementException;
    @see ObjectVector
 **/
 public class VectorStoreReaderText implements CloseableVectorStore {
+  private static final Logger logger = Logger.getLogger(
+      VectorStoreReaderText.class.getCanonicalName());
+  
   private String vectorFileText;
   private boolean hasHeader;
   private BufferedReader inBuf;
@@ -78,7 +82,7 @@ public class VectorStoreReaderText implements CloseableVectorStore {
         this.hasHeader = true;
       }
       else {
-        System.err.println("No file header for file " + vectorFileText +
+        logger.info("No file header for file " + vectorFileText +
                            "\nPresuming vector length is: " + (firstLineData.length - 1) +
                            "\nIf this fails, consider rebuilding indexes - existing " +
                            "ones were probably created with old version of software.");
@@ -139,7 +143,7 @@ public class VectorStoreReaderText implements CloseableVectorStore {
    * @param desiredObject - the string identifying the object being searched for.
    */
   public float[] getVector(Object desiredObject) {
-    System.err.print("Seeking vector for ... " + desiredObject + " ... ");
+    logger.info("Seeking vector for ... " + desiredObject + " ... ");
     try {
       this.close();
       inBuf = new BufferedReader(new FileReader (vectorFileText));
@@ -150,7 +154,7 @@ public class VectorStoreReaderText implements CloseableVectorStore {
       while ((line = inBuf.readLine()) != null) {
         String[] entries = line.split("\\|");
         if (entries[0].equals(desiredObject)) {
-          System.err.println("Found it ...");
+          logger.info("Found it ...");
           return (parseVectorLine(line).getVector());
         }
       }
@@ -158,7 +162,7 @@ public class VectorStoreReaderText implements CloseableVectorStore {
     catch (IOException e) {
       e.printStackTrace();
     }
-    System.err.println("Didn't find it ...");
+    logger.info("Didn't find it ...");
     return null;
   }
 
@@ -166,7 +170,7 @@ public class VectorStoreReaderText implements CloseableVectorStore {
    * Trivial (costly) implementation of getNumVectors that iterates and counts vectors.
    */
   public int getNumVectors() {
-    Enumeration allVectors = this.getAllVectors();
+    Enumeration<ObjectVector> allVectors = this.getAllVectors();
     int i = 0;
     while (allVectors.hasMoreElements()) {
       allVectors.nextElement();

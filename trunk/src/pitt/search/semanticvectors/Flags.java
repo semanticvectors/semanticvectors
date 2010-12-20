@@ -37,6 +37,7 @@ package pitt.search.semanticvectors;
 
 import java.lang.IllegalArgumentException;
 import java.lang.reflect.Field;
+import java.util.logging.Logger;
 
 /**
  * Class for representing and parsing global command line flags.
@@ -53,6 +54,7 @@ import java.lang.reflect.Field;
  * @author dwiddows
  */
 public class Flags {
+  private static final Logger logger = Logger.getLogger(Flags.class.getCanonicalName());
 
   // Add new command line flags here. By convention, please use lower case.
   //
@@ -215,17 +217,17 @@ public class Flags {
           field.setBoolean(field, true);
           ++argc;
         } else {
-	  System.err.println("No support for fields of type: "  + field.getType().getName());
+	  logger.warning("No support for fields of type: "  + field.getType().getName());
 	}
       } catch (NoSuchFieldException e) {
         throw new IllegalArgumentException("Command line flag not defined: " + flagName);
       } catch (IllegalAccessException e) {
-        System.err.println("Must be able to access all fields publicly, including: " + flagName);
+        logger.warning("Must be able to access all fields publicly, including: " + flagName);
         e.printStackTrace();
       }
 
       if (argc >= args.length) {
-        System.err.println("Consumed all command line input while parsing flags");
+        logger.warning("Consumed all command line input while parsing flags");
         return null;
       }
     }

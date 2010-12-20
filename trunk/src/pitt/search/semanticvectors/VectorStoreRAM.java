@@ -62,7 +62,7 @@ public class VectorStoreRAM implements VectorStore {
   // Default constructor.
   public VectorStoreRAM() {
     this.objectVectors = new Hashtable<Object, ObjectVector>();
-  };
+  }
 
   // Initialization routine.
   public void InitFromFile (String vectorFile) throws IOException {

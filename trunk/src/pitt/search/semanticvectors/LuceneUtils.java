@@ -43,6 +43,7 @@ import java.io.IOException;
 import java.lang.Math;
 import java.util.Hashtable;
 import java.util.TreeSet;
+import java.util.logging.Logger;
 
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.index.CorruptIndexException;
@@ -59,8 +60,9 @@ import org.apache.lucene.util.Version;
  * Class to support reading extra information from Lucene indexes,
  * including term frequency, doc frequency.
  */
-
 public class LuceneUtils{
+  private static final Logger logger = Logger.getLogger(DocVectors.class.getCanonicalName());
+  
   private IndexReader indexReader;
   private Hashtable<Term, Float> termEntropy = new Hashtable<Term, Float>();
   private TreeSet<String> stopwords = null;
@@ -82,7 +84,7 @@ public class LuceneUtils{
    */
 
   public void loadStopWords(String stoppath) throws IOException
-  {  System.err.println("Using stopword file: "+stoppath);
+  {  logger.info("Using stopword file: "+stoppath);
 	  stopwords = new TreeSet<String>();
   	try{
   BufferedReader readIn = new BufferedReader(new FileReader(stoppath));
@@ -115,7 +117,7 @@ public class LuceneUtils{
     try{
       TermDocs tDocs = this.indexReader.termDocs(term);
       if (tDocs == null) {
-        System.err.println("Couldn't get term frequency for term " + term.text());
+        logger.info("Couldn't get term frequency for term " + term.text());
         return 1;
       }
       while (tDocs.next()) {
@@ -123,7 +125,7 @@ public class LuceneUtils{
       }
     }
     catch (IOException e) {
-      System.err.println("Couldn't get term frequency for term " + term.text());
+      logger.info("Couldn't get term frequency for term " + term.text());
       return 1;
     }
     return tf;
@@ -141,7 +143,7 @@ public class LuceneUtils{
 	freq += indexReader.docFreq(new Term(field, termString));
       return (float) Math.pow(freq, -0.05);
     } catch (IOException e) {
-      System.err.println("Couldn't get term weight for term '" + termString + "'");
+      logger.info("Couldn't get term weight for term '" + termString + "'");
       return 1;
     }
   }
@@ -156,7 +158,7 @@ public class LuceneUtils{
     try {
       return (float) Math.pow(indexReader.docFreq(term), -0.05);
     } catch (IOException e) {
-      System.err.println("Couldn't get term weight for term '" + term.text() + "'");
+      logger.info("Couldn't get term weight for term '" + term.text() + "'");
       return 1;
     }
   }
@@ -197,24 +199,25 @@ public class LuceneUtils{
       entropy = entropy/log2n;
     }
     catch (IOException e) {
-      System.err.println("Couldn't get term entropy for term " + term.text());
+      logger.info("Couldn't get term entropy for term " + term.text());
     }
     termEntropy.put(term, 1+(float)entropy);
     return (float) (1 + entropy);
   }
 
   /**
-   * Filters out non-alphabetic terms and those of low frequency
-   * @param term - Term to be filtered.
-   * @param desiredFields - Terms in only these fields are filtered in
+   * Filters out non-alphabetic terms and those of low frequency.
+   * 
    * Thanks to Vidya Vasuki for refactoring and bug repair
+   * 
+   * @param term Term to be filtered.
+   * @param desiredFields Terms in only these fields are filtered in
+   * @param minFreq minimum term frequency accepted
+   * @param maxFreq maximum term frequency accepted
+   * @param maxNonAlphabet reject terms with more than this number of non-alphabetic characters
    */
-  protected boolean termFilter (Term term, String[] desiredFields)
-      throws IOException {
-    int nonAlphabet = Flags.maxnonalphabetchars;
-    int minFreq = Flags.minfrequency;
-    int maxFreq = Flags.maxfrequency;
-
+  protected boolean termFilter(
+      Term term, String[] desiredFields, int minFreq, int maxFreq, int maxNonAlphabet) {
     // Field filter.
     boolean isDesiredField = false;
     for (int i = 0; i < desiredFields.length; ++i) {
@@ -232,18 +235,18 @@ public class LuceneUtils{
     }
 
     // Character filter.
-    if (nonAlphabet != -1) {
+    if (maxNonAlphabet != -1) {
       int nonLetter = 0;
       String termText = term.text();
       for (int i = 0; i < termText.length(); ++i) {
         if (!Character.isLetter(termText.charAt(i)))
           nonLetter++;
-        if (nonLetter > nonAlphabet)
+        if (nonLetter > maxNonAlphabet)
           return false;
       }
     }
 
-    // Freqency filter.
+    // Frequency filter.
     int termfreq = getGlobalTermFreq(term);
     if (termfreq < minFreq | termfreq > maxFreq)  {
       return false;
@@ -261,8 +264,7 @@ public class LuceneUtils{
    * Otherwise exceptions can occur if document id's are greater
    * than indexReader.numDocs().
    */
-  static void CompressIndex(String indexDir)
-    throws IOException, CorruptIndexException {
+  static void CompressIndex(String indexDir) {
     try {
       IndexWriter compressor = new IndexWriter(FSDirectory.open(new File(indexDir)),
 					       new StandardAnalyzer(Version.LUCENE_30),

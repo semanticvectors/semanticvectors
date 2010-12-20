@@ -1,10 +1,6 @@
 package qut.beagle;
 
-import java.util.LinkedList;
-
-import org.apache.lucene.index.IndexReader;
-
-import pitt.search.semanticvectors.Flags;
+import pitt.search.semanticvectors.CloseableVectorStore;
 import pitt.search.semanticvectors.LuceneUtils;
 import pitt.search.semanticvectors.ObjectVector;
 import pitt.search.semanticvectors.SearchResult;
@@ -12,7 +8,8 @@ import pitt.search.semanticvectors.VectorSearcher;
 import pitt.search.semanticvectors.VectorStore;
 import pitt.search.semanticvectors.VectorStoreReader;
 import pitt.search.semanticvectors.VectorStoreWriter;
-import pitt.search.semanticvectors.ZeroVectorException;
+
+import java.util.LinkedList;
 
 // This class demonstrates use of this package for generating and querying BEAGLE vector stores
 public class BeagleTest
@@ -22,7 +19,7 @@ public class BeagleTest
 	{
 		VectorSearcher vs;
 		LuceneUtils lUtils = null;
-		VectorStore queryVecReader, searchVecReader;
+		CloseableVectorStore queryVecReader, searchVecReader;
 		LinkedList<SearchResult> results;
 		int numResults = 20;
 

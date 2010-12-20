@@ -36,15 +36,9 @@
 package pitt.search.semanticvectors;
 
 import java.io.BufferedReader;
-import java.io.InputStreamReader;
 import java.io.IOException;
-import java.lang.ArrayIndexOutOfBoundsException;
-import java.lang.IllegalArgumentException;
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.Vector;
-
-import org.apache.lucene.index.Term;
+import java.io.InputStreamReader;
+import java.util.logging.Logger;
 
 
 /**
@@ -77,6 +71,8 @@ import org.apache.lucene.index.Term;
 */
 
 public class CompareTermsBatch{
+  private static final Logger logger = Logger.getLogger(
+      CompareTermsBatch.class.getCanonicalName());
   /**
    * Prints the following usage message:
    * <code>
@@ -110,7 +106,7 @@ public class CompareTermsBatch{
       + "\n   of terms at the separator, and output a similarity score to STDOUT."
       + "\nIf the term NOT is used in one of the lists, subsequent terms in "
       + "\nthat list will be negated (as in Search class).";
-    System.err.println(usageMessage);
+    logger.info(usageMessage);
   }
 
   /**
@@ -138,21 +134,21 @@ public class CompareTermsBatch{
         VectorStoreRAM ramReader = new VectorStoreRAM();
         ramReader.InitFromFile(Flags.queryvectorfile);
         vecReader = ramReader;
-        System.err.println("Using RAM cache of vectors");
+        logger.info("Using RAM cache of vectors");
       } else {
         vecReader = new VectorStoreReaderLucene(Flags.queryvectorfile);
-        System.err.println("Reading vectors directly off disk");
+        logger.info("Reading vectors directly off disk");
       }
 
       if (Flags.luceneindexpath != null) {
         try {
           luceneUtils = new LuceneUtils(Flags.luceneindexpath);
         } catch (IOException e) {
-          System.err.println("Couldn't open Lucene index at " + Flags.luceneindexpath);
+          logger.info("Couldn't open Lucene index at " + Flags.luceneindexpath);
         }
       }
       if (luceneUtils == null) {
-        System.err.println("No Lucene index for query term weighting, "
+        logger.info("No Lucene index for query term weighting, "
                            + "so all query terms will have same weight.");
       }
 
@@ -175,9 +171,7 @@ public class CompareTermsBatch{
           ((VectorStoreReaderLucene)vecReader).close();
         }
         float simScore = VectorUtils.scalarProduct(vec1, vec2);
-        System.err.println("score=" + simScore);
-      // Printing prompt to stderr and score to stdout, this should enable
-      // easier batch scripting to combine input and output data.
+        logger.info("score=" + simScore);
         System.out.println(simScore);
       }
     }

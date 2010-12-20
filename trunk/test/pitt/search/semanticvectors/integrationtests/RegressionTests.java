@@ -73,7 +73,8 @@ public class RegressionTests {
 
     ArrayList<String> arguments = new ArrayList<String>();
     arguments.add("peter");
-    Scanner results = TestUtils.getCommandOutput(pitt.search.semanticvectors.Search.class, arguments);
+    Scanner results = TestUtils.getCommandOutput(
+        pitt.search.semanticvectors.Search.class, arguments);
     // Iterate to second line and check result.
     results.next();
     String secondTerm = TestUtils.termFromResult(results.next());
@@ -83,7 +84,7 @@ public class RegressionTests {
 
   @Test
   public void testBuildAndSearchPositionalIndex() {
-    assert(!(new File("termtermvectors.bin")).isFile());
+    assert(!(new File(RunTests.testVectors)).isFile());
     assert(!(new File("incremental_docvectors.bin")).isFile());
 
     String[] args2 = {"-dimension", "200", "positional_index"};
@@ -92,32 +93,34 @@ public class RegressionTests {
 
     BuildPositionalIndex.main(args2);
 
-    logger.info("*********** Finished building positional index.");
+    logger.info("Finished building positional index.");
 
     assert((new File("termtermvectors.bin")).isFile());
     assert((new File("incremental_docvectors.bin")).isFile());
-
-    logger.info("Built positional index.");
 
     ArrayList<String> arguments = new ArrayList<String>();
     arguments.add("-queryvectorfile");
     arguments.add("termtermvectors.bin");
     arguments.add("simon");
-    Scanner results = TestUtils.getCommandOutput(pitt.search.semanticvectors.Search.class, arguments);
+    Scanner results = TestUtils.getCommandOutput(
+        pitt.search.semanticvectors.Search.class, arguments);
     int i = 0;
     boolean foundPeter = false;
+    
+    logger.info("About to search.");
     while (i < 5) {
       String nextTerm = TestUtils.termFromResult(results.next());
-      System.err.println("\tResult term is: '" + nextTerm);
+      logger.finer("\tResult term is: '" + nextTerm);
       if (nextTerm.equals("peter")) {
         foundPeter = true;
-        System.err.println("Found peter in line: " + i);
+        logger.finer("Found peter in line: " + i);
         break;
       }
       ++i;
     }
     assertTrue(foundPeter);
     results.close();
+    logger.info("Done with positional index test.");
   }
 
   @Test
@@ -139,7 +142,7 @@ public class RegressionTests {
     // First result should be "peter".
     String firstLine = results.next();
     String firstTerm = TestUtils.termFromResult(firstLine);
-    System.err.println("\tResult term is: '" + firstTerm);
+    logger.info("\tResult term is: '" + firstTerm);
     assertEquals("peter", firstTerm);
     results.close();
 
@@ -156,7 +159,7 @@ public class RegressionTests {
     // First result should be "peter".
     String firstLine2 = results2.next();
     String firstTerm2 = TestUtils.termFromResult(firstLine2);
-    System.err.println("\tResult term is: '" + firstTerm2 + "'");
+    logger.info("\tResult term is: '" + firstTerm2 + "'");
     assertEquals("peter", firstTerm2);
     results2.close();
   }

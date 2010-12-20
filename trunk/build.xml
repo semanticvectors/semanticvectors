@@ -44,7 +44,7 @@
     <fileset dir="${libdir}">
       <include name="*.jar" />
     </fileset>
-    <pathelement path="${buildclassesdir}"/>
+    <pathelement location="${buildclassesdir}"/>
     <pathelement path="${envclasspath}"/>
   </path>
   <path id="run.classpath">

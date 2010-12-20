@@ -37,18 +37,14 @@ package pitt.search.semanticvectors;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.logging.Logger;
 
 /**
  * Command line utility for creating semantic vector indexes.
  */
 public class BuildIndex {
-  /* These can be modified with command line arguments */
-  static int seedLength = 20;
-  static int minFreq = 10;
-  static int nonAlphabet = 0;
-  static int trainingCycles = 1;
-  static boolean docsIncremental = false;
-
+  public static Logger logger = Logger.getLogger("pitt.search.semanticvectors");
+  
   /**
    * Prints the following usage message:
    * <code>
@@ -109,16 +105,16 @@ public class BuildIndex {
     }
 
     String luceneIndex = args[0];
-    System.err.println("Seedlength = " + Flags.seedlength);
-    System.err.println("Dimension = " + Flags.dimension);
-    System.err.println("Minimum frequency = " + Flags.minfrequency);
-    System.err.println("Maximum frequency = " + Flags.maxfrequency);
-    System.err.println("Number non-alphabet characters = " + Flags.maxnonalphabetchars);
+    logger.info("Seedlength = " + Flags.seedlength 
+        + "\nDimension = " + Flags.dimension
+        + "\nMinimum frequency = " + Flags.minfrequency
+        + "\nMaximum frequency = " + Flags.maxfrequency
+        + "\nNumber non-alphabet characters = " + Flags.maxnonalphabetchars
+        + "\nContents fields are: " + Arrays.toString(Flags.contentsfields));
+
     String termFile = "termvectors.bin";
     String docFile = "docvectors.bin";
     VectorStoreRAM initialdocvectors = null;
-
-    System.err.println("Contents fields are: " + Arrays.toString(Flags.contentsfields));
 
     try{
       TermVectorsFromLucene vecStore;
@@ -127,30 +123,21 @@ public class BuildIndex {
         // term vectors. Recommended to iterate at least once (i.e. -trainingcycles = 2) to
         // obtain semantic term vectors.
         // Otherwise attempt to load pre-existing semantic term vectors.
-        System.err.println("Creating term vectors ...");
-        vecStore =
-            new TermVectorsFromLucene(luceneIndex,
-                                      Flags.seedlength,
-                                      Flags.minfrequency,
-                                      Flags.maxnonalphabetchars,
-                                      Flags.initialtermvectors,
-                                      Flags.contentsfields);
+        logger.info("Creating term vectors ...");
+        vecStore = TermVectorsFromLucene.createTermBasedRRIVectors(
+            luceneIndex, Flags.seedlength, Flags.minfrequency, Flags.maxfrequency,
+            Flags.maxnonalphabetchars, Flags.initialtermvectors, Flags.contentsfields);
       } else {
-        System.err.println("Creating elemental document vectors ...");
-        vecStore =
-            new TermVectorsFromLucene(luceneIndex,
-                                      Flags.dimension,
-                                      Flags.seedlength,
-                                      Flags.minfrequency,
-                                      Flags.maxnonalphabetchars,
-                                      null,
-                                      Flags.contentsfields);
+        logger.info("Creating elemental document vectors ...");
+        vecStore = TermVectorsFromLucene.createTermVectorsFromLucene(
+            luceneIndex, Flags.dimension, Flags.seedlength, Flags.minfrequency, Flags.maxfrequency,
+            Flags.maxnonalphabetchars, null, Flags.contentsfields);
       }
 
       // Create doc vectors and write vectors to disk.
       VectorStoreWriter vecWriter = new VectorStoreWriter();
       if (Flags.docindexing.equals("incremental")) {
-        System.err.println("Writing term vectors to " + termFile);
+        logger.info("Writing term vectors to " + termFile);
         vecWriter.WriteVectors(termFile, vecStore);
         IncrementalDocVectors idocVectors = new IncrementalDocVectors(
             vecStore, luceneIndex, Flags.contentsfields, "incremental_"+docFile);
@@ -173,14 +160,10 @@ public class BuildIndex {
       } else if (Flags.docindexing.equals("inmemory")) {
         DocVectors docVectors = new DocVectors(vecStore);
         for (int i = 1; i < Flags.trainingcycles; ++i) {
-          System.err.println("\nRetraining with learned document vectors ...");
-          vecStore = new TermVectorsFromLucene(luceneIndex,
-                                               Flags.dimension,
-                                               Flags.seedlength,
-                                               Flags.minfrequency,
-                                               Flags.maxnonalphabetchars,
-                                               docVectors,
-                                               Flags.contentsfields);
+          logger.info("\nRetraining with learned document vectors ...");
+          vecStore = TermVectorsFromLucene.createTermVectorsFromLucene(
+              luceneIndex, Flags.dimension, Flags.seedlength, Flags.minfrequency,
+              Flags.maxfrequency, Flags.maxnonalphabetchars, docVectors, Flags.contentsfields);
           docVectors = new DocVectors(vecStore);
         }
         // At end of training, convert document vectors from ID keys to pathname keys.
@@ -190,13 +173,13 @@ public class BuildIndex {
           termFile = "termvectors" + Flags.trainingcycles + ".bin";
           docFile = "docvectors" + Flags.trainingcycles + ".bin";
         }
-        System.err.println("Writing term vectors to " + termFile);
+        logger.info("Writing term vectors to " + termFile);
         vecWriter.WriteVectors(termFile, vecStore);
-        System.err.println("Writing doc vectors to " + docFile);
+        logger.info("Writing doc vectors to " + docFile);
         vecWriter.WriteVectors(docFile, writeableDocVectors);
       } else {
         // Write term vectors to disk even if there are no docvectors to output.
-        System.err.println("Writing term vectors to " + termFile);
+        logger.info("Writing term vectors to " + termFile);
         vecWriter.WriteVectors(termFile, vecStore);
       }
     }

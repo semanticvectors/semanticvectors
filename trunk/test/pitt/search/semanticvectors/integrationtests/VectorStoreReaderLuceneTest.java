@@ -36,16 +36,15 @@ package pitt.search.semanticvectors.integrationtests;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Enumeration;
-import java.util.NoSuchElementException;
-
 import org.junit.Before;
 import org.junit.Test;
 
 import pitt.search.semanticvectors.ObjectVector;
 import pitt.search.semanticvectors.VectorStoreReaderLucene;
+
+import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.NoSuchElementException;
 
 public class VectorStoreReaderLuceneTest {
 
@@ -55,27 +54,18 @@ public class VectorStoreReaderLuceneTest {
   @Test
     public void TestReadFromTestData() {
     System.err.println("Running tests for VectorStoreReaderLucene");
-    try {
-      VectorStoreReaderLucene reader = new VectorStoreReaderLucene(RunTests.vectorBinFile);
-      assertEquals(2, reader.getNumVectors());
-      float[] abraham = reader.getVector("abraham");
-      reader.close();
-      assertEquals(1.0f, abraham[0], 0.01);
-    } catch (IOException e) {
-      // Not sure if there is a better way to test for exceptions ...
-      fail();
-    }
+    VectorStoreReaderLucene reader = new VectorStoreReaderLucene(RunTests.vectorBinFile);
+    assertEquals(2, reader.getNumVectors());
+    float[] abraham = reader.getVector("abraham");
+    reader.close();
+    assertEquals(1.0f, abraham[0], 0.01);
   }
 
   @Test
     public void TestOpensAndCloses() {
-    try {
-      VectorStoreReaderLucene reader;
-      reader = new VectorStoreReaderLucene(RunTests.vectorBinFile);
-      reader.close();
-    } catch (IOException e) {
-      fail();
-    }
+    VectorStoreReaderLucene reader;
+    reader = new VectorStoreReaderLucene(RunTests.vectorBinFile);
+    reader.close();
   }
 
   @Test
@@ -83,17 +73,12 @@ public class VectorStoreReaderLuceneTest {
   // same vector store file open at once, even for reads, but it's
   // good to test for this somehow.
     public void TestMultipleOpensForRead() {
-    try {
-      @SuppressWarnings("unused")
-      VectorStoreReaderLucene reader = new VectorStoreReaderLucene(RunTests.vectorBinFile);
-      @SuppressWarnings("unused")
-      VectorStoreReaderLucene reader2 = new VectorStoreReaderLucene(RunTests.vectorBinFile);
-      reader.close();
-      reader2.close();
-    } catch (IOException e) {
-      // Not sure if there is a better way to test for exceptions ...
-      fail();
-    }
+    @SuppressWarnings("unused")
+    VectorStoreReaderLucene reader = new VectorStoreReaderLucene(RunTests.vectorBinFile);
+    @SuppressWarnings("unused")
+    VectorStoreReaderLucene reader2 = new VectorStoreReaderLucene(RunTests.vectorBinFile);
+    reader.close();
+    reader2.close();
   }
 
   @Test
@@ -103,13 +88,7 @@ public class VectorStoreReaderLuceneTest {
     // It's a bit of a dance to get a VectorStoreReaderLucene that you
     // can use inside different threads.
     VectorStoreReaderLucene vectorStoreInit = null;
-    try {
-      vectorStoreInit = new VectorStoreReaderLucene(RunTests.vectorBinFile);
-    } catch (IOException e) {
-      System.err.println("Failed to initialize VectorStoreReaderLucene");
-      e.printStackTrace();
-      fail();
-    }
+    vectorStoreInit = new VectorStoreReaderLucene(RunTests.vectorBinFile);
     final VectorStoreReaderLucene vectorStore = vectorStoreInit;
     ArrayList<Thread> threads = new ArrayList<Thread>();
 

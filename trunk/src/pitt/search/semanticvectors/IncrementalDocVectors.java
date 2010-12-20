@@ -7,15 +7,15 @@
    modification, are permitted provided that the following conditions are
    met:
 
-   * Redistributions of source code must retain the above copyright
+ * Redistributions of source code must retain the above copyright
    notice, this list of conditions and the following disclaimer.
 
-   * Redistributions in binary form must reproduce the above
+ * Redistributions in binary form must reproduce the above
    copyright notice, this list of conditions and the following
    disclaimer in the documentation and/or other materials provided
    with the distribution.
 
-   * Neither the name of the University of Pittsburgh nor the names
+ * Neither the name of the University of Pittsburgh nor the names
    of its contributors may be used to endorse or promote products
    derived from this software without specific prior written
    permission.
@@ -31,48 +31,57 @@
    LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
    NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
    SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-**/
+ **/
 
 package pitt.search.semanticvectors;
 
 import java.io.File;
 import java.io.IOException;
 import java.lang.Integer;
+import java.util.logging.Logger;
+
 import org.apache.lucene.index.*;
 import org.apache.lucene.store.IndexOutput;
 import org.apache.lucene.store.FSDirectory;
 
 /**
- * generates document vectors incrementally
- * requires a
- * @param termVectorData Has all the information needed to create doc vectors.
- * @param vectorFile Filename for the document vectors
+ * Generates document vectors incrementally.
+ * 
  * @author Trevor Cohen, Dominic Widdows
  */
 public class IncrementalDocVectors {
+  private static final Logger logger = Logger.getLogger(
+      IncrementalDocVectors.class.getCanonicalName());
 
   private VectorStore termVectorData;
   private IndexReader indexReader;
   private String[] fieldsToIndex;
   private LuceneUtils lUtils;
-
+  private String vectorFileName;
+  
   /**
    * Constructor that gets everything it needs from a
-   * TermVectorsFromLucene object and writes to a named file.
+   * TermVectorsFromLucene object and a Lucene Index directory, and writes to a named file.
+   * 
    * @param termVectorData Has all the information needed to create doc vectors.
    * @param indexDir Directory of the Lucene Index used to generate termVectorData
    * @param fieldsToIndex String[] containing fields indexed when generating termVectorData
    * @param vectorFileName Filename for the document vectors
    */
   public IncrementalDocVectors(VectorStore termVectorData, String indexDir,
-                               String[] fieldsToIndex, String vectorFileName)
-      throws IOException {
+      String[] fieldsToIndex, String vectorFileName)
+  throws IOException {
     this.termVectorData = termVectorData;
     this.indexReader = IndexReader.open(FSDirectory.open(new File(indexDir)));
     this.fieldsToIndex = fieldsToIndex;
-    if (this.lUtils == null)
+    this.vectorFileName = vectorFileName;
+    if (this.lUtils == null) {
       this.lUtils = new LuceneUtils(indexDir);
-
+    }
+    trainIncrementalDocVectors();
+  }
+    
+  private void trainIncrementalDocVectors() throws IOException {
     int numdocs = indexReader.numDocs();
 
     // Open file and write headers.
@@ -84,7 +93,7 @@ public class IncrementalDocVectors {
 
     float[] tmpVector = new float[Flags.dimension];
     int counter = 0;
-    System.err.println("Write vectors incrementally to file " + vectorFile);
+    logger.info("Write vectors incrementally to file " + vectorFile);
 
     // Write header giving number of dimensions for all vectors.
     outputStream.writeString("-dimensions");
@@ -92,26 +101,27 @@ public class IncrementalDocVectors {
 
     // Iterate through documents.
     for (int dc = 0; dc < numdocs; dc++) {
-      /* output progress counter */
-      if (( dc % 10000 == 0 ) || ( dc < 10000 && dc % 1000 == 0 )) {
-        System.err.print(dc + " ... ");
+      // Output progress counter.
+      if (( dc % 50000 == 0 ) || ( dc < 50000 && dc % 10000 == 0 )) {
+        logger.fine("Processed " + dc + " documents ... ");
       }
+      dc++;
 
       String docID = Integer.toString(dc);
       // Use filename and path rather than Lucene index number for document vector.
       if (this.indexReader.document(dc).getField(Flags.docidfield) != null) {
-	docID = this.indexReader.document(dc).getField(Flags.docidfield).stringValue();
-	if (docID.length() == 0) {
-	  System.err.println("Empty document name!!! This will cause problems ...");
-	  System.err.println("Please set -docidfield to a nonempty field in your Lucene index.");
-	}
+        docID = this.indexReader.document(dc).getField(Flags.docidfield).stringValue();
+        if (docID.length() == 0) {
+          logger.warning("Empty document name!!! This will cause problems ...");
+          logger.warning("Please set -docidfield to a nonempty field in your Lucene index.");
+        }
       }
 
       float[] docVector = new float[Flags.dimension];
 
       for (String fieldName: fieldsToIndex) {
         TermFreqVector vex =
-            indexReader.getTermFreqVector(dc, fieldName);
+          indexReader.getTermFreqVector(dc, fieldName);
 
         if (vex != null) {
           // Get terms in document and term frequencies.
@@ -143,7 +153,7 @@ public class IncrementalDocVectors {
             } catch (NullPointerException npe) {
               // Don't normally print anything - too much data!
               // TODO(dwiddows): Replace with a configurable logging system.
-              // System.err.println("term "+term+ " not represented");
+              // logger.info("term "+term+ " not represented");
             }
           }
         }
@@ -158,7 +168,7 @@ public class IncrementalDocVectors {
       }
     } // Finish iterating through documents.
 
-    System.err.println("Finished writing vectors.");
+    logger.info("Finished writing vectors.");
     outputStream.flush();
     outputStream.close();
     fsDirectory.close();
@@ -170,6 +180,6 @@ public class IncrementalDocVectors {
     vsr.InitFromFile(args[0]);
 
     new IncrementalDocVectors(vsr, args[1],
-                              Flags.contentsfields, vectorFile);
+        Flags.contentsfields, vectorFile);
   }
 }

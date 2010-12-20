@@ -36,7 +36,6 @@
 package pitt.search.semanticvectors;
 
 import java.util.Enumeration;
-import java.util.LinkedList;
 
 /**
    Classes implementing this interface are used to represent a collection
@@ -47,7 +46,6 @@ import java.util.LinkedList;
 */
 
 public interface VectorStore {
-
   /**
    * @param object the object whose vector you want to look up
    * @return a vector (of floats)
