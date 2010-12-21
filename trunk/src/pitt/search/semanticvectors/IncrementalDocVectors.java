@@ -105,9 +105,9 @@ public class IncrementalDocVectors {
       if (( dc % 50000 == 0 ) || ( dc < 50000 && dc % 10000 == 0 )) {
         logger.fine("Processed " + dc + " documents ... ");
       }
-      dc++;
+    
 
-      String docID = Integer.toString(dc);
+      String docID = Integer.toString(dc); 
       // Use filename and path rather than Lucene index number for document vector.
       if (this.indexReader.document(dc).getField(Flags.docidfield) != null) {
         docID = this.indexReader.document(dc).getField(Flags.docidfield).stringValue();
