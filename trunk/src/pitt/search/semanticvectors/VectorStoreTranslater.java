@@ -62,9 +62,10 @@ public class VectorStoreTranslater {
 
   /**
    * Command line method for performing index translation.
+   * @throws IOException if any of the vector stores on disk cannot be opened.
    * @see #usage
    */
-  public static void main(String[] args) {
+  public static void main(String[] args) throws IOException {
     // Parse command line args.
     if (args.length != 3) {
       logger.info("You gave " + args.length + " arguments ...");
@@ -84,7 +85,12 @@ public class VectorStoreTranslater {
 
     // Convert Lucene-style index to plain text.
     if (option == Options.LUCENE_TO_TEXT) {
-      VectorStoreReaderLucene vecReader = new VectorStoreReaderLucene(infile);
+      VectorStoreReaderLucene vecReader;
+      try {
+        vecReader = new VectorStoreReaderLucene(infile);
+      } catch (IOException e) {
+        throw e;
+      }
       VectorStoreWriter vecWriter = new VectorStoreWriter();
       logger.info("Writing term vectors to " + outfile);
       vecWriter.WriteVectorsAsText(outfile, vecReader);
@@ -93,16 +99,16 @@ public class VectorStoreTranslater {
 
     // Convert plain text index to Lucene-style.
     if (option == Options.TEXT_TO_LUCENE) {
+      VectorStoreReaderText vecReader;
       try {
-        VectorStoreReaderText vecReader = new VectorStoreReaderText(infile);
-        VectorStoreWriter vecWriter = new VectorStoreWriter();
-        logger.info("Writing term vectors to " + outfile);
-        vecWriter.WriteVectors(outfile, vecReader);
-        vecReader.close();
+        vecReader = new VectorStoreReaderText(infile);
+      } catch (IOException e) {
+        throw e;
       }
-      catch (IOException e) {
-        e.printStackTrace();
-      }
+      VectorStoreWriter vecWriter = new VectorStoreWriter();
+      logger.info("Writing term vectors to " + outfile);
+      vecWriter.WriteVectors(outfile, vecReader);
+      vecReader.close();
     }
   }
 }

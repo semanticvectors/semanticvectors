@@ -165,7 +165,7 @@ public class BuildPositionalIndex {
 
       if (! Flags.docindexing.equals("none")) {
         IncrementalDocVectors docVectors = new IncrementalDocVectors(
-            vecStore, luceneIndex, Flags.contentsfields, "incremental_"+docFile);
+            vecStore, luceneIndex, Flags.contentsfields, "incremental_"+docFile, Flags.dimension);
       }
     }
     catch (IOException e) {

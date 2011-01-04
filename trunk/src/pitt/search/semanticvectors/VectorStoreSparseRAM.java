@@ -58,24 +58,26 @@ public class VectorStoreSparseRAM implements VectorStore {
       VectorStoreSparseRAM.class.getCanonicalName());
 
   private Hashtable<String, short[]> sparseVectors;
+  int dimension;
   int seedLength;
 
   // Default constructor.
-  public VectorStoreSparseRAM() {
+  public VectorStoreSparseRAM(int dimension) {
     this.sparseVectors = new Hashtable<String, short[]>();
+    this.dimension = dimension;
   }
 
   public Enumeration<String> getKeys() { return this.sparseVectors.keys(); }
 
   // Initialization routine.
-  public void CreateRandomVectors (int numVectors, int seedLength) {
+  public void createRandomVectors (int numVectors, int seedLength) {
     this.seedLength = seedLength;
 
     Random random = new Random();
 
     logger.info("Creating store of sparse vectors  ...");
     for (int i = 0; i < numVectors; ++i) {
-      short[] sparseVector = VectorUtils.generateRandomVector(seedLength, random);
+      short[] sparseVector = VectorUtils.generateRandomVector(seedLength, dimension, random);
       this.sparseVectors.put(Integer.toString(i), sparseVector);
     }
     logger.info("Created " + sparseVectors.size() + " sparse random vectors.");
@@ -94,7 +96,7 @@ public class VectorStoreSparseRAM implements VectorStore {
   public float[] getVector(Object desiredObject) {
     short[] sparseVector = this.sparseVectors.get(desiredObject);
     if (sparseVector != null) {
-      return VectorUtils.sparseVectorToFloatVector(sparseVector, Flags.dimension);
+      return VectorUtils.sparseVectorToFloatVector(sparseVector, dimension);
     } else {
       return null;
     }

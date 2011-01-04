@@ -38,7 +38,7 @@ public class TestUtils {
    * and returning a scanner of that process stdout.
    * Please close() the scanner when you are done.
    */
-  public static Scanner getCommandOutput(Class childMain, List<String> args) {
+  public static Scanner getCommandOutput(Class<?> childMain, List<String> args) {
     OutputScanner outputScanner = new OutputScanner();
     OutputStream outputStream = outputScanner.getOutputStream();
     Scanner scan = outputScanner.getScanner();
@@ -72,7 +72,7 @@ public class TestUtils {
    * @param out The child process will write output to this stream. Use null to avoid writing output.
    * @param err The child process will write errors to this stream. Use null to avoid writing output.
    */
-  public static Process spawnChildProcess(Class childMain, List<String> args, InputStream in, OutputStream out, OutputStream err) throws IOException {
+  public static Process spawnChildProcess(Class<?> childMain, List<String> args, InputStream in, OutputStream out, OutputStream err) throws IOException {
     //get the same arguments as used to start this JRE
     RuntimeMXBean rmxb = ManagementFactory.getRuntimeMXBean();
     List<String> arglist = rmxb.getInputArguments();
@@ -133,6 +133,7 @@ public class TestUtils {
       sourceReader = new BufferedInputStream(source);
       outputWriter = new BufferedOutputStream(drain);
     }
+    @Override
     public void run() {
       int c;
       try {
@@ -165,10 +166,13 @@ public class TestUtils {
    * to drain subprocess output buffers.
    */
   private static class NullOutputStream extends OutputStream {
+    @Override
     public void write(byte[] b) {
     }
+    @Override
     public void write(byte[] b, int off, int len) {
     }
+    @Override
     public void write(int b) {
     }
   }

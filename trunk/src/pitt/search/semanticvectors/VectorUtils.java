@@ -7,15 +7,15 @@
    modification, are permitted provided that the following conditions are
    met:
 
-   * Redistributions of source code must retain the above copyright
+ * Redistributions of source code must retain the above copyright
    notice, this list of conditions and the following disclaimer.
 
-   * Redistributions in binary form must reproduce the above
+ * Redistributions in binary form must reproduce the above
    copyright notice, this list of conditions and the following
    disclaimer in the documentation and/or other materials provided
    with the distribution.
 
-   * Neither the name of the University of Pittsburgh nor the names
+ * Neither the name of the University of Pittsburgh nor the names
    of its contributors may be used to endorse or promote products
    derived from this software without specific prior written
    permission.
@@ -31,7 +31,7 @@
    LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
    NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
    SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-**/
+ **/
 
 package pitt.search.semanticvectors;
 
@@ -311,7 +311,7 @@ public class VectorUtils {
     }
     return (float) Math.sqrt(score);
   }
-  
+
 
   /**
    * The orthogonalize function takes an array of vectors and
@@ -329,11 +329,12 @@ public class VectorUtils {
    */
   public static boolean orthogonalizeVectors(ArrayList<float[]> vectors) {
     vectors.set(0, getNormalizedVector(vectors.get(0)));
+    int dimension = vectors.get(0).length;
     // Go up through vectors in turn, parameterized by k.
     for (int k = 0; k < vectors.size(); ++k) {
       float[] kthVector = vectors.get(k);
-      if (kthVector.length != Flags.dimension) {
-        logger.info("In orthogonalizeVector: not all vectors have required dimension.");
+      if (kthVector.length != dimension) {
+        logger.warning("In orthogonalizeVector: not all vectors have required dimension.");
         return false;
       }
       // Go up to vector k, parameterized by j.
@@ -341,7 +342,7 @@ public class VectorUtils {
         float[] jthVector = vectors.get(j);
         float dotProduct = scalarProduct(kthVector, jthVector);
         // Subtract relevant amount from kth vector.
-        for (int i = 0; i < Flags.dimension; ++i) {
+        for (int i = 0; i < dimension; ++i) {
           kthVector[i] -= dotProduct * jthVector[i];
         }
       }
@@ -353,7 +354,7 @@ public class VectorUtils {
   }
 
   /**
-   * Generates a basic sparse vector (dimension = Flags.dimension)
+   * Generates a basic sparse vector
    * with mainly zeros and some 1 and -1 entries (seedLength/2 of each)
    * each vector is an array of length seedLength containing 1+ the index of a non-zero
    * value, signed according to whether this is a + or -1.
@@ -370,15 +371,15 @@ public class VectorUtils {
    * short signed integers, indices to the array locations where a
    * +/-1 entry is located.
    */
-  public static short[] generateRandomVector(int seedLength, Random random) {
-    boolean[] randVector = new boolean[Flags.dimension];
+  public static short[] generateRandomVector(int seedLength, int dimension, Random random) {
+    boolean[] randVector = new boolean[dimension];
     short[] randIndex = new short[seedLength];
 
     int testPlace, entryCount = 0;
 
     /* put in +1 entries */
     while (entryCount < seedLength / 2) {
-      testPlace = random.nextInt(Flags.dimension);
+      testPlace = random.nextInt(dimension);
       if (!randVector[testPlace]) {
         randVector[testPlace] = true;
         randIndex[entryCount] = new Integer(testPlace + 1).shortValue();
@@ -388,7 +389,7 @@ public class VectorUtils {
 
     /* put in -1 entries */
     while (entryCount < seedLength) {
-      testPlace = random.nextInt (Flags.dimension);
+      testPlace = random.nextInt (dimension);
       if (!randVector[testPlace]) {
         randVector[testPlace] = true;
         randIndex[entryCount] = new Integer((1 + testPlace) * -1).shortValue();
@@ -406,7 +407,7 @@ public class VectorUtils {
     // TODO(dwiddows): Find some apprpriate "CHECK" function to use here.
     if (numResults > values.length) {
       logger.info("Asking for highest " + numResults
-                         + " entries out of only " + values.length);
+          + " entries out of only " + values.length);
       throw new IllegalArgumentException();
     }
 
@@ -441,7 +442,7 @@ public class VectorUtils {
     // CHECK
     if (largestPositions.size() != numResults) {
       logger.info("We have " + largestPositions.size()
-                         + " results. Expecting " + numResults);			
+          + " results. Expecting " + numResults);			
       throw new IllegalArgumentException();
     }
     Object[] intArray = largestPositions.toArray();
@@ -459,7 +460,7 @@ public class VectorUtils {
     // TODO(dwiddows): Find some appropriate "CHECK" function to use here.
     if (seedLength > floatVector.length) {
       logger.info("Asking sparse form of length " + seedLength +
-                         " from float vector of length " + floatVector.length);
+          " from float vector of length " + floatVector.length);
       throw new IllegalArgumentException();
     }
 
@@ -506,17 +507,18 @@ public class VectorUtils {
    * alternative to random permutation
    * @param indexVector the sparse vector to be permuted
    * @param rotation the direction and number of places to rotate
+   * @param dimension number of dimensions used
    * @return sparse vector with permutation
    */
-  public static short[] permuteVector (short[] indexVector, int rotation)	{
+  public static short[] permuteVector (short[] indexVector, int rotation, int dimension) {
     short[] permutedVector = new short[indexVector.length];
     for (int x = 0; x < permutedVector.length; x++) {
       int newIndex = Math.abs(indexVector[x]);
       int sign = Integer.signum(indexVector[x]);
       // rotate vector
       newIndex += rotation;
-      if (newIndex > Flags.dimension) newIndex = newIndex - Flags.dimension;
-      if (newIndex < 1) newIndex = Flags.dimension + newIndex;
+      if (newIndex > dimension) newIndex = newIndex - dimension;
+      if (newIndex < 1) newIndex = dimension + newIndex;
       newIndex = newIndex * sign;
       permutedVector[x] = (short) newIndex;
     }
@@ -539,17 +541,17 @@ public class VectorUtils {
       rotation = rotation % indexVector.length;
     float[] permutedVector = new float[indexVector.length];
     int max = indexVector.length;
-		
+
     for (int x = 0; x < max; x++) {
       int newIndex = x + rotation;
       if (newIndex >= max) newIndex = newIndex - max;
       if (newIndex < 0) newIndex = max + newIndex;
       permutedVector[newIndex] = indexVector[x];
     }
-		
+
     return permutedVector;
   }
-	
+
   /**
    * Add two vectors. Overloaded vector to handle either float[] + float[] or float[] + sparse vector
    * @param vector1 	initial vector
@@ -557,9 +559,9 @@ public class VectorUtils {
    * @param weight	weight (presently only term frequency implemented - may need this to take floats later)
    * @return sum of two vectors
    */
-	
-  public static float[] addVectors(float[] vector1, float[] vector2, int weight)
-  {	float[] sum = vector1;
+
+  public static float[] addVectors(float[] vector1, float[] vector2, int weight) {
+    float[] sum = vector1;
     for (int x=0; x < sum.length; x++)
       sum[x] = sum[x] + vector2[x]*weight;
     return sum;
@@ -572,14 +574,14 @@ public class VectorUtils {
    * @param weight	weight (presently only term frequency implemented - may need this to take floats later)
    * @return sum of two vectors
    */
-	
-  public static float[] addVectors(float[] vector1, short[] sparseVector, int weight)
-  {	float[] sum = vector1;
+
+  public static float[] addVectors(float[] vector1, short[] sparseVector, int weight) {
+    float[] sum = vector1;
     for (int i = 0; i < sparseVector.length; ++i) {
       short index = sparseVector[i];
       sum[Math.abs(index) - 1] +=  Math.signum(index)* weight;
     }
-    return sum;
+  return sum;
   }
-	
+
 }
