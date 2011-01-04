@@ -78,19 +78,20 @@ public class TermVectorsFromLucene implements VectorStore {
   /**
    * @return The object's basicDocVectors.
    */
-  public VectorStore getBasicDocVectors(){ return this.basicDocVectors; }
+  public VectorStore getBasicDocVectors() { return this.basicDocVectors; }
 
   /**
    * @return The object's indexReader.
    */
-  public IndexReader getIndexReader(){ return this.indexReader; }
+  public IndexReader getIndexReader() { return this.indexReader; }
 
   /**
    * @return The object's list of Lucene fields to index.
    */
-  public String[] getFieldsToIndex(){ return this.fieldsToIndex; }
+  public String[] getFieldsToIndex() { return this.fieldsToIndex; }
 
-
+  public int getDimension() { return this.dimension; }
+  
   // Implementation of basic VectorStore methods.
   public float[] getVector(Object term) {
     return termVectors.get(term).getVector();
@@ -154,8 +155,8 @@ public class TermVectorsFromLucene implements VectorStore {
       // Derived term vectors will be linear combinations of these.
       logger.info("Populating basic sparse doc vector store, number of vectors: "
           + indexReader.numDocs());
-      VectorStoreSparseRAM randomBasicDocVectors = new VectorStoreSparseRAM();
-      randomBasicDocVectors.CreateRandomVectors(indexReader.numDocs(), this.seedLength);
+      VectorStoreSparseRAM randomBasicDocVectors = new VectorStoreSparseRAM(dimension);
+      randomBasicDocVectors.createRandomVectors(indexReader.numDocs(), this.seedLength);
       this.basicDocVectors = randomBasicDocVectors;
     }
 
@@ -268,12 +269,11 @@ public class TermVectorsFromLucene implements VectorStore {
         }
         tc++;
 
-        short[] indexVector =  VectorUtils.generateRandomVector(seedLength, random);
+        short[] indexVector =  VectorUtils.generateRandomVector(seedLength, dimension, random);
         // Place each term vector in the vector store.
         this.termVectors.put(term.text(),
             new ObjectVector(term.text(),
-                VectorUtils.sparseVectorToFloatVector(
-                    indexVector, Flags.dimension)));
+                VectorUtils.sparseVectorToFloatVector(indexVector, dimension)));
       }
     } else {
       logger.info("Using semantic term vectors from file " + initialtermvectors);

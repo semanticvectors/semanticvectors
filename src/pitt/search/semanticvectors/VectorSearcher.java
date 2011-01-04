@@ -167,6 +167,7 @@ abstract public class VectorSearcher {
       }
     }
 
+    @Override
     public float getScore(float[] testVector) {
       //testVector = VectorUtils.getNormalizedVector(testVector);
       return VectorUtils.scalarProduct(this.queryVector, testVector);
@@ -206,6 +207,7 @@ abstract public class VectorSearcher {
           VectorUtils.sparseVectorToFloatVector(sparseQueryVector, Flags.dimension);
     }
 
+    @Override
     public float getScore(float[] testVector) {
       //testVector = VectorUtils.getNormalizedVector(testVector);
       short[] sparseTestVector =
@@ -290,6 +292,7 @@ abstract public class VectorSearcher {
      * 
      * @param testVector Vector being tested.
      */
+    @Override
     public float getScore(float[] testVector) {
       float[][] testTensor =
           VectorUtils.getOuterProduct(this.partnerVector, testVector);
@@ -370,6 +373,7 @@ abstract public class VectorSearcher {
      * Scores are hopefully high when the relationship between queryVector
      * and testVector is analogous to the relationship between rel1 and rel2.
      */
+    @Override
     public float getScore(float[] testVector) {
       float[] testConvolution =
           VectorUtils.getConvolutionFromVectors(this.partnerVector, testVector);
@@ -420,6 +424,7 @@ abstract public class VectorSearcher {
      * (which must by now be represented using an orthogonal basis).
      * @param testVector Vector being tested.
      */
+    @Override
     public float getScore(float[] testVector) {
       return VectorUtils.compareWithProjection(testVector, disjunctSpace);
     }
@@ -464,6 +469,7 @@ abstract public class VectorSearcher {
      * (which must by now be represented using an orthogonal basis).
      * @param testVector Vector being tested.
      */
+    @Override
     public float getScore(float[] testVector) {
       float score = -1;
       float max_score = -1;
@@ -514,10 +520,12 @@ abstract public class VectorSearcher {
       }
     }
 
+    @Override
     public float getScore(float[] testVector) {
       return VectorUtils.scalarProduct(theAvg, testVector);
     }
   }
+
   /**
    * Class for searching a permuted vector store using cosine similarity.
    * Uses implementation of rotation for permutation proposed by Sahlgren et al 2008
@@ -550,8 +558,6 @@ abstract public class VectorSearcher {
       this.searchVecStore = searchVecStore;
       this.luceneUtils = luceneUtils;
 
-
-
       try {
         oneDirection = pitt.search.semanticvectors.CompoundVectorBuilder.
             getPermutedQueryVector(queryVecStore,luceneUtils,queryTerms);
@@ -573,6 +579,7 @@ abstract public class VectorSearcher {
      * @param numResults the number of results / length of the result list.
      */
 
+    @Override
     public LinkedList<SearchResult> getNearestNeighbors(int numResults) {
       LinkedList<SearchResult> results = new LinkedList<SearchResult>();
       float score,score1, score2, threshold = -1;
@@ -632,8 +639,7 @@ abstract public class VectorSearcher {
       return results;
     }
 
-
-
+    @Override
     public float getScore(float[] testVector) {
       return VectorUtils.scalarProduct(oneDirection, testVector);
     }

@@ -121,7 +121,7 @@ public class DocVectors implements VectorStore {
               localweight = new Double(1 + Math.log(localweight)).floatValue();    	
             }
 
-            for (int j = 0; j < Flags.dimension; ++j) {
+            for (int j = 0; j < termVectorData.getDimension(); ++j) {
               docVector[j] += localweight * globalweight * termVector[j];
 
             }
@@ -148,8 +148,8 @@ public class DocVectors implements VectorStore {
   private void initializeDocVectors() {
     logger.info("Initializing document vector store ...");
     for (int i = 0; i < indexReader.numDocs(); ++i) {
-      float[] docVector = new float[Flags.dimension];
-      for (int j = 0; j < Flags.dimension; ++j) {
+      float[] docVector = new float[termVectorData.getDimension()];
+      for (int j = 0; j < termVectorData.getDimension(); ++j) {
         docVector[j] = 0;
       }
       this.docVectors.putVector(Integer.toString(i), docVector);
@@ -170,7 +170,6 @@ public class DocVectors implements VectorStore {
         // "path", since there are two system paths, one for each
         // language.
         if (this.indexReader.document(i).getField(Flags.docidfield) != null) {
-          docName = this.indexReader.document(i).getField(Flags.docidfield).stringValue();
           if (docName.length() == 0) {
             logger.info("Empty document name!!! This will cause problems ...");
             logger.info("Please set -docidfield to a nonempty field in your Lucene index.");

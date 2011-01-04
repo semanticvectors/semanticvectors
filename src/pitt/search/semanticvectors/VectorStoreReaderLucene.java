@@ -69,7 +69,7 @@ public class VectorStoreReaderLucene implements CloseableVectorStore {
     return this.fsDirectory;
   }
 
-  public VectorStoreReaderLucene (String vectorFileName) {
+  public VectorStoreReaderLucene (String vectorFileName) throws IOException {
     this.vectorFileName = vectorFileName;
     this.vectorFile = new File(vectorFileName);
     try {
@@ -78,6 +78,7 @@ public class VectorStoreReaderLucene implements CloseableVectorStore {
       this.fsDirectory = FSDirectory.open(new File(parentPath));
       // Read number of dimensions from header information.
       threadLocalIndexInput = new ThreadLocal<IndexInput>() {
+        @Override
         protected IndexInput initialValue() {
           try {
             return fsDirectory.openInput(vectorFile.getName());
@@ -101,7 +102,8 @@ public class VectorStoreReaderLucene implements CloseableVectorStore {
         this.hasHeader = false;
       }
     } catch (IOException e) {
-      System.out.println("Cannot open file: " + this.vectorFileName + "\n" + e.getMessage());
+      logger.warning("Cannot open file: " + this.vectorFileName + "\n" + e.getMessage());
+      throw e;
     }
   }
 

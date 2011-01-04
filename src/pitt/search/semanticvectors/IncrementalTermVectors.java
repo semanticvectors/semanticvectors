@@ -58,33 +58,40 @@ public class IncrementalTermVectors implements VectorStore {
   private VectorStoreRAM termVectorData;
   private IndexReader indexReader;
   private String[] fieldsToIndex = null;
+  private String luceneIndexDir;
   private LuceneUtils lUtils = null;
+  private String docVectorFileName;
   private int dimension;
   
   /**
    * Constructor that gets everything it needs from a
    * TermVectorsFromLucene object and writes to a named file.
-   * @param indexDir Directory of the Lucene Index used to generate termVectorData
+   * @param luceneIndexDir Directory of the Lucene Index used to generate termVectorData
    * @param fieldsToIndex String[] containing fields indexed when generating termVectorData
-   * @param vectorFileName Filename for the document vectors
+   * @param docVectorFileName Filename containing the input document vectors
    */
-  public IncrementalTermVectors(String indexDir, int dimension, 
-                                String[] fieldsToIndex, String vectorFileName)
+  public IncrementalTermVectors(String luceneIndexDir, int dimension, 
+                                String[] fieldsToIndex, String docVectorFileName)
       throws IOException {
-    this.indexReader = IndexReader.open(FSDirectory.open(new File(indexDir)));
+    this.indexReader = IndexReader.open(FSDirectory.open(new File(luceneIndexDir)));
     this.fieldsToIndex = fieldsToIndex;
     this.dimension = dimension;
+    this.luceneIndexDir = luceneIndexDir;
+    this.docVectorFileName = docVectorFileName;
     if (this.lUtils == null)
-      this.lUtils = new LuceneUtils(indexDir);
+      this.lUtils = new LuceneUtils(luceneIndexDir);
+    createIncrementalTermVectorsFromLucene();
+  }
 
+  private void createIncrementalTermVectorsFromLucene() throws IOException {
     int numdocs = indexReader.numDocs();
 
     // Open file and write headers.
-    File vectorFile = new File(vectorFileName);
+    File vectorFile = new File(docVectorFileName);
     String parentPath = vectorFile.getParent();
     if (parentPath == null) parentPath = "";
     FSDirectory fsDirectory = FSDirectory.open(new File(parentPath));
-    IndexInput inputStream = fsDirectory.openInput(vectorFileName.replaceAll(".*/", ""));
+    IndexInput inputStream = fsDirectory.openInput(docVectorFileName.replaceAll(".*/", ""));
 
     float[] tmpVector = new float[dimension];
     int counter = 0;
@@ -106,7 +113,7 @@ public class IncrementalTermVectors implements VectorStore {
                          "ones were probably created with old version of software.");
     }
 
-    logger.info("Opening index at "+indexDir);
+    logger.info("Opening index at " + luceneIndexDir);
     termVectorData = new VectorStoreRAM();
     TermEnum terms = this.indexReader.terms();
     int tc = 0;
@@ -171,7 +178,7 @@ public class IncrementalTermVectors implements VectorStore {
             } catch (NullPointerException npe) {
               // Don't normally print anything - too much data!
               // TODO(dwiddows): Replace with a configurable logging system.
-              // logger.info("term "+term+ " not represented");
+              // logger.finest("term "+term+ " not represented");
             }
             // Exclude terms that are not represented in termVectorData
             if (termVector != null && termVector.length > 0) {
@@ -193,10 +200,8 @@ public class IncrementalTermVectors implements VectorStore {
       float[] termVector = obVec.getVector();  
       termVector = VectorUtils.getNormalizedVector(termVector);
       obVec.setVector(termVector);
-
     }
 
-    
     inputStream.close();
     indexReader.close();
   }
@@ -214,13 +219,12 @@ public class IncrementalTermVectors implements VectorStore {
     return termVectorData.getNumVectors();
   }
   
-
   /**
    * Prints the following usage message:
    * <code>
    * <br> IncrementalTermVectors class in package pitt.search.semanticvectors
-   * <br> Usage: java pitt.search.semanticvectors.BuildIndex PATH_TO_LUCENE_INDEX
-   * <br> IncrementalTermVectors creates termvectors  files in local directory from docvectors file
+   * <br> Usage: java pitt.search.semanticvectors.IncrementalTermVectors [document vector file] [lucene index]
+   * <br> IncrementalTermVectors creates termvectors files in local directory from docvectors file.
    * <br>
    * <br> Usage: java pitt.search.semanticvectors.IncrementalTermVectors [document vector file] [lucene index]
    * <br>
@@ -236,9 +240,9 @@ public class IncrementalTermVectors implements VectorStore {
    * </code>
    */
   public static void usage() {
-    String usageMessage = "\nBuildIndex class in package pitt.search.semanticvectors"
-        + "\nUsage: java pitt.search.semanticvectors.BuildIndex PATH_TO_LUCENE_INDEX"
-        + "\nBuildIndex creates termvectors and docvectors files in local directory."
+    String usageMessage = "\nIncrementalTermVectors class in package pitt.search.semanticvectors"
+        + "\nUsage: java pitt.search.semanticvectors.IncrementalTermVectors [document vector file] [lucene index]"
+        + "\nIncrementalTermVectors creates termvectors files in local directory from docvectors file."
         + "\nOther parameters that can be changed include vector length,"
         + "\n    (number of dimensions), seed length (number of non-zero"
         + "\n    entries in basic vectors), minimum term frequency,"
@@ -277,9 +281,8 @@ public class IncrementalTermVectors implements VectorStore {
     String vectorFile = args[0];
     String luceneIndex = args[1];
 
-    VectorStore termVectors =
-    new IncrementalTermVectors(luceneIndex, Flags.dimension, Flags.contentsfields, vectorFile);
+    VectorStore termVectors = new IncrementalTermVectors(
+        luceneIndex, Flags.dimension, Flags.contentsfields, vectorFile);
     new VectorStoreWriter().WriteVectors("incremental_termvectors.bin", termVectors);
-
   }
 }

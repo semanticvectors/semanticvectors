@@ -87,8 +87,9 @@ public class CompareTerms{
   /**
    * Main function for command line use.
    * @param args See usage();
+   * @throws IOException 
    */
-  public static void main (String[] args) throws IllegalArgumentException {
+  public static void main (String[] args) throws IllegalArgumentException, IOException {
     args = Flags.parseCommandLineFlags(args);
 
     LuceneUtils luceneUtils = null;
@@ -100,8 +101,16 @@ public class CompareTerms{
       throw new IllegalArgumentException();
     }
 
-    VectorStoreReaderLucene vecReader = new VectorStoreReaderLucene(Flags.queryvectorfile);
-    logger.info("Opening query vector store from file: " + Flags.queryvectorfile);
+    VectorStoreReaderLucene vecReader = null;
+
+    try {
+      vecReader = new VectorStoreReaderLucene(Flags.queryvectorfile);
+    } catch (IOException e) {
+      logger.warning("Failed to open vector store from file: " + Flags.queryvectorfile);
+      throw e;
+    }
+
+    logger.info("Opened query vector store from file: " + Flags.queryvectorfile);
 
     if (Flags.luceneindexpath != null) {
       try {
@@ -123,7 +132,7 @@ public class CompareTerms{
         args[1]);
     vecReader.close();
     float simScore = VectorUtils.scalarProduct(vec1, vec2);
-    // Printing prompt to stderr and score to stdout, this should enable
+    // Logging prompt and printing score to stdout, this should enable
     // easier batch scripting to combine input and output data.
     logger.info("Outputting similarity of \"" + args[0]
                                                      + "\" with \"" + args[1] + "\" ...");

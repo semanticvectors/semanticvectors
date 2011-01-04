@@ -42,6 +42,7 @@ import org.junit.Test;
 import pitt.search.semanticvectors.ObjectVector;
 import pitt.search.semanticvectors.VectorStoreReaderLucene;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.NoSuchElementException;
@@ -52,7 +53,7 @@ public class VectorStoreReaderLuceneTest {
     public void setUp() { assert(RunTests.prepareTestData()); }
 
   @Test
-    public void TestReadFromTestData() {
+    public void TestReadFromTestData() throws IOException {
     System.err.println("Running tests for VectorStoreReaderLucene");
     VectorStoreReaderLucene reader = new VectorStoreReaderLucene(RunTests.vectorBinFile);
     assertEquals(2, reader.getNumVectors());
@@ -62,7 +63,7 @@ public class VectorStoreReaderLuceneTest {
   }
 
   @Test
-    public void TestOpensAndCloses() {
+    public void TestOpensAndCloses() throws IOException {
     VectorStoreReaderLucene reader;
     reader = new VectorStoreReaderLucene(RunTests.vectorBinFile);
     reader.close();
@@ -72,7 +73,7 @@ public class VectorStoreReaderLuceneTest {
   // I'm not sure you *should* be able to open two versions of the
   // same vector store file open at once, even for reads, but it's
   // good to test for this somehow.
-    public void TestMultipleOpensForRead() {
+    public void TestMultipleOpensForRead() throws IOException {
     @SuppressWarnings("unused")
     VectorStoreReaderLucene reader = new VectorStoreReaderLucene(RunTests.vectorBinFile);
     @SuppressWarnings("unused")
@@ -82,7 +83,7 @@ public class VectorStoreReaderLuceneTest {
   }
 
   @Test
-    public void TestEnumerationThreadSafety() {
+    public void TestEnumerationThreadSafety() throws IOException {
     final int maxThreads = 5;
 
     // It's a bit of a dance to get a VectorStoreReaderLucene that you

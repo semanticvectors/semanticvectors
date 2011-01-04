@@ -162,7 +162,7 @@ public class TermTermVectorsFromLucene implements VectorStore {
       retraining = true;
       logger.info("Reusing basic term vectors; number of terms: " + indexVectors.getNumVectors());
     } else {
-      this.indexVectors = new VectorStoreSparseRAM();
+      this.indexVectors = new VectorStoreSparseRAM(dimension);
     }
     Random random = new Random();
     this.termVectors = new VectorStoreRAM();
@@ -184,7 +184,7 @@ public class TermTermVectorsFromLucene implements VectorStore {
       this.termVectors.putVector(term.text(), termVector);
       // Do the same for random index vectors unless retraining with trained term vectors
       if (!retraining) {
-        short[] indexVector =  VectorUtils.generateRandomVector(seedLength, random);
+        short[] indexVector =  VectorUtils.generateRandomVector(seedLength, dimension, random);
         ((VectorStoreSparseRAM) this.indexVectors).putVector(term.text(), indexVector);
       }
     }
@@ -347,14 +347,14 @@ public class TermTermVectorsFromLucene implements VectorStore {
           int permutation = w - focusposn;
           if (retraining)
             localindex = VectorUtils.permuteVector(localindex , permutation);
-          else localsparseindex =  VectorUtils.permuteVector(localsparseindex, permutation);
+          else localsparseindex =  VectorUtils.permuteVector(localsparseindex, permutation, dimension);
         } else if (positionalmethod.equals("directional")) {
           if (retraining) {
             localindex = VectorUtils.permuteVector(
                 localindex, new Float(Math.signum(w-focusposn)).intValue());
           } else {
             localsparseindex = VectorUtils.permuteVector(
-              localsparseindex, new Float(Math.signum(w-focusposn)).intValue());
+              localsparseindex, new Float(Math.signum(w-focusposn)).intValue(), dimension);
           }
         }
 

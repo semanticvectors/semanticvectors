@@ -58,6 +58,7 @@ public class IncrementalDocVectors {
   private String[] fieldsToIndex;
   private LuceneUtils lUtils;
   private String vectorFileName;
+  private int dimension;
   
   /**
    * Constructor that gets everything it needs from a
@@ -69,12 +70,13 @@ public class IncrementalDocVectors {
    * @param vectorFileName Filename for the document vectors
    */
   public IncrementalDocVectors(VectorStore termVectorData, String indexDir,
-      String[] fieldsToIndex, String vectorFileName)
+      String[] fieldsToIndex, String vectorFileName, int dimension)
   throws IOException {
     this.termVectorData = termVectorData;
     this.indexReader = IndexReader.open(FSDirectory.open(new File(indexDir)));
     this.fieldsToIndex = fieldsToIndex;
     this.vectorFileName = vectorFileName;
+    this.dimension = dimension;
     if (this.lUtils == null) {
       this.lUtils = new LuceneUtils(indexDir);
     }
@@ -91,13 +93,13 @@ public class IncrementalDocVectors {
     FSDirectory fsDirectory = FSDirectory.open(new File(parentPath));
     IndexOutput outputStream = fsDirectory.createOutput(vectorFile.getName());
 
-    float[] tmpVector = new float[Flags.dimension];
+    float[] tmpVector = new float[dimension];
     int counter = 0;
     logger.info("Write vectors incrementally to file " + vectorFile);
 
     // Write header giving number of dimensions for all vectors.
     outputStream.writeString("-dimensions");
-    outputStream.writeInt(Flags.dimension);
+    outputStream.writeInt(dimension);
 
     // Iterate through documents.
     for (int dc = 0; dc < numdocs; dc++) {
@@ -106,7 +108,6 @@ public class IncrementalDocVectors {
         logger.fine("Processed " + dc + " documents ... ");
       }
     
-
       String docID = Integer.toString(dc); 
       // Use filename and path rather than Lucene index number for document vector.
       if (this.indexReader.document(dc).getField(Flags.docidfield) != null) {
@@ -117,7 +118,7 @@ public class IncrementalDocVectors {
         }
       }
 
-      float[] docVector = new float[Flags.dimension];
+      float[] docVector = new float[dimension];
 
       for (String fieldName: fieldsToIndex) {
         TermFreqVector vex =
@@ -146,7 +147,7 @@ public class IncrementalDocVectors {
             try {
               float[] termVector = termVectorData.getVector(term_string);
               if (termVector != null && termVector.length > 0) {
-                for (int j = 0; j < Flags.dimension; ++j) {
+                for (int j = 0; j < dimension; ++j) {
                   docVector[j] += localweight * globalweight *termVector[j];
                 }
               }
@@ -157,12 +158,12 @@ public class IncrementalDocVectors {
             }
           }
         }
-        // All fields in document have been processed.
+        // All fields in document have been processed.citizens
         // Write out documentID and normalized vector.
         outputStream.writeString(docID);
         docVector = VectorUtils.getNormalizedVector(docVector);
 
-        for (int i = 0; i < Flags.dimension; ++i) {
+        for (int i = 0; i < dimension; ++i) {
           outputStream.writeInt(Float.floatToIntBits(docVector[i]));
         }
       }
@@ -179,7 +180,6 @@ public class IncrementalDocVectors {
     VectorStoreRAM vsr = new VectorStoreRAM();
     vsr.InitFromFile(args[0]);
 
-    new IncrementalDocVectors(vsr, args[1],
-        Flags.contentsfields, vectorFile);
+    new IncrementalDocVectors(vsr, args[1], Flags.contentsfields, vectorFile, Flags.dimension);
   }
 }
