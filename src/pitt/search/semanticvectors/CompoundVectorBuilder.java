@@ -102,13 +102,13 @@ public class CompoundVectorBuilder {
     }
 
     // Initialize other arguments.
-    float[] queryVec = new float[Flags.dimension];
-    for (int i = 0; i < Flags.dimension; ++i) {
+    float[] queryVec = new float[vecReader.getDimension()];
+    for (int i = 0; i < vecReader.getDimension(); ++i) {
       queryVec[i] = 0;
     }
 
     ArrayList<float[]> permutedVecs = new ArrayList<float[]>();
-    float[] tmpVec = new float[Flags.dimension];
+    float[] tmpVec = new float[vecReader.getDimension()];
     float weight = 1;
 
     for (int j = 0; j < queryTerms.length; ++j) {
@@ -126,7 +126,7 @@ public class CompoundVectorBuilder {
         if (tmpVec != null) {
           tmpVec = VectorUtils.permuteVector(tmpVec.clone(), permutation);
           permutedVecs.add(VectorUtils.getNormalizedVector(tmpVec));
-          for (int i = 0; i < Flags.dimension; ++i) {
+          for (int i = 0; i < vecReader.getDimension(); ++i) {
             tmpVec[i] = tmpVec[i] * weight;
             queryVec[i] += tmpVec[i];
           }
@@ -169,7 +169,7 @@ public class CompoundVectorBuilder {
       LuceneUtils lUtils,
       String[] queryTerms) {
     CompoundVectorBuilder builder = new CompoundVectorBuilder(vecReader, lUtils);
-    float[] returnVector = new float[Flags.dimension];
+    float[] returnVector = new float[vecReader.getDimension()];
     // Check through args to see if we need to do negation.
     if (!Flags.suppressnegatedqueries) {
       for (int i = 0; i < queryTerms.length; ++i) {
@@ -193,11 +193,11 @@ public class CompoundVectorBuilder {
    * @param queryTerms String array of query terms to look up.
    */
   protected float[] getAdditiveQueryVector (String[] queryTerms) {
-    float[] queryVec = new float[Flags.dimension];
-    float[] tmpVec = new float[Flags.dimension];
+    float[] queryVec = new float[vecReader.getDimension()];
+    float[] tmpVec = new float[vecReader.getDimension()];
     float weight = 1;
 
-    for (int i = 0; i < Flags.dimension; ++i) {
+    for (int i = 0; i < vecReader.getDimension(); ++i) {
       queryVec[i] = 0;
     }
 
@@ -211,7 +211,7 @@ public class CompoundVectorBuilder {
       }
 
       if (tmpVec != null) {
-        for (int i = 0; i < Flags.dimension; ++i) {
+        for (int i = 0; i < vecReader.getDimension(); ++i) {
           queryVec[i] += tmpVec[i] * weight;
         }
       } else {
@@ -227,13 +227,14 @@ public class CompoundVectorBuilder {
    * Returns a (possibly weighted) normalized query vector created by
    * adding together all vectors retrieved from vector store whose
    * objects match a particular regular expression.
+   * 
    * @param queryTerms String array of query terms to look up.
    */
   protected float[] getAdditiveQueryVectorRegex (String[] queryTerms) {
-    float[] queryVec = new float[Flags.dimension];
+    float[] queryVec = new float[vecReader.getDimension()];
     float weight = 1;
 
-    for (int i = 0; i < Flags.dimension; ++i) {
+    for (int i = 0; i < vecReader.getDimension(); ++i) {
       queryVec[i] = 0;
     }
 
@@ -254,7 +255,7 @@ public class CompoundVectorBuilder {
           }
           else { weight = 1; }
 
-          for (int i = 0; i < Flags.dimension; ++i) {
+          for (int i = 0; i < vecReader.getDimension(); ++i) {
             queryVec[i] += tmpVec[i] * weight;
           }
         }
@@ -265,7 +266,8 @@ public class CompoundVectorBuilder {
   }
 
   /**
-   * Creates a vector including orthogonalizing negated terms.
+   * Creates a vector, including orthogonalizing negated terms.
+   * 
    * @param queryTerms List of positive and negative terms.
    * @param split Position in this list of the NOT mark: terms
    * before this are positive, those after this are negative.
