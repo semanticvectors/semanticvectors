@@ -170,6 +170,7 @@ public class DocVectors implements VectorStore {
         // "path", since there are two system paths, one for each
         // language.
         if (this.indexReader.document(i).getField(Flags.docidfield) != null) {
+          docName = this.indexReader.document(i).getField(Flags.docidfield).stringValue();
           if (docName.length() == 0) {
             logger.info("Empty document name!!! This will cause problems ...");
             logger.info("Please set -docidfield to a nonempty field in your Lucene index.");
@@ -196,5 +197,9 @@ public class DocVectors implements VectorStore {
 
   public int getNumVectors() {
     return this.docVectors.getNumVectors();
+  }
+  
+  public int getDimension() {
+    return termVectorData.getDimension();
   }
 }

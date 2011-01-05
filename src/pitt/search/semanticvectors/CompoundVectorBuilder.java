@@ -9,15 +9,15 @@
    modification, are permitted provided that the following conditions are
    met:
 
-   * Redistributions of source code must retain the above copyright
+ * Redistributions of source code must retain the above copyright
    notice, this list of conditions and the following disclaimer.
 
-   * Redistributions in binary form must reproduce the above
+ * Redistributions in binary form must reproduce the above
    copyright notice, this list of conditions and the following
    disclaimer in the documentation and/or other materials provided
    with the distribution.
 
-   * Neither the name of the University of Pittsburgh nor the names
+ * Neither the name of the University of Pittsburgh nor the names
    of its contributors may be used to endorse or promote products
    derived from this software without specific prior written
    permission.
@@ -33,7 +33,7 @@
    LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
    NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
    SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-**/
+ **/
 
 package pitt.search.semanticvectors;
 
@@ -75,11 +75,10 @@ public class CompoundVectorBuilder {
    * Returns a vector representation containing both content and positional information
    * @param queryTerms String array of query terms to look up. Expects a single "?" entry, which
    * denotes the query term position. E.g., "martin ? king" might pick out "luther".
-   *
    */
   public static float[] getPermutedQueryVector(VectorStore vecReader,
-                                               LuceneUtils lUtils,
-                                               String[] queryTerms) throws IllegalArgumentException {
+      LuceneUtils lUtils,
+      String[] queryTerms) throws IllegalArgumentException {
 
     // Check basic invariant that there must be one and only one "?" in input.
     int queryTermPosition = -1;
@@ -90,7 +89,7 @@ public class CompoundVectorBuilder {
         } else {
           // If we get to here, there was more than one "?" argument.
           logger.severe("Illegal query argument: arguments to getPermutedQueryVector must " +
-			"have only one '?' string to denote target term position.");
+          "have only one '?' string to denote target term position.");
           throw new IllegalArgumentException();
         }
       }
@@ -98,7 +97,7 @@ public class CompoundVectorBuilder {
     // If we get to here, there were no "?" arguments.
     if (queryTermPosition == -1) {
       logger.severe("Illegal query argument: arguments to getPermutedQueryVector must " +
-                         "have exactly one '?' string to denote target term position.");
+      "have exactly one '?' string to denote target term position.");
       throw new IllegalArgumentException();
     }
 
@@ -121,8 +120,8 @@ public class CompoundVectorBuilder {
           weight = lUtils.getGlobalTermWeightFromString(queryTerms[j]);
           logger.log(Level.INFO, "Term {0} weight {1}", new Object[]{queryTerms[j], weight});
         } else {
-	  weight = 1;
-	}
+          weight = 1;
+        }
 
         if (tmpVec != null) {
           tmpVec = VectorUtils.permuteVector(tmpVec.clone(), permutation);
@@ -146,18 +145,19 @@ public class CompoundVectorBuilder {
    * space-separated list of queryterms.
    */
   public static float[] getQueryVectorFromString(VectorStore vecReader,
-                                                 LuceneUtils lUtils,
-                                                 String queryString) {
+      LuceneUtils lUtils,
+      String queryString) {
     String[] queryTerms = queryString.split("\\s");
     return getQueryVector(vecReader, lUtils, queryTerms);
   }
 
   /**
-   * Method gets a query vector from an array of query terms. The
+   * Gets a query vector from an array of query terms. The
    * method is static and creates its own CompoundVectorBuilder.  This
    * enables client code just to call "getQueryVector" without
    * creating an object first, though this may be slightly less
    * efficient for multiple calls.
+   * 
    * @param vecReader The vector store reader to use.
    * @param lUtils Lucene utilities for getting term weights.
    * @param queryTerms Query expression, e.g., from command line.  If
@@ -166,17 +166,17 @@ public class CompoundVectorBuilder {
    * @return queryVector, an array of floats representing the user's query.
    */
   public static float[] getQueryVector(VectorStore vecReader,
-                                       LuceneUtils lUtils,
-                                       String[] queryTerms) {
+      LuceneUtils lUtils,
+      String[] queryTerms) {
     CompoundVectorBuilder builder = new CompoundVectorBuilder(vecReader, lUtils);
     float[] returnVector = new float[Flags.dimension];
     // Check through args to see if we need to do negation.
     if (!Flags.suppressnegatedqueries) {
       for (int i = 0; i < queryTerms.length; ++i) {
-	if (queryTerms[i].equalsIgnoreCase("NOT")) {
-	  // If, so build negated query and return.
-	  return builder.getNegatedQueryVector(queryTerms, i);
-	}
+        if (queryTerms[i].equalsIgnoreCase("NOT")) {
+          // If, so build negated query and return.
+          return builder.getNegatedQueryVector(queryTerms, i);
+        }
       }
     }
     if (Flags.vectorlookupsyntax.equals("regex")) {
@@ -207,7 +207,7 @@ public class CompoundVectorBuilder {
       if (lUtils != null) {
         weight = lUtils.getGlobalTermWeightFromString(queryTerms[j]);
       } else {
-	weight = 1;
+        weight = 1;
       }
 
       if (tmpVec != null) {
@@ -215,7 +215,7 @@ public class CompoundVectorBuilder {
           queryVec[i] += tmpVec[i] * weight;
         }
       } else {
-	logger.log(Level.WARNING, "No vector for {0}", queryTerms[j]);
+        logger.log(Level.WARNING, "No vector for {0}", queryTerms[j]);
       }
     }
 

@@ -75,13 +75,12 @@ import cern.colt.matrix.tfloat.impl.DenseFloatMatrix1D;
  *
  * @author Lance De Vine
  */
-public class BeagleNGramVectors implements VectorStore
-{
+public class BeagleNGramVectors implements VectorStore {
   private VectorStoreRAM termVectors;
   private VectorStoreRAM indexVectors;
   private IndexReader indexReader;
   private String[] fieldsToIndex;
-
+  
   // The minimum required frequency of a term for it to be considered as a focus
   // term when constructing term vectors.
   private int minFreqTerm;
@@ -393,4 +392,7 @@ public class BeagleNGramVectors implements VectorStore
     return termVectors.getNumVectors();
   }
 
+  public int getDimension() {
+    return Flags.dimension;
+  }
 }

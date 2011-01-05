@@ -108,7 +108,7 @@ public class BuildBilingualIndex{
           TermVectorsFromLucene.createTermVectorsFromLucene(luceneIndex, Flags.dimension,
                                     Flags.seedlength, Flags.minfrequency, Flags.maxfrequency,
                                     Flags.maxnonalphabetchars, null, fields1);
-      VectorStoreWriter vecWriter = new VectorStoreWriter();
+      VectorStoreWriter vecWriter = new VectorStoreWriter(Flags.dimension);
       logger.info("Writing term vectors to " + termFile1);
       vecWriter.WriteVectors(termFile1, vecStore1);
       DocVectors docVectors = new DocVectors(vecStore1);

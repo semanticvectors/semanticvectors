@@ -143,7 +143,7 @@ public class BuildPositionalIndex {
             Flags.maxnonalphabetchars, 2 * Flags.windowradius + 1, Flags.positionalmethod,
             newBasicTermVectors, Flags.contentsfields);
       
-      VectorStoreWriter vecWriter = new VectorStoreWriter();
+      VectorStoreWriter vecWriter = new VectorStoreWriter(Flags.dimension);
       logger.info("Writing term vectors to " + termFile);
       vecWriter.WriteVectors(termFile, vecStore);
 

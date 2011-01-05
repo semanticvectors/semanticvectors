@@ -54,19 +54,20 @@ import java.util.logging.Logger;
    @see ObjectVector
 **/
 public class VectorStoreRAM implements VectorStore {
-  private Hashtable<Object, ObjectVector> objectVectors;
-
   private static final Logger logger =
     Logger.getLogger(VectorStoreRAM.class.getCanonicalName());
-
+  private Hashtable<Object, ObjectVector> objectVectors;
+  private int dimension;
+  
   // Default constructor.
   public VectorStoreRAM() {
     this.objectVectors = new Hashtable<Object, ObjectVector>();
   }
-
+  
   // Initialization routine.
   public void InitFromFile (String vectorFile) throws IOException {
     VectorStoreReaderLucene vectorReaderDisk = new VectorStoreReaderLucene(vectorFile);
+    dimension = vectorReaderDisk.getDimension();
     Enumeration<ObjectVector> vectorEnumeration = vectorReaderDisk.getAllVectors();
 		
     logger.fine("Reading vectors from store on disk into memory cache  ...");
@@ -92,9 +93,16 @@ public class VectorStoreRAM implements VectorStore {
     return this.objectVectors.size();
   }
 
+  public int getDimension() {
+    return dimension;
+  }
+  
   /**
-   * Given an object, get its corresponding vector <br>
-   * This implementation only works for string objects so far <br>
+   * Given an object, get its corresponding vector.
+   * 
+   * <p>
+   * This implementation only works for string objects so far.
+   * 
    * @param desiredObject - the string you're searching for
    * @return vector from the VectorStore, or null if not found. 
    */

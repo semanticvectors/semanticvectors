@@ -63,6 +63,10 @@ public class IncrementalTermVectors implements VectorStore {
   private String docVectorFileName;
   private int dimension;
   
+  public int getDimension() {
+    return dimension;
+  }
+  
   /**
    * Constructor that gets everything it needs from a
    * TermVectorsFromLucene object and writes to a named file.
@@ -283,6 +287,6 @@ public class IncrementalTermVectors implements VectorStore {
 
     VectorStore termVectors = new IncrementalTermVectors(
         luceneIndex, Flags.dimension, Flags.contentsfields, vectorFile);
-    new VectorStoreWriter().WriteVectors("incremental_termvectors.bin", termVectors);
+    new VectorStoreWriter(Flags.dimension).WriteVectors("incremental_termvectors.bin", termVectors);
   }
 }
