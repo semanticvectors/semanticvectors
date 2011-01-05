@@ -135,7 +135,7 @@ public class BuildIndex {
       }
 
       // Create doc vectors and write vectors to disk.
-      VectorStoreWriter vecWriter = new VectorStoreWriter();
+      VectorStoreWriter vecWriter = new VectorStoreWriter(Flags.dimension);
       if (Flags.docindexing.equals("incremental")) {
         logger.info("Writing term vectors to " + termFile);
         vecWriter.WriteVectors(termFile, vecStore);
@@ -148,7 +148,7 @@ public class BuildIndex {
           itermVectors = new IncrementalTermVectors(luceneIndex,  Flags.dimension,
                                                     Flags.contentsfields, "incremental_"+docFile);
 
-          new VectorStoreWriter().WriteVectors(
+          new VectorStoreWriter(Flags.dimension).WriteVectors(
               "incremental_termvectors"+Flags.trainingcycles+".bin", itermVectors);
 
         // Write over previous cycle's docvectors until final

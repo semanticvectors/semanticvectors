@@ -1,6 +1,7 @@
 package qut.beagle;
 
 import pitt.search.semanticvectors.CloseableVectorStore;
+import pitt.search.semanticvectors.Flags;
 import pitt.search.semanticvectors.LuceneUtils;
 import pitt.search.semanticvectors.ObjectVector;
 import pitt.search.semanticvectors.SearchResult;
@@ -73,7 +74,7 @@ public class BeagleTest
 
 		try
 		{
-			pitt.search.semanticvectors.Flags.dimension = vecLength;
+			Flags.dimension = vecLength;
 
 			time = System.currentTimeMillis();
 
@@ -84,11 +85,11 @@ public class BeagleTest
 			System.out.println("\nTime to process: " + time/1000 + " secs.");
 			System.out.println("\nNumber of convolutions: " + utils.getNumConvolutions());
 
-			vecWriter = new VectorStoreWriter();
+			vecWriter = new VectorStoreWriter(Flags.dimension);
 			vecWriter.WriteVectors(fileOut + "_" + vecLength + "_" + numGrams + ".bin", bngv);
 
 			VectorStore indexVectors = bngv.getIndexVectors();
-			vecWriter = new VectorStoreWriter();
+			vecWriter = new VectorStoreWriter(Flags.dimension);
 			vecWriter.WriteVectors( fileOut + "_" + vecLength + "_" + numGrams + "_index.bin", indexVectors);
 
 			bngv = null;

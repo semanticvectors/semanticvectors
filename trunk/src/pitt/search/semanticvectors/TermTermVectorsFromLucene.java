@@ -109,6 +109,10 @@ public class TermTermVectorsFromLucene implements VectorStore {
   public int getNumVectors() {
     return termVectors.getNumVectors();
   }
+  
+  public int getDimension() {
+    return dimension;
+  }
 
   /**
    * This constructor uses only the values passed, no parameters from Flag.
@@ -205,12 +209,12 @@ public class TermTermVectorsFromLucene implements VectorStore {
         }
       }
       catch (Exception e) {
-        logger.warning("\nFailed to process document "+luceneIndexReader.document(dc).get("path")+"\n");
+        logger.warning("Failed to process document "+luceneIndexReader.document(dc).get("path")+"\n");
       }
     }
 
-    logger.info("\nCreated " + termVectors.getNumVectors() + " term vectors ...");
-    logger.info("\nNormalizing term vectors");
+    logger.info("Created " + termVectors.getNumVectors() + " term vectors ...");
+    logger.info("Normalizing term vectors");
     Enumeration<ObjectVector> e = termVectors.getAllVectors();
     while (e.hasMoreElements())	{
       ObjectVector temp = e.nextElement();
@@ -231,7 +235,7 @@ public class TermTermVectorsFromLucene implements VectorStore {
         next = VectorUtils.getNormalizedVector(next);
         temp.setVector(next);
       }
-      new VectorStoreWriter().WriteVectors(randFile, this.indexVectors);
+      new VectorStoreWriter(dimension).WriteVectors(randFile, this.indexVectors);
     }
   }
 

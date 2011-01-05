@@ -53,12 +53,17 @@ public interface VectorStore {
   public float[] getVector(Object object);
 
   /**
-   * @return an enumeration of all the object vectors in the store.
+   * Returns an enumeration of all the object vectors in the store.
    */
   public Enumeration<ObjectVector> getAllVectors();
 
   /**
-   * @return a count of the number of vectors in the store.
+   * Returns a count of the number of vectors in the store.
    */
   public int getNumVectors();
+  
+  /**
+   * Returns the dimension of all the vectors in the store (must be the same for all vectors). 
+   */
+  public int getDimension();
 }

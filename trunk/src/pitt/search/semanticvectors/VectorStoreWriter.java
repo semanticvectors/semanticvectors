@@ -7,15 +7,15 @@
    modification, are permitted provided that the following conditions are
    met:
 
-   * Redistributions of source code must retain the above copyright
+ * Redistributions of source code must retain the above copyright
    notice, this list of conditions and the following disclaimer.
 
-   * Redistributions in binary form must reproduce the above
+ * Redistributions in binary form must reproduce the above
    copyright notice, this list of conditions and the following
    disclaimer in the documentation and/or other materials provided
    with the distribution.
 
-   * Neither the name of the University of Pittsburgh nor the names
+ * Neither the name of the University of Pittsburgh nor the names
    of its contributors may be used to endorse or promote products
    derived from this software without specific prior written
    permission.
@@ -31,7 +31,7 @@
    LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
    NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
    SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-**/
+ **/
 
 package pitt.search.semanticvectors;
 
@@ -45,27 +45,25 @@ import java.util.Enumeration;
 import java.util.logging.Logger;
 
 /**
- * This class provides methods for serializing a VectorStore to disk.<p>
+ * This class provides methods for serializing a VectorStore to disk.
+ * 
+ * <p>
  * The serialization currently presumes that the object (in the ObjectVectors)
- * should be serialized as a String. <p>
+ * should be serialized as a String.
+ * 
+ * <p>
  * The implementation uses Lucene's I/O package, which proved much faster
- * than the native java.io.DataOutputStream. <p>
- * In the current implementation, VectorStoreWriter objects have no
- * internal fields, since vecLength is now a global variable. The
- * writing methods could therefore be made static and done without
- * instantiation; we've left the current (slightly awkward looking)
- * instance method approach for now to see if the current
- * implementation of vecLength and writers holds up in practice.
+ * than the native java.io.DataOutputStream.
+ * 
  * @see ObjectVector
  */
 public class VectorStoreWriter {
   private static final Logger logger = Logger.getLogger(VectorStoreWriter.class.getCanonicalName());
-
-  /**
-   * Empty constructor method to give you a notional "instance" from which to call
-   * class methods.
-   */
-  public VectorStoreWriter() {}
+  private int dimension;
+  
+  public VectorStoreWriter(int dimension) {
+    this.dimension = dimension;
+  }
 
   /**
    * @param vectorFileName The name of the file to write to
@@ -73,28 +71,28 @@ public class VectorStoreWriter {
    */
   public boolean WriteVectors(String vectorFileName, VectorStore objectVectors) {
     try {
-	File vectorFile = new File(vectorFileName);
-	String parentPath = vectorFile.getParent();
-	if (parentPath == null) parentPath = "";
-	FSDirectory fsDirectory = FSDirectory.open(new File(parentPath));
-	IndexOutput outputStream = fsDirectory.createOutput(vectorFile.getName());
+      File vectorFile = new File(vectorFileName);
+      String parentPath = vectorFile.getParent();
+      if (parentPath == null) parentPath = "";
+      FSDirectory fsDirectory = FSDirectory.open(new File(parentPath));
+      IndexOutput outputStream = fsDirectory.createOutput(vectorFile.getName());
 
       Enumeration<ObjectVector> vecEnum = objectVectors.getAllVectors();
-      float[] tmpVector = new float[Flags.dimension];
+      float[] tmpVector = new float[dimension];
 
       logger.info("About to write " + objectVectors.getNumVectors()
           + " vectors to file: " + vectorFile);
 
       /* Write header giving number of dimensions for all vectors. */
       outputStream.writeString("-dimensions");
-      outputStream.writeInt(Flags.dimension);
+      outputStream.writeInt(dimension);
 
       /* Write each vector. */
       while (vecEnum.hasMoreElements()) {
         ObjectVector objectVector = vecEnum.nextElement();
         outputStream.writeString(objectVector.getObject().toString());
         tmpVector = objectVector.getVector();
-        for (int i = 0; i < Flags.dimension; ++i) {
+        for (int i = 0; i < dimension; ++i) {
           outputStream.writeInt(Float.floatToIntBits(tmpVector[i]));
         }
       }
@@ -120,19 +118,19 @@ public class VectorStoreWriter {
       Enumeration<ObjectVector> vecEnum = objectVectors.getAllVectors();
 
       logger.info("About to write " + objectVectors.getNumVectors()
-           + " vectors to text file: " + vectorTextFile);
+          + " vectors to text file: " + vectorTextFile);
 
       /* Write header giving number of dimensions for all vectors. */
-      outBuf.write("-dimensions|" + Flags.dimension + "\n");
+      outBuf.write("-dimensions|" + dimension + "\n");
 
       /* Write each vector. */
       while (vecEnum.hasMoreElements()) {
         ObjectVector objectVector = vecEnum.nextElement();
         outBuf.write(objectVector.getObject().toString() + "|");
         float[] tmpVector = objectVector.getVector();
-        for (int i = 0; i < Flags.dimension; ++i) {
+        for (int i = 0; i < dimension; ++i) {
           outBuf.write(Float.toString(tmpVector[i]));
-          if (i != Flags.dimension - 1) {
+          if (i != dimension - 1) {
             outBuf.write("|");
           }
         }

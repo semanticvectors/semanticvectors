@@ -61,7 +61,7 @@ public class VectorStoreWriterTest {
       System.out.println("Couldn't open and close test vector stores.");
     }
 
-    VectorStoreWriter writer = new VectorStoreWriter();
+    VectorStoreWriter writer = new VectorStoreWriter(ramCache.getDimension());
     writer.WriteVectors(RunTests.vectorBinFile, ramCache);
   }
 }

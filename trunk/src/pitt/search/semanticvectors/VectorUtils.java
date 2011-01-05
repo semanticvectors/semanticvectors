@@ -90,8 +90,8 @@ public class VectorUtils {
     return true;
   }
 
-  public static float[] createZeroVector() {
-    float[] vec = new float[Flags.dimension];
+  public static float[] createZeroVector(int dimension) {
+    float[] vec = new float[dimension];
     for (float f: vec) {
       f = 0;
     }
@@ -169,7 +169,7 @@ public class VectorUtils {
    */
   public static float[] getNormalizedVector(float[] vec){
     if (isZeroVector(vec)) {
-      return createZeroVector();
+      return createZeroVector(vec.length);
     }
     float norm = 0;
     int i;

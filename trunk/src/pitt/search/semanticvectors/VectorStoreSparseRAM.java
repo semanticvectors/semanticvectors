@@ -67,6 +67,10 @@ public class VectorStoreSparseRAM implements VectorStore {
     this.dimension = dimension;
   }
 
+  public int getDimension() {
+    return dimension;
+  }
+  
   public Enumeration<String> getKeys() { return this.sparseVectors.keys(); }
 
   // Initialization routine.

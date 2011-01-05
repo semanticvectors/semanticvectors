@@ -92,8 +92,8 @@ public class ThreadSafetyTest {
   // synchronized /*** Comment out and it will break. ***/
   private static void outputSuggestions(String query) throws Exception  {
     int maxResults = 10;
-    String[] args = new String[] { "-searchvectorfile", "testtermvectors.bin",
-        "-queryvectorfile", "testtermvectors.bin",
+    String[] args = new String[] { "-searchvectorfile", RunTests.vectorBinFile,
+        "-queryvectorfile", RunTests.vectorBinFile,
         "-luceneindexpath", RunTests.lucenePositionalIndexDir,
         query };
     LinkedList<SearchResult> results = Search.RunSearch(args, maxResults);
