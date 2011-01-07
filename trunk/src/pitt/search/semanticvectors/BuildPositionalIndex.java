@@ -110,8 +110,8 @@ public class BuildPositionalIndex {
     //If initialtermvectors is defined, read these vectors.
     if (!Flags.initialtermvectors.equals("")) {
       try {
-        VectorStoreRAM vsr = new VectorStoreRAM();
-        vsr.InitFromFile(Flags.initialtermvectors);
+        VectorStoreRAM vsr = new VectorStoreRAM(Flags.dimension);
+        vsr.initFromFile(Flags.initialtermvectors);
         newBasicTermVectors = vsr;
         logger.info("Using trained index vectors from vector store " + Flags.initialtermvectors);
       } catch (IOException e) {
@@ -163,7 +163,7 @@ public class BuildPositionalIndex {
         vecWriter.WriteVectors(termFile, vecStore);
       }
 
-      if (! Flags.docindexing.equals("none")) {
+      if (!Flags.docindexing.equals("none")) {
         IncrementalDocVectors docVectors = new IncrementalDocVectors(
             vecStore, luceneIndex, Flags.contentsfields, "incremental_"+docFile, Flags.dimension);
       }

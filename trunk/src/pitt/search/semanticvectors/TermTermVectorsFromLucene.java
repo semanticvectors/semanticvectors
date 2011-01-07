@@ -169,7 +169,7 @@ public class TermTermVectorsFromLucene implements VectorStore {
       this.indexVectors = new VectorStoreSparseRAM(dimension);
     }
     Random random = new Random();
-    this.termVectors = new VectorStoreRAM();
+    this.termVectors = new VectorStoreRAM(dimension);
 
     // Iterate through an enumeration of terms and allocate termVector memory.
     // If not retraining, create random elemental vectors as well.

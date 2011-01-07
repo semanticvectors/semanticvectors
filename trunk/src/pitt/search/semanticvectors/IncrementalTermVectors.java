@@ -38,7 +38,6 @@ package pitt.search.semanticvectors;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.Integer;
 import org.apache.lucene.index.*;
 import org.apache.lucene.store.IndexInput;
 import org.apache.lucene.store.FSDirectory;
@@ -97,11 +96,7 @@ public class IncrementalTermVectors implements VectorStore {
     FSDirectory fsDirectory = FSDirectory.open(new File(parentPath));
     IndexInput inputStream = fsDirectory.openInput(docVectorFileName.replaceAll(".*/", ""));
 
-    float[] tmpVector = new float[dimension];
-    int counter = 0;
     logger.info("Read vectors incrementally from file " + vectorFile);
-
-    boolean hasHeader = false;
 
     //Read number of dimensions from document vectors
     String test = inputStream.readString();
@@ -118,7 +113,7 @@ public class IncrementalTermVectors implements VectorStore {
     }
 
     logger.info("Opening index at " + luceneIndexDir);
-    termVectorData = new VectorStoreRAM();
+    termVectorData = new VectorStoreRAM(dimension);
     TermEnum terms = this.indexReader.terms();
     int tc = 0;
 
@@ -144,21 +139,17 @@ public class IncrementalTermVectors implements VectorStore {
         logger.info(dc + " ... ");
       }
 
-      String docID = Integer.toString(dc);
       int dcount = dc;
-      String docName = "";
       float[] docVector = new float[dimension];
 
       try {
-        docName = inputStream.readString();
         for (int i = 0; i < dimension; ++i) {
           docVector[i] = Float.intBitsToFloat(inputStream.readInt());
         }
 
       }
-      catch
-          (Exception e)
-      { System.out.println("Doc vectors less than total number of documents");
+      catch (Exception e) {
+    	System.out.println("Doc vectors less than total number of documents");
         dc = numdocs +1;
         continue;
       }
@@ -198,7 +189,6 @@ public class IncrementalTermVectors implements VectorStore {
 
     // Normalize vectors
     Enumeration<ObjectVector> allVectors = termVectorData.getAllVectors();
-    int k=0;
     while (allVectors.hasMoreElements())
     {ObjectVector obVec = allVectors.nextElement();
       float[] termVector = obVec.getVector();  

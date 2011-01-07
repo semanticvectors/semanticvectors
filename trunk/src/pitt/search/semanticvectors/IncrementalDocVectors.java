@@ -177,8 +177,8 @@ public class IncrementalDocVectors {
 
   public static void main(String[] args) throws Exception {
     String vectorFile = args[0].replaceAll("\\.bin","")+"_docvectors.bin";
-    VectorStoreRAM vsr = new VectorStoreRAM();
-    vsr.InitFromFile(args[0]);
+    VectorStoreRAM vsr = new VectorStoreRAM(0);
+    vsr.initFromFile(args[0]);
 
     new IncrementalDocVectors(vsr, args[1], Flags.contentsfields, vectorFile, Flags.dimension);
   }

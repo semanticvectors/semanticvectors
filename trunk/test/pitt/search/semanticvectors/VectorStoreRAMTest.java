@@ -42,8 +42,7 @@ public class VectorStoreRAMTest extends TestCase {
 	@Test
 		public void testCreateWriteAndRead() {
 		System.err.println("\nRunning tests for VectorStoreRAMTest");
-		VectorStoreRAM vectorStore = new VectorStoreRAM();
-		Flags.dimension = 2;
+		VectorStoreRAM vectorStore = new VectorStoreRAM(2);
 		assertEquals(0, vectorStore.getNumVectors());
 		float[] vector = {1.0f, 2.0f};
 		vectorStore.putVector("my vector", vector);
@@ -54,8 +53,7 @@ public class VectorStoreRAMTest extends TestCase {
 
 	@Test
 		public void testRepeatReads() {
-		VectorStoreRAM vectorStore = new VectorStoreRAM();
-		Flags.dimension = 2;
+		VectorStoreRAM vectorStore = new VectorStoreRAM(2);
 		assertEquals(0, vectorStore.getNumVectors());
 		float[] vector = {1.0f, 2.0f};
 		vectorStore.putVector("my vector", vector);
