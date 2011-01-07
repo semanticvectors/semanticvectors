@@ -51,11 +51,11 @@ public class VectorStoreWriterTest {
     System.err.println("Running tests for VectorStoreWriter");
 
     VectorStoreReaderLucene fileReader;
-    VectorStoreRAM ramCache = new VectorStoreRAM();
+    VectorStoreRAM ramCache = new VectorStoreRAM(0);
 
     try {
       fileReader = new VectorStoreReaderLucene(RunTests.vectorBinFile);
-      ramCache.InitFromFile(RunTests.vectorBinFile);
+      ramCache.initFromFile(RunTests.vectorBinFile);
       fileReader.close();
     } catch (IOException e) {
       System.out.println("Couldn't open and close test vector stores.");

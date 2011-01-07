@@ -41,9 +41,8 @@ import org.junit.*;
 
 public class CompoundVectorBuilderTest extends TestCase {
 
-  private VectorStoreRAM CreateVectorStore() {
-    VectorStoreRAM vectorStore = new VectorStoreRAM();
-    Flags.dimension = 2;
+  private VectorStoreRAM createVectorStore() {
+    VectorStoreRAM vectorStore = new VectorStoreRAM(2);
     float[] vector1 = {1.0f, 2.0f};
     vectorStore.putVector("vector1", vector1);
     float[] vector2 = {1.0f, -1.0f};
@@ -51,9 +50,8 @@ public class CompoundVectorBuilderTest extends TestCase {
     return vectorStore;
   }
 
-  private VectorStoreRAM CreateNormalizedVectorStore() {
-    VectorStoreRAM vectorStore = new VectorStoreRAM();
-    Flags.dimension = 2;
+  private VectorStoreRAM createNormalizedVectorStore() {
+    VectorStoreRAM vectorStore = new VectorStoreRAM(2);
     float[] vector1 = {1.0f, 2.0f};
     vector1 = VectorUtils.getNormalizedVector(vector1);
     vectorStore.putVector("vector1", vector1);
@@ -66,7 +64,7 @@ public class CompoundVectorBuilderTest extends TestCase {
   @Test
     public void testGetAdditiveQueryVector() {
     System.err.println("Running tests for CompoundVectorBuilder");
-    VectorStore vectorStore = CreateVectorStore();
+    VectorStore vectorStore = createVectorStore();
     float[] queryVector =
       CompoundVectorBuilder.getQueryVectorFromString(vectorStore, null, "vector1 vector2");
     assertEquals(2, queryVector.length);
@@ -85,7 +83,7 @@ public class CompoundVectorBuilderTest extends TestCase {
 
   @Test
     public void testGetNegatedQueryVector() {
-    VectorStore vectorStore = CreateNormalizedVectorStore();
+    VectorStore vectorStore = createNormalizedVectorStore();
     float[] queryVector =
       CompoundVectorBuilder.getQueryVectorFromString(vectorStore, null, "vector1 vector2");
     assertEquals(VectorUtils.scalarProduct(queryVector, vectorStore.getVector("vector1")),

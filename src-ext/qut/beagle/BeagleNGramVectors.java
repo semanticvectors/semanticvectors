@@ -172,8 +172,8 @@ public class BeagleNGramVectors implements VectorStore {
       throw new IOException("Lucene indexes not built correctly.");
     }
 
-    this.indexVectors = new VectorStoreRAM();
-    this.termVectors = new VectorStoreRAM();
+    this.indexVectors = new VectorStoreRAM(Flags.dimension);
+    this.termVectors = new VectorStoreRAM(Flags.dimension);
 
     // Iterate through an enumeration of terms and create term vectors.
     System.out.println("Creating term vectors ...");

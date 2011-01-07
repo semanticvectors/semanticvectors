@@ -60,12 +60,13 @@ public class VectorStoreRAM implements VectorStore {
   private int dimension;
   
   // Default constructor.
-  public VectorStoreRAM() {
+  public VectorStoreRAM(int dimension) {
     this.objectVectors = new Hashtable<Object, ObjectVector>();
+    this.dimension = dimension;
   }
   
   // Initialization routine.
-  public void InitFromFile (String vectorFile) throws IOException {
+  public void initFromFile (String vectorFile) throws IOException {
     VectorStoreReaderLucene vectorReaderDisk = new VectorStoreReaderLucene(vectorFile);
     dimension = vectorReaderDisk.getDimension();
     Enumeration<ObjectVector> vectorEnumeration = vectorReaderDisk.getAllVectors();
@@ -81,6 +82,10 @@ public class VectorStoreRAM implements VectorStore {
 
   // Add a single vector.
   public void putVector(Object key, float[] vector) {
+	if (vector.length != dimension) {
+	  throw new IllegalArgumentException("Trying to add vector of dimension " + vector.length
+		  + " to VectorStore of dimension " + dimension);
+	}
     ObjectVector objectVector = new ObjectVector(key, vector);
     this.objectVectors.put(key, objectVector);
   }

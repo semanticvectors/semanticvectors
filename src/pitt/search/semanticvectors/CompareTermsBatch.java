@@ -123,7 +123,6 @@ public class CompareTermsBatch{
     }
 
     LuceneUtils luceneUtils = null;
-    int argc = 0;
     String separator = Flags.batchcompareseparator;
     boolean ramCache = (Flags.vectorstorelocation.equals("ram"));
 
@@ -131,8 +130,8 @@ public class CompareTermsBatch{
     try {
       VectorStore vecReader;
       if (ramCache) {
-        VectorStoreRAM ramReader = new VectorStoreRAM();
-        ramReader.InitFromFile(Flags.queryvectorfile);
+        VectorStoreRAM ramReader = new VectorStoreRAM(0);
+        ramReader.initFromFile(Flags.queryvectorfile);
         vecReader = ramReader;
         logger.info("Using RAM cache of vectors");
       } else {

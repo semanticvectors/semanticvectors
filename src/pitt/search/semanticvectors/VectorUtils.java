@@ -92,8 +92,8 @@ public class VectorUtils {
 
   public static float[] createZeroVector(int dimension) {
     float[] vec = new float[dimension];
-    for (float f: vec) {
-      f = 0;
+    for (int i = 0; i < dimension; ++i) {
+      vec[i] = 0;
     }
     return vec;
   }

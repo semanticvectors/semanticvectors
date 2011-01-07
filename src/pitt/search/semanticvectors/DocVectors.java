@@ -65,7 +65,7 @@ public class DocVectors implements VectorStore {
   public DocVectors (TermVectorsFromLucene termVectorData) throws IOException {
     this.termVectorData = termVectorData;
     this.indexReader = termVectorData.getIndexReader();
-    this.docVectors = new VectorStoreRAM();
+    this.docVectors = new VectorStoreRAM(termVectorData.getDimension());
     
     if (this.lUtils == null) {
       String indexReaderDir = termVectorData.getIndexReader().directory().toString();
@@ -134,7 +134,6 @@ public class DocVectors implements VectorStore {
     }
 
     logger.info("\nNormalizing doc vectors ...");
-    int dc = 0;
     for (int i = 0; i < indexReader.numDocs(); ++i) {
       float[] docVector = this.docVectors.getVector(Integer.toString(i));
       docVector = VectorUtils.getNormalizedVector(docVector);
@@ -160,7 +159,7 @@ public class DocVectors implements VectorStore {
    * Create a version of the vector store indexes by path / filename rather than Lucene ID.
    */
   public VectorStore makeWriteableVectorStore() {
-    VectorStoreRAM outputVectors = new VectorStoreRAM();
+    VectorStoreRAM outputVectors = new VectorStoreRAM(termVectorData.getDimension());
 
     for (int i = 0; i < this.indexReader.numDocs(); ++i) {
       String docName = "";
