@@ -3,9 +3,7 @@
 
 Even-numbered versions are releases. Odd-numbered versions are in development. It follows that the most recent code and the `build.xml` file in the SVN repository is always odd-numbered.
 
-=== Version 1.31 ===
-
-(Current development version, shortly to be released as version 1.32 or 2.0.)
+=== Version 2.0 ===
 
 Updated to Lucene 3.0.3. (Fixes issue 34.)
 
@@ -13,9 +11,9 @@ Moved javadocs to latest-stable directory.
 
 Removed lowercasing of flag-values.
 
-Fixed out-of-bounds error in BuildPositionalIndex.
+Fixed out-of-bounds error in BuildPositionalIndex. (Fixes issue 28.)
 
-For the most part, using Java logging instead of printing to stderr.
+Using Java logging instead of printing logs to stderr. Search results still printed to stdout.
 
 Several internal, procedural and testing improvements.
 - Better type safety.
