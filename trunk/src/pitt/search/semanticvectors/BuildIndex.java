@@ -125,7 +125,7 @@ public class BuildIndex {
         // Otherwise attempt to load pre-existing semantic term vectors.
         logger.info("Creating term vectors ...");
         vecStore = TermVectorsFromLucene.createTermBasedRRIVectors(
-            luceneIndex, Flags.seedlength, Flags.minfrequency, Flags.maxfrequency,
+            luceneIndex, Flags.dimension, Flags.seedlength, Flags.minfrequency, Flags.maxfrequency,
             Flags.maxnonalphabetchars, Flags.initialtermvectors, Flags.contentsfields);
       } else {
         logger.info("Creating elemental document vectors ...");
