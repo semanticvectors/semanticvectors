@@ -86,13 +86,13 @@ public class VectorStoreWriter {
       /* Write header giving number of dimensions for all vectors. */
       outputStream.writeString("-dimensions");
       outputStream.writeInt(dimension);
-
+      
       /* Write each vector. */
       while (vecEnum.hasMoreElements()) {
         ObjectVector objectVector = vecEnum.nextElement();
         outputStream.writeString(objectVector.getObject().toString());
         tmpVector = objectVector.getVector();
-        for (int i = 0; i < dimension; ++i) {
+         for (int i = 0; i < tmpVector.length; ++i) {
           outputStream.writeInt(Float.floatToIntBits(tmpVector[i]));
         }
       }

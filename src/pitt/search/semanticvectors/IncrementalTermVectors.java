@@ -146,7 +146,8 @@ public class IncrementalTermVectors implements VectorStore {
         for (int i = 0; i < dimension; ++i) {
           docVector[i] = Float.intBitsToFloat(inputStream.readInt());
         }
-
+          //normalize document vectors before adding to term vectors
+         docVector = VectorUtils.getNormalizedVector(docVector);
       }
       catch (Exception e) {
     	System.out.println("Doc vectors less than total number of documents");
@@ -192,8 +193,8 @@ public class IncrementalTermVectors implements VectorStore {
     while (allVectors.hasMoreElements())
     {ObjectVector obVec = allVectors.nextElement();
       float[] termVector = obVec.getVector();  
-      termVector = VectorUtils.getNormalizedVector(termVector);
-      obVec.setVector(termVector);
+       termVector = VectorUtils.getNormalizedVector(termVector);
+       obVec.setVector(termVector);
     }
 
     inputStream.close();
