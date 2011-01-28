@@ -66,7 +66,10 @@ public class LuceneUtils{
   private IndexReader indexReader;
   private Hashtable<Term, Float> termEntropy = new Hashtable<Term, Float>();
   private TreeSet<String> stopwords = null;
+  //added by sid
+  private TreeSet<String> startwords = null;
 
+  
   /**
    * @param path - path to lucene index
    */
@@ -98,6 +101,31 @@ public class LuceneUtils{
   {throw new IOException("Couldn't open file "+stoppath);}
   }
 
+  
+  /**
+   * added by Siddhartha
+   * Loads the startword file into memory 
+   * @param startpath - path to startword file
+   * @throws IOException
+   */
+  
+  public void loadStartWords(String startpath) throws IOException
+  {  System.err.println("Using startword file: "+startpath);
+  	 startwords = new TreeSet<String>();
+  	try{
+  BufferedReader readIn = new BufferedReader(new FileReader(startpath));
+  String in = readIn.readLine();
+  while (in != null)
+  {startwords.add(in);
+  in = readIn.readLine();
+  }	
+  }
+  catch (IOException e) 
+  {throw new IOException("Couldn't open file "+startpath);}
+  }
+  
+  
+  
   /**
    * Returns true if term is in stoplist (returns false if no stoplist)
    */
