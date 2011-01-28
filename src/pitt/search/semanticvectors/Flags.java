@@ -96,6 +96,7 @@ public class Flags {
 
   public static String queryvectorfile = "termvectors.bin";
   public static String stoplistfile = "";
+  public static String startlistfile = "";
   public static String searchvectorfile = "";
   public static String luceneindexpath = "";
   public static String initialtermvectors = "";
