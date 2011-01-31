@@ -62,6 +62,6 @@ public class VectorStoreWriterTest {
     }
 
     VectorStoreWriter writer = new VectorStoreWriter(ramCache.getDimension());
-    writer.WriteVectors(RunTests.vectorBinFile, ramCache);
+    writer.writeVectors(RunTests.vectorBinFile, ramCache);
   }
 }

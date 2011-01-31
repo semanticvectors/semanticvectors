@@ -93,7 +93,7 @@ public class VectorStoreTranslater {
       }
       VectorStoreWriter vecWriter = new VectorStoreWriter(vecReader.getDimension());
       logger.info("Writing term vectors to " + outfile);
-      vecWriter.WriteVectorsAsText(outfile, vecReader);
+      vecWriter.writeVectorsInTextFormat(outfile, vecReader);
       vecReader.close();
     }
 
@@ -107,7 +107,7 @@ public class VectorStoreTranslater {
       }
       VectorStoreWriter vecWriter = new VectorStoreWriter(vecReader.getDimension());
       logger.info("Writing term vectors to " + outfile);
-      vecWriter.WriteVectors(outfile, vecReader);
+      vecWriter.writeVectorsInLuceneFormat(outfile, vecReader);
       vecReader.close();
     }
   }

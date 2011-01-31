@@ -125,7 +125,7 @@ public class BuildIndex {
         // Otherwise attempt to load pre-existing semantic term vectors.
         logger.info("Creating term vectors ...");
         vecStore = TermVectorsFromLucene.createTermBasedRRIVectors(
-            luceneIndex, Flags.dimension, Flags.seedlength, Flags.minfrequency, Flags.maxfrequency,
+            luceneIndex, Flags.seedlength, Flags.minfrequency, Flags.maxfrequency,
             Flags.maxnonalphabetchars, Flags.initialtermvectors, Flags.contentsfields);
       } else {
         logger.info("Creating elemental document vectors ...");
@@ -138,7 +138,7 @@ public class BuildIndex {
       VectorStoreWriter vecWriter = new VectorStoreWriter(Flags.dimension);
       if (Flags.docindexing.equals("incremental")) {
         logger.info("Writing term vectors to " + termFile);
-        vecWriter.WriteVectors(termFile, vecStore);
+        vecWriter.writeVectors(termFile, vecStore);
         IncrementalDocVectors idocVectors = new IncrementalDocVectors(
             vecStore, luceneIndex, Flags.contentsfields,
             "incremental_"+docFile, Flags.dimension);
@@ -148,7 +148,7 @@ public class BuildIndex {
           itermVectors = new IncrementalTermVectors(luceneIndex,  Flags.dimension,
                                                     Flags.contentsfields, "incremental_"+docFile);
 
-          new VectorStoreWriter(Flags.dimension).WriteVectors(
+          new VectorStoreWriter(Flags.dimension).writeVectors(
               "incremental_termvectors"+Flags.trainingcycles+".bin", itermVectors);
 
         // Write over previous cycle's docvectors until final
@@ -176,13 +176,13 @@ public class BuildIndex {
           docFile = "docvectors" + Flags.trainingcycles + ".bin";
         }
         logger.info("Writing term vectors to " + termFile);
-        vecWriter.WriteVectors(termFile, vecStore);
+        vecWriter.writeVectors(termFile, vecStore);
         logger.info("Writing doc vectors to " + docFile);
-        vecWriter.WriteVectors(docFile, writeableDocVectors);
+        vecWriter.writeVectors(docFile, writeableDocVectors);
       } else {
         // Write term vectors to disk even if there are no docvectors to output.
         logger.info("Writing term vectors to " + termFile);
-        vecWriter.WriteVectors(termFile, vecStore);
+        vecWriter.writeVectors(termFile, vecStore);
       }
     }
     catch (IOException e) {

@@ -110,10 +110,10 @@ public class BuildBilingualIndex{
                                     Flags.maxnonalphabetchars, null, fields1);
       VectorStoreWriter vecWriter = new VectorStoreWriter(Flags.dimension);
       logger.info("Writing term vectors to " + termFile1);
-      vecWriter.WriteVectors(termFile1, vecStore1);
+      vecWriter.writeVectors(termFile1, vecStore1);
       DocVectors docVectors = new DocVectors(vecStore1);
       logger.info("Writing doc vectors to " + docFile1);
-      vecWriter.WriteVectors(docFile1, docVectors.makeWriteableVectorStore());
+      vecWriter.writeVectors(docFile1, docVectors.makeWriteableVectorStore());
 
       VectorStore basicDocVectors = vecStore1.getBasicDocVectors();
       System.out.println("Keeping basic doc vectors, number: " + basicDocVectors.getNumVectors());
@@ -122,10 +122,10 @@ public class BuildBilingualIndex{
                                     Flags.seedlength, Flags.minfrequency, Flags.maxfrequency,
                                     Flags.maxnonalphabetchars, basicDocVectors, fields2);
       logger.info("Writing term vectors to " + termFile2);
-      vecWriter.WriteVectors(termFile2, vecStore2);
+      vecWriter.writeVectors(termFile2, vecStore2);
       docVectors = new DocVectors(vecStore2);
       logger.info("Writing doc vectors to " + docFile2);
-      vecWriter.WriteVectors(docFile2, docVectors.makeWriteableVectorStore());
+      vecWriter.writeVectors(docFile2, docVectors.makeWriteableVectorStore());
     }
     catch (IOException e) {
       e.printStackTrace();

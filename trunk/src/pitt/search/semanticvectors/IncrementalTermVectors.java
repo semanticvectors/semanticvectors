@@ -141,14 +141,12 @@ public class IncrementalTermVectors implements VectorStore {
 
       int dcount = dc;
       float[] docVector = new float[dimension];
-      String docID = inputStream.readString();
-      
+
       try {
         for (int i = 0; i < dimension; ++i) {
           docVector[i] = Float.intBitsToFloat(inputStream.readInt());
         }
-          //normalize document vectors before adding to term vectors
-         docVector = VectorUtils.getNormalizedVector(docVector);
+
       }
       catch (Exception e) {
     	System.out.println("Doc vectors less than total number of documents");
@@ -194,8 +192,8 @@ public class IncrementalTermVectors implements VectorStore {
     while (allVectors.hasMoreElements())
     {ObjectVector obVec = allVectors.nextElement();
       float[] termVector = obVec.getVector();  
-       termVector = VectorUtils.getNormalizedVector(termVector);
-       obVec.setVector(termVector);
+      termVector = VectorUtils.getNormalizedVector(termVector);
+      obVec.setVector(termVector);
     }
 
     inputStream.close();
@@ -279,6 +277,6 @@ public class IncrementalTermVectors implements VectorStore {
 
     VectorStore termVectors = new IncrementalTermVectors(
         luceneIndex, Flags.dimension, Flags.contentsfields, vectorFile);
-    new VectorStoreWriter(Flags.dimension).WriteVectors("incremental_termvectors.bin", termVectors);
+    new VectorStoreWriter(Flags.dimension).writeVectors("incremental_termvectors.bin", termVectors);
   }
 }

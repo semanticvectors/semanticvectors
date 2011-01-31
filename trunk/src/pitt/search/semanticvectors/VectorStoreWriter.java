@@ -66,11 +66,31 @@ public class VectorStoreWriter {
   }
 
   /**
+   * Writes vectors in text or lucene format depending on {@link Flags#indexfileformat}.
+   * 
    * @param vectorFileName The name of the file to write to
    * @param objectVectors The vector store to be written to disk
    */
-  public boolean WriteVectors(String vectorFileName, VectorStore objectVectors) {
-    try {
+  public boolean writeVectors(String vectorFileName, VectorStore objectVectors) {
+	if (Flags.indexfileformat.equals("lucene")) {
+	  return writeVectorsInLuceneFormat(vectorFileName, objectVectors);
+	} else if (Flags.indexfileformat.equals("text")) {
+	  return writeVectorsInTextFormat(vectorFileName, objectVectors);
+	} else {
+	  throw new RuntimeException("Unrecognized indexfileformat: '" + Flags.indexfileformat + "'");
+	}
+  }
+	 
+  /**
+   * Outputs a vector store in Lucene binary format.
+   * 
+   * @param vectorFileName The name of the file to write to
+   * @param objectVectors The vector store to be written to disk
+   */
+  public boolean writeVectorsInLuceneFormat(String vectorFileName, VectorStore objectVectors) {
+	logger.info("About to write " + objectVectors.getNumVectors() + " vectors of dimension "
+			+ dimension + " to Lucene format file: " + vectorFileName);
+	try {
       File vectorFile = new File(vectorFileName);
       String parentPath = vectorFile.getParent();
       if (parentPath == null) parentPath = "";
@@ -86,13 +106,13 @@ public class VectorStoreWriter {
       /* Write header giving number of dimensions for all vectors. */
       outputStream.writeString("-dimensions");
       outputStream.writeInt(dimension);
-      
+
       /* Write each vector. */
       while (vecEnum.hasMoreElements()) {
         ObjectVector objectVector = vecEnum.nextElement();
         outputStream.writeString(objectVector.getObject().toString());
         tmpVector = objectVector.getVector();
-         for (int i = 0; i < tmpVector.length; ++i) {
+        for (int i = 0; i < dimension; ++i) {
           outputStream.writeInt(Float.floatToIntBits(tmpVector[i]));
         }
       }
@@ -109,16 +129,16 @@ public class VectorStoreWriter {
 
   /**
    * Outputs a vector store as a plain text file.
-   * @param vectorTextFile The name of the file to write to
+   * 
+   * @param vectorFileName The name of the file to write to
    * @param objectVectors The vector store to be written to disk
    */
-  public boolean WriteVectorsAsText(String vectorTextFile, VectorStore objectVectors) {
-    try{
-      BufferedWriter outBuf = new BufferedWriter(new FileWriter(vectorTextFile));
+  public boolean writeVectorsInTextFormat(String vectorFileName, VectorStore objectVectors) {
+    logger.info("About to write " + objectVectors.getNumVectors() + " vectors of dimension "
+    		+ dimension + " to text file: " + vectorFileName);
+    try {
+      BufferedWriter outBuf = new BufferedWriter(new FileWriter(vectorFileName));
       Enumeration<ObjectVector> vecEnum = objectVectors.getAllVectors();
-
-      logger.info("About to write " + objectVectors.getNumVectors()
-          + " vectors to text file: " + vectorTextFile);
 
       /* Write header giving number of dimensions for all vectors. */
       outBuf.write("-dimensions|" + dimension + "\n");
