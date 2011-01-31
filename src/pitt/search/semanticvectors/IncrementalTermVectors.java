@@ -141,7 +141,8 @@ public class IncrementalTermVectors implements VectorStore {
 
       int dcount = dc;
       float[] docVector = new float[dimension];
-
+      String docID = inputStream.readString();
+      
       try {
         for (int i = 0; i < dimension; ++i) {
           docVector[i] = Float.intBitsToFloat(inputStream.readInt());
