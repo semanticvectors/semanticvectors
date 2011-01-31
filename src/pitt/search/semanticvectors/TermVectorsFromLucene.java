@@ -231,12 +231,11 @@ public class TermVectorsFromLucene implements VectorStore {
    * @throws RuntimeException
    */
   public static TermVectorsFromLucene createTermBasedRRIVectors(
-      String indexDir, int dimension, int seedLength, int minFreq, int maxFreq,
+      String indexDir, int seedLength, int minFreq, int maxFreq,
       int nonAlphabet, String initialtermvectors, String[] fieldsToIndex)
   throws IOException, RuntimeException {
     TermVectorsFromLucene vectorStore = new TermVectorsFromLucene() {};
     vectorStore.indexDir = indexDir;
-    vectorStore.dimension = dimension;
     vectorStore.initialtermvectors = initialtermvectors;
     vectorStore.minFreq = minFreq;
     vectorStore.maxFreq = maxFreq;

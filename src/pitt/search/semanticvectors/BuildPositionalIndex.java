@@ -145,7 +145,7 @@ public class BuildPositionalIndex {
       
       VectorStoreWriter vecWriter = new VectorStoreWriter(Flags.dimension);
       logger.info("Writing term vectors to " + termFile);
-      vecWriter.WriteVectors(termFile, vecStore);
+      vecWriter.writeVectors(termFile, vecStore);
 
       for (int i = 1; i < Flags.trainingcycles; ++i) {
         newBasicTermVectors = vecStore.getBasicTermVectors();
@@ -160,7 +160,7 @@ public class BuildPositionalIndex {
         termFile = termFile.replaceAll("\\..*", "") + Flags.trainingcycles + ".bin";
         docFile = "docvectors" + Flags.trainingcycles + ".bin";
         logger.info("Writing term vectors to " + termFile);
-        vecWriter.WriteVectors(termFile, vecStore);
+        vecWriter.writeVectors(termFile, vecStore);
       }
 
       if (!Flags.docindexing.equals("none")) {

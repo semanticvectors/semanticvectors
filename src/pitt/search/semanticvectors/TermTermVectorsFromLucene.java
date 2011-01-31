@@ -235,7 +235,7 @@ public class TermTermVectorsFromLucene implements VectorStore {
         next = VectorUtils.getNormalizedVector(next);
         temp.setVector(next);
       }
-      new VectorStoreWriter(dimension).WriteVectors(randFile, this.indexVectors);
+      new VectorStoreWriter(dimension).writeVectors(randFile, this.indexVectors);
     }
   }
 
