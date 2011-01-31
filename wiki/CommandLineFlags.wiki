@@ -12,7 +12,7 @@ Now the package has grown, we have a lot more programs, a lot more `main()` func
 
 == Solution ==
 
-There's a new [http://semanticvectors.googlecode.com/svn/trunk/doc/pitt/search/semanticvectors/Flags.html Flags] class that looks after:
+The [http://semanticvectors.googlecode.com/svn/javadoc/latest-stable/pitt/search/semanticvectors/Flags.html Flags] class looks after:
 
   * Representing publicly all variables that can be set at the command line.
   * Parsing command line arguments to extract these variables and leave the rest of the arguments to the caller.
@@ -62,5 +62,3 @@ If you're a SemanticVectors developer, it will make it much easier and quicker t
 
 
  
-
-
