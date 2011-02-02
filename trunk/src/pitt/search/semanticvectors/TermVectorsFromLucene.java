@@ -231,12 +231,13 @@ public class TermVectorsFromLucene implements VectorStore {
    * @throws RuntimeException
    */
   public static TermVectorsFromLucene createTermBasedRRIVectors(
-      String indexDir, int seedLength, int minFreq, int maxFreq,
+      String indexDir, int dimension, int seedLength, int minFreq, int maxFreq,
       int nonAlphabet, String initialtermvectors, String[] fieldsToIndex)
   throws IOException, RuntimeException {
     TermVectorsFromLucene vectorStore = new TermVectorsFromLucene() {};
     vectorStore.indexDir = indexDir;
     vectorStore.initialtermvectors = initialtermvectors;
+    vectorStore.dimension = dimension;
     vectorStore.minFreq = minFreq;
     vectorStore.maxFreq = maxFreq;
     vectorStore.maxNonAlphabet = nonAlphabet;
@@ -268,7 +269,6 @@ public class TermVectorsFromLucene implements VectorStore {
           continue;
         }
         tc++;
-
         short[] indexVector =  VectorUtils.generateRandomVector(seedLength, dimension, random);
         // Place each term vector in the vector store.
         this.termVectors.put(term.text(),
