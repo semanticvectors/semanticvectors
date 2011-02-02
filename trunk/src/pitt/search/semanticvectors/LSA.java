@@ -67,11 +67,8 @@ public class LSA {
     LuceneUtils lUtils = new LuceneUtils(fileName);
     
     //calculate norm of each doc vector so as to normalize these before SVD
-    double[] docvectornorms = new double[indexReader.numDocs()]; 
     int[][] index;
-    int nonalphabet = Flags.maxnonalphabetchars;
-    int minfreq = Flags.minfrequency;
-    String[] desiredFields = Flags.contentsfields;
+   String[] desiredFields = Flags.contentsfields;
 
     TermEnum terms = indexReader.terms();
     int tc = 0;
@@ -115,35 +112,13 @@ public class LSA {
         count = 0;
         while (td.next())
         {index[tc][count++] = td.doc();
-        
-        /**
-         * calculate length of document vectors ahead of time
-         */
-        
-        float value = td.freq();
-
-        /**
-         * if log-entropy weighting is to be used
-         */
-
-        if (le)
-        {float entropy = lUtils.getEntropy(term);
-          float log1plus = (float) Math.log10(1+value);
-          value = entropy*log1plus;
-        }
-        
-         docvectornorms[td.doc()] += Math.pow(value,2);
-        }
+         }
 
         tc++;	//next term
       }
     }
     
-    /* 
-     * calculate vector length of document vectors sqrt(square of value in each dimension)
-     */
-    for (int x =0; x < docvectornorms.length; x++)
-    	docvectornorms[x] = Math.sqrt(docvectornorms[x]);
+
 
     /**
      * initialize "SVDLIBJ" sparse data structure
@@ -157,7 +132,6 @@ public class LSA {
 
     terms = indexReader.terms();
     tc = 0;
-    int nonzerocounter = 0;
     int nn= 0;
 
     while(terms.next()){
@@ -176,7 +150,6 @@ public class LSA {
             *  information from the lucene index)
             */
 
-          int rowindex = td.doc();
           float value = td.freq();
 
           /**
@@ -190,7 +163,7 @@ public class LSA {
           }
 
           S.rowind[nn] = td.doc();  // set row index to document number
-          S.value[nn] = value/docvectornorms[td.doc()];  // set value to frequency (with/without weighting)
+          S.value[nn] = value;  // set value to frequency (with/without weighting)
           nn++;
         }
         tc++;
