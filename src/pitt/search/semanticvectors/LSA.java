@@ -58,17 +58,16 @@ public class LSA {
   /* Converts a dense matrix to a sparse one (without affecting the dense one) */
   static SMat smatFromIndex(String fileName) throws Exception {
     SMat S;
-    int i, j, n;
     
     //initiate IndexReader and LuceneUtils
     File file = new File(fileName);
     IndexReader indexReader = IndexReader.open(FSDirectory.open(file));
-    LuceneUtils.CompressIndex(fileName);
+    LuceneUtils.compressIndex(fileName);
     LuceneUtils lUtils = new LuceneUtils(fileName);
     
     //calculate norm of each doc vector so as to normalize these before SVD
     int[][] index;
-   String[] desiredFields = Flags.contentsfields;
+    String[] desiredFields = Flags.contentsfields;
 
     TermEnum terms = indexReader.terms();
     int tc = 0;
@@ -215,7 +214,6 @@ public class LSA {
     IndexOutput outputStream = fsDirectory.createOutput(termFile);
     float[] tmpVector = new float[Flags.dimension];
 
-    int counter = 0;
     logger.info("Write vectors incrementally to file " + termFile);
 
     // Write header giving number of dimensions for all vectors.
@@ -249,14 +247,13 @@ public class LSA {
     String docFile = "svd_docvectors.bin";
     outputStream = fsDirectory.createOutput(docFile);
     tmpVector = new float[Flags.dimension];
-    counter = 0;
     logger.info("Write vectors incrementally to file " + docFile);
 
     // Write header giving number of dimensions for all vectors.
     outputStream.writeString("-dimensions");
     outputStream.writeInt(Flags.dimension);
 
-    //initiate IndexReader and LuceneUtils
+    // initilize IndexReader and LuceneUtils
     File file = new File(args[0]);
     IndexReader indexReader = IndexReader.open(FSDirectory.open(file));
 

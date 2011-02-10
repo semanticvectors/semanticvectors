@@ -94,6 +94,8 @@ public class Flags {
       "Format used for serializing / deserializing vectors from disk";
   public static final String[] indexfileformatValues = {"lucene", "text"};
 
+	public static final String randomvectorsfile = "randomvectors.bin";
+
   public static String queryvectorfile = "termvectors.bin";
   public static String stoplistfile = "";
   public static String startlistfile = "";

@@ -138,7 +138,7 @@ public class VectorUtils {
     for (int i = 0; i < vec1.length; ++i) {
       distance += (vec1[i] - vec2[i]) * (vec1[i] - vec2[i]);
     }
-    return (float)Math.sqrt(distance);
+    return (float) Math.sqrt(distance);
   }
 
   /**

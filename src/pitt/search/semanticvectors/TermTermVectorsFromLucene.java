@@ -150,7 +150,7 @@ public class TermTermVectorsFromLucene implements VectorStore {
 
   private void trainTermTermVectors() throws IOException, RuntimeException {
     // Check that the Lucene index contains Term Positions.
-    LuceneUtils.CompressIndex(luceneIndexDir);
+    LuceneUtils.compressIndex(luceneIndexDir);
     this.luceneIndexReader = IndexReader.open(FSDirectory.open(new File(luceneIndexDir)));
     Collection<String> fields_with_positions =
       luceneIndexReader.getFieldNames(IndexReader.FieldOption.TERMVECTOR_WITH_POSITION);
@@ -222,12 +222,12 @@ public class TermTermVectorsFromLucene implements VectorStore {
       next = VectorUtils.getNormalizedVector(next);
       temp.setVector(next);
     }
-
+    
+    String randFile = "randomvectors.bin";
     // If building a permutation index, these need to be written out to be reused.
     if ((positionalmethod.equals("permutation") || (positionalmethod.equals("permutation_plus_basic"))) 
         && !retraining) {
-      String randFile = "randomvectors.bin";
-      logger.info("\nNormalizing and writing random vectors to "+randFile);
+      logger.info("\nNormalizing and writing random vectors to " + randFile);
       Enumeration<ObjectVector> f = indexVectors.getAllVectors();
       while (f.hasMoreElements())	{
         ObjectVector temp = f.nextElement();
