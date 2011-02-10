@@ -97,7 +97,7 @@
       <tarfileset dir="${basedir}"
                   prefix="${distname}"
                   preserveLeadingSlashes="true"
-                  includes="src/pitt/,thirdparty">
+                  includes="src/pitt/,thirdparty/">
         <include name="build.xml"/>
         <include name="AUTHORS"/>
         <include name="LICENSE"/>
@@ -111,7 +111,7 @@
     <zip destfile="${distdir}/${distname}-src.zip">
       <zipfileset dir="${basedir}"
                   prefix="${distname}"
-                  includes="src/pitt/,thirdparty">
+                  includes="src/pitt/,thirdparty/">
         <include name="build.xml"/>
         <include name="AUTHORS"/>
         <include name="LICENSE"/>
