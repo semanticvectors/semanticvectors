@@ -3,6 +3,18 @@
 
 Even-numbered versions are releases. Odd-numbered versions are in development. It follows that the most recent code and the `build.xml` file in the SVN repository is always odd-numbered.
 
+=== Version 2.2 ===
+
+Bug fixes and refactoring improvements.
+
+Fixed VectorStoreTranslater bug.
+
+Fixed docid parsing bug in TRRI implementation.
+
+Fixed missing includes of thirdparty files.
+
+Plenty of small refactorings to pass dimensions as arguments, and doing work in clearer factory methods more consistently.
+
 === Version 2.0 ===
 
 Updated to Lucene 3.0.3. (Fixes issue 34.)
