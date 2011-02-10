@@ -60,27 +60,30 @@ public class IncrementalDocVectors {
   private String vectorFileName;
   private int dimension;
   
+  private IncrementalDocVectors() {};
+  
   /**
-   * Constructor that gets everything it needs from a
-   * TermVectorsFromLucene object and a Lucene Index directory, and writes to a named file.
+   * Creates incremental doc vectors, getting everything it needs from a
+   * TermVectorsFromLucene object and a Lucene Index directory, and writing to a named file.
    * 
    * @param termVectorData Has all the information needed to create doc vectors.
    * @param indexDir Directory of the Lucene Index used to generate termVectorData
    * @param fieldsToIndex String[] containing fields indexed when generating termVectorData
    * @param vectorFileName Filename for the document vectors
    */
-  public IncrementalDocVectors(VectorStore termVectorData, String indexDir,
-      String[] fieldsToIndex, String vectorFileName, int dimension)
-  throws IOException {
-    this.termVectorData = termVectorData;
-    this.indexReader = IndexReader.open(FSDirectory.open(new File(indexDir)));
-    this.fieldsToIndex = fieldsToIndex;
-    this.vectorFileName = vectorFileName;
-    this.dimension = dimension;
-    if (this.lUtils == null) {
-      this.lUtils = new LuceneUtils(indexDir);
+  public static void createIncrementalDocVectors(
+		  VectorStore termVectorData, String indexDir,
+		  String[] fieldsToIndex, String vectorFileName, int dimension) throws IOException {
+	IncrementalDocVectors incrementalDocVectors = new IncrementalDocVectors();
+	incrementalDocVectors.termVectorData = termVectorData;
+	incrementalDocVectors.indexReader = IndexReader.open(FSDirectory.open(new File(indexDir)));
+	incrementalDocVectors.fieldsToIndex = fieldsToIndex;
+	incrementalDocVectors.vectorFileName = vectorFileName;
+	incrementalDocVectors.dimension = dimension;
+    if (incrementalDocVectors.lUtils == null) {
+    	incrementalDocVectors.lUtils = new LuceneUtils(indexDir);
     }
-    trainIncrementalDocVectors();
+    incrementalDocVectors.trainIncrementalDocVectors();
   }
     
   private void trainIncrementalDocVectors() throws IOException {
@@ -93,8 +96,6 @@ public class IncrementalDocVectors {
     FSDirectory fsDirectory = FSDirectory.open(new File(parentPath));
     IndexOutput outputStream = fsDirectory.createOutput(vectorFile.getName());
 
-    float[] tmpVector = new float[dimension];
-    int counter = 0;
     logger.info("Write vectors incrementally to file " + vectorFile);
 
     // Write header giving number of dimensions for all vectors.
@@ -104,7 +105,7 @@ public class IncrementalDocVectors {
     // Iterate through documents.
     for (int dc = 0; dc < numdocs; dc++) {
       // Output progress counter.
-      if (( dc % 50000 == 0 ) || ( dc < 50000 && dc % 10000 == 0 )) {
+      if ((dc > 0) && ((dc % 50000 == 0) || ( dc < 50000 && dc % 10000 == 0 ))) {
         logger.fine("Processed " + dc + " documents ... ");
       }
     
@@ -180,6 +181,6 @@ public class IncrementalDocVectors {
     VectorStoreRAM vsr = new VectorStoreRAM(0);
     vsr.initFromFile(args[0]);
 
-    new IncrementalDocVectors(vsr, args[1], Flags.contentsfields, vectorFile, Flags.dimension);
+    createIncrementalDocVectors(vsr, args[1], Flags.contentsfields, vectorFile, Flags.dimension);
   }
 }

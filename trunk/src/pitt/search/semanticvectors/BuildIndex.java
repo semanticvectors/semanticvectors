@@ -114,7 +114,6 @@ public class BuildIndex {
 
     String termFile = "termvectors.bin";
     String docFile = "docvectors.bin";
-    VectorStoreRAM initialdocvectors = null;
 
     try{
       TermVectorsFromLucene vecStore;
@@ -139,9 +138,8 @@ public class BuildIndex {
       if (Flags.docindexing.equals("incremental")) {
         logger.info("Writing term vectors to " + termFile);
         vecWriter.writeVectors(termFile, vecStore);
-        IncrementalDocVectors idocVectors = new IncrementalDocVectors(
-            vecStore, luceneIndex, Flags.contentsfields,
-            "incremental_"+docFile, Flags.dimension);
+        IncrementalDocVectors.createIncrementalDocVectors(
+            vecStore, luceneIndex, Flags.contentsfields, "incremental_"+docFile, Flags.dimension);
         IncrementalTermVectors itermVectors = null;
 
         for (int i = 1; i < Flags.trainingcycles; ++i) {
@@ -155,7 +153,7 @@ public class BuildIndex {
         // iteration, then rename according to number cycles
         if (i == Flags.trainingcycles-1) docFile = "docvectors"+Flags.trainingcycles+".bin";
 
-        idocVectors = new IncrementalDocVectors(
+        IncrementalDocVectors.createIncrementalDocVectors(
             itermVectors, luceneIndex, Flags.contentsfields,
             "incremental_"+docFile, Flags.dimension);
         }

@@ -147,6 +147,7 @@ public class VectorStoreReaderLucene implements CloseableVectorStore {
   /**
    * Given an object, get its corresponding vector <br>
    * This implementation only works for string objects so far <br>
+   * 
    * @param desiredObject - the string you're searching for
    * @return vector from the VectorStore, or null if not found.
    */
@@ -159,6 +160,7 @@ public class VectorStoreReaderLucene implements CloseableVectorStore {
       }
       while (getIndexInput().getFilePointer() < getIndexInput().length() - 1) {
         if (getIndexInput().readString().equals(desiredObject)) {
+          // TODO(widdows): Replace with abstract Vector implementation.
           float[] vector = new float[dimension];
           for (int i = 0; i < dimension; ++i) {
             vector[i] = Float.intBitsToFloat(getIndexInput().readInt());

@@ -292,7 +292,7 @@ public class LuceneUtils{
    * Otherwise exceptions can occur if document id's are greater
    * than indexReader.numDocs().
    */
-  static void CompressIndex(String indexDir) {
+  static void compressIndex(String indexDir) {
     try {
       IndexWriter compressor = new IndexWriter(FSDirectory.open(new File(indexDir)),
 					       new StandardAnalyzer(Version.LUCENE_30),

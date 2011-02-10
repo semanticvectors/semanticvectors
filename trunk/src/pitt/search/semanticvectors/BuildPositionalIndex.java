@@ -107,7 +107,7 @@ public class BuildPositionalIndex {
     String luceneIndex = args[0];
     logger.info("Lucene positional index being set to: " + luceneIndex);
 
-    //If initialtermvectors is defined, read these vectors.
+    // If initialtermvectors is defined, read these vectors.
     if (!Flags.initialtermvectors.equals("")) {
       try {
         VectorStoreRAM vsr = new VectorStoreRAM(Flags.dimension);
@@ -164,7 +164,7 @@ public class BuildPositionalIndex {
       }
 
       if (!Flags.docindexing.equals("none")) {
-        IncrementalDocVectors docVectors = new IncrementalDocVectors(
+        IncrementalDocVectors.createIncrementalDocVectors(
             vecStore, luceneIndex, Flags.contentsfields, "incremental_"+docFile, Flags.dimension);
       }
     }

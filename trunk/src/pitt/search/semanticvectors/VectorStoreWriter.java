@@ -112,6 +112,7 @@ public class VectorStoreWriter {
         ObjectVector objectVector = vecEnum.nextElement();
         outputStream.writeString(objectVector.getObject().toString());
         tmpVector = objectVector.getVector();
+        // TODO(widdows): Replace with abstract Vector implementation.
         for (int i = 0; i < dimension; ++i) {
           outputStream.writeInt(Float.floatToIntBits(tmpVector[i]));
         }
