@@ -38,6 +38,7 @@ package pitt.search.semanticvectors;
 import java.io.File;
 import java.io.IOException;
 import java.lang.Integer;
+import java.util.Arrays;
 import java.util.logging.Logger;
 
 import org.apache.lucene.index.*;
@@ -181,6 +182,26 @@ public class IncrementalDocVectors {
     VectorStoreRAM vsr = new VectorStoreRAM(0);
     vsr.initFromFile(args[0]);
 
+        try {
+          args = Flags.parseCommandLineFlags(args);
+        } catch (IllegalArgumentException e) {
+         
+          throw e;
+        }
+
+        // Only one argument should remain, the path to the Lucene index.
+        if (args.length != 2) {
+        
+          throw (new IllegalArgumentException("After parsing command line flags, there were " + args.length
+                                              + " arguments, instead of the expected 2."));
+        }
+
+        logger.info("Minimum frequency = " + Flags.minfrequency);
+        logger.info("Maximum frequency = " + Flags.maxfrequency);
+        logger.info("Number non-alphabet characters = " + Flags.maxnonalphabetchars);
+        logger.info("Contents fields are: " + Arrays.toString(Flags.contentsfields));
+
+    
     createIncrementalDocVectors(vsr, args[1], Flags.contentsfields, vectorFile, Flags.dimension);
   }
 }
