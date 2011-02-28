@@ -178,9 +178,7 @@ public class IncrementalDocVectors {
   }
 
   public static void main(String[] args) throws Exception {
-    String vectorFile = args[0].replaceAll("\\.bin","")+"_docvectors.bin";
-    VectorStoreRAM vsr = new VectorStoreRAM(0);
-    vsr.initFromFile(args[0]);
+   
 
         try {
           args = Flags.parseCommandLineFlags(args);
@@ -189,13 +187,17 @@ public class IncrementalDocVectors {
           throw e;
         }
 
-        // Only one argument should remain, the path to the Lucene index.
+        // Only two arguments should remain, the path to the Lucene index.
         if (args.length != 2) {
         
           throw (new IllegalArgumentException("After parsing command line flags, there were " + args.length
                                               + " arguments, instead of the expected 2."));
         }
 
+        String vectorFile = args[0].replaceAll("\\.bin","")+"_docvectors.bin";
+        VectorStoreRAM vsr = new VectorStoreRAM(0);
+        vsr.initFromFile(args[0]);
+        
         logger.info("Minimum frequency = " + Flags.minfrequency);
         logger.info("Maximum frequency = " + Flags.maxfrequency);
         logger.info("Number non-alphabet characters = " + Flags.maxnonalphabetchars);
