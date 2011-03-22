@@ -67,7 +67,7 @@ public class LuceneUtils{
   private Hashtable<Term, Float> termEntropy = new Hashtable<Term, Float>();
   private TreeSet<String> stopwords = null;
   //added by sid
-  private TreeSet<String> startwords = null;
+  TreeSet<String> startwords = null;
 
   
   /**
