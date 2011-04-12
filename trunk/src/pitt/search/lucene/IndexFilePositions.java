@@ -11,6 +11,10 @@ import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriter.MaxFieldLength;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.util.Version;
+import org.apache.lucene.analysis.PorterStemFilter;
+
+import pitt.search.semanticvectors.Flags;
+
 
 /** Index all text files under a directory. This class makes minor
  * modifications to <code>org.apache.lucene.demos.IndexFiles</code>
@@ -21,7 +25,7 @@ public class IndexFilePositions {
 
   private IndexFilePositions() {}
 
-  static final File INDEX_DIR = new File("positional_index");
+  static File INDEX_DIR = new File("positional_index");
 
   /** Index all text files under a directory. */
   public static void main(String[] args) {
@@ -30,6 +34,10 @@ public class IndexFilePositions {
       System.err.println("Usage: " + usage);
       System.exit(1);
     }
+    if (args.length > 0) {
+    args = Flags.parseCommandLineFlags(args);
+    if (Flags.porterstemmer) INDEX_DIR = new File("stemmed_positional_index");	
+    }
     if (INDEX_DIR.exists()) {
       System.out.println(INDEX_DIR.getAbsolutePath());
       System.out.println("Cannot save index to '" + INDEX_DIR + "' directory, please delete it first");
@@ -37,13 +45,26 @@ public class IndexFilePositions {
     }
     try {
     	
-    	/** create IndexWriter using StandardAnalyzer without any stopword list**/
-      IndexWriter writer = new IndexWriter(FSDirectory.open(INDEX_DIR),
+    	IndexWriter writer;
+    	
+    	
+    	if (Flags.porterstemmer)
+    	{	/** create IndexWriter using porter stemmer without any stopword list**/
+    		writer = new IndexWriter(FSDirectory.open(INDEX_DIR),
+                    new PorterAnalyzer(),
+                    true, MaxFieldLength.UNLIMITED);
+    	} 
+    	else
+    	{	/** create IndexWriter using StandardAnalyzer without any stopword list**/
+    		writer = new IndexWriter(FSDirectory.open(INDEX_DIR),
                                            new StandardAnalyzer(Version.LUCENE_30, new TreeSet()),
                                            true, MaxFieldLength.UNLIMITED);
-
+    	}
    
-      final File docDir = new File(args[0]);
+    	
+
+    	
+    	final File docDir = new File(args[0]);
       if (!docDir.exists() || !docDir.canRead()) {
         System.err.println("Document directory '" + docDir.getAbsolutePath() +
                            "' does not exist or is not readable, please check the path");
