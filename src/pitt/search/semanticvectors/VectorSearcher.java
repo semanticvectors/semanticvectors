@@ -40,6 +40,8 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.Enumeration;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
 
 import pitt.search.semanticvectors.LuceneUtils;
 import pitt.search.semanticvectors.VectorSearcher;
@@ -95,16 +97,28 @@ abstract public class VectorSearcher {
     Enumeration<ObjectVector> vecEnum = searchVecStore.getAllVectors();
 
     while (vecEnum.hasMoreElements()) {
+      ObjectVector testElement = vecEnum.nextElement();
+
+			// If a search results filter is set, skip results that don't match it.
+			// A more efficient implementation would be to cache the Pattern
+			// as an object variable.  Chose not to do this because we're already
+			// violating encapsulation using the flag, so it wouldn't be very safe.
+			if (!Flags.vectorsearchfilterregex.isEmpty()) {
+				Pattern pattern = Pattern.compile(Flags.vectorsearchfilterregex);
+				Matcher matcher = pattern.matcher(testElement.getObject().toString());
+        if (!matcher.find()) {
+					continue;
+				}
+			}
+
       // Initialize result list if just starting.
       if (results.size() == 0) {
-        ObjectVector firstElement = vecEnum.nextElement();
-        score = getScore(firstElement.getVector());
-        results.add(new SearchResult(score, firstElement));
+        score = getScore(testElement.getVector());
+        results.add(new SearchResult(score, testElement));
         continue;
       }
 
       // Test this element.
-      ObjectVector testElement = vecEnum.nextElement();
       score = getScore(testElement.getVector());
 
       // This is a way of using the Lucene Index to get term and
