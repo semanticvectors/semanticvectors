@@ -123,8 +123,12 @@ public class Flags {
 
   public static String vectorlookupsyntax = "exactmatch";
   public static final String vectorlookupsyntaxDescription =
-  "Method used for looking up vectors in a vector store";
+		  "Method used for looking up vectors in a vector store";
   public static String[] vectorlookupsyntaxValues = {"exactmatch", "regex"};
+
+	public static String vectorsearchfilterregex = "";
+	public static final String vectorsearchfilterregexDescription =
+		  "If set, only search results that match this regular expression will be included in results.";
 
   public static boolean matchcase = false;
 
