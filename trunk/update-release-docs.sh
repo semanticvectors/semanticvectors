@@ -1,4 +1,4 @@
-#!/bin/bash
+B1;2c#!/bin/bash
 
 CURDIR=`pwd`
 DEST=../javadoc/latest-stable
