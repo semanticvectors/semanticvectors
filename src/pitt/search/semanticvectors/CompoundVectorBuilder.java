@@ -1,4 +1,3 @@
-
 /**
    Copyright (c) 2007, University of Pittsburgh
    Copyright (c) 2008 and ongoing, the SemanticVectors authors
@@ -241,7 +240,7 @@ public class CompoundVectorBuilder {
     for (int j = 0; j < queryTerms.length; ++j) {
       // Compile a regular expression for matching anything containing this term.
       Pattern pattern = Pattern.compile(queryTerms[j]);
-      logger.log(Level.FINER,"Query term pattern: {0}", pattern.pattern());
+      logger.log(Level.FINER, "Query term pattern: {0}", pattern.pattern());
       Enumeration<ObjectVector> vecEnum = vecReader.getAllVectors();
       while (vecEnum.hasMoreElements()) {
         // Test this element.

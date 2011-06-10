@@ -62,14 +62,15 @@ import org.apache.lucene.util.Version;
  */
 public class LuceneUtils{
   private static final Logger logger = Logger.getLogger(DocVectors.class.getCanonicalName());
-  
+  private static final int MIN_TERM_WEIGHT = 1;
+
   private IndexReader indexReader;
   private Hashtable<Term, Float> termEntropy = new Hashtable<Term, Float>();
   private TreeSet<String> stopwords = null;
   //added by sid
   TreeSet<String> startwords = null;
 
-  
+
   /**
    * @param path - path to lucene index
    */
@@ -101,31 +102,30 @@ public class LuceneUtils{
   {throw new IOException("Couldn't open file "+stoppath);}
   }
 
-  
+
   /**
    * added by Siddhartha
-   * Loads the startword file into memory 
+   * Loads the startword file into memory
    * @param startpath - path to startword file
    * @throws IOException
    */
-  
-  public void loadStartWords(String startpath) throws IOException
-  {  System.err.println("Using startword file: "+startpath);
-  	 startwords = new TreeSet<String>();
-  	try{
-  BufferedReader readIn = new BufferedReader(new FileReader(startpath));
-  String in = readIn.readLine();
-  while (in != null)
-  {startwords.add(in);
-  in = readIn.readLine();
-  }	
+
+  public void loadStartWords(String startpath) throws IOException  {
+    System.err.println("Using startword file: "+startpath);
+    startwords = new TreeSet<String>();
+    try {
+      BufferedReader readIn = new BufferedReader(new FileReader(startpath));
+      String in = readIn.readLine();
+      while (in != null) {
+        startwords.add(in);
+        in = readIn.readLine();
+      }
+    }
+    catch (IOException e) {
+      throw new IOException("Couldn't open file "+startpath);
+    }
   }
-  catch (IOException e) 
-  {throw new IOException("Couldn't open file "+startpath);}
-  }
-  
-  
-  
+
   /**
    * Returns true if term is in stoplist (returns false if no stoplist)
    */
@@ -141,12 +141,12 @@ public class LuceneUtils{
    * @return Global term frequency of term, or 1 if unavailable.
    */
   public int getGlobalTermFreq(Term term){
-    int tf = 0;
-    try{
+    int tf = MIN_TERM_WEIGHT;
+    try {
       TermDocs tDocs = this.indexReader.termDocs(term);
       if (tDocs == null) {
         logger.info("Couldn't get term frequency for term " + term.text());
-        return 1;
+        return MIN_TERM_WEIGHT;
       }
       while (tDocs.next()) {
         tf += tDocs.freq();
@@ -166,7 +166,7 @@ public class LuceneUtils{
    */
   public float getGlobalTermWeightFromString(String termString) {
     try {
-      int freq = 0;
+      int freq = MIN_TERM_WEIGHT;
       for (String field: Flags.contentsfields)
 	freq += indexReader.docFreq(new Term(field, termString));
       return (float) Math.pow(freq, -0.05);
@@ -184,7 +184,7 @@ public class LuceneUtils{
    */
   public float getGlobalTermWeight(Term term) {
     try {
-      return (float) Math.pow(indexReader.docFreq(term), -0.05);
+      return (float) Math.pow(MIN_TERM_WEIGHT + indexReader.docFreq(term), -0.05);
     } catch (IOException e) {
       logger.info("Couldn't get term weight for term '" + term.text() + "'");
       return 1;
@@ -235,9 +235,9 @@ public class LuceneUtils{
 
   /**
    * Filters out non-alphabetic terms and those of low frequency.
-   * 
+   *
    * Thanks to Vidya Vasuki for refactoring and bug repair
-   * 
+   *
    * @param term Term to be filtered.
    * @param desiredFields Terms in only these fields are filtered in
    * @param minFreq minimum term frequency accepted
