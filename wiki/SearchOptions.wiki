@@ -16,7 +16,7 @@ The simplest way to find out more about these arguments is to run `java pitt.sea
 
 ==Other Useful Tools and Options==
 
-See DocumentSearch, PermutationSearch, and ClusteringAndVisualization.
+See DocumentSearch, FilteredSearchResults, PermutationSearch, and ClusteringAndVisualization.
 
 ==File Arguments==
 
