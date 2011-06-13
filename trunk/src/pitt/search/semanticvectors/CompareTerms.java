@@ -43,17 +43,17 @@ import java.util.logging.Logger;
  get raw similarities between two concepts. These concepts may be
  individual words or lists of words. For example, if your vectorfile
  is the (default) termvectors.bin, you should be able to run
- comparisons like 
+ comparisons like
 
  <br>
  <code>java pitt.search.semanticvectors.CompareTerms "blue" "red green"
  </code>
 
- <br> 
+ <br>
  which will give you the cosine similarity of the "blue"
  vector with the sum of the "red" and "green" vectors.
 
- <br> If the term NOT is used in one of the lists, subsequent terms in 
+ <br> If the term NOT is used in one of the lists, subsequent terms in
  that list will be negated.
  */
 
@@ -61,14 +61,14 @@ public class CompareTerms{
   private static final Logger logger = Logger.getLogger(CompareTerms.class.getCanonicalName());
 
   /**
-   * Prints the following usage message: 
+   * Prints the following usage message:
    * <code>
-   * <br> CompareTerms class in package pitt.search.semanticvectors 
+   * <br> CompareTerms class in package pitt.search.semanticvectors
    * <br> Usage: java pitt.search.semanticvectors.CompareTerms
    * <br>                                         "&lt;QUERYTERMS1&gt;" "&lt;QUERYTERMS2&gt;"
    * <br>"&lt;QUERYTERMS1,2&gt;" should be lists of words, separated by spaces.
    * <br> The quotes are mandatory unless you are comparing two single words.
-   * <br> If the term NOT is used in one of the lists, subsequent terms in 
+   * <br> If the term NOT is used in one of the lists, subsequent terms in
    * <br> that list will be negated (as in Search class).
    * </code>
    * @see Search
@@ -87,7 +87,7 @@ public class CompareTerms{
   /**
    * Main function for command line use.
    * @param args See usage();
-   * @throws IOException 
+   * @throws IOException
    */
   public static void main (String[] args) throws IllegalArgumentException, IOException {
     args = Flags.parseCommandLineFlags(args);
@@ -135,7 +135,7 @@ public class CompareTerms{
     // Logging prompt and printing score to stdout, this should enable
     // easier batch scripting to combine input and output data.
     logger.info("Outputting similarity of \"" + args[0]
-                                                     + "\" with \"" + args[1] + "\" ...");
+                + "\" with \"" + args[1] + "\" ...");
     System.out.println(simScore);
   }
 }
