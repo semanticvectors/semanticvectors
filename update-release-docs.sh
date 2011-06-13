@@ -1,4 +1,15 @@
-B1;2c#!/bin/bash
+#!/bin/bash
+
+# Script for updating online javadoc when making a new release.
+#
+# Must be run from this directory, but uses higher directories in the
+# svn tree as well.  Therefore you need to run on a copy that is checked
+# out all the way from the trunk, e.g.,
+#
+# svn checkout https://semanticvectors.googlecode.com/svn/ semanticvectors-all --username ...
+# cd semanticvectors-all
+# ./update-release-docs.sh.
+
 
 CURDIR=`pwd`
 DEST=../javadoc/latest-stable
