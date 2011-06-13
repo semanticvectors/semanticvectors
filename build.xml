@@ -20,7 +20,7 @@
 			 make the release, and then increment again to next_odd_number and check
 			 in. This way when people check out from svn, they always get the
 			 most recent development version. -->
-  <property name="version" value="2.3"/>
+  <property name="version" value="2.5"/>
   <property file="build.properties" />
 
   <property environment="env"/>
@@ -173,6 +173,10 @@
     <mkdir dir="${testworkingdir}"/>
     -->
   </target>
+
+  <!-- Just compile and run all the tests! -->
+  <target name="testall" depends="run-unit-tests,run-integration-tests"/>
+
 
 <!-- Compile development extensions ... this is a temporary solution until
      we have a good way of shipping development extensions without
