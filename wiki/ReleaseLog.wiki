@@ -3,6 +3,14 @@
 
 Even-numbered versions are releases. Odd-numbered versions are in development. It follows that the most recent code and the `build.xml` file in the SVN repository is always odd-numbered.
 
+=== Version 2.4 ===
+
+Support for FilteredSearchResults.
+
+Support for Porter Stemming in the pitt.search.Lucene package (thanks particularly to Siddhartha Jonnalagadda).
+
+Set minimum term weights to be 1 rather than 0 for strings not recognized by Lucene index.
+
 === Version 2.2 ===
 
 Bug fixes and refactoring improvements.
