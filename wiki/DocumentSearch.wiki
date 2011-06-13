@@ -19,3 +19,7 @@ You can also use the document file as a source of queries. For example, to find 
 {{{java pitt.search.semanticvectors.Search -queryvectorfile docvectors.bin -searchvectorfile termvectors.bin -matchcase bible_chapters/Genesis/Chapter_1}}}
 
 (With default settings, this brings up pretty generic terms like "unto", "i", "them, "have". Not exactly sure why this is so.)
+
+=== Lucene Term Weighting ===
+
+Any term weighting for documents is computed when the document vectors are created, as part of the index building process. So giving a `---luceneindexdir` argument when using documents as queries will not help you at all, and can cause SemanticVectors to discard your query terms (since, for example, `/files/file1.txt` isn't a term that the Lucene index recognizes). 
