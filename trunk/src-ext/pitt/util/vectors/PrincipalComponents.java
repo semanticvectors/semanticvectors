@@ -1,92 +1,110 @@
-// Add Google copyright.
+/**
+   Copyright (c) 2007 and ongoing, University of Pittsburgh
+   and the SemanticVectors AUTHORS.
+
+   All rights reserved.
+
+   Redistribution and use in source and binary forms, with or without
+   modification, are permitted provided that the following conditions are
+   met:
+
+ * Redistributions of source code must retain the above copyright
+   notice, this list of conditions and the following disclaimer.
+
+ * Redistributions in binary form must reproduce the above
+   copyright notice, this list of conditions and the following
+   disclaimer in the documentation and/or other materials provided
+   with the distribution.
+
+ * Neither the name of the University of Pittsburgh nor the names
+   of its contributors may be used to endorse or promote products
+   derived from this software without specific prior written
+   permission.
+
+   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+   "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+   LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+   A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
+   CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+   EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+   PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+   PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+   LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+   NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+   SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ **/
 
 package pitt.util.vectors;
 
 import pitt.search.semanticvectors.*;
 import ch.akuhn.edu.mit.tedlab.*;
 
+/**
+   Class for creating 2d plots of search results.
+
+   Basic usage is something like:
+   In the main semantic vectors source directory:
+      ant compile-ext
+   In the directory with your vector indexes:
+      java pitt.util.vectors.PrincipalComponents $ARGS
+
+   $ARGS includes first regular semantic vectors flags, e.g.,
+   -queryvectorfile and -numsearchresults, followed by query terms.
+ */
 public class PrincipalComponents {
-	ObjectVector[] vectorInput;
-	DMat matrix;
-	Svdlib svd;
-	SVDRec svdR;
-	int dimension;
+  ObjectVector[] vectorInput;
+  DMat matrix;
+  Svdlib svd;
+  SVDRec svdR;
+  int dimension;
 
-	public PrincipalComponents (ObjectVector[] vectorInput) {
-		this.vectorInput = vectorInput; 
-		this.dimension = vectorInput[0].getVector().length;
-		double[][] vectorArray = new double[vectorInput.length][dimension];
+  public PrincipalComponents (ObjectVector[] vectorInput) {
+    this.vectorInput = vectorInput;
+    this.dimension = vectorInput[0].getVector().length;
+    double[][] vectorArray = new double[vectorInput.length][dimension];
 
-		for (int i = 0; i < vectorInput.length; ++i) {
-	    float[] tempVec = vectorInput[i].getVector();
-	    for (int j = 0; j < dimension; ++j) {
-				vectorArray[i][j] = (double) tempVec[j];
-	    }
-		}
-		this.matrix = new DMat(vectorArray.length, vectorArray[0].length);
-		matrix.value = vectorArray;
-		
-		System.err.println("Created matrix ... performing svd ...");
-		 Svdlib svd = new Svdlib();
-
-		    System.err.println("Starting SVD using algorithm LAS2");
-
-		    svdR = svd.svdLAS2A(Svdlib.svdConvertDtoS(matrix), matrix.cols);
-		
-		
-		
-	}
-
-	// Now we have an object with the reduced matrices, plot some reduced vectors.
-	public void plotVectors() {
-		DMat reducedVectors = this.svdR.Ut;
-		ObjectVector[] plotVectors = new ObjectVector[vectorInput.length];
-		int truncate = 4;
-		for (int i = 0; i < vectorInput.length; i++) {
-	    float[] tempVec = new float[truncate];
-	    for (int j = 0; j < truncate; ++j) {
-				tempVec[j] = (float) (reducedVectors.value[j][i]);
-	    }
-	    plotVectors[i] = new ObjectVector(vectorInput[i].getObject().toString(), tempVec);
-		}
-		Plot2dVectors myPlot = new Plot2dVectors(plotVectors);
-		myPlot.createAndShowGUI();
-	}
-
-	/**
-	 * Main function gathers search results for a particular query,
-	 * performs svd, and plots results.
-	 */
-	public static void main (String[] args) throws ZeroVectorException {
-		int numResults = 50;
-		String[] searchArgs = args;
-
-		/*
-    // parse command-line args
-    while (args[argc].substring(0, 1).equals("-")) {
-      if (args[argc].equals("-v")) {
-        queryFile = args[argc + 1];
-        argc += 2;
-      }
-      else if (args[argc].equals("-l")) {
-        lucenePath = args[argc + 1];
-        argc += 2;
-      }
-      else if (args[argc].equals("-lookupsyntax")) {
-        if (args[argc + 1].equalsIgnoreCase("regex")) {
-          CompoundVectorBuilder.lookupSyntax = CompoundVectorBuilder.LookupSyntax.REGEX;
-        }
-        argc += 2;
-      }
-      else {
-        usage();
-        throw new IllegalArgumentException();
+    for (int i = 0; i < vectorInput.length; ++i) {
+      float[] tempVec = vectorInput[i].getVector();
+      for (int j = 0; j < dimension; ++j) {
+        vectorArray[i][j] = (double) tempVec[j];
       }
     }
-		*/
-		// Get search results, perform clustering, and print out results.		
-		ObjectVector[] resultsVectors = Search.getSearchResultVectors(searchArgs, numResults);
-		PrincipalComponents pcs = new PrincipalComponents(resultsVectors);
-		pcs.plotVectors();
-	}
+    this.matrix = new DMat(vectorArray.length, vectorArray[0].length);
+    matrix.value = vectorArray;
+    System.err.println("Created matrix ... performing svd ...");
+    Svdlib svd = new Svdlib();
+    System.err.println("Starting SVD using algorithm LAS2");
+    svdR = svd.svdLAS2A(Svdlib.svdConvertDtoS(matrix), matrix.cols);
+  }
+
+  // Now we have an object with the reduced matrices, plot some reduced vectors.
+  public void plotVectors() {
+    DMat reducedVectors = this.svdR.Ut;
+    ObjectVector[] plotVectors = new ObjectVector[vectorInput.length];
+    int truncate = 4;
+    for (int i = 0; i < vectorInput.length; i++) {
+      float[] tempVec = new float[truncate];
+      for (int j = 0; j < truncate; ++j) {
+        tempVec[j] = (float) (reducedVectors.value[j][i]);
+      }
+      plotVectors[i] = new ObjectVector(vectorInput[i].getObject().toString(), tempVec);
+    }
+    Plot2dVectors myPlot = new Plot2dVectors(plotVectors);
+    myPlot.createAndShowGUI();
+  }
+
+  /**
+   * Main function gathers search results for a particular query,
+   * performs svd, and plots results.
+   */
+  public static void main (String[] args) throws ZeroVectorException {
+    // Stage i. Assemble command line options.
+    args = Flags.parseCommandLineFlags(args);
+
+    // Get search results, perform clustering, and print out results.
+    ObjectVector[] resultsVectors = Search.getSearchResultVectors(
+        args, Flags.numsearchresults);
+    PrincipalComponents pcs = new PrincipalComponents(resultsVectors);
+    pcs.plotVectors();
+  }
 }
