@@ -53,4 +53,5 @@ It is contained in the `pitt.util.vector package` in `src-ext`. It can be used a
  # In the directory with your vector indexes: `java pitt.util.vectors.PrincipalComponents $ARGS`.
    * `$ARGS` includes first regular semantic vectors flags, e.g., `-queryvectorfile` and `-numsearchresults`, followed by query terms.
 
+Note that some queries have been found to give degenerate results, all in the top left hand corner or down the left hand side. See [http://code.google.com/p/semanticvectors/issues/detail?id=39 Issue 39].
 
