@@ -44,5 +44,13 @@ Note that the clustering algorithm is randomly initialized. It terminates when i
 
 ==Visualization==
 
-There is also a basic visualization routine, implementing some of the work described in [http://www.springerlink.com/content/148mwqt898j1vue9/ Visualisation Techniques for Analysing Meaning] and elsewhere. Please write and ask if you'd like more details.
+There is also a basic visualization routine, implementing some of the work described in [http://www.springerlink.com/content/148mwqt898j1vue9/ Visualisation Techniques for Analysing Meaning] and elsewhere.
+
+It is contained in the `pitt.util.vector package` in `src-ext`. It can be used as follows: 
+
+ # In the main semantic vectors source directory: `ant compile-ext`.
+ # Build some vector indexes using `BuildIndex`.
+ # In the directory with your vector indexes: `java pitt.util.vectors.PrincipalComponents $ARGS`.
+   * `$ARGS` includes first regular semantic vectors flags, e.g., `-queryvectorfile` and `-numsearchresults`, followed by query terms.
+
 
