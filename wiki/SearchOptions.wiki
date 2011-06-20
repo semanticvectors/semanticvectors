@@ -12,7 +12,7 @@ Searching is performed using the command `java pitt.search.semanticvectors.Searc
 
 Several other options are available: these fall broadly into the categories of file arguments (where to find the vectors and what formats to expect), search types (how to combine several terms into a single query expression), and query terms (which terms to look up and use as query terms).
 
-The simplest way to find out more about these arguments is to run `java pitt.search.semanticvectors.Search` with no arguments, which will result in a basic usage message being written to the console. All changes to interface of Search.java should be reflected in the [http://semanticvectors.googlecode.com/svn/trunk/doc/pitt/search/semanticvectors/Search.html#usage() usage function].
+The simplest way to find out more about these arguments is to run `java pitt.search.semanticvectors.Search` with no arguments, which will result in a basic usage message being written to the console. All changes to interface of Search.java should be reflected in the http://semanticvectors.googlecode.com/svn/trunk/doc/pitt/search/semanticvectors/Search.html#usage() usage function].
 
 ==Other Useful Tools and Options==
 
