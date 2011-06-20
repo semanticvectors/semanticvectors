@@ -2,7 +2,7 @@
 
 =Semantic Vectors Search Options=
 
-As the SemanticVectors package grows more sophisticated, the options for building and searching semantic vector indexes have grown more complex. The command line interface for all of these options is still all through [http://semanticvectors.googlecode.com/svn/trunk/doc/pitt/search/semanticvectors/Search.html Search.java], which is by now quite complex but still (we hope) fairly usable and  maintainable.
+As the SemanticVectors package grows more sophisticated, the options for building and searching semantic vector indexes have grown more complex. The command line interface for all of these options is still all through [http://semanticvectors.googlecode.com/svn/javadoc/latest-stable/pitt/search/semanticvectors/Search.html Search.java], which is by now quite complex but still (we hope) fairly usable and  maintainable.
 
 The purpose of this Wiki page is to document some of the search options in a slightly friendlier fashion: however, if any gradual discrepancies arise between this Wiki page and the code / javadoc in the svn repository, the svn repository should be regarded as more authoritative.
 
