@@ -28,10 +28,10 @@ See also VectorStoreFormats for a description of the formats that are supported 
 
 ==Search Type Arguments==
 
-The available search types are chosen using the `-searchtype` argument. The available search types are listed in an enumeration and documented at http://semanticvectors.googlecode.com/svn/trunk/doc/pitt/search/semanticvectors/Search.html
+The available search types are chosen using the `-searchtype` argument. The available search types are listed in an enumeration and documented at http://semanticvectors.googlecode.com/svn/javadoc/latest-stable/pitt/search/semanticvectors/Search.html
 
 Most of these options correspond directly to implementations of the 
-[http://semanticvectors.googlecode.com/svn/trunk/doc/pitt/search/semanticvectors/VectorSearcher.html VectorSearcher] class.
+[http://semanticvectors.googlecode.com/svn/javadoc/latest-stable/pitt/search/semanticvectors/VectorSearcher.html VectorSearcher] class.
 
 Note that the options (like all command line options at the moment) are case insensitive.
 
