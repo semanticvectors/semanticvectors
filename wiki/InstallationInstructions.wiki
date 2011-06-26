@@ -75,6 +75,10 @@ For instructions on building an index based on term positions, see PositionalInd
 
 Indexes can now be built that encode directional relationships between words. See PermutationSearch.
 
+== Clustering and Visualization ==
+
+Have some fun building clusters and pictures! Instructions are on the ClusteringAndVisualization page.
+
 == Vector Store Formats ==
 
 The SemanticVectors package currently (as of version 1.6) supports two different vector store formats, a plain text format and an optimized format created by the Lucene I/O packages. For more information including format translation utilities, see VectorStoreFormats.
