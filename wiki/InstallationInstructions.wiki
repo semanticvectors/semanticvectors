@@ -81,5 +81,5 @@ The SemanticVectors package currently (as of version 1.6) supports two different
 
 == Developer API Docs ==
 
-See http://semanticvectors.googlecode.com/svn/trunk/doc/index.html
+See http://semanticvectors.googlecode.com/svn/javadoc/latest-stable/index.html
 Some useful information may be found in the ReleaseLog.
