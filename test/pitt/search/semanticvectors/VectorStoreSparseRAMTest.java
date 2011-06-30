@@ -41,7 +41,6 @@ public class VectorStoreSparseRAMTest extends TestCase {
 
   @Test
   public void testCreateAndRead() {
-    System.err.println("\nRunning tests for VectorStoreSparseRAMTest");
     Flags.dimension = 200;
     VectorStoreSparseRAM sparseVectorStore = new VectorStoreSparseRAM(Flags.dimension);
     assertEquals(0, sparseVectorStore.getNumVectors());

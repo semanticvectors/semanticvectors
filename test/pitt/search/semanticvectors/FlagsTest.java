@@ -43,7 +43,6 @@ public class FlagsTest extends TestCase {
 
   @Test
     public void testParseCommandLineFlags() {
-    System.err.println("Running tests for Flags");
     String[] args = {"-searchtype", "subspace", "--dimension", "3",
 		     "-queryvectorfile", "myvectors.bin", "queryterm"};
     args = Flags.parseCommandLineFlags(args);
@@ -70,14 +69,12 @@ public class FlagsTest extends TestCase {
   @Test
     public void testThrowsUnrecognizedFlag() {
     String[] args = {"-notaflag", "notagoodvalue"};
-    boolean failed = false;
     try {
       Flags.parseCommandLineFlags(args);
+      fail();
     } catch (IllegalArgumentException e) {
-      System.out.println(e.getMessage());
-      failed = true;
+      assertEquals("Command line flag not defined: notaflag", e.getMessage());
     }
-    if (!failed) fail();
   }
 
   @Test
@@ -90,14 +87,12 @@ public class FlagsTest extends TestCase {
     }
 
     String[] args2 = {"-searchtype", "notagoodvalue"};
-    boolean failed = false;
     try {
       Flags.parseCommandLineFlags(args2);
+      fail();
     } catch (IllegalArgumentException e) {
-      System.out.println(e.getMessage());
-      failed = true;
+      assertTrue(e.getMessage().contains("Value 'notagoodvalue' not valid"));
     }
-    if (!failed) fail();
   }
 
   @org.junit.Test
