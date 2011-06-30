@@ -1,5 +1,7 @@
 package pitt.search.semanticvectors;
 
+import pitt.search.semanticvectors.vectors.*;
+
 import junit.framework.Test;
 import junit.framework.TestSuite;
 
@@ -13,6 +15,7 @@ public class AllTests {
     suite.addTestSuite(CompoundVectorBuilderTest.class);
     suite.addTestSuite(VectorStoreRAMTest.class);
     suite.addTestSuite(VectorStoreSparseRAMTest.class);
+    suite.addTestSuite(RealVectorTest.class);
     //$JUnit-END$
     return suite;
   }

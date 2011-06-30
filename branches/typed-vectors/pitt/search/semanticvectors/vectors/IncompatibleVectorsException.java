@@ -20,7 +20,7 @@ public class IncompatibleVectorsException extends RuntimeException {
           + first.getClass().getCanonicalName() + ", " + second.getClass().getCanonicalName());
     }
     if (first.getDimension() != second.getDimension()) {
-      throw new IncompatibleVectorsException("Trying to combine vectors of type: "
+      throw new IncompatibleVectorsException("Trying to combine vectors of dimension: "
           + first.getDimension() + ", " + second.getDimension());
     }
   }

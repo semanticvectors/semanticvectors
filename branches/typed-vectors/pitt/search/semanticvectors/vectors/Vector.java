@@ -1,5 +1,8 @@
 package pitt.search.semanticvectors.vectors;
 
+import java.io.IOException;
+import java.util.Random;
+
 import org.apache.lucene.store.IndexInput;
 import org.apache.lucene.store.IndexOutput;
 
@@ -15,42 +18,80 @@ enum VectorType {
  * 
  * @author Dominic Widdows
  */
-public interface Vector {  
+public abstract class Vector {
+  /**
+   * Returns a copy of this vector.
+   */
+  public abstract Vector copy();
+  
+  /**
+   * Creates a sparse vector with appropriate entries from the random seed.
+   * 
+   * Ideally this would be a static method of the implementing class, but it's not easy to
+   * express this with either an abstract class or an interface.  Client implementations should
+   * use the {@link VectorFactory} class, hence the protected status.
+   * 
+   * @param dimension number of dimensions of vector returned
+   * @param numEntries number of non-zero entries, usually a combination of +/-1 entries 
+   *        as determined by implementation
+   * @param random random seed for generation
+   */
+  protected abstract Vector generateRandomVector(int dimension, int numEntries, Random random);
+  
   /** Returns the dimension of the vector. */
-  public int getDimension();
+  public abstract int getDimension();
   
   /**
    * Returns a canonical overlap measure (usually between 0 and 1) between this and other.
    */
-  double measureOverlap(Vector other);
+  public abstract double measureOverlap(Vector other);
   
   /**
-   * Returns a new Vector created by superposing all source vectors. Output is not normalized.
+   * Superposes other vector onto this one with given weight, usually by vector addition.
+   * Coordinates of other vector may be permuted and reweighted in the process.
+   * 
+   * Permuted coordinates supports encoding of order information, as begun by Sahlgren, Holst and 
+   * Kanerva 2008.
+   * 
+   * @param other vector to be added
+   * @param weight multiple of {@code other} vector added (TODO dwiddows support complex weights)
+   * @param permutation represents the purmutation to be applied while adding, so that the ith
+   *        coordinate of {@code other} is added to the coordinate given by the ith entry in this
+   *        list. Can be NULL in which case no permutation is applied. 
    */
-  Vector superpose(Vector[] sources);
+  public abstract void superpose(Vector other, double weight, int[] permutation);
   
   /**
-   * Transforms vector to a normalized representation.
+   * Transforms vector to a normalized representation.  A normalized representation should
+   * satisfy the property that {@code measureOverlap} with itself is equal to 1.0, to within
+   * precision tolerances.
    */
-  void normalize();
+  public abstract void normalize();
   
   /**
-   * Writes vector to Lucene output stream. Writes exactly {@link dimension} coordinates.
+   * Writes vector to Lucene output stream.  Writes exactly {@link dimension} coordinates.
    */
-  void writeToLuceneStream(IndexOutput outputStream);
+  public abstract void writeToLuceneStream(IndexOutput outputStream);
 
   /**
-   * Reads vector from Lucene input stream. Reads exactly {@link dimension} coordinates.
+   * Reads vector from Lucene input stream.  Reads exactly {@link dimension} coordinates.
    */
-  Vector readFromLuceneStream(IndexInput inputStream);
+  public abstract void readFromLuceneStream(IndexInput inputStream);
   
   /**
-   * Writes vector to text representation. Writes exactly {@link dimension} coordinates.
+   * Writes vector to text representation.  Writes exactly {@link dimension} coordinates.
    */
-  void writeToString(IndexOutput outputStream);
+  public abstract String writeToString();
 
   /**
-   * Reads vector from text representation. Reads exactly {@link dimension} coordinates.
+   * Reads vector from text representation.  Reads exactly {@link dimension} coordinates.
    */
-  void readFromString(IndexInput inputStream);
+  public abstract void readFromString(String input);
+ 
+  @Override
+ /**
+  * Subclasses must implement a string representation for debugging.  This may be different and
+  * more explicit than the {@code writeToString} method.
+  */
+  public abstract String toString();
 }

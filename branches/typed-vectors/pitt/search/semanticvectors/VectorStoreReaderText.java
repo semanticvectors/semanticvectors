@@ -124,6 +124,7 @@ public class VectorStoreReaderText implements CloseableVectorStore {
   /**
    * Returns an object vector from a text line.
    */
+  // TODO(dwiddows): Turn put this inside ObjectVector and Vector.
   public ObjectVector parseVectorLine(String line) throws IOException {
     String[] entries = line.split("\\|");
     if (entries.length != dimension + 1) {

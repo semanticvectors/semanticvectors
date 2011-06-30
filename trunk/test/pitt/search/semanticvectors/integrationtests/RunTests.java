@@ -154,7 +154,10 @@ public class RunTests {
     int[] scores = {0, 0};
 
     System.err.println("Preparing test data ...");    
-    if (!prepareTestData()) System.out.println("Failed.");
+    if (!prepareTestData()) {
+      System.err.println("Failed.");
+      System.exit(-1);
+    }
 
     // Run regression tests.
     System.err.println("Running regression tests ...");

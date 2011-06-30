@@ -63,7 +63,6 @@ public class CompoundVectorBuilderTest extends TestCase {
 
   @Test
     public void testGetAdditiveQueryVector() {
-    System.err.println("Running tests for CompoundVectorBuilder");
     VectorStore vectorStore = createVectorStore();
     float[] queryVector =
       CompoundVectorBuilder.getQueryVectorFromString(vectorStore, null, "vector1 vector2");

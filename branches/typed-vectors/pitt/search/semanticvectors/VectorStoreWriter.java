@@ -110,9 +110,9 @@ public class VectorStoreWriter {
       /* Write each vector. */
       while (vecEnum.hasMoreElements()) {
         ObjectVector objectVector = vecEnum.nextElement();
+        // TODO(widdows): Replace with abstract Vector implementation.
         outputStream.writeString(objectVector.getObject().toString());
         tmpVector = objectVector.getVector();
-        // TODO(widdows): Replace with abstract Vector implementation.
         for (int i = 0; i < dimension; ++i) {
           outputStream.writeInt(Float.floatToIntBits(tmpVector[i]));
         }

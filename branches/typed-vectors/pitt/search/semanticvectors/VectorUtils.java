@@ -527,14 +527,13 @@ public class VectorUtils {
 
   /**
    * This method implements rotation as a form of vector permutation,
-   * as described in Sahlgren, Holst and Kanervi 2008. This supports
+   * as described in Sahlgren, Holst and Kanerva 2008. This supports
    * encoding of N-grams, as rotating random vectors serves as a convenient
    * alternative to random permutation
    * @param indexVector the sparse vector to be permuted
    * @param rotation the direction and number of places to rotate
    * @return  vector with permutation
    */
-
   public static float[] permuteVector (float[] indexVector, int rotation)	{
     // Correct for unlikely possibility that rotation specified > indexVector.length
     if (Math.abs(rotation) > indexVector.length)
@@ -559,7 +558,6 @@ public class VectorUtils {
    * @param weight	weight (presently only term frequency implemented - may need this to take floats later)
    * @return sum of two vectors
    */
-
   public static float[] addVectors(float[] vector1, float[] vector2, int weight) {
     float[] sum = vector1;
     for (int x=0; x < sum.length; x++)
@@ -574,7 +572,6 @@ public class VectorUtils {
    * @param weight	weight (presently only term frequency implemented - may need this to take floats later)
    * @return sum of two vectors
    */
-
   public static float[] addVectors(float[] vector1, short[] sparseVector, int weight) {
     float[] sum = vector1;
     for (int i = 0; i < sparseVector.length; ++i) {
