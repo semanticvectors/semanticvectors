@@ -46,28 +46,28 @@ import java.util.logging.Logger;
 
 /**
  * This class provides methods for serializing a VectorStore to disk.
- * 
+ *
  * <p>
  * The serialization currently presumes that the object (in the ObjectVectors)
  * should be serialized as a String.
- * 
+ *
  * <p>
  * The implementation uses Lucene's I/O package, which proved much faster
  * than the native java.io.DataOutputStream.
- * 
+ *
  * @see ObjectVector
  */
 public class VectorStoreWriter {
   private static final Logger logger = Logger.getLogger(VectorStoreWriter.class.getCanonicalName());
   private int dimension;
-  
+
   public VectorStoreWriter(int dimension) {
     this.dimension = dimension;
   }
 
   /**
    * Writes vectors in text or lucene format depending on {@link Flags#indexfileformat}.
-   * 
+   *
    * @param vectorFileName The name of the file to write to
    * @param objectVectors The vector store to be written to disk
    */
@@ -80,10 +80,10 @@ public class VectorStoreWriter {
 	  throw new RuntimeException("Unrecognized indexfileformat: '" + Flags.indexfileformat + "'");
 	}
   }
-	 
+
   /**
    * Outputs a vector store in Lucene binary format.
-   * 
+   *
    * @param vectorFileName The name of the file to write to
    * @param objectVectors The vector store to be written to disk
    */
@@ -130,7 +130,7 @@ public class VectorStoreWriter {
 
   /**
    * Outputs a vector store as a plain text file.
-   * 
+   *
    * @param vectorFileName The name of the file to write to
    * @param objectVectors The vector store to be written to disk
    */
