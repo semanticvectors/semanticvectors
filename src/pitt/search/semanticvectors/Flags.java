@@ -71,6 +71,9 @@ public class Flags {
   public static int maxnonalphabetchars;
 
   public static int numsearchresults = 20;
+  public static double searchresultsminscore = 0.0;
+  public static final String searchresultsminscoreDescription = "Search results with similarity scores below "
+      + "this value will not be included in search results.";
   public static int numclusters = 5;
 
   public static int trainingcycles;
@@ -88,7 +91,7 @@ public class Flags {
   public static boolean porterstemmer = false;
   public static final String porterstemmerDescription =
       "Set to true when using IndexFilePositions if you would like to stem terms";
-  
+
   public static boolean usetermweightsinsearch = false;
   public static final String usetermweightsinsearchDescription =
       "Set to true only if you want to scale each comparison score by a term weight during search.";
@@ -215,20 +218,29 @@ public class Flags {
           }
 	  field.set(field, flagValue.split(","));
 	  argc += 2;
-          // Parse int arguments.
         } else if (field.getType().getName().equals("int")) {
+          // Parse int arguments.
           try {
             field.setInt(field, Integer.parseInt(args[argc + 1]));
           } catch (ArrayIndexOutOfBoundsException e) {
             throw new IllegalArgumentException("option -" + flagName + " requires an argument");
           }
           argc += 2;
-          // Parse boolean arguments.
+        } else if (field.getType().getName().equals("double")) {
+          // Parse double arguments.
+          try {
+            field.setDouble(field, Double.parseDouble(args[argc + 1]));
+          } catch (ArrayIndexOutOfBoundsException e) {
+            throw new IllegalArgumentException("option -" + flagName + " requires an argument");
+          }
+          argc += 2;
         } else if (field.getType().getName().equals("boolean")) {
+          // Parse boolean arguments.
           field.setBoolean(field, true);
           ++argc;
         } else {
 	  logger.warning("No support for fields of type: "  + field.getType().getName());
+          argc += 2;
 	}
       } catch (NoSuchFieldException e) {
         throw new IllegalArgumentException("Command line flag not defined: " + flagName);

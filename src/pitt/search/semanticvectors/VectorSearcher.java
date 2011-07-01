@@ -42,7 +42,6 @@ import java.util.Enumeration;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
-
 import pitt.search.semanticvectors.LuceneUtils;
 import pitt.search.semanticvectors.VectorSearcher;
 import pitt.search.semanticvectors.VectorStore;
@@ -55,7 +54,7 @@ import pitt.search.semanticvectors.VectorUtils;
  */
 abstract public class VectorSearcher {
   private static final Logger logger = Logger.getLogger(VectorSearcher.class.getCanonicalName());
-  
+
   private VectorStore queryVecStore;
   private VectorStore searchVecStore;
   private LuceneUtils luceneUtils;
@@ -83,39 +82,34 @@ abstract public class VectorSearcher {
 
   /**
    * This nearest neighbor search is implemented in the abstract
-   * VectorSearcher class itself: this enables all subclasses to reuse
-   * the search whatever scoring method they implement.  Since query
-   * expressions are built into the VectorSearcher,
-   * getNearestNeighbors no longer takes a query vector as an
-   * argument.
+   * {@code VectorSearcher} class itself: this enables all subclasses
+   * to reuse the search whatever scoring method they implement.
+   *
+   * Since query expressions are built into each {@code VectorSearcher},
+   * {@code getNearestNeighbors} needs no query vector as an argument.
+   *
    * @param numResults the number of results / length of the result list.
    */
   public LinkedList<SearchResult> getNearestNeighbors(int numResults) {
     LinkedList<SearchResult> results = new LinkedList<SearchResult>();
-    float score, threshold = -1;
+    float score;
+    double threshold = Flags.searchresultsminscore;
 
     Enumeration<ObjectVector> vecEnum = searchVecStore.getAllVectors();
 
     while (vecEnum.hasMoreElements()) {
       ObjectVector testElement = vecEnum.nextElement();
 
-			// If a search results filter is set, skip results that don't match it.
-			// A more efficient implementation would be to cache the Pattern
-			// as an object variable.  Chose not to do this because we're already
-			// violating encapsulation using the flag, so it wouldn't be very safe.
-			if (!Flags.vectorsearchfilterregex.isEmpty()) {
-				Pattern pattern = Pattern.compile(Flags.vectorsearchfilterregex);
-				Matcher matcher = pattern.matcher(testElement.getObject().toString());
+      // If a search results filter is set, skip results that don't match it.
+      // A more efficient implementation would be to cache the Pattern
+      // as an object variable.  Chose not to do this because we're already
+      // violating encapsulation using the flag, so it wouldn't be very safe.
+      if (!Flags.vectorsearchfilterregex.isEmpty()) {
+        Pattern pattern = Pattern.compile(Flags.vectorsearchfilterregex);
+        Matcher matcher = pattern.matcher(testElement.getObject().toString());
         if (!matcher.find()) {
-					continue;
-				}
-			}
-
-      // Initialize result list if just starting.
-      if (results.size() == 0) {
-        score = getScore(testElement.getVector());
-        results.add(new SearchResult(score, testElement));
-        continue;
+          continue;
+        }
       }
 
       // Test this element.
@@ -126,7 +120,7 @@ abstract public class VectorSearcher {
       // seems to be good at moving excessively common terms further
       // down the results. Note that using this means that scores
       // returned are no longer just cosine similarities.
-      if (this.luceneUtils != null && Flags.usetermweightsinsearch) {
+      if ((this.luceneUtils != null) && Flags.usetermweightsinsearch) {
         score = score *
             luceneUtils.getGlobalTermWeightFromString((String) testElement.getObject());
       }
@@ -183,7 +177,6 @@ abstract public class VectorSearcher {
 
     @Override
     public float getScore(float[] testVector) {
-      //testVector = VectorUtils.getNormalizedVector(testVector);
       return VectorUtils.scalarProduct(this.queryVector, testVector);
     }
   }
@@ -267,7 +260,7 @@ abstract public class VectorSearcher {
         String[] trainingTerms = queryTerms[i].split("~");
         if (trainingTerms.length != 2) {
           logger.info("Tensor training terms must be pairs split by individual"
-                             + " '~' character. Error with: '" + queryTerms[i] + "'");
+                      + " '~' character. Error with: '" + queryTerms[i] + "'");
         }
         float[] trainingVec1 = queryVecStore.getVector(trainingTerms[0]);
         float[] trainingVec2 = queryVecStore.getVector(trainingTerms[1]);
@@ -350,7 +343,7 @@ abstract public class VectorSearcher {
         String[] trainingTerms = queryTerms[i].split("~");
         if (trainingTerms.length != 2) {
           logger.info("Tensor training terms must be pairs split by individual"
-                             + " '~' character. Error with: '" + queryTerms[i] + "'");
+                      + " '~' character. Error with: '" + queryTerms[i] + "'");
         }
         float[] trainingVec1 = queryVecStore.getVector(trainingTerms[0]);
         float[] trainingVec2 = queryVecStore.getVector(trainingTerms[1]);
