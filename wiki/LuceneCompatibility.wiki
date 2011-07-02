@@ -1,6 +1,6 @@
 #summary Compatibility between Apache Lucene and SemanticVectors
 
-SemanticVectors depends on Apache Lucene, but not with all versions of Apache Lucene.
+SemanticVectors depends on Apache Lucene, but not all versions of SemanticVectors work with all versions of Apache Lucene. To find the latest (and some older) versions of Apache Lucene click [http://lucene.apache.org/java/docs/index.html here].
 
 SV version 1.30 and higher works with Lucene 3.0 and higher, but not with Lucene 2.X.
 
@@ -9,3 +9,9 @@ SV version 1.26 and earlier works with Lucene versions greater than 2.2.0 and hi
 SV version 2.0 works with Lucene 3.0.3.
 
 We will try to keep up-to-date with new Lucene versions, please alert the mailing list of any problems here and help us to keep on-the-ball.
+
+=== Other Packages Involving Lucene ===
+
+See SolrAndSemanticVectors if you're using SOLR to build your Lucene indexes.
+
+With [http://www.opensuse.org/ OpenSuse] there have been some problems getting the default Lucene installation to work with SemanticVectors. So far the advice is to go with a direct Lucene install - see this [http://groups.google.com/group/semanticvectors/browse_thread/thread/7d121625e96d08f6?hl=en_US# message thread].
