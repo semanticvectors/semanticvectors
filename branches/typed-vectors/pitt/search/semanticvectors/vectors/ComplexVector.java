@@ -60,8 +60,12 @@ public class ComplexVector extends Vector {
     this.coordinates = coordinates;
   }
 
-  public char[] getPhaseAngles()	{
+  public char[] getPhaseAngles() {
     return phaseAngles;
+  }
+
+  public char[] getSparseOffsets() {
+    return sparseOffsets;
   }
 
   @Override
@@ -161,6 +165,36 @@ public class ComplexVector extends Vector {
     }
   }
 
+  /**
+   * Generates a basic sparse vector in Polar form with the format
+   * { offset, phaseAngle, offset, phaseAngle, ... }
+   * Consequently the length of the offsets array is 2 X seedLength.
+   *
+   * @return Sparse representation of vector in Polar form.
+   */
+  public ComplexVector generateRandomVector(int dimension, int seedLength, Random random) {
+    ComplexVector randomVector = new ComplexVector(dimension);
+    boolean[] occupiedPositions = new boolean[dimension];
+    randomVector.sparseOffsets = new char[seedLength*2];
+    randomVector.isSparse = true;
+
+    int testPlace, entryCount = 0, offsetIdx;
+    char randomPhaseAngle;
+
+    while (entryCount < seedLength) {
+      testPlace = random.nextInt(dimension);
+      randomPhaseAngle = (char)random.nextInt(ComplexVectorUtils.phaseResolution);
+      if (!occupiedPositions[testPlace]) {
+        offsetIdx = entryCount << 1;
+        occupiedPositions[testPlace] = true;
+        randomVector.sparseOffsets[offsetIdx] = (char)testPlace;
+        randomVector.sparseOffsets[offsetIdx+1] = randomPhaseAngle;
+        entryCount++;
+      }
+    }
+    return randomVector;
+  }
+
   @Override
   /**
    * Measures overlap of two vectors using mean cosine of difference
@@ -196,7 +230,7 @@ public class ComplexVector extends Vector {
   /**
    * Superposes other vector with this one.
    * We assume that this one is in cartesian form and that other vector is in
-   * polar form.
+   * polar or sparse polar form.
    */
   public void superpose(Vector other, double weight, int[] permutation) {
     IncompatibleVectorsException.checkVectorsCompatible(this, other);
@@ -208,7 +242,8 @@ public class ComplexVector extends Vector {
       ComplexVectorUtils.setFloatArrayToZero( coordinates );
       opMode = MODE.CARTESIAN;
     }
-    ComplexVectorUtils.superposeWithAngle( this, complexOther, (float)weight, permutation );
+    if (complexOther.isSparse) ComplexVectorUtils.superposeWithSparseAngle( this, complexOther, (float)weight, permutation );
+    else ComplexVectorUtils.superposeWithAngle( this, complexOther, (float)weight, permutation );
   }
 
   @Override
@@ -295,6 +330,69 @@ public class ComplexVector extends Vector {
         logger.severe("Failed to parse vector from Lucene stream.  This signifies a "
             + "programming or runtime error, e.g., a dimension mismatch.");
         e.printStackTrace();
+      }
+    }
+  }
+
+  @Override
+  /**
+   * Writes vector to a string of the form x1|x2|x3| ... where the x's are the coordinates.
+   *
+   * No terminating newline or | symbol.
+   *
+   * Writes cartesian vector as floats.
+   * Writes polar vector as 16 bit integers.
+   */
+  public String writeToString() {
+    StringBuilder builder = new StringBuilder();
+    if (opMode == MODE.CARTESIAN) {
+      for (int i = 0; i < coordinates.length; ++i) {
+        builder.append(Float.toString(coordinates[i]));
+        if (i != dimension - 1) {
+          builder.append("|");
+        }
+      }
+    }
+    else {
+      for (int i = 0; i < phaseAngles.length; ++i) {
+        builder.append((int)phaseAngles[i]);
+        if (i != dimension - 1) {
+          builder.append("|");
+        }
+      }
+    }
+    return builder.toString();
+  }
+
+  @Override
+  /**
+   * Reads vector from a string of the form x1|x2|x3| ... where the x's are the coordinates.
+   * No terminating newline or | symbol.
+   *
+   * Reads cartesian vector as floats.
+   * Reads polar vector as 16 bit integers.
+   */
+  public void readFromString(String input) {
+    String[] entries = input.split("\\|");
+    if (opMode == MODE.CARTESIAN) {
+      if (entries.length != dimension*2) {
+        throw new IllegalArgumentException("Found " + (entries.length) + " possible coordinates: "
+          + "expected " + dimension*2);
+      }
+      if (coordinates.length==0) coordinates = new float[dimension];
+      for (int i = 0; i < coordinates.length; ++i) {
+        coordinates[i] = Float.parseFloat(entries[i]);
+      }
+    }
+    else {
+      // MODE = Polar
+      if (entries.length != dimension) {
+        throw new IllegalArgumentException("Found " + (entries.length) + " possible coordinates: "
+              + "expected " + dimension);
+      }
+      if (phaseAngles.length==0) phaseAngles = new char[dimension];
+      for (int i = 0; i < phaseAngles.length; ++i) {
+    	  phaseAngles[i] = (char)Integer.parseInt(entries[i]);
       }
     }
   }

@@ -8,7 +8,6 @@ import org.apache.lucene.store.IndexInput;
 import org.apache.lucene.store.IndexOutput;
 
 import pitt.search.semanticvectors.ObjectVector;
-import pitt.search.semanticvectors.vectors.CircRepUtils.CALCTYPE;
 
 /**
  * Complex number utilities class.
@@ -73,9 +72,6 @@ public class ComplexVectorUtils {
 	if (permutation == null) return;
 	int positionToAdd;
     int dim =  vec1.getDimension();
-    assert( dim == vec2.getDimension() );
-    assert( vec1.getOpMode() == ComplexVector.MODE.CARTESIAN );
-    assert( vec2.getOpMode() == ComplexVector.MODE.POLAR );
 
     char c[] = vec2.getPhaseAngles();
     float[] coordinates = vec1.getCoordinates();
@@ -86,6 +82,29 @@ public class ComplexVectorUtils {
       coordinates[positionToAdd] += realLUT[c[i]] * weight;
       // Imaginary Part
       coordinates[positionToAdd+1] += imLUT[c[i]] * weight;
+    }
+  }
+
+  /**
+   * Superposes vec2 with vec1 with weight and permutation.
+   * vec1 is in CARTESIAN mode.
+   * vec2 is in sparse POLAR mode.
+   */
+  public static void superposeWithSparseAngle( ComplexVector vec1, ComplexVector vec2, float weight, int[] permutation ) {
+	if (permutation == null) return;
+	int positionToAdd, phaseAngleIdx;
+    int dim =  vec1.getDimension();
+
+    char offsets[] = vec2.getSparseOffsets();
+    float[] coordinates = vec1.getCoordinates();
+
+    for (int i=0; i<offsets.length; i+=2) {
+      positionToAdd = permutation[offsets[i]] << 1;
+      phaseAngleIdx = i+1;
+      // Real part
+      coordinates[positionToAdd] += realLUT[offsets[phaseAngleIdx]] * weight;
+      // Imaginary Part
+      coordinates[positionToAdd+1] += imLUT[offsets[phaseAngleIdx]] * weight;
     }
   }
 
