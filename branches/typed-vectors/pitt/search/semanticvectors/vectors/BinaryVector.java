@@ -14,7 +14,7 @@ import org.apache.lucene.util.OpenBitSet;
 import pitt.search.semanticvectors.ObjectVector;
 
 /**
- * Binray implementation of Vector.
+ * Binary implementation of Vector.
  * 
  * 
  * 
@@ -38,7 +38,7 @@ public class BinaryVector extends Vector {
    * 
    * The precision of the voting record (in decimal places) is defined upon initialization
    * By default, if the first weight added is an integer, rounding occurs to the nearest integer
-   * Otherwise, rounding occurs to the third decimal place
+   * Otherwise, rounding occurs to the second decimal place
    * 
    */ 
   private ArrayList<OpenBitSet> votingRecord;
@@ -202,7 +202,7 @@ public class BinaryVector extends Vector {
    * Note that the precision of the voting record (in decimal places) is decided at this point:
    * if the initialization weight is an integer, rounding will occur to the nearest integer
    * 
-   * If not, rounding will occur to the third decimal place.
+   * If not, rounding will occur to the second decimal place.
    * 
    * This is an attempt to save space, as voting records can be prohibitively expansive if not contained
    * 
@@ -213,7 +213,7 @@ public class BinaryVector extends Vector {
     if (isElemental) 
     	{
     		if (Math.round(weight) != weight)
-    			{ decimal_places = 3; 
+    			{ decimal_places = 2; 
     				} 
     		elementalToSemantic();
     	}
@@ -261,17 +261,6 @@ public class BinaryVector extends Vector {
 		actual_votes+= weight;
 			
 		
-		/**
-		* attempt to save space when minimum value across all columns > 0
-		* by decrementing across the board and raising the minimum where possible
-		**/
-				
-		int min = getMinimum();	
-		if (min > 0)
-			{	
-			decrement(min);
-			}
-		
 		
 		
 		/**
@@ -316,7 +305,18 @@ public class BinaryVector extends Vector {
 	private void superpose(OpenBitSet incomingBitSet, int rowfloor) {
 	
 	
-		
+		/**
+		* attempt to save space when minimum value across all columns > 0
+		* by decrementing across the board and raising the minimum where possible
+		**/
+				
+		int max = getMaximum();	
+			//System.out.println("MAX "+max);
+		if (max > 0)
+			{	
+			decrement(max);
+			}
+			
 		/**
 		 * handle overflow: if any column that will be incremented
 		 * contains all 1's, add a new row to the voting record
@@ -331,7 +331,7 @@ public class BinaryVector extends Vector {
 		
 		if (tempSet.cardinality() > 0)
 		{
-				votingRecord.add(new OpenBitSet());
+				votingRecord.add(new OpenBitSet(dimension));
 			}
 
 	
@@ -444,7 +444,7 @@ public class BinaryVector extends Vector {
 			
 			//50% chance of being true with split vote
 			
-			for (int q =0; q < tempSet.size(); q++)
+			for (int q =0; q < dimension; q++)
 			{
 				if (tempSet.fastGet(q))
 				{	switcher = !switcher;
@@ -526,7 +526,7 @@ public class BinaryVector extends Vector {
 	
 	public void decrement()
 	{	
-		tempSet.set(0, tempSet.size());
+		tempSet.set(0, dimension);
 			
 		for (int q = 0; q < votingRecord.size(); q++)
 		{
@@ -567,7 +567,7 @@ public class BinaryVector extends Vector {
 	
 	public void selected_decrement(int floor)
 	{
-		tempSet.set(0, tempSet.size());
+		tempSet.set(0, dimension);
 		
 		for (int q = floor; q < votingRecord.size(); q++)
 		{
@@ -579,30 +579,32 @@ public class BinaryVector extends Vector {
 
 	
 	/**
-	 * find lowest value in any dimension in which value % 2 = 0
+	 * find highest value shared by all dimensions
 	 * @return
 	 */
 	
-	public int getMinimum()
+	
+	public int getMaximum()
 	{
-		int minimum = 0;
-		tempSet.xor(tempSet);
+	
+		int thismaximum = 0;
 		
-		//get minimum power of 2
+		tempSet.xor(tempSet);
 		
 		for (int x = votingRecord.size()-1; x >= 0; x--)
 		{
 			tempSet.or(votingRecord.get(x));
+				
 			if (tempSet.cardinality() == dimension)
 			{
-				minimum = (int) Math.pow(2, x);
-				x = -1;
+				
+				thismaximum += (int) Math.pow(2, x);
+				tempSet.xor(tempSet);
+				
 			}
 		}
-		
-		//todo - implement for other than powers of 2 
-		
-		return minimum;	
+
+		return thismaximum;	
 			
 	}
 		
@@ -733,9 +735,12 @@ public class BinaryVector extends Vector {
 	  Vector testV = new BinaryVector(10000);
 	  
 	  Vector randV = testV.generateRandomVector(10000,5000, random);
+	 
+	  for (int q =0; q < 10000; q++)
+	  ((BinaryVector) randV).bitSet.set(q);
 	  Vector origin = randV.copy();
 	  
-	  for (int x =1; x < 250; x++)
+	  for (int x =1; x < 10000; x++)
 	  {
 		
 		  System.out.println("--------Number of votes "+x);
@@ -754,7 +759,8 @@ public class BinaryVector extends Vector {
 		 
 	
 		  randV = testV.generateRandomVector(10000,5000, random);
-		  //((BinaryVector) randV).bitSet.set(0);
+		 
+		 
 	  }
 	  
 	  
