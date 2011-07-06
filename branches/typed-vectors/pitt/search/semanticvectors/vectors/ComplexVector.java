@@ -283,15 +283,18 @@ public class ComplexVector extends Vector {
     phaseAngles = null;
   }
   /**
-   * Convolves this vector with the other.
+   * Convolves this vector with the other. If the value of direction <=0
+   * then the correlation operation is performed, ie. convolution inverse
    */
-  public void convolve( ComplexVector other )
+  public void convolve( ComplexVector other, int direction  )
   {
     assert( dimension == other.getDimension() );
     if (opMode!=MODE.POLAR) normalize();
     if (other.getOpMode()!=MODE.POLAR) other.normalize();
 	char[] otherAngles = other.getPhaseAngles();
-    for (int i=0; i<dimension; i++) phaseAngles[i] += otherAngles[i];
+
+	if (direction>0) for (int i=0; i<dimension; i++) phaseAngles[i] += otherAngles[i];
+	else for (int i=0; i<dimension; i++) phaseAngles[i] -= otherAngles[i];
   }
   /**
    * Transforms this vector into its complement.
