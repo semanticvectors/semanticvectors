@@ -39,6 +39,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Hashtable;
 import java.util.Enumeration;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.Random;
 import org.apache.lucene.index.IndexReader;
@@ -168,20 +169,20 @@ public class TermVectorsFromLucene implements VectorStore {
   private void trainTermVectors() throws IOException {
     termVectors = new Hashtable<String, ObjectVector>();
     // Iterate through an enumeration of terms and create termVector table.
-    logger.info("Creating term vectors ...");
+    VerbatimLogger.log(Level.INFO, "Creating term vectors ...");
     TermEnum terms = this.indexReader.terms();
     int tc = 0;
     while(terms.next()){
       tc++;
     }
-    logger.info("There are " + tc + " terms (and " + indexReader.numDocs() + " docs)");
+    VerbatimLogger.info("There are " + tc + " terms (and " + indexReader.numDocs() + " docs).\n");
 
-    tc = 0;
+    tc = 1;
     terms = indexReader.terms();
     while (terms.next()) {
       // Output progress counter.
-      if (( tc % 50000 == 0 ) || ( tc < 50000 && tc % 10000 == 0 )) {
-        logger.fine("Processed " + tc + " terms ... ");
+      if (( tc % 10000 == 0 ) || ( tc < 10000 && tc % 1000 == 0 )) {
+        VerbatimLogger.info("Processed " + tc + " terms ... ");
       }
       tc++;
 
@@ -212,7 +213,7 @@ public class TermVectorsFromLucene implements VectorStore {
       termVector = VectorUtils.getNormalizedVector(termVector);
       termVectors.put(term.text(), new ObjectVector(term.text(), termVector));
     }
-    logger.info("\nCreated " + termVectors.size() + " term vectors ...");
+    VerbatimLogger.info("\nCreated " + termVectors.size() + " term vectors.\n");
   }
 
   /**
@@ -278,7 +279,7 @@ public class TermVectorsFromLucene implements VectorStore {
                 VectorUtils.sparseVectorToFloatVector(indexVector, dimension)));
       }
     } else {
-      logger.info("Using semantic term vectors from file " + initialTermVectorsFile);
+      VerbatimLogger.info("Using semantic term vectors from file " + initialTermVectorsFile);
       VectorStoreReaderLucene inputReader = new VectorStoreReaderLucene(initialTermVectorsFile);
       Enumeration<ObjectVector> termEnumeration = inputReader.getAllVectors();
       int count = 0;

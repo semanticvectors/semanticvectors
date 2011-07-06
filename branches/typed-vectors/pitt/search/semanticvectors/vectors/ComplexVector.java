@@ -7,9 +7,6 @@ import java.util.logging.Logger;
 import org.apache.lucene.store.IndexInput;
 import org.apache.lucene.store.IndexOutput;
 
-import pitt.search.semanticvectors.ObjectVector;
-import pitt.search.semanticvectors.vectors.CircRep.MODE;
-
 /**
  * Complex number implementation of Vector.
  *
