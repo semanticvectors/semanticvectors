@@ -61,6 +61,10 @@ public class ComplexVector extends Vector {
     return phaseAngles;
   }
 
+  public void setPhaseAngles(char[] phaseAngles) {
+    this.phaseAngles = phaseAngles;
+  }
+
   public char[] getSparseOffsets() {
     return sparseOffsets;
   }
@@ -72,6 +76,10 @@ public class ComplexVector extends Vector {
 
   public MODE getOpMode() {
     return opMode;
+  }
+
+  public void setOpMode(MODE opMode) {
+    this.opMode = opMode;
   }
 
   protected ComplexVector(int dimension)
@@ -192,6 +200,54 @@ public class ComplexVector extends Vector {
     return randomVector;
   }
 
+  /**
+   * Generates a dense vector in Polar form.
+   *
+   * @return Dense representation of vector in Polar form.
+   */
+  public ComplexVector generateDensePolarRandomVector(int dimension, Random random) {
+    ComplexVector randomVector = new ComplexVector(dimension);
+    randomVector.makeDensePolarRandomVector(random);
+
+    return randomVector;
+  }
+
+  /**
+   * Generates a dense vector in Cartesian form with small magnitude elements to simulate
+   * zero vector.
+   *
+   * @return Dense representation of vector in Cartesian form
+   */
+  public ComplexVector generateDenseCartesianRandomVector(int dimension, Random random) {
+    ComplexVector randomVector = new ComplexVector(dimension);
+    randomVector.makeDenseCartesianRandomVector(random);
+
+    return randomVector;
+  }
+
+  /**
+   * Makes this vector a dense random vector in Polar form.
+   */
+  public void makeDensePolarRandomVector(Random random) {
+    phaseAngles = new char[dimension];
+    opMode = MODE.POLAR;
+    coordinates = null;
+
+    for(int i=0; i<dimension;i++) {
+      phaseAngles[i] = (char)random.nextInt(ComplexVectorUtils.phaseResolution);
+    }
+  }
+
+  /**
+   * Makes this vector a dense random vector in Cartesian form
+   * with small magnitudes.
+   */
+  public void makeDenseCartesianRandomVector(Random random) {
+    makeDensePolarRandomVector(random);
+    ComplexVectorUtils.toCartesian(this);
+    ComplexVectorUtils.scaleFloatArray(coordinates, 0.1f);
+  }
+
   @Override
   /**
    * Measures overlap of two vectors using mean cosine of difference
@@ -235,9 +291,8 @@ public class ComplexVector extends Vector {
 
     // Check if this is a zero vector
     if (isZeroVector()) {
-      coordinates = new float[other.getDimension()*2];
-      ComplexVectorUtils.setFloatArrayToZero( coordinates );
-      opMode = MODE.CARTESIAN;
+      // This should probably be using a reference to a previously created random function.
+      makeDenseCartesianRandomVector(new Random());
     }
     if (complexOther.isSparse) ComplexVectorUtils.superposeWithSparseAngle( this, complexOther, (float)weight, permutation );
     else ComplexVectorUtils.superposeWithAngle( this, complexOther, (float)weight, permutation );
@@ -409,6 +464,13 @@ public class ComplexVector extends Vector {
     this.phaseAngles = phaseAngles;
     this.opMode = MODE.POLAR;
   }
+
+  public static void main(String[] args) {
+	    String usage = "java pitt.search.lucene.IndexFilePositions <root_directory> ";
+
+  }
+
+
 
 }
 

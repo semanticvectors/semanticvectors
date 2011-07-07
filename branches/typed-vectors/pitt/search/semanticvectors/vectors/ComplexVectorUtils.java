@@ -160,7 +160,9 @@ public class ComplexVectorUtils {
       coordinates[j+1] = imLUT[c[i]];
     }
 
+    vec.setOpMode(ComplexVector.MODE.CARTESIAN);
     vec.setCoordinates(coordinates);
+    vec.setPhaseAngles(null);
   }
   /**
    * Convert from cartesian coordinates to phase angles.
@@ -168,12 +170,16 @@ public class ComplexVectorUtils {
    */
   public static void toPhaseAngle( ComplexVector vec ) {
     int dim = vec.getDimension();
-    char[] c = vec.getPhaseAngles();
+    char[] c = new char[dim];
     float[] coordinates = vec.getCoordinates();
 
 	for (int i=0, j=0; i<dim; i++, j+=2) {
 	  c[i] = angleFromCartesianTrig( coordinates[j], coordinates[j+1] );;
     }
+
+    vec.setOpMode(ComplexVector.MODE.POLAR);
+	vec.setCoordinates(null);
+    vec.setPhaseAngles(c);
   }
   /**
    * Convert from cartesian coordinates to phase angle using trig
@@ -190,6 +196,10 @@ public class ComplexVectorUtils {
 
   public static void setFloatArrayToZero( float[] array ) {
 	  for (int i=0; i<array.length; i++) array[i] = 0.0f;
+  }
+
+  public static void scaleFloatArray( float[] array, float weight) {
+	  for (int i=0; i<array.length; i++) array[i] = array[i]*weight;
   }
 
   /**
