@@ -11,7 +11,7 @@ import org.apache.lucene.store.IndexInput;
 import org.apache.lucene.store.IndexOutput;
 import org.apache.lucene.util.OpenBitSet;
 
-import pitt.search.semanticvectors.ObjectVector;
+
 
 /**
  * Binary implementation of Vector.
@@ -29,7 +29,7 @@ public class BinaryVector extends Vector {
    * Elemental representation for binary vectors. 
    */
   private OpenBitSet bitSet;
-  private boolean isElemental;
+  private boolean isSparse;
   
   /** 
    * Representation of voting record for superposition. Each OpenBitSet object contains one bit
@@ -50,7 +50,7 @@ public class BinaryVector extends Vector {
   public BinaryVector(int dimension) {
     this.dimension = dimension;
     this.bitSet = new OpenBitSet(dimension);
-    this.isElemental = true;
+    this.isSparse = true;
   }
   
   /**
@@ -59,7 +59,7 @@ public class BinaryVector extends Vector {
   public BinaryVector copy() {
        BinaryVector copy = new BinaryVector(dimension);
        copy.bitSet = (OpenBitSet) bitSet.clone();
-       if (!isElemental)
+       if (!isSparse)
     	   copy.votingRecord = (ArrayList<OpenBitSet>) votingRecord.clone();
       return copy;
    
@@ -69,7 +69,7 @@ public class BinaryVector extends Vector {
     StringBuilder debugString = new StringBuilder("BinaryVector.");
     // TODO(widdows): Add heap location?
    
-     if (isElemental)
+     if (isSparse)
      {
       debugString.append("  Elemental.  First 20 values are:\n");
       for (int x =0; x < 20; x++) debugString.append(bitSet.getBit(x) + " ");
@@ -117,7 +117,7 @@ public class BinaryVector extends Vector {
   }
 
   private boolean isZeroVector() {
-    if (isElemental) {
+    if (isSparse) {
     	
       return bitSet.cardinality() == 0;
     } else {
@@ -210,7 +210,7 @@ public class BinaryVector extends Vector {
   public void superpose(Vector other, double weight, int[] permutation) {
     IncompatibleVectorsException.checkVectorsCompatible(this, other);
     BinaryVector realOther = (BinaryVector) other;
-    if (isElemental) 
+    if (isSparse) 
     	{
     		if (Math.round(weight) != weight)
     			{ decimal_places = 2; 
@@ -311,7 +311,7 @@ public class BinaryVector extends Vector {
 		**/
 				
 		int max = getMaximum();	
-			//System.out.println("MAX "+max);
+			
 		if (max > 0)
 			{	
 			decrement(max);
@@ -363,8 +363,6 @@ public class BinaryVector extends Vector {
 		
 	}
 	
-	
-	
 
 	/*
 	 * reverse a string - simplifies the decoding of the binary vector for the 'exact' method
@@ -396,7 +394,6 @@ public class BinaryVector extends Vector {
 		return tempSet;
 		}
 		String inbinary = reverse(Integer.toBinaryString(target));
-		//System.out.println(target+ " IB "+inbinary);
 		
 		tempSet.xor(tempSet);
 		tempSet.xor(votingRecord.get(inbinary.indexOf("1")));
@@ -427,7 +424,6 @@ public class BinaryVector extends Vector {
 			ans.set(0, dimension-1);
 			return ans;
 		}
-		//System.out.println("T-T2 "+target+" "+target2);
 		
 		boolean even = (target % 2 ==0);
 		
@@ -436,11 +432,10 @@ public class BinaryVector extends Vector {
 		
 		if (even)
 			{
-			//System.out.println("EVEN "+target2);
+			
 			tempSet = exact(target2);
 			
 			boolean switcher = true;
-			//System.out.println("MIDpre "+tempSet.cardinality());
 			
 			//50% chance of being true with split vote
 			
@@ -453,15 +448,22 @@ public class BinaryVector extends Vector {
 				
 				
 			}
-			
-			//tempSet.andNot(equalizer);
-			
+				
 			result.andNot(tempSet);
 			}
 		
 		return result;
 	}
 	
+	/**
+	 * This method is used determine which dimensions will receive 1 and which 0 when the voting
+	 * process is concluded. It produces an OpenBitSet in which
+	 * "1" is assigned to all dimensions with a count > 50% of the total number of votes (i.e. more 1's than 0's added)
+	 * "0" is assignaed to all dimensions with a count < 50% of the total number of votes (i.e. more 0's than 1's added)
+	 * "0" or "1" are assigned to all dimensions with a count = 50% of the total number of votes (i.e. equal 1's and 0's added)
+	 * 
+	 * @return an OpenBitSet representing the superposition of all vectors added up to this point
+	 */
 	
 	public OpenBitSet concludeVote()
 	{
@@ -498,19 +500,13 @@ public class BinaryVector extends Vector {
 			OpenBitSet definitePositives = new OpenBitSet(dimension);
 			for (int q = row_floor+1; q <= row_ceiling; q++)
 				definitePositives.or(votingRecord.get(q));
-			
-		//	System.out.println("DP "+definitePositives.cardinality());
-			
+				
 			//complex part of complex case: get those that have a "1" in the row of n
 			OpenBitSet possiblePositives = (OpenBitSet) votingRecord.get(row_floor).clone();
-			//System.out.println("RF "+row_floor);
 			OpenBitSet definitePositives2 = concludeVote(remainder, row_floor-1);
 			
 			possiblePositives.and(definitePositives2);
-			
-			//System.out.println("DP2 "+possiblePositives.cardinality());
-			
-			definitePositives.or(possiblePositives);		
+		    definitePositives.or(possiblePositives);		
 			
 			
 			
@@ -519,7 +515,7 @@ public class BinaryVector extends Vector {
 	}
 	
 	
-	/*
+	/**
 	 * decrement every dimension. assumes at least one count in each dimension
 	 * i.e: no underflow check currently - will wreak havoc with zero counts
 	 */
@@ -536,7 +532,7 @@ public class BinaryVector extends Vector {
 		
 	}
   
-	/*
+	/**
 	 * decrement every dimension by the number passed as a parameter. again at least one count in each dimension
 	 * i.e: no underflow check currently - will wreak havoc with zero counts
 	 */
@@ -616,7 +612,7 @@ public class BinaryVector extends Vector {
    * Normalizes the vector, converting sparse to dense representations in the process.
    */
   public void normalize() {
-    if (!isElemental) 
+    if (!isSparse) 
      this.bitSet = concludeVote();
   }
 
@@ -701,7 +697,7 @@ public class BinaryVector extends Vector {
    * semantic vector (storage capacity initialized, this will occupy RAM)
    */
   protected void elementalToSemantic() {
-    if (!isElemental) {
+    if (!isSparse) {
       logger.warning("Tryied to transform an elemental vector which is not in fact elemental."
           + "This may be a programming error.");
       return;
@@ -709,7 +705,7 @@ public class BinaryVector extends Vector {
     
     this.votingRecord = new ArrayList<OpenBitSet>();
     this.tempSet = new OpenBitSet(dimension);
-    this.isElemental = false;
+    this.isSparse = false;
     
   }
 
