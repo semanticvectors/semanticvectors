@@ -43,21 +43,23 @@ import java.util.Random;
  * @author dwiddows
  */
 public class VectorFactory {
+  private static final BinaryVector binaryInstance = new BinaryVector(0);
   private static final RealVector realInstance = new RealVector(0);
-  
+  private static final ComplexVector complexInstance = new ComplexVector(0);
+
   public static Vector createZeroVector(VectorType type, int dimension) {
     switch (type) {
       case BINARY:
-        return null;
+        return new BinaryVector(dimension);
       case REAL:
         return new RealVector(dimension);
       case COMPLEX:
-        return null;
+        return new ComplexVector(dimension);
       default:
         throw new IllegalArgumentException("Unrecognized VectorType: " + type);
     }
   }
-  
+
   public static Vector generateRandomVector(
       VectorType type, int dimension, int numEntries, Random random) {
     if (2 * numEntries >= dimension) {
@@ -66,11 +68,11 @@ public class VectorFactory {
     }
     switch (type) {
     case BINARY:
-      return null;
+      return binaryInstance.generateRandomVector(dimension, numEntries, random);
     case REAL:
       return realInstance.generateRandomVector(dimension, numEntries, random);
     case COMPLEX:
-      return null;
+      return complexInstance.generateRandomVector(dimension, numEntries, random);
     default:
       throw new IllegalArgumentException("Unrecognized VectorType: " + type);
     }

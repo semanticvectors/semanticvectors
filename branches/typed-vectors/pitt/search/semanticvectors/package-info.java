@@ -1,5 +1,4 @@
 /**
-
 Semantic Vector indexes, created by applying a Random Projection
 algorithm to term-document matrices created using Apache Lucene.
 

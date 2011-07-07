@@ -42,8 +42,6 @@ import java.util.logging.Logger;
 import org.apache.lucene.store.IndexInput;
 import org.apache.lucene.store.IndexOutput;
 
-import pitt.search.semanticvectors.ObjectVector;
-
 /**
  * Real number implementation of Vector.
  * 
