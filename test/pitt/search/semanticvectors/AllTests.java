@@ -16,6 +16,7 @@ public class AllTests {
     suite.addTestSuite(VectorStoreRAMTest.class);
     suite.addTestSuite(VectorStoreSparseRAMTest.class);
     suite.addTestSuite(RealVectorTest.class);
+    suite.addTestSuite(BinaryVectorTest.class);
     //$JUnit-END$
     return suite;
   }
