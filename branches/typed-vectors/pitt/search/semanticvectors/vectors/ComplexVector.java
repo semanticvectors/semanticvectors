@@ -466,7 +466,7 @@ public class ComplexVector extends Vector {
   }
 
   public static void main(String[] args) {
-	    String usage = "java pitt.search.lucene.IndexFilePositions <root_directory> ";
+	   // Some tests to go here;
 
   }
 
