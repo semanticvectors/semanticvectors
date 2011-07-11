@@ -37,6 +37,7 @@ package pitt.search.semanticvectors;
 
 import java.lang.IllegalArgumentException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Enumeration;
 import java.util.logging.Logger;
@@ -95,6 +96,11 @@ abstract public class VectorSearcher {
     float score;
     double threshold = Flags.searchresultsminscore;
 
+    //Counters for statistics to calculate standard deviation
+    double sum=0, sumsquared=0;
+    int count=0;
+    
+    
     Enumeration<ObjectVector> vecEnum = searchVecStore.getAllVectors();
 
     while (vecEnum.hasMoreElements()) {
@@ -125,7 +131,14 @@ abstract public class VectorSearcher {
             luceneUtils.getGlobalTermWeightFromString((String) testElement.getObject());
       }
 
-      if (score > threshold) {
+      if (Flags.standard_deviations) {
+    	  count++;
+    	  sum += score;
+    	  sumsquared += Math.pow(score, 2);
+      }
+    	  
+    	  //Defer check until after transformed if standard deviations option selected
+      if (score > threshold | Flags.standard_deviations) {
         boolean added = false;
         for (int i = 0; i < results.size(); ++i) {
           // Add to list if this is right place.
@@ -145,9 +158,41 @@ abstract public class VectorSearcher {
         }
       }
     }
+    
+    if (Flags.standard_deviations) results = transformToStats(results, count, sum, sumsquared);
     return results;
   }
+  
+  /**
+   * calculates approximation of standard deviation (using a somewhat imprecise single-pass algorithm) 
+   * and recasts top scores as number of standard deviations from the mean (for a single search)
+   * 
+   * @param rawResults
+   * @param count
+   * @param sum
+   * @param sumsq
+   * @return
+   */
 
+  public static LinkedList<SearchResult> transformToStats(LinkedList<SearchResult> rawResults,int count, double sum, double sumsq)
+  {
+	  LinkedList<SearchResult> transformedResults = new LinkedList<SearchResult>();
+	  double variancesquared = sumsq - (Math.pow(sum,2)/count);
+      double stdev =  Math.sqrt(variancesquared/(count)); 
+      double mean = sum/count;
+      
+      Iterator<SearchResult> iterator = rawResults.iterator();
+      while (iterator.hasNext())
+      {
+    	  SearchResult temp = iterator.next();
+    	  float score = temp.getScore();
+    	  score = new Double((score-mean)/stdev).floatValue();
+    	  if (score > Flags.searchresultsminscore)
+    	  transformedResults.add(new SearchResult(score, temp.getObject()));
+      }
+	  return transformedResults;
+  }
+  
   /**
    * Class for searching a vector store using cosine similarity.
    * Takes a sum of positive query terms and optionally negates some terms.
