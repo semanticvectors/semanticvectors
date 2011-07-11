@@ -75,6 +75,7 @@ public class Flags {
   public static final String searchresultsminscoreDescription = "Search results with similarity scores below "
       + "this value will not be included in search results.";
   public static int numclusters = 5;
+  public static int clustersize = -1;
 
   public static int trainingcycles;
   public static int windowradius = 5;

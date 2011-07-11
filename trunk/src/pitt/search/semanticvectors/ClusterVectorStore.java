@@ -176,9 +176,11 @@ public class ClusterVectorStore {
     // Perform clustering and print out results.
     logger.info("Clustering vectors ...");
     int[] clusterMappings = ClusterResults.kMeansCluster(resultsVectors, Flags.numclusters);
+    int clustersize = (Flags.clustersize == -1)? clusterMappings.length : Math.min(Flags.clustersize, clusterMappings.length);
+
     for (int i = 0; i < Flags.numclusters; ++i) {
       System.out.println("Cluster " + i);
-      for (int j = 0; j < clusterMappings.length; ++j) {
+      for (int j = 0; j < clustersize; ++j) {
 	if (clusterMappings[j] == i) {
 	  System.out.println(resultsVectors[j].getObject());
 	}
