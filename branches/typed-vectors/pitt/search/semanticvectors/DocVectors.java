@@ -40,6 +40,10 @@ import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.index.TermDocs;
 
+import pitt.search.semanticvectors.vectors.Vector;
+import pitt.search.semanticvectors.vectors.VectorFactory;
+import pitt.search.semanticvectors.vectors.VectorUtils;
+
 import java.io.IOException;
 import java.util.Enumeration;
 import java.util.logging.Logger;
@@ -94,7 +98,7 @@ public class DocVectors implements VectorStore {
         tc++;
 
         ObjectVector termVectorObject = termEnum.nextElement();
-        float[] termVector = termVectorObject.getVector();
+        Vector termVector = termVectorObject.getVector();
         String word = (String) termVectorObject.getObject();
 
 
@@ -112,7 +116,7 @@ public class DocVectors implements VectorStore {
           while (td.next()) {
             String docID = Integer.toString(td.doc());
             // Add vector from this term, taking freq into account.
-            float[] docVector = this.docVectors.getVector(docID);
+            Vector docVector = this.docVectors.getVector(docID);
             float localweight = td.freq();
 
             if (Flags.termweight.equals("logentropy"))
@@ -121,10 +125,7 @@ public class DocVectors implements VectorStore {
               localweight = new Double(1 + Math.log(localweight)).floatValue();    	
             }
 
-            for (int j = 0; j < termVectorData.getDimension(); ++j) {
-              docVector[j] += localweight * globalweight * termVector[j];
-
-            }
+            docVector.superpose(termVector, localweight * globalweight, null);
           }
         }
       }
@@ -135,9 +136,7 @@ public class DocVectors implements VectorStore {
 
     logger.info("\nNormalizing doc vectors ...");
     for (int i = 0; i < indexReader.numDocs(); ++i) {
-      float[] docVector = this.docVectors.getVector(Integer.toString(i));
-      docVector = VectorUtils.getNormalizedVector(docVector);
-      this.docVectors.putVector(Integer.toString(i), docVector);
+      docVectors.getVector(Integer.toString(i)).normalize();
     }
   }
   
@@ -147,10 +146,8 @@ public class DocVectors implements VectorStore {
   private void initializeDocVectors() {
     logger.info("Initializing document vector store ...");
     for (int i = 0; i < indexReader.numDocs(); ++i) {
-      float[] docVector = new float[termVectorData.getDimension()];
-      for (int j = 0; j < termVectorData.getDimension(); ++j) {
-        docVector[j] = 0;
-      }
+      Vector docVector = VectorFactory.createZeroVector(
+          Flags.vectortype, termVectorData.getDimension());
       this.docVectors.putVector(Integer.toString(i), docVector);
     }
   }
@@ -175,7 +172,7 @@ public class DocVectors implements VectorStore {
             logger.info("Please set -docidfield to a nonempty field in your Lucene index.");
           }
         }
-        float[] docVector = this.docVectors.getVector(Integer.toString(i));
+        Vector docVector = this.docVectors.getVector(Integer.toString(i));
         outputVectors.putVector(docName, docVector);
       } catch (CorruptIndexException e) {
         e.printStackTrace();
@@ -186,7 +183,7 @@ public class DocVectors implements VectorStore {
     return outputVectors;
   }
 
-  public float[] getVector(Object id) {
+  public Vector getVector(Object id) {
     return this.docVectors.getVector(id);
   }
 

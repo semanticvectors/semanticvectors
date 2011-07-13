@@ -42,6 +42,10 @@ import org.apache.lucene.index.*;
 import org.apache.lucene.store.IndexInput;
 import org.apache.lucene.store.FSDirectory;
 
+import pitt.search.semanticvectors.vectors.Vector;
+import pitt.search.semanticvectors.vectors.VectorFactory;
+import pitt.search.semanticvectors.vectors.VectorUtils;
+
 import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.logging.Logger;
@@ -125,7 +129,7 @@ public class IncrementalTermVectors implements VectorStore {
           Flags.minfrequency, Flags.maxfrequency, Flags.maxnonalphabetchars))
         continue;
       tc++;
-      float[] termVector = new float[dimension];
+      Vector termVector = VectorFactory.createZeroVector(Flags.vectortype, dimension);
 
       // Place each term vector in the vector store.
       termVectorData.putVector(term.text(), termVector);
@@ -140,19 +144,14 @@ public class IncrementalTermVectors implements VectorStore {
       }
 
       int dcount = dc;
-      float[] docVector = new float[dimension];
+      Vector docVector = VectorFactory.createZeroVector(Flags.vectortype, dimension);
 
       try {
-        
     	 /**
     	  * read ID for each document first 
     	  */
     	 String docID = inputStream.readString(); 
-    	  
-    	 for (int i = 0; i < dimension; ++i) {
-          docVector[i] = Float.intBitsToFloat(inputStream.readInt());
-        }
-
+         docVector.readFromLuceneStream(inputStream);
       }
       catch (Exception e) {
     	System.out.println("Doc vectors less than total number of documents");
@@ -172,7 +171,7 @@ public class IncrementalTermVectors implements VectorStore {
           for (int b = 0; b < freqs.length; ++b) {
             String term = docterms[b];
             int freq = freqs[b];
-            float[] termVector = new float[0];
+            Vector termVector = null;
 
             try{
               termVector = termVectorData.getVector(term);
@@ -182,10 +181,8 @@ public class IncrementalTermVectors implements VectorStore {
               // logger.finest("term "+term+ " not represented");
             }
             // Exclude terms that are not represented in termVectorData
-            if (termVector != null && termVector.length > 0) {
-              for (int j = 0; j < dimension; ++j) {
-                termVector[j] += freq * docVector[j];
-              }
+            if (termVector != null && termVector.getDimension() > 0) {
+              termVector.superpose(docVector, freq, null);
             }
           }
         }
@@ -195,10 +192,10 @@ public class IncrementalTermVectors implements VectorStore {
 
     // Normalize vectors
     Enumeration<ObjectVector> allVectors = termVectorData.getAllVectors();
-    while (allVectors.hasMoreElements())
-    {ObjectVector obVec = allVectors.nextElement();
-      float[] termVector = obVec.getVector();  
-      termVector = VectorUtils.getNormalizedVector(termVector);
+    while (allVectors.hasMoreElements()) {
+      ObjectVector obVec = allVectors.nextElement();
+      Vector termVector = obVec.getVector();  
+      termVector.normalize();
       obVec.setVector(termVector);
     }
 
@@ -207,7 +204,7 @@ public class IncrementalTermVectors implements VectorStore {
   }
   
   // Basic VectorStore interface methods implemented through termVectors.
-  public float[] getVector(Object term) {
+  public Vector getVector(Object term) {
     return termVectorData.getVector(term);
   }
 

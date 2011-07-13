@@ -44,6 +44,9 @@ import java.util.logging.Logger;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.store.IndexInput;
 
+import pitt.search.semanticvectors.vectors.Vector;
+import pitt.search.semanticvectors.vectors.VectorFactory;
+
 /**
    This class provides methods for reading a VectorStore from disk. <p>
 
@@ -151,24 +154,24 @@ public class VectorStoreReaderLucene implements CloseableVectorStore {
    * @param desiredObject - the string you're searching for
    * @return vector from the VectorStore, or null if not found.
    */
-  public float[] getVector(Object desiredObject) {
+  public Vector getVector(Object desiredObject) {
     try {
       getIndexInput().seek(0);
       if (hasHeader) {
+        // TODO(dwiddows): Clean up magic information here!
+        getIndexInput().readString();
+        getIndexInput().readString();
         getIndexInput().readString();
         getIndexInput().readInt();
       }
       while (getIndexInput().getFilePointer() < getIndexInput().length() - 1) {
         if (getIndexInput().readString().equals(desiredObject)) {
-          // TODO(widdows): Replace with abstract Vector implementation.
-          float[] vector = new float[dimension];
-          for (int i = 0; i < dimension; ++i) {
-            vector[i] = Float.intBitsToFloat(getIndexInput().readInt());
-          }
-          return vector;
+          Vector vector = VectorFactory.createZeroVector(Flags.vectortype, dimension);
+          vector.readFromLuceneStream(getIndexInput());
         }
         else{
-          getIndexInput().seek(getIndexInput().getFilePointer() + 4*dimension);
+          getIndexInput().seek(getIndexInput().getFilePointer()
+              + VectorFactory.getLuceneByteSize(Flags.vectortype, dimension));
         }
       }
     }
@@ -209,12 +212,10 @@ public class VectorStoreReaderLucene implements CloseableVectorStore {
 
     public ObjectVector nextElement() {
       String object = null;
-      float[] vector = new float[dimension];
+      Vector vector = VectorFactory.createZeroVector(Flags.vectortype, dimension);
       try {
         object = indexInput.readString();
-        for (int i = 0; i < dimension; ++i) {
-          vector[i] = Float.intBitsToFloat(indexInput.readInt());
-        }
+        vector.readFromLuceneStream(indexInput);
       }
       catch (IOException e) {
         e.printStackTrace();

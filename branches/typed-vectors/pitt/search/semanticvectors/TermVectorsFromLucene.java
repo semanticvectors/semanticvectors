@@ -48,6 +48,10 @@ import org.apache.lucene.index.TermDocs;
 import org.apache.lucene.index.TermEnum;
 import org.apache.lucene.store.FSDirectory;
 
+import pitt.search.semanticvectors.vectors.Vector;
+import pitt.search.semanticvectors.vectors.VectorFactory;
+import pitt.search.semanticvectors.vectors.VectorUtils;
+
 /**
  * Implementation of vector store that creates term vectors by
  * iterating through all the terms in a Lucene index.  Uses a sparse
@@ -94,7 +98,7 @@ public class TermVectorsFromLucene implements VectorStore {
   public int getDimension() { return this.dimension; }
   
   // Implementation of basic VectorStore methods.
-  public float[] getVector(Object term) {
+  public Vector getVector(Object term) {
     return termVectors.get(term).getVector();
   }
 
@@ -193,24 +197,16 @@ public class TermVectorsFromLucene implements VectorStore {
       }
 
       // Initialize new termVector.
-      float[] termVector = new float[dimension];
-      for (int i = 0; i < dimension; ++i) {
-        termVector[i] = 0;
-      }
+      Vector termVector = VectorFactory.createZeroVector(Flags.vectortype, dimension);
 
       TermDocs tDocs = indexReader.termDocs(term);
       while (tDocs.next()) {
         String docID = Integer.toString(tDocs.doc());
         int freq = tDocs.freq();
 
-        if (this.basicDocVectors.getClass().equals(VectorStoreSparseRAM.class)) { // random docvectors
-          termVector = VectorUtils.addVectors(
-              termVector, ((VectorStoreSparseRAM) this.basicDocVectors).getSparseVector(docID), freq);
-        } else { // pretrained docvectors
-          termVector = VectorUtils.addVectors(termVector, this.basicDocVectors.getVector(docID),freq);
-        }
+        termVector.superpose(basicDocVectors.getVector(docID), freq, null);
       }
-      termVector = VectorUtils.getNormalizedVector(termVector);
+      termVector.normalize();
       termVectors.put(term.text(), new ObjectVector(term.text(), termVector));
     }
     VerbatimLogger.info("\nCreated " + termVectors.size() + " term vectors.\n");
@@ -272,11 +268,10 @@ public class TermVectorsFromLucene implements VectorStore {
           continue;
         }
         tc++;
-        short[] indexVector =  VectorUtils.generateRandomVector(seedLength, dimension, random);
+        Vector indexVector =  VectorFactory.generateRandomVector(
+            Flags.vectortype, dimension, seedLength, random);
         // Place each term vector in the vector store.
-        this.termVectors.put(term.text(),
-            new ObjectVector(term.text(),
-                VectorUtils.sparseVectorToFloatVector(indexVector, dimension)));
+        this.termVectors.put(term.text(), new ObjectVector(term.text(), indexVector));
       }
     } else {
       VerbatimLogger.info("Using semantic term vectors from file " + initialTermVectorsFile);

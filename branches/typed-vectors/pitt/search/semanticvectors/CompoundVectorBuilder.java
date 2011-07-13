@@ -44,6 +44,11 @@ import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 
+import pitt.search.semanticvectors.vectors.PermutationUtils;
+import pitt.search.semanticvectors.vectors.Vector;
+import pitt.search.semanticvectors.vectors.VectorFactory;
+import pitt.search.semanticvectors.vectors.VectorUtils;
+
 /**
  * This class contains methods for manipulating queries, e.g., taking
  * a list of queryterms and producing a (possibly weighted) aggregate
@@ -76,7 +81,7 @@ public class CompoundVectorBuilder {
    * @param queryTerms String array of query terms to look up. Expects a single "?" entry, which
    * denotes the query term position. E.g., "martin ? king" might pick out "luther".
    */
-  public static float[] getPermutedQueryVector(VectorStore vecReader,
+  public static Vector getPermutedQueryVector(VectorStore vecReader,
       LuceneUtils lUtils,
       String[] queryTerms) throws IllegalArgumentException {
 
@@ -102,13 +107,10 @@ public class CompoundVectorBuilder {
     }
 
     // Initialize other arguments.
-    float[] queryVec = new float[vecReader.getDimension()];
-    for (int i = 0; i < vecReader.getDimension(); ++i) {
-      queryVec[i] = 0;
-    }
+    Vector queryVec = VectorFactory.createZeroVector(Flags.vectortype, vecReader.getDimension());
 
-    ArrayList<float[]> permutedVecs = new ArrayList<float[]>();
-    float[] tmpVec = new float[vecReader.getDimension()];
+    ArrayList<Vector> permutedVecs = new ArrayList<Vector>();
+    Vector tmpVec = VectorFactory.createZeroVector(Flags.vectortype, vecReader.getDimension());
     float weight = 1;
 
     for (int j = 0; j < queryTerms.length; ++j) {
@@ -124,18 +126,14 @@ public class CompoundVectorBuilder {
         }
 
         if (tmpVec != null) {
-          tmpVec = VectorUtils.permuteVector(tmpVec.clone(), permutation);
-          permutedVecs.add(VectorUtils.getNormalizedVector(tmpVec));
-          for (int i = 0; i < vecReader.getDimension(); ++i) {
-            tmpVec[i] = tmpVec[i] * weight;
-            queryVec[i] += tmpVec[i];
-          }
+          queryVec.superpose(tmpVec, weight,
+              PermutationUtils.getShiftPermutation(vecReader.getDimension(), permutation));
         } else {
           logger.log(Level.WARNING, "No vector for {0}", queryTerms[j]);
         }
       }
     }
-    queryVec = VectorUtils.getNormalizedVector(queryVec);
+    queryVec.normalize();
 
     return queryVec;
   }
@@ -144,7 +142,7 @@ public class CompoundVectorBuilder {
    * Method gets a query vector from a query string, i.e., a
    * space-separated list of queryterms.
    */
-  public static float[] getQueryVectorFromString(VectorStore vecReader,
+  public static Vector getQueryVectorFromString(VectorStore vecReader,
       LuceneUtils lUtils,
       String queryString) {
     String[] queryTerms = queryString.split("\\s");
@@ -163,13 +161,14 @@ public class CompoundVectorBuilder {
    * @param queryTerms Query expression, e.g., from command line.  If
    *        the term NOT appears in queryTerms, terms after that will
    *        be negated.
-   * @return queryVector, an array of floats representing the user's query.
+   * @return queryVector, a vector representing the user's query.
    */
-  public static float[] getQueryVector(VectorStore vecReader,
+  public static Vector getQueryVector(VectorStore vecReader,
       LuceneUtils lUtils,
       String[] queryTerms) {
     CompoundVectorBuilder builder = new CompoundVectorBuilder(vecReader, lUtils);
-    float[] returnVector = new float[vecReader.getDimension()];
+    Vector returnVector = VectorFactory.createZeroVector(
+        Flags.vectortype, vecReader.getDimension());
     // Check through args to see if we need to do negation.
     if (!Flags.suppressnegatedqueries) {
       for (int i = 0; i < queryTerms.length; ++i) {
@@ -192,17 +191,12 @@ public class CompoundVectorBuilder {
    * by adding together vectors retrieved from vector store.
    * @param queryTerms String array of query terms to look up.
    */
-  protected float[] getAdditiveQueryVector (String[] queryTerms) {
-    float[] queryVec = new float[vecReader.getDimension()];
-    float[] tmpVec = new float[vecReader.getDimension()];
+  protected Vector getAdditiveQueryVector (String[] queryTerms) {
+    Vector queryVec = VectorFactory.createZeroVector(Flags.vectortype, vecReader.getDimension());
     float weight = 1;
 
-    for (int i = 0; i < vecReader.getDimension(); ++i) {
-      queryVec[i] = 0;
-    }
-
     for (int j = 0; j < queryTerms.length; ++j) {
-      tmpVec = vecReader.getVector(queryTerms[j]);
+      Vector tmpVec = vecReader.getVector(queryTerms[j]);
 
       if (lUtils != null) {
         weight = lUtils.getGlobalTermWeightFromString(queryTerms[j]);
@@ -211,15 +205,13 @@ public class CompoundVectorBuilder {
       }
 
       if (tmpVec != null) {
-        for (int i = 0; i < vecReader.getDimension(); ++i) {
-          queryVec[i] += tmpVec[i] * weight;
-        }
+        queryVec.superpose(tmpVec, weight, null);
       } else {
         logger.log(Level.WARNING, "No vector for {0}", queryTerms[j]);
       }
     }
 
-    queryVec = VectorUtils.getNormalizedVector(queryVec);
+    queryVec.normalize();
     return queryVec;
   }
 
@@ -230,13 +222,9 @@ public class CompoundVectorBuilder {
    * 
    * @param queryTerms String array of query terms to look up.
    */
-  protected float[] getAdditiveQueryVectorRegex (String[] queryTerms) {
-    float[] queryVec = new float[vecReader.getDimension()];
+  protected Vector getAdditiveQueryVectorRegex (String[] queryTerms) {
+    Vector queryVec = VectorFactory.createZeroVector(Flags.vectortype, vecReader.getDimension());
     float weight = 1;
-
-    for (int i = 0; i < vecReader.getDimension(); ++i) {
-      queryVec[i] = 0;
-    }
 
     for (int j = 0; j < queryTerms.length; ++j) {
       // Compile a regular expression for matching anything containing this term.
@@ -248,20 +236,18 @@ public class CompoundVectorBuilder {
         ObjectVector testElement = vecEnum.nextElement();
         Matcher matcher = pattern.matcher(testElement.getObject().toString());
         if (matcher.find()) {
-          float[] tmpVec = testElement.getVector();
+          Vector tmpVec = testElement.getVector();
 
           if (lUtils != null) {
             weight = lUtils.getGlobalTermWeightFromString(testElement.getObject().toString());
           }
           else { weight = 1; }
 
-          for (int i = 0; i < vecReader.getDimension(); ++i) {
-            queryVec[i] += tmpVec[i] * weight;
-          }
+          queryVec.superpose(tmpVec, weight, null);
         }
       }
     }
-    queryVec = VectorUtils.getNormalizedVector(queryVec);
+    queryVec.normalize();
     return queryVec;
   }
 
@@ -275,14 +261,14 @@ public class CompoundVectorBuilder {
    * projected to be orthogonal to all negative terms.
    * @see VectorUtils#orthogonalizeVectors
    */
-  protected float[] getNegatedQueryVector(String[] queryTerms, int split) {
+  protected Vector getNegatedQueryVector(String[] queryTerms, int split) {
     int numNegativeTerms = queryTerms.length - split - 1;
     int numPositiveTerms = split;
     logger.log(Level.FINER, "Number of negative terms: {0}", numNegativeTerms);
     logger.log(Level.FINER, "Number of positive terms: {0}", numPositiveTerms);
-    ArrayList<float[]> vectorList = new ArrayList<float[]>();
+    ArrayList<Vector> vectorList = new ArrayList<Vector>();
     for (int i = 1; i <= numNegativeTerms; ++i) {
-      float[] tmpVector = vecReader.getVector(queryTerms[split + i]);
+      Vector tmpVector = vecReader.getVector(queryTerms[split + i]);
       if (tmpVector != null) {
         vectorList.add(tmpVector);
       }

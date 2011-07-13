@@ -44,7 +44,8 @@ import java.util.logging.Logger;
 import pitt.search.semanticvectors.LuceneUtils;
 import pitt.search.semanticvectors.VectorSearcher;
 import pitt.search.semanticvectors.VectorStore;
-import pitt.search.semanticvectors.VectorUtils;
+import pitt.search.semanticvectors.vectors.Vector;
+import pitt.search.semanticvectors.vectors.VectorUtils;
 
 /**
  * Class for searching vector stores using different scoring functions.
@@ -62,7 +63,7 @@ abstract public class VectorSearcher {
    * This needs to be filled in for each subclass. It takes an individual
    * vector and assigns it a relevance score for this VectorSearcher.
    */
-  public abstract float getScore(float[] testVector);
+  public abstract double getScore(Vector testVector);
 
 
   /**
@@ -90,7 +91,7 @@ abstract public class VectorSearcher {
    */
   public LinkedList<SearchResult> getNearestNeighbors(int numResults) {
     LinkedList<SearchResult> results = new LinkedList<SearchResult>();
-    float score, threshold = -1;
+    double score, threshold = -1;
 
     Enumeration<ObjectVector> vecEnum = searchVecStore.getAllVectors();
 
@@ -145,7 +146,7 @@ abstract public class VectorSearcher {
    * Takes a sum of positive query terms and optionally negates some terms.
    */
   static public class VectorSearcherCosine extends VectorSearcher {
-    float[] queryVector;
+    Vector queryVector;
     /**
      * @param queryVecStore Vector store to use for query generation.
      * @param searchVecStore The vector store to search.
@@ -162,223 +163,14 @@ abstract public class VectorSearcher {
       this.queryVector = CompoundVectorBuilder.getQueryVector(queryVecStore,
                                                               luceneUtils,
                                                               queryTerms);
-      if (VectorUtils.isZeroVector(this.queryVector)) {
+      if (this.queryVector.isZeroVector()) {
         throw new ZeroVectorException("Query vector is zero ... no results.");
       }
     }
 
     @Override
-    public float getScore(float[] testVector) {
-      //testVector = VectorUtils.getNormalizedVector(testVector);
-      return VectorUtils.scalarProduct(this.queryVector, testVector);
-    }
-  }
-
-  /**
-   * Class for searching a vector store using sparse cosine similarity.
-   * Takes a sum of positive query terms and optionally negates some terms.
-   */
-  static public class VectorSearcherCosineSparse extends VectorSearcher {
-    float[] queryVector;
-    /**
-     * @param queryVecStore Vector store to use for query generation.
-     * @param searchVecStore The vector store to search.
-     * @param luceneUtils LuceneUtils object to use for query weighting. (May be null.)
-     * @param queryTerms Terms that will be parsed into a query
-     * expression. If the string "NOT" appears, terms after this will be negated.
-     */
-    public VectorSearcherCosineSparse(VectorStore queryVecStore,
-                                      VectorStore searchVecStore,
-                                      LuceneUtils luceneUtils,
-                                      String[] queryTerms)
-        throws ZeroVectorException {
-      super(queryVecStore, searchVecStore, luceneUtils);
-      float[] fullQueryVector = CompoundVectorBuilder.getQueryVector(queryVecStore,
-                                                                     luceneUtils,
-                                                                     queryTerms);
-
-      if (VectorUtils.isZeroVector(fullQueryVector)) {
-        throw new ZeroVectorException("Query vector is zero ... no results.");
-      }
-
-      short[] sparseQueryVector =
-          VectorUtils.floatVectorToSparseVector(fullQueryVector, 20);
-      this.queryVector =
-          VectorUtils.sparseVectorToFloatVector(sparseQueryVector, Flags.dimension);
-    }
-
-    @Override
-    public float getScore(float[] testVector) {
-      //testVector = VectorUtils.getNormalizedVector(testVector);
-      short[] sparseTestVector =
-          VectorUtils.floatVectorToSparseVector(testVector, 40);
-      testVector =
-          VectorUtils.sparseVectorToFloatVector(sparseTestVector, Flags.dimension);
-      return VectorUtils.scalarProduct(this.queryVector, testVector);
-    }
-  }
-
-
-  /**
-   * Class for searching a vector store using tensor product
-   * similarity.  The class takes a seed tensor as a training
-   * example. This tensor should be entangled (a superposition of
-   * several individual products A * B) for non-trivial results.
-   */
-  static public class VectorSearcherTensorSim extends VectorSearcher {
-    private float[][] trainingTensor;
-    private float[] partnerVector;
-    /**
-     * @param queryVecStore Vector store to use for query generation.
-     * @param searchVecStore The vector store to search.
-     * @param luceneUtils LuceneUtils object to use for query weighting. (May be null.)
-     * @param queryTerms Terms that will be parsed into a query
-     * expression. This should be a list of one or more
-     * tilde-separated training pairs, e.g., <code>paris~france
-     * berlin~germany</code> followed by a list of one or more search
-     * terms, e.g., <code>london birmingham</code>.
-     */
-    public VectorSearcherTensorSim(VectorStore queryVecStore,
-                                   VectorStore searchVecStore,
-                                   LuceneUtils luceneUtils,
-                                   String[] queryTerms)
-        throws ZeroVectorException {
-      super(queryVecStore, searchVecStore, luceneUtils);
-      this.trainingTensor = VectorUtils.createZeroTensor(Flags.dimension);
-
-      // Collect tensor training relations.
-      int i = 0;
-      while (queryTerms[i].indexOf("~") > 0) {
-        logger.info("Training pair: " + queryTerms[i]);
-        String[] trainingTerms = queryTerms[i].split("~");
-        if (trainingTerms.length != 2) {
-          logger.info("Tensor training terms must be pairs split by individual"
-                             + " '~' character. Error with: '" + queryTerms[i] + "'");
-        }
-        float[] trainingVec1 = queryVecStore.getVector(trainingTerms[0]);
-        float[] trainingVec2 = queryVecStore.getVector(trainingTerms[1]);
-        if (trainingVec1 != null && trainingVec2 != null) {
-          float[][] trainingPair =
-              VectorUtils.getOuterProduct(trainingVec1, trainingVec2);
-          this.trainingTensor =
-              VectorUtils.getTensorSum(trainingTensor, trainingPair);
-        }
-        ++i;
-      }
-
-      // Check to see that we got a non-zero training tensor before moving on.
-      if (VectorUtils.isZeroTensor(trainingTensor)) {
-        throw new ZeroVectorException("Tensor training relation is zero ... no results.");
-      }
-      this.trainingTensor = VectorUtils.getNormalizedTensor(trainingTensor);
-
-      // This is an explicit way of taking a slice of the last i
-      // terms. There may be a quicker way of doing this.
-      String[] partnerTerms = new String[queryTerms.length - i];
-      for (int j = 0; j < queryTerms.length - i; ++j) {
-        partnerTerms[j] = queryTerms[i + j];
-      }
-      this.partnerVector = CompoundVectorBuilder.getQueryVector(queryVecStore,
-                                                                luceneUtils,
-                                                                partnerTerms);
-      if (VectorUtils.isZeroVector(this.partnerVector)) {
-        throw new ZeroVectorException("Query vector is zero ... no results.");
-      }
-    }
-
-    /**
-     * Scores are hopefully high when the relationship between queryVector
-     * and testVector is analogous to the relationship between rel1 and rel2.
-     * 
-     * @param testVector Vector being tested.
-     */
-    @Override
-    public float getScore(float[] testVector) {
-      float[][] testTensor =
-          VectorUtils.getOuterProduct(this.partnerVector, testVector);
-      return VectorUtils.getInnerProduct(this.trainingTensor, testTensor);
-    }
-  }
-
-  /**
-   * Class for searching a vector store using convolution similarity.
-   * Interface is similar to that for VectorSearcherTensorSim.
-   */
-  static public class VectorSearcherConvolutionSim extends VectorSearcher {
-    private float[] trainingConvolution;
-    private float[] partnerVector;
-    /**
-     * @param queryVecStore Vector store to use for query generation.
-     * @param searchVecStore The vector store to search.
-     * @param luceneUtils LuceneUtils object to use for query weighting. (May be null.)
-     * @param queryTerms Terms that will be parsed into a query
-     * expression. This should be a list of one or more
-     * tilde-separated training pairs, e.g., <code>paris~france
-     * berlin~germany</code> followed by a list of one or more search
-     * terms, e.g., <code>london birmingham</code>.
-     */
-    public VectorSearcherConvolutionSim(VectorStore queryVecStore,
-                                        VectorStore searchVecStore,
-                                        LuceneUtils luceneUtils,
-                                        String[] queryTerms)
-        throws ZeroVectorException
-    {
-      super(queryVecStore, searchVecStore, luceneUtils);
-      this.trainingConvolution = new float[2 * Flags.dimension - 1];
-      for (int i = 0; i < 2 * Flags.dimension - 1; ++i) {
-        this.trainingConvolution[i] = 0;
-      }
-
-      // Collect tensor training relations.
-      int i = 0;
-      while (queryTerms[i].indexOf("~") > 0) {
-        logger.info("Training pair: " + queryTerms[i]);
-        String[] trainingTerms = queryTerms[i].split("~");
-        if (trainingTerms.length != 2) {
-          logger.info("Tensor training terms must be pairs split by individual"
-                             + " '~' character. Error with: '" + queryTerms[i] + "'");
-        }
-        float[] trainingVec1 = queryVecStore.getVector(trainingTerms[0]);
-        float[] trainingVec2 = queryVecStore.getVector(trainingTerms[1]);
-        if (trainingVec1 != null && trainingVec2 != null) {
-          float[] trainingPair =
-              VectorUtils.getConvolutionFromVectors(trainingVec1, trainingVec2);
-          for (int j = 0; j < 2 * Flags.dimension - 1; ++j) {
-            this.trainingConvolution[j] += trainingPair[j];
-          }
-        }
-        ++i;
-      }
-
-      // Check to see that we got a non-zero training tensor before moving on.
-      if (VectorUtils.isZeroVector(trainingConvolution)) {
-        throw new ZeroVectorException("Convolution training relation is zero ... no results.");
-      }
-      this.trainingConvolution = VectorUtils.getNormalizedVector(trainingConvolution);
-
-      String[] partnerTerms = new String[queryTerms.length - i];
-      for (int j = 0; j < queryTerms.length - i; ++j) {
-        partnerTerms[j] = queryTerms[i + j];
-      }
-      this.partnerVector = CompoundVectorBuilder.getQueryVector(queryVecStore,
-                                                                luceneUtils,
-                                                                partnerTerms);
-      if (VectorUtils.isZeroVector(this.partnerVector)) {
-        throw new ZeroVectorException("Query vector is zero ... no results.");
-      }
-    }
-
-    /**
-     * @param testVector Vector being tested.
-     * Scores are hopefully high when the relationship between queryVector
-     * and testVector is analogous to the relationship between rel1 and rel2.
-     */
-    @Override
-    public float getScore(float[] testVector) {
-      float[] testConvolution =
-          VectorUtils.getConvolutionFromVectors(this.partnerVector, testVector);
-      testConvolution = VectorUtils.getNormalizedVector(testConvolution);
-      return VectorUtils.scalarProduct(this.trainingConvolution, testConvolution);
+    public double getScore(Vector testVector) {
+      return this.queryVector.measureOverlap(testVector);
     }
   }
 
@@ -386,7 +178,7 @@ abstract public class VectorSearcher {
    * Class for searching a vector store using quantum disjunction similarity.
    */
   static public class VectorSearcherSubspaceSim extends VectorSearcher {
-    private ArrayList<float[]> disjunctSpace;
+    private ArrayList<Vector> disjunctSpace;
     /**
      * @param queryVecStore Vector store to use for query generation.
      * @param searchVecStore The vector store to search.
@@ -399,15 +191,14 @@ abstract public class VectorSearcher {
                                      String[] queryTerms)
         throws ZeroVectorException {
       super(queryVecStore, searchVecStore, luceneUtils);
-      this.disjunctSpace = new ArrayList<float[]>();
+      this.disjunctSpace = new ArrayList<Vector>();
 
       for (int i = 0; i < queryTerms.length; ++i) {
         System.out.println("\t" + queryTerms[i]);
         // There may be compound disjuncts, e.g., "A NOT B" as a single argument.
         String[] tmpTerms = queryTerms[i].split("\\s");
-        float[] tmpVector = CompoundVectorBuilder.getQueryVector(queryVecStore,
-                                                                 luceneUtils,
-                                                                 tmpTerms);
+        Vector tmpVector = CompoundVectorBuilder.getQueryVector(
+            queryVecStore, luceneUtils, tmpTerms);
         if (tmpVector != null) {
           this.disjunctSpace.add(tmpVector);
         }
@@ -425,7 +216,7 @@ abstract public class VectorSearcher {
      * @param testVector Vector being tested.
      */
     @Override
-    public float getScore(float[] testVector) {
+    public double getScore(Vector testVector) {
       return VectorUtils.compareWithProjection(testVector, disjunctSpace);
     }
   }
@@ -434,7 +225,7 @@ abstract public class VectorSearcher {
    * Class for searching a vector store using minimum distance similarity.
    */
   static public class VectorSearcherMaxSim extends VectorSearcher {
-    private ArrayList<float[]> disjunctVectors;
+    private ArrayList<Vector> disjunctVectors;
     /**
      * @param queryVecStore Vector store to use for query generation.
      * @param searchVecStore The vector store to search.
@@ -447,14 +238,14 @@ abstract public class VectorSearcher {
                                 String[] queryTerms)
         throws ZeroVectorException {
       super(queryVecStore, searchVecStore, luceneUtils);
-      this.disjunctVectors = new ArrayList<float[]>();
+      this.disjunctVectors = new ArrayList<Vector>();
 
       for (int i = 0; i < queryTerms.length; ++i) {
         // There may be compound disjuncts, e.g., "A NOT B" as a single argument.
         String[] tmpTerms = queryTerms[i].split("\\s");
-        float[] tmpVector = CompoundVectorBuilder.getQueryVector(queryVecStore,
-                                                                 luceneUtils,
-                                                                 tmpTerms);
+        Vector tmpVector = CompoundVectorBuilder.getQueryVector(
+            queryVecStore, luceneUtils, tmpTerms);
+
         if (tmpVector != null) {
           this.disjunctVectors.add(tmpVector);
         }
@@ -470,11 +261,11 @@ abstract public class VectorSearcher {
      * @param testVector Vector being tested.
      */
     @Override
-    public float getScore(float[] testVector) {
-      float score = -1;
-      float max_score = -1;
+    public double getScore(Vector testVector) {
+      double score = -1;
+      double max_score = -1;
       for (int i = 0; i < disjunctVectors.size(); ++i) {
-        score = VectorUtils.scalarProduct(this.disjunctVectors.get(i), testVector);
+        score = this.disjunctVectors.get(i).measureOverlap(testVector);
         if (score > max_score) {
           max_score = score;
         }
@@ -491,7 +282,7 @@ abstract public class VectorSearcher {
    * index term (i.e. sat +1 would find a term occurring frequently immediately after "sat"
    */
   static public class VectorSearcherPerm extends VectorSearcher {
-    float[] theAvg;
+    Vector theAvg;
 
     /**
      * @param queryVecStore Vector store to use for query generation.
@@ -515,14 +306,14 @@ abstract public class VectorSearcher {
         throw e;
       }
 
-      if (VectorUtils.isZeroVector(theAvg)) {
+      if (theAvg.isZeroVector()) {
         throw new ZeroVectorException("Permutation query vector is zero ... no results.");
       }
     }
 
     @Override
-    public float getScore(float[] testVector) {
-      return VectorUtils.scalarProduct(theAvg, testVector);
+    public double getScore(Vector testVector) {
+      return theAvg.measureOverlap(testVector);
     }
   }
 
@@ -536,8 +327,8 @@ abstract public class VectorSearcher {
    * obtained with each of these options
    */
   static public class BalancedVectorSearcherPerm extends VectorSearcher {
-    float[] oneDirection;
-    float[] otherDirection;
+    Vector oneDirection;
+    Vector otherDirection;
     VectorStore searchVecStore, queryVecStore;
     LuceneUtils luceneUtils;
     String[] queryTerms;
@@ -564,25 +355,29 @@ abstract public class VectorSearcher {
         otherDirection = pitt.search.semanticvectors.CompoundVectorBuilder.
             getPermutedQueryVector(searchVecStore,luceneUtils,queryTerms);
       } catch (IllegalArgumentException e) {
-        logger.info("Couldn't create permutation VectorSearcher ...");
+        logger.info("Couldn't create balanced permutation VectorSearcher ...");
         throw e;
       }
 
-      if (VectorUtils.isZeroVector(oneDirection)) {
+      if (oneDirection.isZeroVector()) {
         throw new ZeroVectorException("Permutation query vector is zero ... no results.");
       }
     }
 
     /**
      * This overides the nearest neighbor class implemented in the abstract
-     * VectorSearcher class
+     * {@code VectorSearcher} class.
+     * 
+     * WARNING: This implementation fails to respect flags used by the
+     * {@code VectorSearcher.getNearestNeighbors} method.
+     * 
      * @param numResults the number of results / length of the result list.
      */
 
     @Override
     public LinkedList<SearchResult> getNearestNeighbors(int numResults) {
       LinkedList<SearchResult> results = new LinkedList<SearchResult>();
-      float score,score1, score2, threshold = -1;
+      double score, score1, score2, threshold = -1;
 
       Enumeration<ObjectVector> vecEnum  = searchVecStore.getAllVectors();
       Enumeration<ObjectVector> vecEnum2  = queryVecStore.getAllVectors();
@@ -600,7 +395,7 @@ abstract public class VectorSearcher {
         ObjectVector testElement = vecEnum.nextElement();
         ObjectVector testElement2 = vecEnum2.nextElement();
         score1 = getScore(testElement.getVector());
-        score2 = getScore2(VectorUtils.getNormalizedVector(testElement2.getVector()));
+        score2 = getScore2(testElement2.getVector());
         score = Math.max(score1,score2);
 
         // This is a way of using the Lucene Index to get term and
@@ -609,7 +404,7 @@ abstract public class VectorSearcher {
         // down the results. Note that using this means that scores
         // returned are no longer just cosine similarities.
         if (this.luceneUtils != null) {
-          score = score *  luceneUtils.getGlobalTermWeightFromString((String) testElement.getObject());
+          score = score * luceneUtils.getGlobalTermWeightFromString((String) testElement.getObject());
         }
 
         if (score > threshold) {
@@ -630,21 +425,19 @@ abstract public class VectorSearcher {
               results.add(new SearchResult(score, testElement));
             }
           }
-
-
-
-
         }}
 
       return results;
     }
 
     @Override
-    public float getScore(float[] testVector) {
-      return VectorUtils.scalarProduct(oneDirection, testVector);
+    public double getScore(Vector testVector) {
+      testVector.normalize();
+      return oneDirection.measureOverlap(testVector);
     }
-    public float getScore2(float[] testVector) {
-      return VectorUtils.scalarProduct(otherDirection, VectorUtils.getNormalizedVector(testVector));
+    public double getScore2(Vector testVector) {
+      testVector.normalize();
+      return (otherDirection.measureOverlap(testVector));
     }
 
   }

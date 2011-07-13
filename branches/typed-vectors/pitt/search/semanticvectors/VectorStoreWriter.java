@@ -98,11 +98,13 @@ public class VectorStoreWriter {
       IndexOutput outputStream = fsDirectory.createOutput(vectorFile.getName());
 
       Enumeration<ObjectVector> vecEnum = objectVectors.getAllVectors();
-      float[] tmpVector = new float[dimension];
 
       logger.info("About to write " + objectVectors.getNumVectors()
           + " vectors to file: " + vectorFile);
 
+      /* Write header giving vector type for all vectors. */
+      outputStream.writeString("-vectortype");
+      outputStream.writeString(Flags.vectortype);
       /* Write header giving number of dimensions for all vectors. */
       outputStream.writeString("-dimensions");
       outputStream.writeInt(dimension);
@@ -110,12 +112,8 @@ public class VectorStoreWriter {
       /* Write each vector. */
       while (vecEnum.hasMoreElements()) {
         ObjectVector objectVector = vecEnum.nextElement();
-        // TODO(widdows): Replace with abstract Vector implementation.
         outputStream.writeString(objectVector.getObject().toString());
-        tmpVector = objectVector.getVector();
-        for (int i = 0; i < dimension; ++i) {
-          outputStream.writeInt(Float.floatToIntBits(tmpVector[i]));
-        }
+        objectVector.getVector().writeToLuceneStream(outputStream);
       }
       logger.info("Finished writing vectors.");
       outputStream.close();
@@ -141,6 +139,8 @@ public class VectorStoreWriter {
       BufferedWriter outBuf = new BufferedWriter(new FileWriter(vectorFileName));
       Enumeration<ObjectVector> vecEnum = objectVectors.getAllVectors();
 
+      /* Write header giving vector type for all vectors. */
+      outBuf.write("-vectortype|" + Flags.vectortype + "\n");
       /* Write header giving number of dimensions for all vectors. */
       outBuf.write("-dimensions|" + dimension + "\n");
 
@@ -148,13 +148,7 @@ public class VectorStoreWriter {
       while (vecEnum.hasMoreElements()) {
         ObjectVector objectVector = vecEnum.nextElement();
         outBuf.write(objectVector.getObject().toString() + "|");
-        float[] tmpVector = objectVector.getVector();
-        for (int i = 0; i < dimension; ++i) {
-          outBuf.write(Float.toString(tmpVector[i]));
-          if (i != dimension - 1) {
-            outBuf.write("|");
-          }
-        }
+        outBuf.write(objectVector.getVector().writeToString());
         outBuf.write("\n");
       }
       outBuf.close();

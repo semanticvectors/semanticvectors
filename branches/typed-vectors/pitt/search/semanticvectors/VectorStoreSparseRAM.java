@@ -41,29 +41,28 @@ import java.util.Hashtable;
 import java.util.Random;
 import java.util.logging.Logger;
 
+import pitt.search.semanticvectors.vectors.Vector;
+import pitt.search.semanticvectors.vectors.VectorFactory;
+
 /**
-   This class provides methods for reading a VectorStore into memory
-   as an optimization if batching many searches. <p>
-
-   The serialization currently presumes that the object (in the ObjectVectors)
-   should be serialized as a String. <p>
-
-   The class is constructed by creating a VectorStoreReader class,
-   iterating through vectors and reading them into memory.
-	 @see VectorStoreReaderLucene
-   @see ObjectVector
+ * This class provides methods for generating a store of sparse vectors.
+ * 
+ * TODO(widdows): Determine whether this can be merged into {@code VectorStoreRAM} now that
+ * the choice of sparse or dense vectors is managed automatically in the vectors package.
+ * 
+ * @see {@code ObjectVector}, @see {@code Vector}.
  **/
 public class VectorStoreSparseRAM implements VectorStore {
   private static final Logger logger = Logger.getLogger(
       VectorStoreSparseRAM.class.getCanonicalName());
 
-  private Hashtable<String, short[]> sparseVectors;
+  private Hashtable<String, Vector> sparseVectors;
   int dimension;
   int seedLength;
 
   // Default constructor.
   public VectorStoreSparseRAM(int dimension) {
-    this.sparseVectors = new Hashtable<String, short[]>();
+    this.sparseVectors = new Hashtable<String, Vector>();
     this.dimension = dimension;
   }
 
@@ -81,13 +80,14 @@ public class VectorStoreSparseRAM implements VectorStore {
 
     logger.info("Creating store of sparse vectors  ...");
     for (int i = 0; i < numVectors; ++i) {
-      short[] sparseVector = VectorUtils.generateRandomVector(seedLength, dimension, random);
+      Vector sparseVector = VectorFactory.generateRandomVector(
+          Flags.vectortype, dimension, seedLength, random);
       this.sparseVectors.put(Integer.toString(i), sparseVector);
     }
     logger.info("Created " + sparseVectors.size() + " sparse random vectors.");
   }
 
-  public void putVector(String key, short[] sparseVector) {
+  public void putVector(String key, Vector sparseVector) {
     this.sparseVectors.put(key, sparseVector);
   }
 
@@ -97,19 +97,14 @@ public class VectorStoreSparseRAM implements VectorStore {
    * @param desiredObject - the string you're searching for
    * @return vector from the VectorStore, or null if not found. 
    */
-  public float[] getVector(Object desiredObject) {
-    short[] sparseVector = this.sparseVectors.get(desiredObject);
-    if (sparseVector != null) {
-      return VectorUtils.sparseVectorToFloatVector(sparseVector, dimension);
-    } else {
-      return null;
-    }
+  public Vector getVector(Object desiredObject) {
+    return this.sparseVectors.get(desiredObject);
   }
 
   /**
    * Returns the sparse vector without going through the float[] interface.
    */
-  public short[] getSparseVector(Object desiredObject) {
+  public Vector getSparseVector(Object desiredObject) {
     return this.sparseVectors.get(desiredObject);
   }
 
@@ -141,7 +136,7 @@ public class VectorStoreSparseRAM implements VectorStore {
 
     public ObjectVector nextElement() {
       Object key = this.keys.nextElement();
-      float[] vector = this.sparseVectorStore.getVector(key);
+      Vector vector = this.sparseVectorStore.getVector(key);
       return new ObjectVector(key, vector);
     }
   }

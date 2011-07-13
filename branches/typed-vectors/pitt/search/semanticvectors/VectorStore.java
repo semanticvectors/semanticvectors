@@ -37,6 +37,8 @@ package pitt.search.semanticvectors;
 
 import java.util.Enumeration;
 
+import pitt.search.semanticvectors.vectors.Vector;
+
 /**
    Classes implementing this interface are used to represent a collection
    of object vectors, including i. methods for accessing individual
@@ -50,7 +52,7 @@ public interface VectorStore {
    * @param object the object whose vector you want to look up
    * @return a vector (of floats)
    */
-  public float[] getVector(Object object);
+  public Vector getVector(Object object);
 
   /**
    * Returns an enumeration of all the object vectors in the store.

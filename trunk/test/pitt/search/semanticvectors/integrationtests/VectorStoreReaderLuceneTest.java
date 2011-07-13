@@ -41,6 +41,8 @@ import org.junit.Test;
 
 import pitt.search.semanticvectors.ObjectVector;
 import pitt.search.semanticvectors.VectorStoreReaderLucene;
+import pitt.search.semanticvectors.vectors.RealVector;
+import pitt.search.semanticvectors.vectors.Vector;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -49,17 +51,18 @@ import java.util.NoSuchElementException;
 
 public class VectorStoreReaderLuceneTest {
 
+  private static double TOL = 0.0001;
+  
   @Before
   public void setUp() { assert(RunTests.prepareTestData()); }
 
   @Test
   public void TestReadFromTestData() throws IOException {
-    System.err.println("Running tests for VectorStoreReaderLucene");
     VectorStoreReaderLucene reader = new VectorStoreReaderLucene(RunTests.vectorBinFile);
     assertEquals(2, reader.getNumVectors());
-    float[] abraham = reader.getVector("abraham");
+    Vector abraham = reader.getVector("abraham");
     reader.close();
-    assertEquals(1.0f, abraham[0], 0.01);
+    assertEquals(1.0f, abraham.measureOverlap(new RealVector(new float[] {1, 0})), TOL);
   }
 
   @Test

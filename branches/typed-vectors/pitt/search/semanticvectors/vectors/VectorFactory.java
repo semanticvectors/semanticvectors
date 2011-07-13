@@ -60,6 +60,28 @@ public class VectorFactory {
     }
   }
 
+  /**
+   * Can be called by external methods that don't explicitly use VectorType enums.
+   * This design may be flawed, but it's easy to fix if need be.
+   * 
+   * @see {@code createZeroVector}.
+   * 
+   * @param type must be one of "binary", "real", "complex".
+   * @return new vector of the appropriate type and dimension.
+   */
+  public static Vector createZeroVector(String type, int dimension) {
+    return createZeroVector(VectorType.valueOf(type.toUpperCase()), dimension);
+  }
+  
+  /**
+   * Generates an appropriate random vector.
+   * 
+   * @param type one of the recognized vector types
+   * @param dimension number of dimensions in the generated vector
+   * @param numEntries total number of non-sero entries; must be less than half of dimension
+   * @param random random number generator; passed in to enable deterministic testing
+   * @return vector generated with appropriate type, dimension and number of nonzero entries
+   */
   public static Vector generateRandomVector(
       VectorType type, int dimension, int numEntries, Random random) {
     if (2 * numEntries >= dimension) {
@@ -75,6 +97,35 @@ public class VectorFactory {
       return complexInstance.generateRandomVector(dimension, numEntries, random);
     default:
       throw new IllegalArgumentException("Unrecognized VectorType: " + type);
+    }
+  }
+  
+  /**
+   * Can be called by external methods that don't explicitly use VectorType enums.
+   * This design may be flawed, but it's easy to fix if need be.
+   * 
+   * @see {@code generateRandomVector}
+   * 
+   * @param type must be one of "binary", "real", "complex".
+   * @return vector generated with appropriate type, dimension and number of nonzero entries
+   */
+  public static Vector generateRandomVector(
+      String type, int dimension, int numEntries, Random random) {
+    return generateRandomVector(
+        VectorType.valueOf(type.toUpperCase()), dimension, numEntries, random);
+  }
+
+  public static int getLuceneByteSize(String vectorType, int dimension) {
+    VectorType type = VectorType.valueOf(vectorType.toUpperCase());
+    switch (type) {
+      case BINARY:
+        return 8 * ((dimension / 64) + 1);
+      case REAL:
+        return 4 * dimension;
+      case COMPLEX:
+        return 8 * dimension;
+      default:
+        throw new IllegalArgumentException("Unrecognized VectorType: " + type);
     }
   }
 }

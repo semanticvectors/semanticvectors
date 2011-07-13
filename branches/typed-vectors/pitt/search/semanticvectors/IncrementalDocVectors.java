@@ -45,6 +45,10 @@ import org.apache.lucene.index.*;
 import org.apache.lucene.store.IndexOutput;
 import org.apache.lucene.store.FSDirectory;
 
+import pitt.search.semanticvectors.vectors.Vector;
+import pitt.search.semanticvectors.vectors.VectorFactory;
+import pitt.search.semanticvectors.vectors.VectorUtils;
+
 /**
  * Generates document vectors incrementally.
  * 
@@ -120,7 +124,7 @@ public class IncrementalDocVectors {
         }
       }
 
-      float[] docVector = new float[dimension];
+      Vector docVector = VectorFactory.createZeroVector(Flags.vectortype, dimension);
 
       for (String fieldName: fieldsToIndex) {
         TermFreqVector vex =
@@ -147,11 +151,9 @@ public class IncrementalDocVectors {
             // Add contribution from this term, excluding terms that
             // are not represented in termVectorData.
             try {
-              float[] termVector = termVectorData.getVector(term_string);
-              if (termVector != null && termVector.length > 0) {
-                for (int j = 0; j < dimension; ++j) {
-                  docVector[j] += localweight * globalweight *termVector[j];
-                }
+              Vector termVector = termVectorData.getVector(term_string);
+              if (termVector != null && termVector.getDimension() > 0) {
+                docVector.superpose(termVector, localweight * globalweight, null);
               }
             } catch (NullPointerException npe) {
               // Don't normally print anything - too much data!
@@ -160,14 +162,11 @@ public class IncrementalDocVectors {
             }
           }
         }
-        // All fields in document have been processed.citizens
+        // All fields in document have been processed.
         // Write out documentID and normalized vector.
         outputStream.writeString(docID);
-        docVector = VectorUtils.getNormalizedVector(docVector);
-
-        for (int i = 0; i < dimension; ++i) {
-          outputStream.writeInt(Float.floatToIntBits(docVector[i]));
-        }
+        docVector.normalize();
+        docVector.writeToLuceneStream(outputStream);
       }
     } // Finish iterating through documents.
 

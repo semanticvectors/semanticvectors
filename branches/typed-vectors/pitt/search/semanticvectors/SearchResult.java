@@ -42,11 +42,12 @@ package pitt.search.semanticvectors;
  */
 public class SearchResult{
   /** The ObjectVector in the search results. */
-  private float score;
-  /** The score given to this object in the search. */
   private Object object;
 
-  public float getScore() {
+  /** The score given to this object in the search. */
+  private double score;
+  
+  public double getScore() {
     return score;
   }
 
@@ -54,7 +55,7 @@ public class SearchResult{
     return object;
   }
 
-  public SearchResult(float score, Object object) {
+  public SearchResult(double score, Object object) {
     this.score = score;
     this.object = object;
   }

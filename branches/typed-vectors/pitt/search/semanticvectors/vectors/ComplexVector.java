@@ -151,13 +151,12 @@ public class ComplexVector extends Vector {
     return debugString.toString();
   }
 
-
-
   public ComplexVector createZeroVector(int dimension) {
     return new ComplexVector(dimension);
   }
 
-  private boolean isZeroVector() {
+  @Override
+  public boolean isZeroVector() {
     if (isSparse) {
       return sparseOffsets.length == 0;
     } else {
@@ -173,20 +172,20 @@ public class ComplexVector extends Vector {
   /**
    * Generates a basic sparse vector in Polar form with the format
    * { offset, phaseAngle, offset, phaseAngle, ... }
-   * Consequently the length of the offsets array is 2 X seedLength.
+   * Consequently the length of the offsets array is 2 X {@code numEntries}.
    *
    * @return Sparse representation of vector in Polar form.
    */
-  public ComplexVector generateRandomVector(int dimension, int seedLength, Random random) {
+  public ComplexVector generateRandomVector(int dimension, int numEntries, Random random) {
     ComplexVector randomVector = new ComplexVector(dimension);
     boolean[] occupiedPositions = new boolean[dimension];
-    randomVector.sparseOffsets = new char[seedLength*2];
+    randomVector.sparseOffsets = new char[numEntries*2];
     randomVector.isSparse = true;
 
     int testPlace, entryCount = 0, offsetIdx;
     char randomPhaseAngle;
 
-    while (entryCount < seedLength) {
+    while (entryCount < numEntries) {
       testPlace = random.nextInt(dimension);
       randomPhaseAngle = (char)random.nextInt(ComplexVectorUtils.phaseResolution);
       if (!occupiedPositions[testPlace]) {
@@ -464,14 +463,6 @@ public class ComplexVector extends Vector {
     this.phaseAngles = phaseAngles;
     this.opMode = MODE.POLAR;
   }
-
-  public static void main(String[] args) {
-	   // Some tests to go here;
-
-  }
-
-
-
 }
 
 

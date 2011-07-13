@@ -101,7 +101,8 @@ public class BinaryVector extends Vector {
     return new BinaryVector(dimension);
   }
 
-  private boolean isZeroVector() {
+  @Override
+  public boolean isZeroVector() {
     if (isSparse) {
       return bitSet.cardinality() == 0;
     } else {

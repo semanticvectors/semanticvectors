@@ -33,10 +33,9 @@
    SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  **/
 
-package pitt.search.semanticvectors;
+package pitt.search.semanticvectors.vectors;
 
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.Random;
 import java.util.logging.Logger;
 
@@ -47,6 +46,7 @@ import java.util.logging.Logger;
 public class VectorUtils {
   private static final Logger logger = Logger.getLogger(VectorUtils.class.getCanonicalName());
 
+  /*
   public static void printVector(float[] vector) {
     for (int i = 0; i < vector.length - 1; ++i) {
       System.out.print(vector[i] + "|");
@@ -77,9 +77,6 @@ public class VectorUtils {
     return output;
   }
 
-  /**
-   * Check whether a vector is all zeros.
-   */
   static final float kTolerance = 0.0001f;
   public static boolean isZeroVector(float[] vec) {
     for (int i = 0; i < vec.length; ++i) {
@@ -117,12 +114,6 @@ public class VectorUtils {
     return newTensor;
   }
 
-  /**
-   * Returns the scalar product (dot product) of two vectors
-   * for normalized vectors this is the same as cosine similarity.
-   * @param vec1 First vector.
-   * @param vec2 Second vector.
-   */
   public static float scalarProduct(float[] vec1, float[] vec2){
     float result = 0;
     for (int i = 0; i < vec1.length; ++i) {
@@ -131,8 +122,6 @@ public class VectorUtils {
     return result;
   }
 
-
-  /* Euclidean distance metric */
   public static float euclideanDistance(float[] vec1, float[] vec2){
     float distance=0;
     for (int i = 0; i < vec1.length; ++i) {
@@ -140,6 +129,7 @@ public class VectorUtils {
     }
     return (float) Math.sqrt(distance);
   }
+  */
 
   /**
    * Get nearest vector from list of candidates.
@@ -147,26 +137,23 @@ public class VectorUtils {
    * @param candidates The list of vectors from whoe the nearest is to be chosen.
    * @return Integer value referencing the position in the candidate list of the nearest vector.
    */
-  public static int getNearestVector(float[] vector, float[][] candidates) {
+  public static int getNearestVector(Vector vector, Vector[] candidates) {
     int nearest = 0;
-    float minDist = euclideanDistance(vector, candidates[0]);
-    float thisDist = minDist;
+    double maxSim = vector.measureOverlap(candidates[0]);
     for (int i = 1; i < candidates.length; ++i) {
-      thisDist = euclideanDistance(vector, candidates[i]);
-      if (thisDist < minDist) {
-        minDist = thisDist;
+      double thisDist = vector.measureOverlap(candidates[i]);
+      if (thisDist > maxSim) {
+        maxSim = thisDist;
         nearest = i;
       }
     }
     return nearest;
   }
 
-
-  /**
+  /*
    * Returns the normalized version of a vector, i.e. same direction,
    * unit length. If the argument is the zero vector, the zero vector is returned.
    * @param vec Vector whose normalized version is requested.
-   */
   public static float[] getNormalizedVector(float[] vec){
     if (isZeroVector(vec)) {
       return createZeroVector(vec.length);
@@ -187,10 +174,8 @@ public class VectorUtils {
     return tmpVec;
   }
 
-  /**
    * Returns the normalized version of a 2 tensor, i.e. an array of
    * arrays of floats.
-   */
   public static float[][] getNormalizedTensor(float[][] tensor){
     int dim = tensor[0].length;
     float[][] normedTensor = new float[dim][dim];
@@ -203,9 +188,7 @@ public class VectorUtils {
     return normedTensor;
   }
 
-  /**
    * Returns a 2-tensor which is the outer product of 2 vectors.
-   */
   public static float[][] getOuterProduct(float[] vec1, float[] vec2) {
     int dim = vec1.length;
     float[][] outProd = new float[dim][dim];
@@ -217,9 +200,7 @@ public class VectorUtils {
     return outProd;
   }
 
-  /**
    * Returns the sum of two tensors.
-   */
   public static float[][]	getTensorSum(float[][] ten1, float[][] ten2) {
     int dim = ten1[0].length;
     float[][] result = new float[dim][dim];
@@ -231,9 +212,7 @@ public class VectorUtils {
     return result;
   }
 
-  /**
    * Returns the inner product of two tensors.
-   */
   public static float getInnerProduct(float[][] ten1, float[][]ten2){
     float result = 0;
     int dim = ten1[0].length;
@@ -245,10 +224,8 @@ public class VectorUtils {
     return result;
   }
 
-  /**
    * Returns the convolution of two vectors; see Plate,
    * Holographic Reduced Representation, p. 76.
-   */
   public static float[] getConvolutionFromTensor(float[][] tensor){
     int dim = tensor.length;
     float[] conv = new float[2*dim - 1];
@@ -267,10 +244,8 @@ public class VectorUtils {
     return VectorUtils.getNormalizedVector(conv);
   }
 
-  /**
    * Returns the convolution of two vectors; see Plate,
    * Holographic Reduced Representation, p. 76.
-   */
   public static float[] getConvolutionFromVectors(float[] vec1, float[] vec2) {
     int dim = vec1.length;
     float[] conv = new float[2 * dim - 1];
@@ -288,11 +263,6 @@ public class VectorUtils {
     return VectorUtils.getNormalizedVector(conv);
   }
 
-  /**
-   * Sums the scalar products of a vector and each member of a list of
-   * vectors.  
-   * 
-   */
   public static float getSumScalarProduct(float[] testVector, ArrayList<float[]> vectors) {
     float score = 0;
     for (int i = 0; i < vectors.size(); ++i) {
@@ -300,18 +270,15 @@ public class VectorUtils {
     }
     return score;
   }
+  */
 
-  /**
-   * Compares a vector to its projection in a subspace
-   */
-  public static float compareWithProjection(float[] testVector, ArrayList<float[]> vectors) {
+  public static double compareWithProjection(Vector testVector, ArrayList<Vector> vectors) {
     float score = 0;
     for (int i = 0; i < vectors.size(); ++i) {
-      score += Math.pow(scalarProduct(vectors.get(i), testVector),2);
+      score += Math.pow(testVector.measureOverlap(vectors.get(i)), 2);
     }
     return (float) Math.sqrt(score);
   }
-
 
   /**
    * The orthogonalize function takes an array of vectors and
@@ -327,29 +294,26 @@ public class VectorUtils {
    * @param vectors ArrayList of vectors (which are themselves arrays of
    * floats) to be orthogonalized in place.
    */
-  public static boolean orthogonalizeVectors(ArrayList<float[]> vectors) {
-    vectors.set(0, getNormalizedVector(vectors.get(0)));
-    int dimension = vectors.get(0).length;
+  public static boolean orthogonalizeVectors(ArrayList<Vector> vectors) {
+    int dimension = vectors.get(0).getDimension();
     // Go up through vectors in turn, parameterized by k.
     for (int k = 0; k < vectors.size(); ++k) {
-      float[] kthVector = vectors.get(k);
-      if (kthVector.length != dimension) {
+      Vector kthVector = vectors.get(k);
+      kthVector.normalize();
+      if (kthVector.getDimension() != dimension) {
         logger.warning("In orthogonalizeVector: not all vectors have required dimension.");
         return false;
       }
       // Go up to vector k, parameterized by j.
       for (int j = 0; j < k; ++j) {
-        float[] jthVector = vectors.get(j);
-        float dotProduct = scalarProduct(kthVector, jthVector);
+        Vector jthVector = vectors.get(j);
+        double dotProduct = kthVector.measureOverlap(jthVector);
         // Subtract relevant amount from kth vector.
-        for (int i = 0; i < dimension; ++i) {
-          kthVector[i] -= dotProduct * jthVector[i];
-        }
+        kthVector.superpose(jthVector, -dotProduct, null);
+        // And renormalize each time.
+        kthVector.normalize();
       }
-      // Normalize the vector we're working on.
-      vectors.set(k, getNormalizedVector(kthVector));
     }
-
     return true;
   }
 
@@ -402,7 +366,6 @@ public class VectorUtils {
 
   /**
    * Given an array of floats, return an array of indices to the n largest values.
-   */
   public static short[] getNLargestPositions(float[] values, int numResults) {
     // TODO(dwiddows): Find some apprpriate "CHECK" function to use here.
     if (numResults > values.length) {
@@ -452,10 +415,10 @@ public class VectorUtils {
     }
     return results;
   }
+  */
 
   /**
    * Take a vector of floats and simplify by quantizing to a sparse format. Lossy.
-   */
   public static short[] floatVectorToSparseVector(float[] floatVector, int seedLength) {
     // TODO(dwiddows): Find some appropriate "CHECK" function to use here.
     if (seedLength > floatVector.length) {
@@ -479,6 +442,7 @@ public class VectorUtils {
     }
     return sparseVector;
   }
+  */
 
   /**
    * Translate sparse format (listing of offsets) into full float vector.
@@ -488,7 +452,6 @@ public class VectorUtils {
    * (The -1 and +1 are necessary because there is no signed
    * version of 0, so we'd have no way of telling that the
    * zeroth position in the array should be plus or minus 1.)
-   */
   public static float[] sparseVectorToFloatVector(short[] sparseVector, int dimension) {
     float[] output = new float[dimension];
     for (int i = 0; i < dimension; ++i) {
@@ -499,7 +462,8 @@ public class VectorUtils {
     }
     return output;
   }
-
+  */
+  
   /**
    * This method implements rotation as a form of vector permutation,
    * as described in Sahlgren, Holst and Kanervi 2008. This supports
@@ -533,7 +497,6 @@ public class VectorUtils {
    * @param indexVector the sparse vector to be permuted
    * @param rotation the direction and number of places to rotate
    * @return  vector with permutation
-   */
   public static float[] permuteVector (float[] indexVector, int rotation)	{
     // Correct for unlikely possibility that rotation specified > indexVector.length
     if (Math.abs(rotation) > indexVector.length)
@@ -550,35 +513,5 @@ public class VectorUtils {
 
     return permutedVector;
   }
-
-  /**
-   * Add two vectors. Overloaded vector to handle either float[] + float[] or float[] + sparse vector
-   * @param vector1 	initial vector
-   * @param vector2	vector to be added 
-   * @param weight	weight (presently only term frequency implemented - may need this to take floats later)
-   * @return sum of two vectors
-   */
-  public static float[] addVectors(float[] vector1, float[] vector2, int weight) {
-    float[] sum = vector1;
-    for (int x=0; x < sum.length; x++)
-      sum[x] = sum[x] + vector2[x]*weight;
-    return sum;
-  }
-
-  /**
-   * Add two vectors. Overloaded vector to handle either float[] + float[] or float[] + sparse vector
-   * @param vector1 	initial vector
-   * @param sparseVector	vector to be added 
-   * @param weight	weight (presently only term frequency implemented - may need this to take floats later)
-   * @return sum of two vectors
-   */
-  public static float[] addVectors(float[] vector1, short[] sparseVector, int weight) {
-    float[] sum = vector1;
-    for (int i = 0; i < sparseVector.length; ++i) {
-      short index = sparseVector[i];
-      sum[Math.abs(index) - 1] +=  Math.signum(index)* weight;
-    }
-  return sum;
-  }
-
+*/
 }

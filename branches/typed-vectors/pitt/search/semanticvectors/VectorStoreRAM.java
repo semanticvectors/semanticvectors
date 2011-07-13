@@ -41,6 +41,8 @@ import java.util.Hashtable;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import pitt.search.semanticvectors.vectors.Vector;
+
 /**
    This class provides methods for reading a VectorStore into memory
    as an optimization if batching many searches. <p>
@@ -81,10 +83,10 @@ public class VectorStoreRAM implements VectorStore {
   }
 
   // Add a single vector.
-  public void putVector(Object key, float[] vector) {
-	if (vector.length != dimension) {
-	  throw new IllegalArgumentException("Trying to add vector of dimension " + vector.length
-		  + " to VectorStore of dimension " + dimension);
+  public void putVector(Object key, Vector vector) {
+	if (vector.getDimension() != dimension) {
+	  throw new IllegalArgumentException("Trying to add vector of dimension "
+	      + vector.getDimension() + " to VectorStore of dimension " + dimension);
 	}
     ObjectVector objectVector = new ObjectVector(key, vector);
     this.objectVectors.put(key, objectVector);
@@ -111,7 +113,7 @@ public class VectorStoreRAM implements VectorStore {
    * @param desiredObject - the string you're searching for
    * @return vector from the VectorStore, or null if not found. 
    */
-  public float[] getVector(Object desiredObject) {
+  public Vector getVector(Object desiredObject) {
     ObjectVector objectVector = this.objectVectors.get(desiredObject);
     if (objectVector != null) {
       return objectVector.getVector();

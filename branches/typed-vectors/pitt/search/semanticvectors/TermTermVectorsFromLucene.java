@@ -49,6 +49,11 @@ import org.apache.lucene.index.TermEnum;
 import org.apache.lucene.index.TermPositionVector;
 import org.apache.lucene.store.FSDirectory;
 
+import pitt.search.semanticvectors.vectors.PermutationUtils;
+import pitt.search.semanticvectors.vectors.Vector;
+import pitt.search.semanticvectors.vectors.VectorFactory;
+import pitt.search.semanticvectors.vectors.VectorUtils;
+
 /**
  * Implementation of vector store that creates term by term
  * co-occurrence vectors by iterating through all the documents in a
@@ -74,8 +79,7 @@ public class TermTermVectorsFromLucene implements VectorStore {
   private int minFreq;
   private int maxFreq;
   private int windowSize;
-  private float[][] localindexvectors;
-  private short[][] localsparseindexvectors;
+  private Vector[] localindexvectors;
   private LuceneUtils lUtils;
   private int maxNonAlphabet;
 
@@ -98,7 +102,7 @@ public class TermTermVectorsFromLucene implements VectorStore {
   public String[] getFieldsToIndex(){ return this.fieldsToIndex; }
 
   // Basic VectorStore interface methods implemented through termVectors.
-  public float[] getVector(Object term) {
+  public Vector getVector(Object term) {
     return termVectors.getVector(term);
   }
 
@@ -183,12 +187,13 @@ public class TermTermVectorsFromLucene implements VectorStore {
         continue;
       }
       tc++;
-      float[] termVector = new float[dimension];
+      Vector termVector = VectorFactory.createZeroVector(Flags.vectortype, dimension);
       // Place each term vector in the vector store.
       this.termVectors.putVector(term.text(), termVector);
       // Do the same for random index vectors unless retraining with trained term vectors
       if (!retraining) {
-        short[] indexVector =  VectorUtils.generateRandomVector(seedLength, dimension, random);
+        Vector indexVector =  VectorFactory.generateRandomVector(
+            Flags.vectortype, dimension, seedLength, random);
         ((VectorStoreSparseRAM) this.indexVectors).putVector(term.text(), indexVector);
       }
     }
@@ -218,8 +223,8 @@ public class TermTermVectorsFromLucene implements VectorStore {
     Enumeration<ObjectVector> e = termVectors.getAllVectors();
     while (e.hasMoreElements())	{
       ObjectVector temp = e.nextElement();
-      float[] next = temp.getVector();
-      next = VectorUtils.getNormalizedVector(next);
+      Vector next = temp.getVector();
+      next.normalize();
       temp.setVector(next);
     }
     
@@ -231,8 +236,8 @@ public class TermTermVectorsFromLucene implements VectorStore {
       Enumeration<ObjectVector> f = indexVectors.getAllVectors();
       while (f.hasMoreElements())	{
         ObjectVector temp = f.nextElement();
-        float[] next = temp.getVector();
-        next = VectorUtils.getNormalizedVector(next);
+        Vector next = temp.getVector();
+        next.normalize();
         temp.setVector(next);
       }
       new VectorStoreWriter(dimension).writeVectors(randFile, this.indexVectors);
@@ -268,12 +273,8 @@ public class TermTermVectorsFromLucene implements VectorStore {
     numpositions += 1; //convert from zero-based index to count
 
     // Create local random index and term vectors for relevant terms.
-    if (retraining)
-      localindexvectors = new float[numwords][dimension];
-    else
-      localsparseindexvectors = new short[numwords][seedLength];
-
-    float[][] localtermvectors = new float[numwords][dimension];
+    localindexvectors = new Vector[numwords];
+    Vector[] localtermvectors = new Vector[numwords];
 
     // Create index with one space for each position.
     short[] positions = new short[numpositions];
@@ -293,11 +294,7 @@ public class TermTermVectorsFromLucene implements VectorStore {
       // Only terms that have passed the term filter are included in the VectorStores.
       if (this.indexVectors.getVector(docterms[tcn]) != null) {
         // Retrieve relevant random index vectors.
-        if (retraining)
-          localindexvectors[tcn] = indexVectors.getVector(docterms[tcn]);
-        else
-          localsparseindexvectors[tcn] =
-            ((VectorStoreSparseRAM) indexVectors).getSparseVector(docterms[tcn]);
+        localindexvectors[tcn] = indexVectors.getVector(docterms[tcn]);
 
         // Retrieve the float[] arrays of relevant term vectors.
         localtermvectors[tcn] = termVectors.getVector(docterms[tcn]);
@@ -329,46 +326,30 @@ public class TermTermVectorsFromLucene implements VectorStore {
         if (coterm == NONEXISTENT) continue;
         // calculate permutation required for either Sahlgren (2008) implementation
         // encoding word order, or encoding direction as in Burgess and Lund's HAL
-        float[] localindex= new float[0];
-        short[] localsparseindex = new short[0];
-        if (retraining) localindex = localindexvectors[coterm].clone();
-        else localsparseindex = localsparseindexvectors[coterm].clone();
+        Vector localindex = localindexvectors[coterm];
 
         //combine 'content' and 'order' information - first add the unpermuted vector
-        if (positionalmethod.equals("permutation_plus_basic"))
-        {
+        if (positionalmethod.equals("permutation_plus_basic")) {
           // docterms[coterm] contains the term in position[w] in this document.
           if (this.indexVectors.getVector(docterms[coterm]) != null
               && localtermvectors[focusterm] != null) {
-            if (retraining)
-              VectorUtils.addVectors(localtermvectors[focusterm],localindex,1);
-            else
-              VectorUtils.addVectors(localtermvectors[focusterm],localsparseindex,1);
+            localtermvectors[focusterm].superpose(localindex, 1, null);
           }
         }
 
-        if (positionalmethod.equals("permutation") || positionalmethod.equals("permutation_plus_basic")) {
-          int permutation = w - focusposn;
-          if (retraining)
-            localindex = VectorUtils.permuteVector(localindex , permutation);
-          else localsparseindex =  VectorUtils.permuteVector(localsparseindex, permutation, dimension);
+        int[] permutation = null;
+        if ((positionalmethod.equals("permutation"))
+            || (positionalmethod.equals("permutation_plus_basic"))) {
+          permutation = PermutationUtils.getShiftPermutation(dimension, w - focusposn);
         } else if (positionalmethod.equals("directional")) {
-          if (retraining) {
-            localindex = VectorUtils.permuteVector(
-                localindex, new Float(Math.signum(w-focusposn)).intValue());
-          } else {
-            localsparseindex = VectorUtils.permuteVector(
-              localsparseindex, new Float(Math.signum(w-focusposn)).intValue(), dimension);
-          }
+          permutation = PermutationUtils.getShiftPermutation(
+              dimension, (int) Math.signum(w - focusposn));
         }
 
         // docterms[coterm] contains the term in position[w] in this document.
         if (this.indexVectors.getVector(docterms[coterm]) != null
             && localtermvectors[focusterm] != null) {
-          if (retraining)
-            VectorUtils.addVectors(localtermvectors[focusterm],localindex,1);
-          else
-            VectorUtils.addVectors(localtermvectors[focusterm],localsparseindex,1);
+          localtermvectors[focusterm].superpose(localindex, 1, permutation);
         }
       }
     }

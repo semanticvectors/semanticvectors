@@ -35,32 +35,38 @@ package pitt.search.semanticvectors;
 
 import org.junit.*;
 
+import pitt.search.semanticvectors.vectors.RealVector;
+import pitt.search.semanticvectors.vectors.Vector;
+
 import junit.framework.TestCase;
 
 public class VectorStoreRAMTest extends TestCase {
 
+    static double TOL = 0.0001;
+  
 	@Test
 		public void testCreateWriteAndRead() {
 		VectorStoreRAM vectorStore = new VectorStoreRAM(2);
 		assertEquals(0, vectorStore.getNumVectors());
-		float[] vector = {1.0f, 2.0f};
+	    Vector vector = new RealVector(new float[] {1.0f, 0.0f});
 		vectorStore.putVector("my vector", vector);
 		assertEquals(1, vectorStore.getNumVectors());
-		float[] vectorOut = vectorStore.getVector("my vector"); 
-		assertEquals(2, vectorOut.length);
+		Vector vectorOut = vectorStore.getVector("my vector"); 
+		assertEquals(2, vectorOut.getDimension());
+		assertEquals(1, vectorOut.measureOverlap(vector), TOL);
 	}
 
 	@Test
 		public void testRepeatReads() {
 		VectorStoreRAM vectorStore = new VectorStoreRAM(2);
 		assertEquals(0, vectorStore.getNumVectors());
-		float[] vector = {1.0f, 2.0f};
+        Vector vector = new RealVector(new float[] {1.0f, 0.0f});
 		vectorStore.putVector("my vector", vector);
 		assertEquals(1, vectorStore.getNumVectors());
-		float[] vectorOut = vectorStore.getVector("my vector"); 
-		assertEquals(2, vectorOut.length);
+		Vector vectorOut = vectorStore.getVector("my vector"); 
+		assertEquals(2, vectorOut.getDimension());
 		vectorOut = null;
 		vectorOut = vectorStore.getVector("my vector"); 
-		assertEquals(2, vectorOut.length);
+		assertEquals(2, vectorOut.getDimension());
 	}
 }

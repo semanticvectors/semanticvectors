@@ -40,6 +40,9 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.logging.Logger;
 
+import pitt.search.semanticvectors.vectors.Vector;
+import pitt.search.semanticvectors.vectors.VectorUtils;
+
 
 /**
  * Command line term vector comparison utility designed to be run in
@@ -160,16 +163,14 @@ public class CompareTermsBatch{
           throw new IllegalArgumentException("The separator '" + separator +
             "' must occur exactly once (found " + (elems.length - 1) + " occurrences)");
         }
-        float[] vec1 = CompoundVectorBuilder.getQueryVectorFromString(vecReader,
-                                                                    luceneUtils,
-                                                                    elems[0]);
-        float[] vec2 = CompoundVectorBuilder.getQueryVectorFromString(vecReader,
-                                                                    luceneUtils,
-                                                                    elems[1]);
+        Vector vec1 = CompoundVectorBuilder.getQueryVectorFromString(
+            vecReader, luceneUtils, elems[0]);
+        Vector vec2 = CompoundVectorBuilder.getQueryVectorFromString(
+            vecReader, luceneUtils, elems[1]);
         if (vecReader instanceof VectorStoreReaderLucene) {
           ((VectorStoreReaderLucene)vecReader).close();
         }
-        float simScore = VectorUtils.scalarProduct(vec1, vec2);
+        double simScore = vec1.measureOverlap(vec2);
         logger.info("score=" + simScore);
         System.out.println(simScore);
       }

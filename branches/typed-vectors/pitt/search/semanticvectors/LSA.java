@@ -5,6 +5,12 @@ import org.apache.lucene.index.TermDocs;
 import org.apache.lucene.index.TermEnum;
 import org.apache.lucene.store.IndexOutput;
 import org.apache.lucene.store.FSDirectory;
+
+import pitt.search.semanticvectors.vectors.RealVector;
+import pitt.search.semanticvectors.vectors.Vector;
+import pitt.search.semanticvectors.vectors.VectorFactory;
+import pitt.search.semanticvectors.vectors.VectorUtils;
+
 import java.io.File;
 import java.util.logging.Logger;
 
@@ -225,15 +231,15 @@ public class LSA {
     for (cnt = 0; cnt < vT.cols; cnt++) {
       outputStream.writeString(theTerms[cnt]);
 
-      float[] termVector = new float[Flags.dimension];
+      Vector termVector = VectorFactory.createZeroVector(Flags.vectortype, Flags.dimension);
 
+      float[] tmp = new float[Flags.dimension];
       for (int i = 0; i < Flags.dimension; i++)
-        termVector[i] = (float) vT.value[i][cnt];
-      termVector = VectorUtils.getNormalizedVector(termVector);
-
-      for (int i = 0; i < Flags.dimension; ++i) {
-        outputStream.writeInt(Float.floatToIntBits(termVector[i]));
-      }
+        tmp[i] = (float) vT.value[i][cnt];
+      termVector = new RealVector(tmp);
+      termVector.normalize();
+      
+      termVector.writeToLuceneStream(outputStream);
     }
 
     logger.info("Wrote "+cnt+" term vectors to "+termFile);
@@ -261,17 +267,15 @@ public class LSA {
     for (cnt = 0; cnt < uT.cols; cnt++) {
       String thePath = indexReader.document(cnt).get("path");
       outputStream.writeString(thePath);
-      float[] docVector = new float[Flags.dimension];
+      float[] tmp = new float[Flags.dimension];
 
       for (int i = 0; i < Flags.dimension; i++)
-        docVector[i] = (float) uT.value[i][cnt];
-      docVector = VectorUtils.getNormalizedVector(docVector);
+        tmp[i] = (float) uT.value[i][cnt];
+      RealVector docVector = new RealVector(tmp);
 
-      for (int i = 0; i < Flags.dimension; ++i) {
-
-        outputStream.writeInt(Float.floatToIntBits(docVector[i]));
-      }
+      docVector.writeToLuceneStream(outputStream);
     }
+
     logger.info("Wrote "+cnt+" document vectors to "+docFile);
     outputStream.flush();
     outputStream.close();

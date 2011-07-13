@@ -43,6 +43,9 @@ import java.util.Enumeration;
 import java.util.NoSuchElementException;
 import java.util.logging.Logger;
 
+import pitt.search.semanticvectors.vectors.Vector;
+import pitt.search.semanticvectors.vectors.VectorFactory;
+
 /**
    This class provides methods for reading a VectorStore from a textfile.<p>
 
@@ -124,18 +127,12 @@ public class VectorStoreReaderText implements CloseableVectorStore {
   /**
    * Returns an object vector from a text line.
    */
-  // TODO(dwiddows): Turn put this inside ObjectVector and Vector.
+  // TODO(widdows): This is eminently testable.
   public ObjectVector parseVectorLine(String line) throws IOException {
-    String[] entries = line.split("\\|");
-    if (entries.length != dimension + 1) {
-      throw new IOException("Found " + (entries.length - 1) + " possible coordinates: "
-          + "expected " + dimension);
-    }
-    String objectName = entries[0];
-    float[] tmpVector = new float[dimension];
-    for (int i = 0; i < dimension; ++i) {
-      tmpVector[i] = Float.parseFloat(entries[i + 1]);
-    }
+    int firstSplitPoint = line.indexOf("|");
+    String objectName = new String(line.substring(0, firstSplitPoint));
+    Vector tmpVector = VectorFactory.createZeroVector(Flags.vectortype, dimension);
+    tmpVector.readFromString(line.substring(firstSplitPoint + 1, line.length()));
     return new ObjectVector(objectName, tmpVector);
   }
 
@@ -144,7 +141,7 @@ public class VectorStoreReaderText implements CloseableVectorStore {
    * This implementation only works for string objects so far <br>
    * @param desiredObject - the string identifying the object being searched for.
    */
-  public float[] getVector(Object desiredObject) {
+  public Vector getVector(Object desiredObject) {
     logger.info("Seeking vector for ... " + desiredObject + " ... ");
     try {
       this.close();

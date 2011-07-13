@@ -38,6 +38,9 @@ package pitt.search.semanticvectors;
 import java.io.IOException;
 import java.util.logging.Logger;
 
+import pitt.search.semanticvectors.vectors.Vector;
+import pitt.search.semanticvectors.vectors.VectorUtils;
+
 /**
  * Command line term vector comparison utility. This enables users to
  get raw similarities between two concepts. These concepts may be
@@ -124,18 +127,15 @@ public class CompareTerms{
           + "so all query terms will have same weight.");
     }
 
-    float[] vec1 = CompoundVectorBuilder.getQueryVectorFromString(vecReader,
-        luceneUtils,
-        args[0]);
-    float[] vec2 = CompoundVectorBuilder.getQueryVectorFromString(vecReader,
-        luceneUtils,
-        args[1]);
+    Vector vec1 = CompoundVectorBuilder.getQueryVectorFromString(
+        vecReader, luceneUtils, args[0]);
+    Vector vec2 = CompoundVectorBuilder.getQueryVectorFromString(
+        vecReader, luceneUtils, args[1]);
     vecReader.close();
-    float simScore = VectorUtils.scalarProduct(vec1, vec2);
+    double simScore = vec1.measureOverlap(vec2);
     // Logging prompt and printing score to stdout, this should enable
     // easier batch scripting to combine input and output data.
-    logger.info("Outputting similarity of \"" + args[0]
-                                                     + "\" with \"" + args[1] + "\" ...");
+    logger.info("Outputting similarity of \"" + args[0] + "\" with \"" + args[1] + "\" ...");
     System.out.println(simScore);
   }
 }

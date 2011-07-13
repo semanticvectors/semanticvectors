@@ -39,6 +39,9 @@ import java.io.IOException;
 import java.util.LinkedList;
 import java.util.logging.Logger;
 
+import pitt.search.semanticvectors.vectors.Vector;
+import pitt.search.semanticvectors.vectors.VectorUtils;
+
 /**
  * Command line term vector search utility.
  *
@@ -76,21 +79,6 @@ import java.util.logging.Logger;
  * <br/><b>maxsim</b>:
  * "Closest disjunction" - get vectors for each query term, score
  * by measuring distance to each term and taking the minimum.
- *
- * @see VectorSearcher.VectorSearcherTensorSim
- * <br/><b>tensor</b>:
- * A product similarity that trains by taking ordered pairs of
- * terms, a target query term, and searches for the term whose tensor
- * product with the target term gives the largest similarity with training tensor.
- * Will almost certainly not work well until convolution / tensor relations are
- * built into indexing phase.
- *
- * @see VectorSearcher.VectorSearcherConvolutionSim
- * <br/><b>convolution</b>:
- * Similar to <code>TENSOR</code>, product similarity that trains
- * by taking ordered pairs of terms, a target query term, and
- * searches for the term whose convolution product with the target
- * term gives the largest similarity with training convolution.
  *
  * @see VectorSearcher.VectorSearcherPerm
  * <br/><b>permutation</b>
@@ -238,53 +226,6 @@ public class Search {
         logger.info(zve.getMessage());
         results = new LinkedList<SearchResult>();
       }
-    } else if (Flags.searchtype.equals("sparsesum")) {
-      // Option for quantizing to sparse vectors before
-      // comparing. This is for experimental purposes to see how much
-      // we lose by compressing to a sparse bit vector.
-      // Create VectorSearcher and search for nearest neighbors.
-      try {
-        vecSearcher =
-            new VectorSearcher.VectorSearcherCosineSparse(queryVecReader,
-                                                          searchVecReader,
-                                                          luceneUtils,
-                                                          args);
-        logger.info("Searching term vectors, searchtype SPARSESUM ... ");
-        results = vecSearcher.getNearestNeighbors(numResults);
-      } catch (ZeroVectorException zve) {
-        logger.info(zve.getMessage());
-        results = new LinkedList<SearchResult>();
-      }
-    } else if (Flags.searchtype.equals("tensor")) {
-      // Tensor product.
-      // Create VectorSearcher and search for nearest neighbors.
-      try {
-        vecSearcher =
-            new VectorSearcher.VectorSearcherTensorSim(queryVecReader,
-                                                       searchVecReader,
-                                                       luceneUtils,
-                                                       args);
-        logger.info("Searching term vectors, searchtype TENSOR ... ");
-        results = vecSearcher.getNearestNeighbors(numResults);
-      } catch (ZeroVectorException zve) {
-        logger.info(zve.getMessage());
-        results = new LinkedList<SearchResult>();
-      }
-    } else if (Flags.searchtype.equals("convolution")) {
-      // Convolution product.
-      // Create VectorSearcher and search for nearest neighbors.
-      try {
-        vecSearcher =
-            new VectorSearcher.VectorSearcherConvolutionSim(queryVecReader,
-                                                            searchVecReader,
-                                                            luceneUtils,
-                                                            args);
-        logger.info("Searching term vectors, searchtype CONVOLUTION ... ");
-        results = vecSearcher.getNearestNeighbors(numResults);
-      } catch (ZeroVectorException zve) {
-        logger.info(zve.getMessage());
-        results = new LinkedList<SearchResult>();
-      }
     } else if (Flags.searchtype.equals("subspace")) {
       // Quantum disjunction / subspace similarity.
       // Create VectorSearcher and search for nearest neighbors.
@@ -350,10 +291,9 @@ public class Search {
       }
     } else if (Flags.searchtype.equals("printquery")) {
       // Simply prints out the query vector: doesn't do any searching.
-      float[] queryVector = CompoundVectorBuilder.getQueryVector(queryVecReader,
-                                                                 luceneUtils,
-                                                                 args);
-      VectorUtils.printVector(queryVector);
+      Vector queryVector = CompoundVectorBuilder.getQueryVector(
+          queryVecReader, luceneUtils, args);
+      System.out.println(queryVector.toString());
       return new LinkedList<SearchResult>();
     } else {
       // This shouldn't happen: unrecognized options shouldn't have got past the Flags parsing.
@@ -373,7 +313,7 @@ public class Search {
     ObjectVector[] resultsList = new ObjectVector[results.size()];
     for (int i = 0; i < results.size(); ++i) {
       String term = ((ObjectVector)results.get(i).getObject()).getObject().toString();
-      float[] tmpVector = searchVecReader.getVector(term);
+      Vector tmpVector = searchVecReader.getVector(term);
       resultsList[i] = new ObjectVector(term, tmpVector);
     }
     return resultsList;

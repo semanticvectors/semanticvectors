@@ -35,18 +35,20 @@
 
 package pitt.search.semanticvectors;
 
+import pitt.search.semanticvectors.vectors.Vector;
+
 /**
  * This class provides a basic object (e.g., term or document id) and
  * corresponding vector.
  */
 public class ObjectVector{
   private Object object;
-  private float[] vector;
+  private Vector vector;
 
   public Object getObject(){return object;}
-  public float[] getVector(){return vector;}
+  public Vector getVector(){return vector;}
 
-  public void setVector(float[] newVector){
+  public void setVector(Vector newVector){
     this.vector = newVector;
   }
 
@@ -55,7 +57,7 @@ public class ObjectVector{
    * @param vector  The corresponding vector.
    * @see VectorStore
    */
-  public ObjectVector(Object object, float[] vector){
+  public ObjectVector(Object object, Vector vector){
     this.object = object;
     this.vector = vector;
   }

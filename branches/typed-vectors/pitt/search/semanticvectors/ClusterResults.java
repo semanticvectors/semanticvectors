@@ -38,6 +38,10 @@ package pitt.search.semanticvectors;
 import java.util.Random;
 import java.util.logging.Logger;
 
+import pitt.search.semanticvectors.vectors.Vector;
+import pitt.search.semanticvectors.vectors.VectorFactory;
+import pitt.search.semanticvectors.vectors.VectorUtils;
+
 /**
  * Clusters search results using a simple k-means algorithm.
  * 
@@ -56,8 +60,8 @@ public class ClusterResults {
   public static int[] kMeansCluster (ObjectVector[] objectVectors, int numClusters) {
     int[] clusterMappings = new int[objectVectors.length];
     Random rand = new Random();
-    int dim = objectVectors[0].getVector().length;
-    float[][] centroids = new float[numClusters][dim];
+    int dim = objectVectors[0].getVector().getDimension();
+    Vector[] centroids = new Vector[numClusters];
 
     logger.info("Initializing clusters ...");
 
@@ -77,18 +81,14 @@ public class ClusterResults {
     while (true) {
       // Clear centroid register.
       for (int i = 0; i < centroids.length; ++i) {
-        for (int j = 0; j < dim; ++j) {
-          centroids[i][j] = 0;
-        }
+        centroids[i] = VectorFactory.createZeroVector(Flags.vectortype, Flags.dimension); 
       }
       // Generate new cluster centroids.
       for (int i = 0; i < objectVectors.length; ++i) {
-        for (int j = 0; j < dim; ++j) {
-          centroids[clusterMappings[i]][j] += objectVectors[i].getVector()[j];
-        }
+        centroids[clusterMappings[i]].superpose(objectVectors[i].getVector(), 1, null);
       }
       for (int i = 0; i < numClusters; ++i) {
-        centroids[i] = VectorUtils.getNormalizedVector(centroids[i]);
+        centroids[i].normalize();
       }
 
       boolean changeFlag = false;

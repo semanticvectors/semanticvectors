@@ -117,7 +117,8 @@ public class RealVector extends Vector {
     return new RealVector(dimension);
   }
 
-  private boolean isZeroVector() {
+  @Override
+  public boolean isZeroVector() {
     if (isSparse) {
       return sparseOffsets.length == 0;
     } else {
@@ -361,12 +362,12 @@ public class RealVector extends Vector {
   }
 
   // Available for testing and copying.
-  protected RealVector(float[] coordinates) {
+  public RealVector(float[] coordinates) {
     this.dimension = coordinates.length;
     this.coordinates = coordinates;
   }
   // Available for testing and copying.
-  protected RealVector(int dimension, short[] sparseOffsets) {
+  public RealVector(int dimension, short[] sparseOffsets) {
     this.isSparse = true;
     this.dimension = dimension;
     for (Short offset : sparseOffsets) {

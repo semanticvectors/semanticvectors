@@ -53,6 +53,7 @@ enum VectorType {
  * @author Dominic Widdows
  */
 public abstract class Vector {
+
   /**
    * Returns a copy of this vector.
    */
@@ -74,6 +75,9 @@ public abstract class Vector {
   
   /** Returns the dimension of the vector. */
   public abstract int getDimension();
+  
+  /** Returns true if this is a representation of a zero vector. */
+  public abstract boolean isZeroVector();
   
   /**
    * Returns a canonical overlap measure (usually between 0 and 1) between this and other.
