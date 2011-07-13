@@ -39,8 +39,8 @@ import pitt.search.semanticvectors.CompoundVectorBuilder;
 import pitt.search.semanticvectors.LuceneUtils;
 import pitt.search.semanticvectors.VectorSearcher;
 import pitt.search.semanticvectors.VectorStore;
-import pitt.search.semanticvectors.VectorUtils;
 import pitt.search.semanticvectors.ZeroVectorException;
+import pitt.search.semanticvectors.vectors.VectorUtils;
 
 /**
  * This class extends VectorSeracher and is used to return a query vector

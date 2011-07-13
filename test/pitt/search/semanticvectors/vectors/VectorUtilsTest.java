@@ -31,7 +31,7 @@
    THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  **/
 
-package pitt.search.semanticvectors;
+package pitt.search.semanticvectors.vectors;
 
 import java.util.ArrayList;
 
@@ -39,36 +39,34 @@ import junit.framework.TestCase;
 
 import org.junit.Test;
 
-public class VectorUtilsTest extends TestCase {
+import pitt.search.semanticvectors.Flags;
+import pitt.search.semanticvectors.vectors.VectorUtils;
 
-  @Test
-  public void testScalarProduct() {
-    float[] vec1 = new float[] {1, 1, 0};
-    float[] vec2 = new float[] {1, 0, 1};
-    assertEquals(1.0, VectorUtils.scalarProduct(vec1, vec2), 0.0001);
-  }
+public class VectorUtilsTest extends TestCase {
+  static double TOL = 0.0001;
 
   @Test
   public void testOrthogonalizeVectors() {
     Flags.dimension = 3;
-    float[] vec1 = new float[] {1, 2, 1};
-    float[] vec2 = new float[] {2, 3, 1};
-    float[] vec3 = new float[] {2, 1, 1};
-    ArrayList<float[]> list = new ArrayList<float[]>();
+    Vector vec1 = new RealVector(new float[] {1, 2, 1});
+    Vector vec2 = new RealVector(new float[] {2, 3, 1});
+    Vector vec3 = new RealVector(new float[] {2, 1, 1});
+    ArrayList<Vector> list = new ArrayList<Vector>();
     list.add(vec1);
     list.add(vec2);
     list.add(vec3);
-    VectorUtils.orthogonalizeVectors(list);
 
-    for (int i = 0; i < list.size(); ++i) {
-      assertEquals(1.0, VectorUtils.scalarProduct(list.get(i), list.get(i)), 0.0001);
-      for (int j = i + 1; j < list.size(); ++j) {
-        assertEquals(0.0, VectorUtils.scalarProduct(list.get(i), list.get(j)), 0.0001);
-      }
-      assertEquals(1.0, VectorUtils.getSumScalarProduct(list.get(i), list), 0.0001);
-    }
+    VectorUtils.orthogonalizeVectors(list);
+    
+    assertEquals(1.0, list.get(0).measureOverlap(list.get(0)), TOL);
+    assertEquals(1.0, list.get(1).measureOverlap(list.get(1)), TOL);
+    assertEquals(1.0, list.get(2).measureOverlap(list.get(2)), TOL);
+    assertEquals(0, list.get(0).measureOverlap(list.get(1)), TOL);
+    assertEquals(0, list.get(0).measureOverlap(list.get(2)), TOL);
+    assertEquals(0, list.get(1).measureOverlap(list.get(2)), TOL);
   }
 
+  /*
   @Test
   public void testGetNLargestPositions() {
     float[] floatVector = {2.3f, 0.1f, -1.0f};
@@ -109,4 +107,5 @@ public class VectorUtilsTest extends TestCase {
     assertEquals(1, floatVector[1], 0.0001);
     assertEquals(-1, floatVector[3], 0.0001);
   }
+  */
 }

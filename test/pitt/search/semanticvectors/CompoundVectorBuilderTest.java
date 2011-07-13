@@ -33,30 +33,33 @@
 
 package pitt.search.semanticvectors;
 
-import java.lang.Math;
-
 import junit.framework.TestCase;
 
-import org.junit.*;
+import org.junit.Test;
+
+import pitt.search.semanticvectors.vectors.RealVector;
+import pitt.search.semanticvectors.vectors.Vector;
 
 public class CompoundVectorBuilderTest extends TestCase {
+  
+  static double TOL = 0.0001;
 
   private VectorStoreRAM createVectorStore() {
     VectorStoreRAM vectorStore = new VectorStoreRAM(2);
-    float[] vector1 = {1.0f, 2.0f};
+    Vector vector1 = new RealVector(new float[] {1.0f, 0.0f});
     vectorStore.putVector("vector1", vector1);
-    float[] vector2 = {1.0f, -1.0f};
+    Vector vector2 = new RealVector(new float[] {1.0f, -1.0f});
     vectorStore.putVector("vector2", vector2);
     return vectorStore;
   }
 
   private VectorStoreRAM createNormalizedVectorStore() {
     VectorStoreRAM vectorStore = new VectorStoreRAM(2);
-    float[] vector1 = {1.0f, 2.0f};
-    vector1 = VectorUtils.getNormalizedVector(vector1);
+    Vector vector1 = new RealVector(new float[] {1.0f, 0.0f});
+    vector1.normalize();
     vectorStore.putVector("vector1", vector1);
-    float[] vector2 = {1.0f, -1.0f};
-    vector2 = VectorUtils.getNormalizedVector(vector2);
+    Vector vector2 = new RealVector(new float[] {1.0f, -1.0f});
+    vector2.normalize();
     vectorStore.putVector("vector2", vector2);
     return vectorStore;
   }
@@ -64,40 +67,38 @@ public class CompoundVectorBuilderTest extends TestCase {
   @Test
     public void testGetAdditiveQueryVector() {
     VectorStore vectorStore = createVectorStore();
-    float[] queryVector =
+    Vector queryVector =
       CompoundVectorBuilder.getQueryVectorFromString(vectorStore, null, "vector1 vector2");
-    assertEquals(2, queryVector.length);
-    float norm = (float) Math.sqrt(5);
-    assertEquals(2.0/norm, queryVector[0], 0.0001);
-    assertEquals(1.0/norm, queryVector[1], 0.0001);
+    assertEquals(2, queryVector.getDimension());
+    assertEquals(0.8944272, queryVector.measureOverlap(vectorStore.getVector("vector1")), TOL);
 
     // Test again to check for side effects.
-    @SuppressWarnings("unused")
-    float[] queryVector2 =
+    Vector queryVector2 =
       CompoundVectorBuilder.getQueryVectorFromString(vectorStore, null, "vector1 vector2");
-    assertEquals(2, queryVector.length);
-    assertEquals(2.0/norm, queryVector[0], 0.0001);
-    assertEquals(1.0/norm, queryVector[1], 0.0001);
+    assertEquals(2, queryVector.getDimension());
+    assertEquals(0.8944272, queryVector.measureOverlap(vectorStore.getVector("vector1")), TOL);
+    assertEquals(2, queryVector2.getDimension());
+    assertEquals(0.8944272, queryVector2.measureOverlap(vectorStore.getVector("vector1")), TOL);
   }
 
   @Test
     public void testGetNegatedQueryVector() {
     VectorStore vectorStore = createNormalizedVectorStore();
-    float[] queryVector =
+    Vector queryVector =
       CompoundVectorBuilder.getQueryVectorFromString(vectorStore, null, "vector1 vector2");
-    assertEquals(VectorUtils.scalarProduct(queryVector, vectorStore.getVector("vector1")),
-		 VectorUtils.scalarProduct(queryVector, vectorStore.getVector("vector2")),
-		 0.001);
+    assertEquals(queryVector.measureOverlap(vectorStore.getVector("vector1")),
+		 queryVector.measureOverlap(vectorStore.getVector("vector2")),
+		 TOL);
 
     queryVector =
       CompoundVectorBuilder.getQueryVectorFromString(vectorStore, null, "vector1 NOT vector2");
-    assertEquals(0, VectorUtils.scalarProduct(queryVector, vectorStore.getVector("vector2")), 0.01);
+    assertEquals(0, queryVector.measureOverlap(vectorStore.getVector("vector2")), TOL);
 
     Flags.suppressnegatedqueries = true;
     queryVector =
       CompoundVectorBuilder.getQueryVectorFromString(vectorStore, null, "vector1 NOT vector2");
-    assertEquals(VectorUtils.scalarProduct(queryVector, vectorStore.getVector("vector1")),
-		 VectorUtils.scalarProduct(queryVector, vectorStore.getVector("vector2")),
-		 0.001);
+    assertEquals(queryVector.measureOverlap(vectorStore.getVector("vector1")),
+		 queryVector.measureOverlap(vectorStore.getVector("vector2")),
+		 TOL);
   }
 }

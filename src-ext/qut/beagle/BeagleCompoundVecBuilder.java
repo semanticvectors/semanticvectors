@@ -44,7 +44,7 @@ import cern.colt.matrix.tfloat.impl.DenseFloatMatrix1D;
 import pitt.search.semanticvectors.LuceneUtils;
 import pitt.search.semanticvectors.ObjectVector;
 import pitt.search.semanticvectors.VectorStore;
-import pitt.search.semanticvectors.VectorUtils;
+import pitt.search.semanticvectors.vectors.VectorUtils;
 
 /**
  * This class is based on CompoundVectorBuilder and is used to construct

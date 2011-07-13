@@ -35,6 +35,8 @@ package pitt.search.semanticvectors;
 
 import org.junit.*;
 
+import pitt.search.semanticvectors.vectors.Vector;
+
 import junit.framework.TestCase;
 
 public class VectorStoreSparseRAMTest extends TestCase {
@@ -46,7 +48,7 @@ public class VectorStoreSparseRAMTest extends TestCase {
     assertEquals(0, sparseVectorStore.getNumVectors());
     sparseVectorStore.createRandomVectors(10, 20);
     assertEquals(10, sparseVectorStore.getNumVectors());
-    float[] vectorFor1 = sparseVectorStore.getVector("1");
-    assertEquals(200, vectorFor1.length);
+    Vector vectorFor1 = sparseVectorStore.getVector("1");
+    assertEquals(200, vectorFor1.getDimension());
   }
 }
