@@ -74,7 +74,7 @@ public class RunTests {
   public static String luceneIndexDir = "index";
   public static String lucenePositionalIndexDir = "positional_index";
 
-  public static String testVectors = "-dimensions|3\n"
+  public static String testVectors = "-dimension|3\n"
     + "abraham|1.0|0.0|0.0\n"
     + "isaac|0.8|0.2|0.2\n";
 
@@ -132,7 +132,8 @@ public class RunTests {
       Process luceneIndexer = TestUtils.spawnChildProcess(IndexFiles.class, args, null, null, null);
       TestUtils.waitForAndDestroy(luceneIndexer);
 
-      Process lucenePositionsIndexer = TestUtils.spawnChildProcess(IndexFilePositions.class, args, null, null, null);
+      Process lucenePositionsIndexer = TestUtils.spawnChildProcess(
+          IndexFilePositions.class, args, null, null, null);
       TestUtils.waitForAndDestroy(lucenePositionsIndexer);
     } catch (Exception e) {
       System.err.println("Failed to prepare test Lucene index ... abandoning tests.");
