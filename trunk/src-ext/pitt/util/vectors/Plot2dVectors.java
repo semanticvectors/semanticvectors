@@ -36,14 +36,14 @@
 
 package pitt.util.vectors;
 
-import java.lang.Float;
-import java.lang.Double;
-import java.lang.Math;
+import java.awt.Dimension;
+import java.awt.Graphics;
 
-import java.awt.*;
-import javax.swing.*;
+import javax.swing.JFrame;
+import javax.swing.JPanel;
 
-import pitt.search.semanticvectors.*;
+import pitt.search.semanticvectors.ObjectVector;
+import pitt.search.semanticvectors.vectors.RealVector;
 
 /**
    Class for plotting 2d vectors as a Swing component on your screen.
@@ -76,18 +76,12 @@ public class Plot2dVectors extends JPanel {
     max1 = max2 = -100;
     // Compute max and min.
     for (int i = 0; i < vectors.length; ++i) {
-      if (vectors[i].getVector()[comp1] < min1) {
-        min1 = vectors[i].getVector()[comp1];
-      }
-      if (vectors[i].getVector()[comp2] < min2) {
-        min2 = vectors[i].getVector()[comp2];
-      }
-      if (vectors[i].getVector()[comp1] > max1) {
-        max1 = vectors[i].getVector()[comp1];
-      }
-      if (vectors[i].getVector()[comp2] > max2) {
-        max2 = vectors[i].getVector()[comp2];
-      }
+      RealVector realVector = (RealVector) vectors[i].getVector();
+      float[] tmpVec = realVector.getCoordinates();
+      if (tmpVec[comp1] < min1) min1 = tmpVec[comp1];
+      if (tmpVec[comp2] < min2) min2 = tmpVec[comp2];
+      if (tmpVec[comp1] > max1) max1 = tmpVec[comp1];
+      if (tmpVec[comp2] > max2) max2 = tmpVec[comp2];
       if (i > maxplot) {
         break;
       }
@@ -106,10 +100,10 @@ public class Plot2dVectors extends JPanel {
     }
 
     for (int i = 0; i < vectors.length; ++i) {
-      c1 = (pad/2) + Math.round(scale*(vectors[i].getVector()[comp1]-min1)
-                                / (max1-min1));
-      c2 = (pad/2) + Math.round(scale*(vectors[i].getVector()[comp2]-min2)
-                                / (max2-min2));
+      RealVector realVector = (RealVector) vectors[i].getVector();
+      float[] tmpVec = realVector.getCoordinates();
+      c1 = (pad/2) + Math.round(scale*(tmpVec[comp1]-min1) / (max1-min1));
+      c2 = (pad/2) + Math.round(scale*(tmpVec[comp2]-min2) / (max2-min2));
 
       g.drawString(vectors[i].getObject().toString(), c1, c2);
       if( i > maxplot ){

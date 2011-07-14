@@ -360,13 +360,25 @@ public class RealVector extends Vector {
     }
     isSparse = false;
   }
-
-  // Available for testing and copying.
+  
+  /**
+   * Available to support access to coordinates for legacy operations.  Try not to use in new code!
+   */
+  public float[] getCoordinates() {
+    return coordinates;
+  }
+  
+  /**
+   *  Available for testing and copying.  Try not to use in new code!
+   */
   public RealVector(float[] coordinates) {
     this.dimension = coordinates.length;
     this.coordinates = coordinates;
   }
-  // Available for testing and copying.
+
+  /**
+   *  Available for testing and copying.  Try not to use in new code!
+   */
   public RealVector(int dimension, short[] sparseOffsets) {
     this.isSparse = true;
     this.dimension = dimension;

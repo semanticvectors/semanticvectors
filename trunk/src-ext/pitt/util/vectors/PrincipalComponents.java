@@ -37,6 +37,8 @@
 package pitt.util.vectors;
 
 import pitt.search.semanticvectors.*;
+import pitt.search.semanticvectors.vectors.IncompatibleVectorsException;
+import pitt.search.semanticvectors.vectors.RealVector;
 import ch.akuhn.edu.mit.tedlab.*;
 
 /**
@@ -60,11 +62,19 @@ public class PrincipalComponents {
 
   public PrincipalComponents (ObjectVector[] vectorInput) {
     this.vectorInput = vectorInput;
-    this.dimension = vectorInput[0].getVector().length;
+    this.dimension = vectorInput[0].getVector().getDimension();
     double[][] vectorArray = new double[vectorInput.length][dimension];
 
     for (int i = 0; i < vectorInput.length; ++i) {
-      float[] tempVec = vectorInput[i].getVector();
+      if (vectorInput[i].getVector().getClass() != RealVector.class) {
+        throw new IncompatibleVectorsException(
+            "Principal components class only works with Real Vectors so far!");
+      }
+      if (vectorInput[i].getVector().getDimension() != dimension) {
+        throw new IncompatibleVectorsException("Dimensions must all be equal!");
+      }
+      RealVector realVector = (RealVector) vectorInput[i].getVector();
+      float[] tempVec = realVector.getCoordinates().clone();
       for (int j = 0; j < dimension; ++j) {
         vectorArray[i][j] = (double) tempVec[j];
       }
@@ -87,7 +97,8 @@ public class PrincipalComponents {
       for (int j = 0; j < truncate; ++j) {
         tempVec[j] = (float) (reducedVectors.value[j][i]);
       }
-      plotVectors[i] = new ObjectVector(vectorInput[i].getObject().toString(), tempVec);
+      plotVectors[i] = new ObjectVector(vectorInput[i].getObject().toString(),
+                                        new RealVector(tempVec));
     }
     Plot2dVectors myPlot = new Plot2dVectors(plotVectors);
     myPlot.createAndShowGUI();
