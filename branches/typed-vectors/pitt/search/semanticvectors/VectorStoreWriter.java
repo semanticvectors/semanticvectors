@@ -106,7 +106,7 @@ public class VectorStoreWriter {
       outputStream.writeString("-vectortype");
       outputStream.writeString(Flags.vectortype);
       /* Write header giving number of dimensions for all vectors. */
-      outputStream.writeString("-dimensions");
+      outputStream.writeString("-dimension");
       outputStream.writeInt(dimension);
 
       /* Write each vector. */
@@ -139,10 +139,8 @@ public class VectorStoreWriter {
       BufferedWriter outBuf = new BufferedWriter(new FileWriter(vectorFileName));
       Enumeration<ObjectVector> vecEnum = objectVectors.getAllVectors();
 
-      /* Write header giving vector type for all vectors. */
-      outBuf.write("-vectortype|" + Flags.vectortype + "\n");
-      /* Write header giving number of dimensions for all vectors. */
-      outBuf.write("-dimensions|" + dimension + "\n");
+      /* Write header giving vector type and dimension for all vectors. */
+      outBuf.write("-vectortype|" + Flags.vectortype + "|-dimension|" + dimension);
 
       /* Write each vector. */
       while (vecEnum.hasMoreElements()) {

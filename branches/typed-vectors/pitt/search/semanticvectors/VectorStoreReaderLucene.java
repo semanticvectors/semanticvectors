@@ -96,9 +96,15 @@ public class VectorStoreReaderLucene implements CloseableVectorStore {
         }
       };
       String test = getIndexInput().readString();
-      // Include "-" character to avoid unlikely case that first term is "dimensions"!
-      if ((test.equalsIgnoreCase("-dimensions"))) {
-        this.dimension = getIndexInput().readInt();
+      // Include "-" character for escaping.
+      if ((test.equalsIgnoreCase("-vectortype"))) {
+        Flags.vectortype = getIndexInput().readString();
+        System.out.println("Setting vectortype to: " + Flags.vectortype);
+        if (getIndexInput().readString().equals("-dimension")) {
+          Flags.dimension = getIndexInput().readInt();
+          this.dimension = Flags.dimension;
+          System.out.println("Setting dimension to: " + Flags.dimension);
+        }
         this.hasHeader = true;
       }
       else {

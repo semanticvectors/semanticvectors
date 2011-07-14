@@ -81,7 +81,7 @@ public class VectorStoreReaderText implements CloseableVectorStore {
       String firstLine = inBuf.readLine();
       // Include "-" character to avoid unlikely case that first term is "dimensions"!
       String[] firstLineData = firstLine.split("\\|");
-      if ((firstLineData[0].equalsIgnoreCase("-dimensions"))) {
+      if ((firstLineData[0].equalsIgnoreCase("-dimension"))) {
         dimension = Integer.parseInt(firstLineData[1]);
         this.hasHeader = true;
       }

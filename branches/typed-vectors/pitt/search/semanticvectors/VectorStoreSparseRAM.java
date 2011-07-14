@@ -49,8 +49,6 @@ import pitt.search.semanticvectors.vectors.VectorFactory;
  * 
  * TODO(widdows): Determine whether this can be merged into {@code VectorStoreRAM} now that
  * the choice of sparse or dense vectors is managed automatically in the vectors package.
- * 
- * @see {@code ObjectVector}, @see {@code Vector}.
  **/
 public class VectorStoreSparseRAM implements VectorStore {
   private static final Logger logger = Logger.getLogger(
