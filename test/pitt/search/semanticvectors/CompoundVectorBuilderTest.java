@@ -45,7 +45,8 @@ public class CompoundVectorBuilderTest extends TestCase {
   static double TOL = 0.0001;
 
   private VectorStoreRAM createVectorStore() {
-    VectorStoreRAM vectorStore = new VectorStoreRAM(2);
+    Flags.dimension = 2;
+    VectorStoreRAM vectorStore = new VectorStoreRAM();
     Vector vector1 = new RealVector(new float[] {1.0f, 0.0f});
     vectorStore.putVector("vector1", vector1);
     Vector vector2 = new RealVector(new float[] {1.0f, -1.0f});
@@ -54,7 +55,8 @@ public class CompoundVectorBuilderTest extends TestCase {
   }
 
   private VectorStoreRAM createNormalizedVectorStore() {
-    VectorStoreRAM vectorStore = new VectorStoreRAM(2);
+    Flags.dimension = 2;
+    VectorStoreRAM vectorStore = new VectorStoreRAM();
     Vector vector1 = new RealVector(new float[] {1.0f, 0.0f});
     vector1.normalize();
     vectorStore.putVector("vector1", vector1);

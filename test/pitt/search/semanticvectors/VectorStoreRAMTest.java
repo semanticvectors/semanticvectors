@@ -6,15 +6,15 @@
    modification, are permitted provided that the following conditions are
    met:
 
-   * Redistributions of source code must retain the above copyright
+ * Redistributions of source code must retain the above copyright
    notice, this list of conditions and the following disclaimer.
 
-   * Redistributions in binary form must reproduce the above
+ * Redistributions in binary form must reproduce the above
    copyright notice, this list of conditions and the following disclaimer
    in the documentation and/or other materials provided with the
    distribution.
 
-   * Neither the name of Google Inc. nor the names of its
+ * Neither the name of Google Inc. nor the names of its
    contributors may be used to endorse or promote products derived from
    this software without specific prior written permission.
 
@@ -29,7 +29,7 @@
    THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
    (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
    THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-**/
+ **/
 
 package pitt.search.semanticvectors;
 
@@ -42,31 +42,33 @@ import junit.framework.TestCase;
 
 public class VectorStoreRAMTest extends TestCase {
 
-    static double TOL = 0.0001;
-  
-	@Test
-		public void testCreateWriteAndRead() {
-		VectorStoreRAM vectorStore = new VectorStoreRAM(2);
-		assertEquals(0, vectorStore.getNumVectors());
-	    Vector vector = new RealVector(new float[] {1.0f, 0.0f});
-		vectorStore.putVector("my vector", vector);
-		assertEquals(1, vectorStore.getNumVectors());
-		Vector vectorOut = vectorStore.getVector("my vector"); 
-		assertEquals(2, vectorOut.getDimension());
-		assertEquals(1, vectorOut.measureOverlap(vector), TOL);
-	}
+  static double TOL = 0.0001;
 
-	@Test
-		public void testRepeatReads() {
-		VectorStoreRAM vectorStore = new VectorStoreRAM(2);
-		assertEquals(0, vectorStore.getNumVectors());
-        Vector vector = new RealVector(new float[] {1.0f, 0.0f});
-		vectorStore.putVector("my vector", vector);
-		assertEquals(1, vectorStore.getNumVectors());
-		Vector vectorOut = vectorStore.getVector("my vector"); 
-		assertEquals(2, vectorOut.getDimension());
-		vectorOut = null;
-		vectorOut = vectorStore.getVector("my vector"); 
-		assertEquals(2, vectorOut.getDimension());
-	}
+  @Test
+  public void testCreateWriteAndRead() {
+    Flags.dimension = 2;
+    VectorStoreRAM vectorStore = new VectorStoreRAM();
+    assertEquals(0, vectorStore.getNumVectors());
+    Vector vector = new RealVector(new float[] {1.0f, 0.0f});
+    vectorStore.putVector("my vector", vector);
+    assertEquals(1, vectorStore.getNumVectors());
+    Vector vectorOut = vectorStore.getVector("my vector"); 
+    assertEquals(2, vectorOut.getDimension());
+    assertEquals(1, vectorOut.measureOverlap(vector), TOL);
+  }
+
+  @Test
+  public void testRepeatReads() {
+    Flags.dimension = 2;
+    VectorStoreRAM vectorStore = new VectorStoreRAM();
+    assertEquals(0, vectorStore.getNumVectors());
+    Vector vector = new RealVector(new float[] {1.0f, 0.0f});
+    vectorStore.putVector("my vector", vector);
+    assertEquals(1, vectorStore.getNumVectors());
+    Vector vectorOut = vectorStore.getVector("my vector"); 
+    assertEquals(2, vectorOut.getDimension());
+    vectorOut = null;
+    vectorOut = vectorStore.getVector("my vector"); 
+    assertEquals(2, vectorOut.getDimension());
+  }
 }

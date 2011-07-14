@@ -6,15 +6,15 @@
    modification, are permitted provided that the following conditions are
    met:
 
-   * Redistributions of source code must retain the above copyright
+ * Redistributions of source code must retain the above copyright
    notice, this list of conditions and the following disclaimer.
 
-   * Redistributions in binary form must reproduce the above
+ * Redistributions in binary form must reproduce the above
    copyright notice, this list of conditions and the following disclaimer
    in the documentation and/or other materials provided with the
    distribution.
 
-   * Neither the name of Google Inc. nor the names of its
+ * Neither the name of Google Inc. nor the names of its
    contributors may be used to endorse or promote products derived from
    this software without specific prior written permission.
 
@@ -29,7 +29,7 @@
    THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
    (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
    THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-**/
+ **/
 
 package pitt.search.semanticvectors;
 
@@ -42,9 +42,9 @@ import org.junit.*;
 public class FlagsTest extends TestCase {
 
   @Test
-    public void testParseCommandLineFlags() {
+  public void testParseCommandLineFlags() {
     String[] args = {"-searchtype", "subspace", "--dimension", "3",
-		     "-queryvectorfile", "myvectors.bin", "queryterm"};
+        "-queryvectorfile", "myvectors.bin", "queryterm"};
     args = Flags.parseCommandLineFlags(args);
     assertEquals("subspace", Flags.searchtype);
     assertEquals(3, Flags.dimension);
@@ -56,7 +56,18 @@ public class FlagsTest extends TestCase {
   }
 
   @Test
-    public void testParseStringListFlag() {
+  public void testParseFlagsFromString() {
+    Flags.dimension = 3;
+    Flags.vectortype = "real";
+    Flags.parseFlagsFromString("-vectortype binary -dimension 2");
+    assertEquals(2, Flags.dimension);
+    assertEquals("binary", Flags.vectortype);
+    Flags.vectortype = "real";  // Cleanup!!
+  }
+
+
+  @Test
+  public void testParseStringListFlag() {
     String[] args = {"-contentsfields", "text,moretext"};
     args = Flags.parseCommandLineFlags(args);
     assertEquals(2, Flags.contentsfields.length);
@@ -67,7 +78,7 @@ public class FlagsTest extends TestCase {
   }
 
   @Test
-    public void testThrowsUnrecognizedFlag() {
+  public void testThrowsUnrecognizedFlag() {
     String[] args = {"-notaflag", "notagoodvalue"};
     try {
       Flags.parseCommandLineFlags(args);
@@ -78,7 +89,7 @@ public class FlagsTest extends TestCase {
   }
 
   @Test
-    public void testThrowsUnrecognizedValue() {
+  public void testThrowsUnrecognizedValue() {
     String[] args = {"-searchtype", "sum"};
     try {
       Flags.parseCommandLineFlags(args);
@@ -96,20 +107,20 @@ public class FlagsTest extends TestCase {
   }
 
   @org.junit.Test
-    public void testFlagsMetadata() {
+  public void testFlagsMetadata() {
     Field[] allFlagFields = Flags.class.getFields();
     for (Field field: allFlagFields) {
       String fieldName = field.getName();
       if (fieldName.endsWith("Description")) {
-	try {
-	  String flagName = fieldName.substring(0, fieldName.length() - 11);
-	  @SuppressWarnings("unused")
-    Field flagField = Flags.class.getField(flagName);
-	} catch (NoSuchFieldException e) {
-	  System.err.println("Description field '" + fieldName
-			     + "' has no corresponding flag defined.");
-	  fail();
-	}
+        try {
+          String flagName = fieldName.substring(0, fieldName.length() - 11);
+          @SuppressWarnings("unused")
+          Field flagField = Flags.class.getField(flagName);
+        } catch (NoSuchFieldException e) {
+          System.err.println("Description field '" + fieldName
+              + "' has no corresponding flag defined.");
+          fail();
+        }
       }
     }
   }
