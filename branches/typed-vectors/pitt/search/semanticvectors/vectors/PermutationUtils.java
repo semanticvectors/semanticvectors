@@ -1,5 +1,5 @@
 /**
-   Copyright (c) 2007, University of Pittsburgh
+   Copyright (c) 2011, the SemanticVectors AUTHORS.
 
    All rights reserved.
 
@@ -33,34 +33,31 @@
    SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 **/
 
-package pitt.search.semanticvectors;
-
-import java.util.Enumeration;
-
-import pitt.search.semanticvectors.vectors.Vector;
+package pitt.search.semanticvectors.vectors;
 
 /**
-   Classes implementing this interface are used to represent a collection
-   of object vectors, including i. methods for accessing individual
-   ObjectVectors and ii. an enumeration of all the vectors.
-   @author Dominic Widdows
-   @see ObjectVector
-*/
+ * Class that provides utilities for generating special permutations.
+ *
+ * Permutations themselves are just represented as int[] arrays saying.  It is presumed that
+ * each such array is a permutation of the numbers from 1 to n, where n is the length of the
+ * array.  This invariant could be enforced by making a Permutation class but this has not been
+ * considered necessary to date.
+ * 
+ * @author widdows
+ */
+public class PermutationUtils {
 
-public interface VectorStore {
-  /**
-   * @param object the object whose vector you want to look up
-   * @return a vector (of floats)
-   */
-  public Vector getVector(Object object);
+  private PermutationUtils() {}
 
-  /**
-   * Returns an enumeration of all the object vectors in the store.
-   */
-  public Enumeration<ObjectVector> getAllVectors();
+  public static int[] getShiftPermutation(int dimension, int shift) {
+    int[] permutation = new int[dimension];
 
-  /**
-   * Returns a count of the number of vectors in the store.
-   */
-  public int getNumVectors();
+    for (int i = 0; i < dimension; ++i) {
+      int entry = (i + shift) % dimension;
+      if (entry < 0) entry += dimension;
+      permutation[i] = entry;
+    }
+
+    return permutation;
+  }
 }

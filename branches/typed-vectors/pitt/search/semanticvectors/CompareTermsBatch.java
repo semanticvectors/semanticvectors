@@ -41,8 +41,6 @@ import java.io.InputStreamReader;
 import java.util.logging.Logger;
 
 import pitt.search.semanticvectors.vectors.Vector;
-import pitt.search.semanticvectors.vectors.VectorUtils;
-
 
 /**
  * Command line term vector comparison utility designed to be run in
@@ -133,7 +131,7 @@ public class CompareTermsBatch{
     try {
       VectorStore vecReader;
       if (ramCache) {
-        VectorStoreRAM ramReader = new VectorStoreRAM(0);
+        VectorStoreRAM ramReader = new VectorStoreRAM();
         ramReader.initFromFile(Flags.queryvectorfile);
         vecReader = ramReader;
         logger.info("Using RAM cache of vectors");

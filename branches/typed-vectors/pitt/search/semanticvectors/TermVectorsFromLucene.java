@@ -50,7 +50,6 @@ import org.apache.lucene.store.FSDirectory;
 
 import pitt.search.semanticvectors.vectors.Vector;
 import pitt.search.semanticvectors.vectors.VectorFactory;
-import pitt.search.semanticvectors.vectors.VectorUtils;
 
 /**
  * Implementation of vector store that creates term vectors by
@@ -73,7 +72,6 @@ public class TermVectorsFromLucene implements VectorStore {
   private int minFreq;
   private int maxFreq;
   private VectorStore basicDocVectors;
-  private int dimension;
   private String initialTermVectorsFile;
   private String indexDir;
 
@@ -94,8 +92,6 @@ public class TermVectorsFromLucene implements VectorStore {
    * @return The object's list of Lucene fields to index.
    */
   public String[] getFieldsToIndex() { return this.fieldsToIndex; }
-
-  public int getDimension() { return this.dimension; }
   
   // Implementation of basic VectorStore methods.
   public Vector getVector(Object term) {
@@ -131,7 +127,6 @@ public class TermVectorsFromLucene implements VectorStore {
   throws IOException, RuntimeException {
     TermVectorsFromLucene vectorStore = new TermVectorsFromLucene() {};
     vectorStore.indexDir = indexDir;
-    vectorStore.dimension = dimension;
     vectorStore.minFreq = minFreq;
     vectorStore.maxFreq = maxFreq;
     vectorStore.maxNonAlphabet = nonAlphabet;
@@ -161,7 +156,7 @@ public class TermVectorsFromLucene implements VectorStore {
       // Derived term vectors will be linear combinations of these.
       logger.info("Populating basic sparse doc vector store, number of vectors: "
           + indexReader.numDocs());
-      VectorStoreSparseRAM randomBasicDocVectors = new VectorStoreSparseRAM(dimension);
+      VectorStoreSparseRAM randomBasicDocVectors = new VectorStoreSparseRAM();
       randomBasicDocVectors.createRandomVectors(indexReader.numDocs(), this.seedLength);
       this.basicDocVectors = randomBasicDocVectors;
     }
@@ -197,7 +192,7 @@ public class TermVectorsFromLucene implements VectorStore {
       }
 
       // Initialize new termVector.
-      Vector termVector = VectorFactory.createZeroVector(Flags.vectortype, dimension);
+      Vector termVector = VectorFactory.createZeroVector(Flags.vectortype, Flags.dimension);
 
       TermDocs tDocs = indexReader.termDocs(term);
       while (tDocs.next()) {
@@ -236,7 +231,6 @@ public class TermVectorsFromLucene implements VectorStore {
     TermVectorsFromLucene trainedTermvectors = new TermVectorsFromLucene() {};
     trainedTermvectors.indexDir = indexDir;
     trainedTermvectors.initialTermVectorsFile = initialTermVectorsFile;
-    trainedTermvectors.dimension = dimension;
     trainedTermvectors.minFreq = minFreq;
     trainedTermvectors.maxFreq = maxFreq;
     trainedTermvectors.maxNonAlphabet = nonAlphabet;
@@ -268,8 +262,8 @@ public class TermVectorsFromLucene implements VectorStore {
           continue;
         }
         tc++;
-        Vector indexVector =  VectorFactory.generateRandomVector(
-            Flags.vectortype, dimension, seedLength, random);
+        Vector indexVector = VectorFactory.generateRandomVector(
+            Flags.vectortype, Flags.dimension, seedLength, random);
         // Place each term vector in the vector store.
         this.termVectors.put(term.text(), new ObjectVector(term.text(), indexVector));
       }

@@ -110,7 +110,7 @@ public class BuildPositionalIndex {
     // If initialtermvectors is defined, read these vectors.
     if (!Flags.initialtermvectors.equals("")) {
       try {
-        VectorStoreRAM vsr = new VectorStoreRAM(Flags.dimension);
+        VectorStoreRAM vsr = new VectorStoreRAM();
         vsr.initFromFile(Flags.initialtermvectors);
         newBasicTermVectors = vsr;
         logger.info("Using trained index vectors from vector store " + Flags.initialtermvectors);
@@ -143,7 +143,7 @@ public class BuildPositionalIndex {
             Flags.maxnonalphabetchars, 2 * Flags.windowradius + 1, Flags.positionalmethod,
             newBasicTermVectors, Flags.contentsfields);
       
-      VectorStoreWriter vecWriter = new VectorStoreWriter(Flags.dimension);
+      VectorStoreWriter vecWriter = new VectorStoreWriter();
       logger.info("Writing term vectors to " + termFile);
       vecWriter.writeVectors(termFile, vecStore);
 

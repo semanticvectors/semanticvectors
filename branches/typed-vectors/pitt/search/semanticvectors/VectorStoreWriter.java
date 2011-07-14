@@ -41,6 +41,7 @@ import org.apache.lucene.store.IndexOutput;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
+import java.io.IOException;
 import java.util.Enumeration;
 import java.util.logging.Logger;
 
@@ -59,10 +60,16 @@ import java.util.logging.Logger;
  */
 public class VectorStoreWriter {
   private static final Logger logger = Logger.getLogger(VectorStoreWriter.class.getCanonicalName());
-  private int dimension;
   
-  public VectorStoreWriter(int dimension) {
-    this.dimension = dimension;
+  /**
+   * Generates a single string containing global header information for a vector store.
+   * This includes the vector type and the dimension.
+   * 
+   * String created is in the form that {@code Flags} would expect to parse, e.g.,
+   * "-vectortype real -dimension 100".
+   */
+  public static String generateHeaderString() {
+    return "-vectortype " + Flags.vectortype + " -dimension " + Integer.toString(Flags.dimension);
   }
 
   /**
@@ -89,41 +96,39 @@ public class VectorStoreWriter {
    */
   public boolean writeVectorsInLuceneFormat(String vectorFileName, VectorStore objectVectors) {
 	logger.info("About to write " + objectVectors.getNumVectors() + " vectors of dimension "
-			+ dimension + " to Lucene format file: " + vectorFileName);
+			+ Flags.dimension + " to Lucene format file: " + vectorFileName);
 	try {
       File vectorFile = new File(vectorFileName);
       String parentPath = vectorFile.getParent();
       if (parentPath == null) parentPath = "";
       FSDirectory fsDirectory = FSDirectory.open(new File(parentPath));
       IndexOutput outputStream = fsDirectory.createOutput(vectorFile.getName());
-
-      Enumeration<ObjectVector> vecEnum = objectVectors.getAllVectors();
-
-      logger.info("About to write " + objectVectors.getNumVectors()
-          + " vectors to file: " + vectorFile);
-
-      /* Write header giving vector type for all vectors. */
-      outputStream.writeString("-vectortype");
-      outputStream.writeString(Flags.vectortype);
-      /* Write header giving number of dimensions for all vectors. */
-      outputStream.writeString("-dimension");
-      outputStream.writeInt(dimension);
-
-      /* Write each vector. */
-      while (vecEnum.hasMoreElements()) {
-        ObjectVector objectVector = vecEnum.nextElement();
-        outputStream.writeString(objectVector.getObject().toString());
-        objectVector.getVector().writeToLuceneStream(outputStream);
-      }
-      logger.info("Finished writing vectors.");
+      writeToIndexOutput(objectVectors, outputStream);
       outputStream.close();
       fsDirectory.close();
       return true;
-    }
-    catch (Exception e) {
+	} catch (Exception e) {
       e.printStackTrace();
       return false;
     }
+  }
+  
+  /**
+   * Writes the object vectors to this Lucene output stream.
+   */
+  public void writeToIndexOutput(VectorStore objectVectors, IndexOutput outputStream)
+      throws IOException {
+    // Write header giving vector type and dimension for all vectors.
+    outputStream.writeString(generateHeaderString());
+    Enumeration<ObjectVector> vecEnum = objectVectors.getAllVectors();
+
+    // Write each vector.
+    while (vecEnum.hasMoreElements()) {
+      ObjectVector objectVector = vecEnum.nextElement();
+      outputStream.writeString(objectVector.getObject().toString());
+      objectVector.getVector().writeToLuceneStream(outputStream);
+    }
+    logger.info("Finished writing vectors.");
   }
 
   /**
@@ -134,21 +139,10 @@ public class VectorStoreWriter {
    */
   public boolean writeVectorsInTextFormat(String vectorFileName, VectorStore objectVectors) {
     logger.info("About to write " + objectVectors.getNumVectors() + " vectors of dimension "
-    		+ dimension + " to text file: " + vectorFileName);
+    		+ Flags.dimension + " to text file: " + vectorFileName);
     try {
       BufferedWriter outBuf = new BufferedWriter(new FileWriter(vectorFileName));
-      Enumeration<ObjectVector> vecEnum = objectVectors.getAllVectors();
-
-      /* Write header giving vector type and dimension for all vectors. */
-      outBuf.write("-vectortype|" + Flags.vectortype + "|-dimension|" + dimension);
-
-      /* Write each vector. */
-      while (vecEnum.hasMoreElements()) {
-        ObjectVector objectVector = vecEnum.nextElement();
-        outBuf.write(objectVector.getObject().toString() + "|");
-        outBuf.write(objectVector.getVector().writeToString());
-        outBuf.write("\n");
-      }
+      writeToTextBuffer(objectVectors, outBuf);
       outBuf.close();
       logger.info("Finished writing vectors.");
       return true;
@@ -157,5 +151,21 @@ public class VectorStoreWriter {
       e.printStackTrace();
       return false;
     }
+  }
+
+  public void writeToTextBuffer(VectorStore objectVectors, BufferedWriter outBuf)
+      throws IOException {
+    Enumeration<ObjectVector> vecEnum = objectVectors.getAllVectors();
+    
+    // Write header giving vector type and dimension for all vectors.
+    outBuf.write(generateHeaderString());
+
+    // Write each vector.
+    while (vecEnum.hasMoreElements()) {
+      ObjectVector objectVector = vecEnum.nextElement();
+      outBuf.write(objectVector.getObject().toString() + "|");
+      outBuf.write(objectVector.getVector().writeToString());
+      outBuf.write("\n");
+    }    
   }
 }

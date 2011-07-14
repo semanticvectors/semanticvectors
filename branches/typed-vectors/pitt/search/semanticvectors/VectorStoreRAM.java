@@ -59,18 +59,15 @@ public class VectorStoreRAM implements VectorStore {
   private static final Logger logger =
     Logger.getLogger(VectorStoreRAM.class.getCanonicalName());
   private Hashtable<Object, ObjectVector> objectVectors;
-  private int dimension;
   
   // Default constructor.
-  public VectorStoreRAM(int dimension) {
+  public VectorStoreRAM() {
     this.objectVectors = new Hashtable<Object, ObjectVector>();
-    this.dimension = dimension;
   }
   
   // Initialization routine.
   public void initFromFile (String vectorFile) throws IOException {
     VectorStoreReaderLucene vectorReaderDisk = new VectorStoreReaderLucene(vectorFile);
-    dimension = vectorReaderDisk.getDimension();
     Enumeration<ObjectVector> vectorEnumeration = vectorReaderDisk.getAllVectors();
 		
     logger.fine("Reading vectors from store on disk into memory cache  ...");
@@ -84,9 +81,9 @@ public class VectorStoreRAM implements VectorStore {
 
   // Add a single vector.
   public void putVector(Object key, Vector vector) {
-	if (vector.getDimension() != dimension) {
+	if (vector.getDimension() != Flags.dimension) {
 	  throw new IllegalArgumentException("Trying to add vector of dimension "
-	      + vector.getDimension() + " to VectorStore of dimension " + dimension);
+	      + vector.getDimension() + " to VectorStore of dimension " + Flags.dimension);
 	}
     ObjectVector objectVector = new ObjectVector(key, vector);
     this.objectVectors.put(key, objectVector);
@@ -98,10 +95,6 @@ public class VectorStoreRAM implements VectorStore {
 
   public int getNumVectors() {
     return this.objectVectors.size();
-  }
-
-  public int getDimension() {
-    return dimension;
   }
   
   /**

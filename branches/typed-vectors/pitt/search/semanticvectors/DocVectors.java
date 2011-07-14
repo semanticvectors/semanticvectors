@@ -42,7 +42,6 @@ import org.apache.lucene.index.TermDocs;
 
 import pitt.search.semanticvectors.vectors.Vector;
 import pitt.search.semanticvectors.vectors.VectorFactory;
-import pitt.search.semanticvectors.vectors.VectorUtils;
 
 import java.io.IOException;
 import java.util.Enumeration;
@@ -69,7 +68,7 @@ public class DocVectors implements VectorStore {
   public DocVectors (TermVectorsFromLucene termVectorData) throws IOException {
     this.termVectorData = termVectorData;
     this.indexReader = termVectorData.getIndexReader();
-    this.docVectors = new VectorStoreRAM(termVectorData.getDimension());
+    this.docVectors = new VectorStoreRAM();
     
     if (this.lUtils == null) {
       String indexReaderDir = termVectorData.getIndexReader().directory().toString();
@@ -146,8 +145,7 @@ public class DocVectors implements VectorStore {
   private void initializeDocVectors() {
     logger.info("Initializing document vector store ...");
     for (int i = 0; i < indexReader.numDocs(); ++i) {
-      Vector docVector = VectorFactory.createZeroVector(
-          Flags.vectortype, termVectorData.getDimension());
+      Vector docVector = VectorFactory.createZeroVector(Flags.vectortype, Flags.dimension);
       this.docVectors.putVector(Integer.toString(i), docVector);
     }
   }
@@ -156,7 +154,7 @@ public class DocVectors implements VectorStore {
    * Create a version of the vector store indexes by path / filename rather than Lucene ID.
    */
   public VectorStore makeWriteableVectorStore() {
-    VectorStoreRAM outputVectors = new VectorStoreRAM(termVectorData.getDimension());
+    VectorStoreRAM outputVectors = new VectorStoreRAM();
 
     for (int i = 0; i < this.indexReader.numDocs(); ++i) {
       String docName = "";
@@ -193,9 +191,5 @@ public class DocVectors implements VectorStore {
 
   public int getNumVectors() {
     return this.docVectors.getNumVectors();
-  }
-  
-  public int getDimension() {
-    return termVectorData.getDimension();
   }
 }

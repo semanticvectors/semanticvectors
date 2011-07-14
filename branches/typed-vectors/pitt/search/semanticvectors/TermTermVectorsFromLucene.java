@@ -170,10 +170,10 @@ public class TermTermVectorsFromLucene implements VectorStore {
       retraining = true;
       logger.info("Reusing basic term vectors; number of terms: " + indexVectors.getNumVectors());
     } else {
-      this.indexVectors = new VectorStoreSparseRAM(dimension);
+      this.indexVectors = new VectorStoreSparseRAM();
     }
     Random random = new Random();
-    this.termVectors = new VectorStoreRAM(dimension);
+    this.termVectors = new VectorStoreRAM();
 
     // Iterate through an enumeration of terms and allocate termVector memory.
     // If not retraining, create random elemental vectors as well.
@@ -240,7 +240,7 @@ public class TermTermVectorsFromLucene implements VectorStore {
         next.normalize();
         temp.setVector(next);
       }
-      new VectorStoreWriter(dimension).writeVectors(randFile, this.indexVectors);
+      new VectorStoreWriter().writeVectors(randFile, this.indexVectors);
     }
   }
 

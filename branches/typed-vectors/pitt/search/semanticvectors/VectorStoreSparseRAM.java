@@ -55,17 +55,11 @@ public class VectorStoreSparseRAM implements VectorStore {
       VectorStoreSparseRAM.class.getCanonicalName());
 
   private Hashtable<String, Vector> sparseVectors;
-  int dimension;
   int seedLength;
 
   // Default constructor.
-  public VectorStoreSparseRAM(int dimension) {
+  public VectorStoreSparseRAM() {
     this.sparseVectors = new Hashtable<String, Vector>();
-    this.dimension = dimension;
-  }
-
-  public int getDimension() {
-    return dimension;
   }
   
   public Enumeration<String> getKeys() { return this.sparseVectors.keys(); }
@@ -79,7 +73,7 @@ public class VectorStoreSparseRAM implements VectorStore {
     logger.info("Creating store of sparse vectors  ...");
     for (int i = 0; i < numVectors; ++i) {
       Vector sparseVector = VectorFactory.generateRandomVector(
-          Flags.vectortype, dimension, seedLength, random);
+          Flags.vectortype, Flags.dimension, seedLength, random);
       this.sparseVectors.put(Integer.toString(i), sparseVector);
     }
     logger.info("Created " + sparseVectors.size() + " sparse random vectors.");

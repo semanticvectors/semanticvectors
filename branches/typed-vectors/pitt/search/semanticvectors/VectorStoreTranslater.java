@@ -91,7 +91,7 @@ public class VectorStoreTranslater {
       } catch (IOException e) {
         throw e;
       }
-      VectorStoreWriter vecWriter = new VectorStoreWriter(vecReader.getDimension());
+      VectorStoreWriter vecWriter = new VectorStoreWriter();
       logger.info("Writing term vectors to " + outfile);
       vecWriter.writeVectorsInTextFormat(outfile, vecReader);
       vecReader.close();
@@ -105,7 +105,7 @@ public class VectorStoreTranslater {
       } catch (IOException e) {
         throw e;
       }
-      VectorStoreWriter vecWriter = new VectorStoreWriter(vecReader.getDimension());
+      VectorStoreWriter vecWriter = new VectorStoreWriter();
       logger.info("Writing term vectors to " + outfile);
       vecWriter.writeVectorsInLuceneFormat(outfile, vecReader);
       vecReader.close();

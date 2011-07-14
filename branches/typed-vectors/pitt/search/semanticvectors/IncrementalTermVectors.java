@@ -64,11 +64,6 @@ public class IncrementalTermVectors implements VectorStore {
   private String luceneIndexDir;
   private LuceneUtils lUtils = null;
   private String docVectorFileName;
-  private int dimension;
-  
-  public int getDimension() {
-    return dimension;
-  }
   
   /**
    * Constructor that gets everything it needs from a
@@ -82,7 +77,6 @@ public class IncrementalTermVectors implements VectorStore {
       throws IOException {
     this.indexReader = IndexReader.open(FSDirectory.open(new File(luceneIndexDir)));
     this.fieldsToIndex = fieldsToIndex;
-    this.dimension = dimension;
     this.luceneIndexDir = luceneIndexDir;
     this.docVectorFileName = docVectorFileName;
     if (this.lUtils == null)
@@ -102,22 +96,13 @@ public class IncrementalTermVectors implements VectorStore {
 
     logger.info("Read vectors incrementally from file " + vectorFile);
 
-    //Read number of dimensions from document vectors
-    String test = inputStream.readString();
+    // Read number of dimensions from document vectors
+    String header = inputStream.readString();
     // Include "-" character to avoid unlikely case that first term is "dimensions"!
-    if ((test.equalsIgnoreCase("-dimensions"))) {
-      dimension = inputStream.readInt();
-    }
-    else {
-      logger.info("No file header for file " + vectorFile +
-                         "\nAttempting to process with default vector length: " +
-                         Flags.dimension +
-                         "\nIf this fails, consider rebuilding indexes - existing " +
-                         "ones were probably created with old version of software.");
-    }
+    Flags.parseFlagsFromString(header);
 
     logger.info("Opening index at " + luceneIndexDir);
-    termVectorData = new VectorStoreRAM(dimension);
+    termVectorData = new VectorStoreRAM();
     TermEnum terms = this.indexReader.terms();
     int tc = 0;
 
@@ -129,7 +114,7 @@ public class IncrementalTermVectors implements VectorStore {
           Flags.minfrequency, Flags.maxfrequency, Flags.maxnonalphabetchars))
         continue;
       tc++;
-      Vector termVector = VectorFactory.createZeroVector(Flags.vectortype, dimension);
+      Vector termVector = VectorFactory.createZeroVector(Flags.vectortype, Flags.dimension);
 
       // Place each term vector in the vector store.
       termVectorData.putVector(term.text(), termVector);
@@ -144,7 +129,7 @@ public class IncrementalTermVectors implements VectorStore {
       }
 
       int dcount = dc;
-      Vector docVector = VectorFactory.createZeroVector(Flags.vectortype, dimension);
+      Vector docVector = VectorFactory.createZeroVector(Flags.vectortype, Flags.dimension);
 
       try {
     	 /**
@@ -280,6 +265,6 @@ public class IncrementalTermVectors implements VectorStore {
 
     VectorStore termVectors = new IncrementalTermVectors(
         luceneIndex, Flags.dimension, Flags.contentsfields, vectorFile);
-    new VectorStoreWriter(Flags.dimension).writeVectors("incremental_termvectors.bin", termVectors);
+    new VectorStoreWriter().writeVectors("incremental_termvectors.bin", termVectors);
   }
 }

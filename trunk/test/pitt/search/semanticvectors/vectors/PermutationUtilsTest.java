@@ -1,5 +1,5 @@
 /**
-   Copyright (c) 2007, University of Pittsburgh
+   Copyright (c) 2011, the SemanticVectors AUTHORS.
 
    All rights reserved.
 
@@ -33,34 +33,22 @@
    SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 **/
 
-package pitt.search.semanticvectors;
+package pitt.search.semanticvectors.vectors;
 
-import java.util.Enumeration;
+import org.junit.Test;
+import static org.junit.Assert.*;
 
-import pitt.search.semanticvectors.vectors.Vector;
+import junit.framework.TestCase;
 
-/**
-   Classes implementing this interface are used to represent a collection
-   of object vectors, including i. methods for accessing individual
-   ObjectVectors and ii. an enumeration of all the vectors.
-   @author Dominic Widdows
-   @see ObjectVector
-*/
-
-public interface VectorStore {
-  /**
-   * @param object the object whose vector you want to look up
-   * @return a vector (of floats)
-   */
-  public Vector getVector(Object object);
-
-  /**
-   * Returns an enumeration of all the object vectors in the store.
-   */
-  public Enumeration<ObjectVector> getAllVectors();
-
-  /**
-   * Returns a count of the number of vectors in the store.
-   */
-  public int getNumVectors();
+public class PermutationUtilsTest extends TestCase {
+  
+  @Test
+  public void testGetShiftPermutation() {
+    assertArrayEquals(new int[] {1, 0}, PermutationUtils.getShiftPermutation(2, 1));
+    assertArrayEquals(new int[] {1, 2, 0}, PermutationUtils.getShiftPermutation(3, 1));
+    assertArrayEquals(new int[] {2, 3, 4, 5, 0, 1}, PermutationUtils.getShiftPermutation(6, 2));
+    assertArrayEquals(new int[] {2, 3, 4, 5, 0, 1}, PermutationUtils.getShiftPermutation(6, -4));
+    assertArrayEquals(new int[] {2, 3, 4, 5, 0, 1}, PermutationUtils.getShiftPermutation(6, 14));
+  }
+  
 }

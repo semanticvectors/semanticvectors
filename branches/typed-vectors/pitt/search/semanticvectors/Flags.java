@@ -142,6 +142,14 @@ public class Flags {
   public static String docidfield = "path";
 
   /**
+   * Parse flags from a single string.  Presumes that string contains only command line flags.
+   */
+  public static void parseFlagsFromString(String header) {
+    String[] args = header.split("\\s");
+    parseCommandLineFlags(args);
+  }
+  
+  /**
    * Parse command line flags and create public data structures for accessing them.
    * @param args
    * @return trimmed list of arguments with command line flags consumed

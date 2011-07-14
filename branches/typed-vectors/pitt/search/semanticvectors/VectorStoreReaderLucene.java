@@ -64,8 +64,6 @@ public class VectorStoreReaderLucene implements CloseableVectorStore {
   private String vectorFileName;
   private File vectorFile;
   private FSDirectory fsDirectory;
-  private boolean hasHeader;
-  private int dimension;
 
   private ThreadLocal<IndexInput> threadLocalIndexInput;
 
@@ -73,11 +71,11 @@ public class VectorStoreReaderLucene implements CloseableVectorStore {
     return this.fsDirectory;
   }
 
-  public int getDimension() {
-    return dimension;
+  public IndexInput getIndexInput() {
+    return threadLocalIndexInput.get();
   }
-
-  public VectorStoreReaderLucene (String vectorFileName) throws IOException {
+  
+  public VectorStoreReaderLucene(String vectorFileName) throws IOException {
     this.vectorFileName = vectorFileName;
     this.vectorFile = new File(vectorFileName);
     try {
@@ -85,7 +83,7 @@ public class VectorStoreReaderLucene implements CloseableVectorStore {
       if (parentPath == null) parentPath = "";
       this.fsDirectory = FSDirectory.open(new File(parentPath));
       // Read number of dimensions from header information.
-      threadLocalIndexInput = new ThreadLocal<IndexInput>() {
+      this.threadLocalIndexInput = new ThreadLocal<IndexInput>() {
         @Override
         protected IndexInput initialValue() {
           try {
@@ -95,34 +93,21 @@ public class VectorStoreReaderLucene implements CloseableVectorStore {
           }
         }
       };
-      String test = getIndexInput().readString();
-      // Include "-" character for escaping.
-      if ((test.equalsIgnoreCase("-vectortype"))) {
-        Flags.vectortype = getIndexInput().readString();
-        System.out.println("Setting vectortype to: " + Flags.vectortype);
-        if (getIndexInput().readString().equals("-dimension")) {
-          Flags.dimension = getIndexInput().readInt();
-          this.dimension = Flags.dimension;
-          System.out.println("Setting dimension to: " + Flags.dimension);
-        }
-        this.hasHeader = true;
-      }
-      else {
-        logger.info("No file header for file " + vectorFile
-            + "\nAttempting to process with default dimension: " + Flags.dimension
-            + "\nIf this fails, consider rebuilding indexes - existing "
-            + "ones were probably created with old version of software.");
-        this.dimension = Flags.dimension;
-        this.hasHeader = false;
-      }
+      readHeadersFromIndexInput();
     } catch (IOException e) {
       logger.warning("Cannot open file: " + this.vectorFileName + "\n" + e.getMessage());
       throw e;
     }
   }
+  
+  public VectorStoreReaderLucene(ThreadLocal<IndexInput> threadLocalIndexInput) throws IOException {
+    this.threadLocalIndexInput = threadLocalIndexInput;
+    readHeadersFromIndexInput();
+  }
 
-  private IndexInput getIndexInput() {
-    return threadLocalIndexInput.get();
+  public void readHeadersFromIndexInput() throws IOException {
+    String header = threadLocalIndexInput.get().readString();
+    Flags.parseFlagsFromString(header);
   }
 
   public void close() {
@@ -142,10 +127,8 @@ public class VectorStoreReaderLucene implements CloseableVectorStore {
   public Enumeration<ObjectVector> getAllVectors() {
     try {
       getIndexInput().seek(0);
-      if (hasHeader) {
-        getIndexInput().readString();
-        getIndexInput().readInt();
-      }
+      // Skip header line.
+      getIndexInput().readString();
     }
     catch (IOException e) {
       e.printStackTrace();
@@ -162,22 +145,20 @@ public class VectorStoreReaderLucene implements CloseableVectorStore {
    */
   public Vector getVector(Object desiredObject) {
     try {
+      String stringTarget = desiredObject.toString();
       getIndexInput().seek(0);
-      if (hasHeader) {
-        // TODO(dwiddows): Clean up magic information here!
-        getIndexInput().readString();
-        getIndexInput().readString();
-        getIndexInput().readString();
-        getIndexInput().readInt();
-      }
+      // Skip header line.
+      getIndexInput().readString();
       while (getIndexInput().getFilePointer() < getIndexInput().length() - 1) {
-        if (getIndexInput().readString().equals(desiredObject)) {
-          Vector vector = VectorFactory.createZeroVector(Flags.vectortype, dimension);
+        String objectString = getIndexInput().readString();
+        if (objectString.equals(stringTarget)) {
+          Vector vector = VectorFactory.createZeroVector(Flags.vectortype, Flags.dimension);
           vector.readFromLuceneStream(getIndexInput());
+          return vector;
         }
         else{
           getIndexInput().seek(getIndexInput().getFilePointer()
-              + VectorFactory.getLuceneByteSize(Flags.vectortype, dimension));
+              + VectorFactory.getLuceneByteSize(Flags.vectortype, Flags.dimension));
         }
       }
     }
@@ -200,7 +181,7 @@ public class VectorStoreReaderLucene implements CloseableVectorStore {
     }
     return i;
   }
-  
+
   /**
    * Implements the hasMoreElements() and nextElement() methods
    * to give Enumeration interface from store on disk.
@@ -208,7 +189,7 @@ public class VectorStoreReaderLucene implements CloseableVectorStore {
   public class VectorEnumeration implements Enumeration<ObjectVector> {
     IndexInput indexInput;
 
-    public VectorEnumeration (IndexInput indexInput) {
+    public VectorEnumeration(IndexInput indexInput) {
       this.indexInput = indexInput;
     }
 
@@ -218,7 +199,7 @@ public class VectorStoreReaderLucene implements CloseableVectorStore {
 
     public ObjectVector nextElement() {
       String object = null;
-      Vector vector = VectorFactory.createZeroVector(Flags.vectortype, dimension);
+      Vector vector = VectorFactory.createZeroVector(Flags.vectortype, Flags.dimension);
       try {
         object = indexInput.readString();
         vector.readFromLuceneStream(indexInput);
