@@ -17,7 +17,7 @@ import org.apache.lucene.util.OpenBitSet;
 public class BinaryVector extends Vector {
   public static final Logger logger = Logger.getLogger(BinaryVector.class.getCanonicalName());
 
-  private final int dimension;
+  private final int dimensions;
 
   /**
    * Elemental representation for binary vectors. 
@@ -41,7 +41,7 @@ public class BinaryVector extends Vector {
   int minimum = 0;
 
   public BinaryVector(int dimension) {
-    this.dimension = dimension;
+    this.dimensions = dimension;
     this.bitSet = new OpenBitSet(dimension);
     this.isSparse = true;
   }
@@ -51,7 +51,7 @@ public class BinaryVector extends Vector {
    */
   @SuppressWarnings("unchecked")
   public BinaryVector copy() {
-    BinaryVector copy = new BinaryVector(dimension);
+    BinaryVector copy = new BinaryVector(dimensions);
     copy.bitSet = (OpenBitSet) bitSet.clone();
     if (!isSparse)
       copy.votingRecord = (ArrayList<OpenBitSet>) votingRecord.clone();
@@ -94,11 +94,11 @@ public class BinaryVector extends Vector {
 
   @Override
   public int getDimensions() {
-    return dimension;
+    return dimensions;
   }
 
-  public BinaryVector createZeroVector(int dimension) {
-    return new BinaryVector(dimension);
+  public BinaryVector createZeroVector(int dimensions) {
+    return new BinaryVector(dimensions);
   }
 
   @Override
@@ -150,7 +150,7 @@ public class BinaryVector extends Vector {
     this.bitSet.xor(binaryOther.bitSet);
     double hammingDistance = this.bitSet.cardinality();
     this.bitSet.xor(binaryOther.bitSet);
-    return 1 - (hammingDistance / (double) dimension);
+    return 1 - (hammingDistance / (double) dimensions);
   }
 
   @Override
@@ -254,7 +254,7 @@ public class BinaryVector extends Vector {
     }
 
     if (tempSet.cardinality() > 0) {
-      votingRecord.add(new OpenBitSet(dimension));
+      votingRecord.add(new OpenBitSet(dimensions));
     }
 
     // Sweep copy of bitset to be added across rows of voting record.
@@ -290,7 +290,7 @@ public class BinaryVector extends Vector {
    */
   public OpenBitSet exact(int target) {
     if (target == 0) {
-      tempSet.set(0, dimension);
+      tempSet.set(0, dimensions);
       tempSet.xor(votingRecord.get(0));
       for (int x=1; x < votingRecord.size(); x++)
         tempSet.andNot(votingRecord.get(x));
@@ -318,8 +318,8 @@ public class BinaryVector extends Vector {
 
     // Unlikely other than in testing: minimum more than half the votes
     if (target2 < 0) {
-      OpenBitSet ans = new OpenBitSet(dimension);
-      ans.set(0, dimension-1);
+      OpenBitSet ans = new OpenBitSet(dimensions);
+      ans.set(0, dimensions-1);
       return ans;
     }
 
@@ -330,7 +330,7 @@ public class BinaryVector extends Vector {
       tempSet = exact(target2);
       boolean switcher = true;
       // 50% chance of being true with split vote.
-      for (int q =0; q < dimension; q++) {
+      for (int q =0; q < dimensions; q++) {
         if (tempSet.fastGet(q)) {
           switcher = !switcher;
           if (switcher) tempSet.fastClear(q);
@@ -351,14 +351,14 @@ public class BinaryVector extends Vector {
    * @return an OpenBitSet representing the superposition of all vectors added up to this point
    */
   public OpenBitSet concludeVote() {
-    if (votingRecord.size() == 0) return new OpenBitSet(dimension);
+    if (votingRecord.size() == 0) return new OpenBitSet(dimensions);
     else
       return concludeVote(actualVotes);
   }
 
   public OpenBitSet concludeVote(int target, int row_ceiling) {
     if (target ==0)
-      return new OpenBitSet(dimension);
+      return new OpenBitSet(dimensions);
 
     double rowfloor = Math.log(target)/Math.log(2);
     int row_floor = (int) Math.floor(rowfloor);  //for 0 index
@@ -371,14 +371,14 @@ public class BinaryVector extends Vector {
 
     if (remainder == 0) {
       // Simple case - the number we're looking for is 2^n, so anything with a "1" in row n or above is true.
-      OpenBitSet definitePositives = new OpenBitSet(dimension);
+      OpenBitSet definitePositives = new OpenBitSet(dimensions);
       for (int q = row_floor; q <= row_ceiling; q++)
         definitePositives.or(votingRecord.get(q));
       return definitePositives;
     }
     else {
       // Simple part of complex case: first get anything with a "1" in a row above n (all true).
-      OpenBitSet definitePositives = new OpenBitSet(dimension);
+      OpenBitSet definitePositives = new OpenBitSet(dimensions);
       for (int q = row_floor+1; q <= row_ceiling; q++)
         definitePositives.or(votingRecord.get(q));
 
@@ -398,7 +398,7 @@ public class BinaryVector extends Vector {
    * i.e: no underflow check currently - will wreak havoc with zero counts
    */
   public void decrement() {	
-    tempSet.set(0, dimension);
+    tempSet.set(0, dimensions);
     for (int q = 0; q < votingRecord.size(); q++) {
       votingRecord.get(q).xor(tempSet);
       tempSet.and(votingRecord.get(q));
@@ -429,7 +429,7 @@ public class BinaryVector extends Vector {
   }
 
   public void selected_decrement(int floor) {
-    tempSet.set(0, dimension);
+    tempSet.set(0, dimensions);
     for (int q = floor; q < votingRecord.size(); q++) {
       votingRecord.get(q).xor(tempSet);
       tempSet.and(votingRecord.get(q));
@@ -445,7 +445,7 @@ public class BinaryVector extends Vector {
     tempSet.xor(tempSet);
     for (int x = votingRecord.size()-1; x >= 0; x--) {
       tempSet.or(votingRecord.get(x));
-      if (tempSet.cardinality() == dimension) {
+      if (tempSet.cardinality() == dimensions) {
         thismaximum += (int) Math.pow(2, x);
         tempSet.xor(tempSet);
       }
@@ -486,8 +486,8 @@ public class BinaryVector extends Vector {
    * Reads a (dense) version of a vector from a Lucene input stream. 
    */
   public void readFromLuceneStream(IndexInput inputStream) {
-    long bitArray[] = new long[(dimension / 64) + 1];
-    for (int i = 0; i <= dimension / 64; ++i) {
+    long bitArray[] = new long[(dimensions / 64) + 1];
+    for (int i = 0; i <= dimensions / 64; ++i) {
       try {
         bitArray[i] = inputStream.readLong();
       } catch (IOException e) {
@@ -507,9 +507,9 @@ public class BinaryVector extends Vector {
    */
   public String writeToString() {
     StringBuilder builder = new StringBuilder();
-    for (int i = 0; i < dimension; ++i) {
+    for (int i = 0; i < dimensions; ++i) {
       builder.append(Integer.toString(bitSet.getBit(i)));
-      if (i != dimension - 1) {
+      if (i != dimensions - 1) {
         builder.append("|");
       }
     }
@@ -522,12 +522,12 @@ public class BinaryVector extends Vector {
    */
   public void readFromString(String input) {
     String[] entries = input.split("\\|");
-    if (entries.length != dimension) {
+    if (entries.length != dimensions) {
       throw new IllegalArgumentException("Found " + (entries.length) + " possible coordinates: "
-          + "expected " + dimension);
+          + "expected " + dimensions);
     }
 
-    for (int i = 0; i < dimension; ++i) {
+    for (int i = 0; i < dimensions; ++i) {
       if (Integer.parseInt(entries[i]) == 1)
         bitSet.fastSet(i);
     }
@@ -545,14 +545,14 @@ public class BinaryVector extends Vector {
     }
 
     this.votingRecord = new ArrayList<OpenBitSet>();
-    this.tempSet = new OpenBitSet(dimension);
+    this.tempSet = new OpenBitSet(dimensions);
     this.isSparse = false;
 
   }
 
   // Available for testing and copying.
   protected BinaryVector(OpenBitSet inSet) {
-    this.dimension = (int) inSet.size();
+    this.dimensions = (int) inSet.size();
     this.bitSet = inSet;
   }
 
