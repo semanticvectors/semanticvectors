@@ -82,11 +82,11 @@ public class BeagleNGramBuilder
 	protected BeagleNGramBuilder()
 	{
 		utils = BeagleUtils.getInstance();
-		utils.setNormal( 0.0f, (float)(Math.sqrt(1.0/(double)Flags.dimension)));
+		utils.setNormal( 0.0f, (float)(Math.sqrt(1.0/(double)Flags.dimensions)));
 
 		phi = utils.generateColtRandomVector();
-		Permute1 = utils.makeScrambledIntArray(Flags.dimension);
-		Permute2 = utils.makeScrambledIntArray(Flags.dimension);
+		Permute1 = utils.makeScrambledIntArray(Flags.dimensions);
+		Permute2 = utils.makeScrambledIntArray(Flags.dimensions);
 	}
 
 	public static BeagleNGramBuilder getInstance()
