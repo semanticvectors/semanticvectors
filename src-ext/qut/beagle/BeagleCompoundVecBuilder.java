@@ -35,16 +35,9 @@
 
 package qut.beagle;
 
-import java.util.ArrayList;
-
-import org.apache.lucene.index.Term;
-
-import cern.colt.matrix.tfloat.impl.DenseFloatMatrix1D;
-
-import pitt.search.semanticvectors.LuceneUtils;
-import pitt.search.semanticvectors.ObjectVector;
 import pitt.search.semanticvectors.VectorStore;
-import pitt.search.semanticvectors.vectors.VectorUtils;
+import pitt.search.semanticvectors.vectors.RealVector;
+import cern.colt.matrix.tfloat.impl.DenseFloatMatrix1D;
 
 /**
  * This class is based on CompoundVectorBuilder and is used to construct
@@ -57,8 +50,6 @@ public class BeagleCompoundVecBuilder
 {
 
 	BeagleNGramBuilder ngBuilder;
-	private VectorStore vecReader;
-	
 	public BeagleCompoundVecBuilder () 
 	{			
 		ngBuilder = BeagleNGramBuilder.getInstance();		
@@ -111,7 +102,7 @@ public class BeagleCompoundVecBuilder
 			positions[i] = (short)i;
 			if (i!=queryTermPosition) 
 			{
-				tmpVec = vecReader.getVector(queryTerms[i]);
+				tmpVec = ((RealVector) vecReader.getVector(queryTerms[i])).getCoordinates();
 				if (tmpVec==null)
 				{
 					problem = true;
