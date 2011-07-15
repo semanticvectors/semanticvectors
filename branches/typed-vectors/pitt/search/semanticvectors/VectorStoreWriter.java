@@ -69,7 +69,7 @@ public class VectorStoreWriter {
    * "-vectortype real -dimension 100".
    */
   public static String generateHeaderString() {
-    return "-vectortype " + Flags.vectortype + " -dimension " + Integer.toString(Flags.dimensions);
+    return "-vectortype " + Flags.vectortype + " -dimensions " + Integer.toString(Flags.dimensions);
   }
 
   /**
