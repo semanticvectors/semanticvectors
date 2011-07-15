@@ -152,13 +152,13 @@ public class VectorStoreReaderLucene implements CloseableVectorStore {
       while (getIndexInput().getFilePointer() < getIndexInput().length() - 1) {
         String objectString = getIndexInput().readString();
         if (objectString.equals(stringTarget)) {
-          Vector vector = VectorFactory.createZeroVector(Flags.vectortype, Flags.dimension);
+          Vector vector = VectorFactory.createZeroVector(Flags.vectortype, Flags.dimensions);
           vector.readFromLuceneStream(getIndexInput());
           return vector;
         }
         else{
           getIndexInput().seek(getIndexInput().getFilePointer()
-              + VectorFactory.getLuceneByteSize(Flags.vectortype, Flags.dimension));
+              + VectorFactory.getLuceneByteSize(Flags.vectortype, Flags.dimensions));
         }
       }
     }
@@ -199,7 +199,7 @@ public class VectorStoreReaderLucene implements CloseableVectorStore {
 
     public ObjectVector nextElement() {
       String object = null;
-      Vector vector = VectorFactory.createZeroVector(Flags.vectortype, Flags.dimension);
+      Vector vector = VectorFactory.createZeroVector(Flags.vectortype, Flags.dimensions);
       try {
         object = indexInput.readString();
         vector.readFromLuceneStream(indexInput);

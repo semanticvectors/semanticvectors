@@ -84,7 +84,7 @@ public class VectorFactory {
    */
   public static Vector generateRandomVector(
       VectorType type, int dimension, int numEntries, Random random) {
-    if (2 * numEntries >= dimension) {
+    if (2 * numEntries > dimension) {
       throw new RuntimeException("Requested " + numEntries + " to be filled in sparse "
           + "vector of dimension " + dimension + ". This is not sparse and may cause problems.");
     }

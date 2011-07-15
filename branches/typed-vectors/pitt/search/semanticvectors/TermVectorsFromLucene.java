@@ -192,7 +192,7 @@ public class TermVectorsFromLucene implements VectorStore {
       }
 
       // Initialize new termVector.
-      Vector termVector = VectorFactory.createZeroVector(Flags.vectortype, Flags.dimension);
+      Vector termVector = VectorFactory.createZeroVector(Flags.vectortype, Flags.dimensions);
 
       TermDocs tDocs = indexReader.termDocs(term);
       while (tDocs.next()) {
@@ -263,7 +263,7 @@ public class TermVectorsFromLucene implements VectorStore {
         }
         tc++;
         Vector indexVector = VectorFactory.generateRandomVector(
-            Flags.vectortype, Flags.dimension, seedLength, random);
+            Flags.vectortype, Flags.dimensions, seedLength, random);
         // Place each term vector in the vector store.
         this.termVectors.put(term.text(), new ObjectVector(term.text(), indexVector));
       }

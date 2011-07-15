@@ -194,7 +194,7 @@ public class LSA {
                                           + " arguments, instead of the expected 1."));
     }
 
-    logger.info("Dimension = " + Flags.dimension);
+    logger.info("Dimension = " + Flags.dimensions);
     logger.info("Minimum frequency = " + Flags.minfrequency);
     logger.info("Maximum frequency = " + Flags.maxfrequency);
     logger.info("Number non-alphabet characters = " + Flags.maxnonalphabetchars);
@@ -210,7 +210,7 @@ public class LSA {
 
     logger.info("Starting SVD using algorithm LAS2");
 
-    SVDRec svdR = svd.svdLAS2A(A, Flags.dimension);
+    SVDRec svdR = svd.svdLAS2A(A, Flags.dimensions);
     DMat vT = svdR.Vt;
     DMat uT = svdR.Ut;
 
@@ -218,23 +218,23 @@ public class LSA {
     String termFile = "svd_termvectors.bin";
     FSDirectory fsDirectory = FSDirectory.open(new File("."));
     IndexOutput outputStream = fsDirectory.createOutput(termFile);
-    float[] tmpVector = new float[Flags.dimension];
+    float[] tmpVector = new float[Flags.dimensions];
 
     logger.info("Write vectors incrementally to file " + termFile);
 
     // Write header giving number of dimensions for all vectors.
     outputStream.writeString("-dimensions");
-    outputStream.writeInt(Flags.dimension);
+    outputStream.writeInt(Flags.dimensions);
 
     int cnt;
     // Write out term vectors
     for (cnt = 0; cnt < vT.cols; cnt++) {
       outputStream.writeString(theTerms[cnt]);
 
-      Vector termVector = VectorFactory.createZeroVector(Flags.vectortype, Flags.dimension);
+      Vector termVector = VectorFactory.createZeroVector(Flags.vectortype, Flags.dimensions);
 
-      float[] tmp = new float[Flags.dimension];
-      for (int i = 0; i < Flags.dimension; i++)
+      float[] tmp = new float[Flags.dimensions];
+      for (int i = 0; i < Flags.dimensions; i++)
         tmp[i] = (float) vT.value[i][cnt];
       termVector = new RealVector(tmp);
       termVector.normalize();
@@ -252,12 +252,12 @@ public class LSA {
     // Open file and write headers.
     String docFile = "svd_docvectors.bin";
     outputStream = fsDirectory.createOutput(docFile);
-    tmpVector = new float[Flags.dimension];
+    tmpVector = new float[Flags.dimensions];
     logger.info("Write vectors incrementally to file " + docFile);
 
     // Write header giving number of dimensions for all vectors.
     outputStream.writeString("-dimensions");
-    outputStream.writeInt(Flags.dimension);
+    outputStream.writeInt(Flags.dimensions);
 
     // initilize IndexReader and LuceneUtils
     File file = new File(args[0]);
@@ -267,9 +267,9 @@ public class LSA {
     for (cnt = 0; cnt < uT.cols; cnt++) {
       String thePath = indexReader.document(cnt).get("path");
       outputStream.writeString(thePath);
-      float[] tmp = new float[Flags.dimension];
+      float[] tmp = new float[Flags.dimensions];
 
-      for (int i = 0; i < Flags.dimension; i++)
+      for (int i = 0; i < Flags.dimensions; i++)
         tmp[i] = (float) uT.value[i][cnt];
       RealVector docVector = new RealVector(tmp);
 

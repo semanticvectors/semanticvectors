@@ -152,7 +152,7 @@ public class IncrementalDocVectors {
             // are not represented in termVectorData.
             try {
               Vector termVector = termVectorData.getVector(term_string);
-              if (termVector != null && termVector.getDimension() > 0) {
+              if (termVector != null && termVector.getDimensions() > 0) {
                 docVector.superpose(termVector, localweight * globalweight, null);
               }
             } catch (NullPointerException npe) {
@@ -203,6 +203,6 @@ public class IncrementalDocVectors {
         logger.info("Contents fields are: " + Arrays.toString(Flags.contentsfields));
 
     
-    createIncrementalDocVectors(vsr, args[1], Flags.contentsfields, vectorFile, Flags.dimension);
+    createIncrementalDocVectors(vsr, args[1], Flags.contentsfields, vectorFile, Flags.dimensions);
   }
 }

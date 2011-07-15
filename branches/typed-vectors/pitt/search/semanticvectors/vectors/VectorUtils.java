@@ -295,12 +295,12 @@ public class VectorUtils {
    * floats) to be orthogonalized in place.
    */
   public static boolean orthogonalizeVectors(ArrayList<Vector> vectors) {
-    int dimension = vectors.get(0).getDimension();
+    int dimension = vectors.get(0).getDimensions();
     // Go up through vectors in turn, parameterized by k.
     for (int k = 0; k < vectors.size(); ++k) {
       Vector kthVector = vectors.get(k);
       kthVector.normalize();
-      if (kthVector.getDimension() != dimension) {
+      if (kthVector.getDimensions() != dimension) {
         logger.warning("In orthogonalizeVector: not all vectors have required dimension.");
         return false;
       }

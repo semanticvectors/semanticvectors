@@ -60,7 +60,7 @@ public class ClusterResults {
   public static int[] kMeansCluster (ObjectVector[] objectVectors, int numClusters) {
     int[] clusterMappings = new int[objectVectors.length];
     Random rand = new Random();
-    int dim = objectVectors[0].getVector().getDimension();
+    int dim = objectVectors[0].getVector().getDimensions();
     Vector[] centroids = new Vector[numClusters];
 
     logger.info("Initializing clusters ...");
@@ -81,7 +81,7 @@ public class ClusterResults {
     while (true) {
       // Clear centroid register.
       for (int i = 0; i < centroids.length; ++i) {
-        centroids[i] = VectorFactory.createZeroVector(Flags.vectortype, Flags.dimension); 
+        centroids[i] = VectorFactory.createZeroVector(Flags.vectortype, Flags.dimensions); 
       }
       // Generate new cluster centroids.
       for (int i = 0; i < objectVectors.length; ++i) {

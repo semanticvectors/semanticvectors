@@ -69,7 +69,7 @@ public class VectorStoreWriter {
    * "-vectortype real -dimension 100".
    */
   public static String generateHeaderString() {
-    return "-vectortype " + Flags.vectortype + " -dimension " + Integer.toString(Flags.dimension);
+    return "-vectortype " + Flags.vectortype + " -dimension " + Integer.toString(Flags.dimensions);
   }
 
   /**
@@ -96,7 +96,7 @@ public class VectorStoreWriter {
    */
   public boolean writeVectorsInLuceneFormat(String vectorFileName, VectorStore objectVectors) {
 	logger.info("About to write " + objectVectors.getNumVectors() + " vectors of dimension "
-			+ Flags.dimension + " to Lucene format file: " + vectorFileName);
+			+ Flags.dimensions + " to Lucene format file: " + vectorFileName);
 	try {
       File vectorFile = new File(vectorFileName);
       String parentPath = vectorFile.getParent();
@@ -139,7 +139,7 @@ public class VectorStoreWriter {
    */
   public boolean writeVectorsInTextFormat(String vectorFileName, VectorStore objectVectors) {
     logger.info("About to write " + objectVectors.getNumVectors() + " vectors of dimension "
-    		+ Flags.dimension + " to text file: " + vectorFileName);
+    		+ Flags.dimensions + " to text file: " + vectorFileName);
     try {
       BufferedWriter outBuf = new BufferedWriter(new FileWriter(vectorFileName));
       writeToTextBuffer(objectVectors, outBuf);

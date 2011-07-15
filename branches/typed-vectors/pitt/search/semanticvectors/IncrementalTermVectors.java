@@ -114,7 +114,7 @@ public class IncrementalTermVectors implements VectorStore {
           Flags.minfrequency, Flags.maxfrequency, Flags.maxnonalphabetchars))
         continue;
       tc++;
-      Vector termVector = VectorFactory.createZeroVector(Flags.vectortype, Flags.dimension);
+      Vector termVector = VectorFactory.createZeroVector(Flags.vectortype, Flags.dimensions);
 
       // Place each term vector in the vector store.
       termVectorData.putVector(term.text(), termVector);
@@ -129,7 +129,7 @@ public class IncrementalTermVectors implements VectorStore {
       }
 
       int dcount = dc;
-      Vector docVector = VectorFactory.createZeroVector(Flags.vectortype, Flags.dimension);
+      Vector docVector = VectorFactory.createZeroVector(Flags.vectortype, Flags.dimensions);
 
       try {
     	 /**
@@ -166,7 +166,7 @@ public class IncrementalTermVectors implements VectorStore {
               // logger.finest("term "+term+ " not represented");
             }
             // Exclude terms that are not represented in termVectorData
-            if (termVector != null && termVector.getDimension() > 0) {
+            if (termVector != null && termVector.getDimensions() > 0) {
               termVector.superpose(docVector, freq, null);
             }
           }
@@ -264,7 +264,7 @@ public class IncrementalTermVectors implements VectorStore {
     String luceneIndex = args[1];
 
     VectorStore termVectors = new IncrementalTermVectors(
-        luceneIndex, Flags.dimension, Flags.contentsfields, vectorFile);
+        luceneIndex, Flags.dimensions, Flags.contentsfields, vectorFile);
     new VectorStoreWriter().writeVectors("incremental_termvectors.bin", termVectors);
   }
 }

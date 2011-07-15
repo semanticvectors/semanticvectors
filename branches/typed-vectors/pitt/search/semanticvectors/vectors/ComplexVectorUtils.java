@@ -49,8 +49,8 @@ public class ComplexVectorUtils {
    * vec2 is in POLAR mode.
    */
   public static void superposeWithAngle( ComplexVector vec1, ComplexVector vec2  ) {
-    int dim =  vec1.getDimension();
-    assert( dim == vec2.getDimension() );
+    int dim =  vec1.getDimensions();
+    assert( dim == vec2.getDimensions() );
     assert( vec1.getOpMode() == ComplexVector.MODE.CARTESIAN );
     assert( vec2.getOpMode() == ComplexVector.MODE.POLAR );
 
@@ -71,7 +71,7 @@ public class ComplexVectorUtils {
   public static void superposeWithAngle( ComplexVector vec1, ComplexVector vec2, float weight, int[] permutation ) {
 	if (permutation == null) return;
 	int positionToAdd;
-    int dim =  vec1.getDimension();
+    int dim =  vec1.getDimensions();
 
     char c[] = vec2.getPhaseAngles();
     float[] coordinates = vec1.getCoordinates();
@@ -93,7 +93,7 @@ public class ComplexVectorUtils {
   public static void superposeWithSparseAngle( ComplexVector vec1, ComplexVector vec2, float weight, int[] permutation ) {
 	if (permutation == null) return;
 	int positionToAdd, phaseAngleIdx;
-    int dim =  vec1.getDimension();
+    int dim =  vec1.getDimensions();
 
     char offsets[] = vec2.getSparseOffsets();
     float[] coordinates = vec1.getCoordinates();
@@ -113,8 +113,8 @@ public class ComplexVectorUtils {
    * Both vectors are in CARTESIAN mode.
    */
   public static void superposeWithCoord( ComplexVector vec1, ComplexVector vec2  ) {
-    int arrayDim =  vec1.getDimension()*2;
-    assert( vec1.getDimension() == vec2.getDimension() );
+    int arrayDim =  vec1.getDimensions()*2;
+    assert( vec1.getDimensions() == vec2.getDimensions() );
     assert( vec1.getOpMode() == ComplexVector.MODE.CARTESIAN );
     assert( vec2.getOpMode() == ComplexVector.MODE.CARTESIAN );
 
@@ -130,8 +130,8 @@ public class ComplexVectorUtils {
    */
   public static void superposeWithCoord( ComplexVector vec1, ComplexVector vec2, float weight, int[] permutation ) {
     int positionToAdd;
-    int dim =  vec1.getDimension()*2;
-    assert( vec1.getDimension() == vec2.getDimension() );
+    int dim =  vec1.getDimensions()*2;
+    assert( vec1.getDimensions() == vec2.getDimensions() );
     assert( vec1.getOpMode() == ComplexVector.MODE.CARTESIAN );
     assert( vec2.getOpMode() == ComplexVector.MODE.CARTESIAN );
 
@@ -151,7 +151,7 @@ public class ComplexVectorUtils {
    * Convert from phase angles to cartesian coordinates using LUT.
    */
   public static void toCartesian( ComplexVector vec ) {
-    int dim =  vec.getDimension();
+    int dim =  vec.getDimensions();
     char c[] = vec.getPhaseAngles();
     float[] coordinates = new float[dim*2];
 
@@ -169,7 +169,7 @@ public class ComplexVectorUtils {
    * We assume that the vector is already in POLAR mode
    */
   public static void toPhaseAngle( ComplexVector vec ) {
-    int dim = vec.getDimension();
+    int dim = vec.getDimensions();
     char[] c = new char[dim];
     float[] coordinates = vec.getCoordinates();
 

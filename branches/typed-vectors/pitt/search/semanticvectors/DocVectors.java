@@ -145,7 +145,7 @@ public class DocVectors implements VectorStore {
   private void initializeDocVectors() {
     logger.info("Initializing document vector store ...");
     for (int i = 0; i < indexReader.numDocs(); ++i) {
-      Vector docVector = VectorFactory.createZeroVector(Flags.vectortype, Flags.dimension);
+      Vector docVector = VectorFactory.createZeroVector(Flags.vectortype, Flags.dimensions);
       this.docVectors.putVector(Integer.toString(i), docVector);
     }
   }

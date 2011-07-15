@@ -106,7 +106,7 @@ public class BuildIndex {
 
     String luceneIndex = args[0];
     logger.info("Seedlength = " + Flags.seedlength 
-        + "\nDimension = " + Flags.dimension
+        + "\nDimension = " + Flags.dimensions
         + "\nMinimum frequency = " + Flags.minfrequency
         + "\nMaximum frequency = " + Flags.maxfrequency
         + "\nNumber non-alphabet characters = " + Flags.maxnonalphabetchars
@@ -124,12 +124,12 @@ public class BuildIndex {
         // Otherwise attempt to load pre-existing semantic term vectors.
         logger.info("Creating term vectors ...");
         vecStore = TermVectorsFromLucene.createTermBasedRRIVectors(
-            luceneIndex, Flags.dimension, Flags.seedlength, Flags.minfrequency, Flags.maxfrequency,
+            luceneIndex, Flags.dimensions, Flags.seedlength, Flags.minfrequency, Flags.maxfrequency,
             Flags.maxnonalphabetchars, Flags.initialtermvectors, Flags.contentsfields);
       } else {
         logger.info("Creating elemental document vectors ...");
         vecStore = TermVectorsFromLucene.createTermVectorsFromLucene(
-            luceneIndex, Flags.dimension, Flags.seedlength, Flags.minfrequency, Flags.maxfrequency,
+            luceneIndex, Flags.dimensions, Flags.seedlength, Flags.minfrequency, Flags.maxfrequency,
             Flags.maxnonalphabetchars, null, Flags.contentsfields);
       }
 
@@ -139,11 +139,11 @@ public class BuildIndex {
         logger.info("Writing term vectors to " + termFile);
         vecWriter.writeVectors(termFile, vecStore);
         IncrementalDocVectors.createIncrementalDocVectors(
-            vecStore, luceneIndex, Flags.contentsfields, "incremental_"+docFile, Flags.dimension);
+            vecStore, luceneIndex, Flags.contentsfields, "incremental_"+docFile, Flags.dimensions);
         IncrementalTermVectors itermVectors = null;
 
         for (int i = 1; i < Flags.trainingcycles; ++i) {
-          itermVectors = new IncrementalTermVectors(luceneIndex,  Flags.dimension,
+          itermVectors = new IncrementalTermVectors(luceneIndex,  Flags.dimensions,
                                                     Flags.contentsfields, "incremental_"+docFile);
 
           new VectorStoreWriter().writeVectors(
@@ -155,14 +155,14 @@ public class BuildIndex {
 
         IncrementalDocVectors.createIncrementalDocVectors(
             itermVectors, luceneIndex, Flags.contentsfields,
-            "incremental_"+docFile, Flags.dimension);
+            "incremental_"+docFile, Flags.dimensions);
         }
       } else if (Flags.docindexing.equals("inmemory")) {
         DocVectors docVectors = new DocVectors(vecStore);
         for (int i = 1; i < Flags.trainingcycles; ++i) {
           logger.info("\nRetraining with learned document vectors ...");
           vecStore = TermVectorsFromLucene.createTermVectorsFromLucene(
-              luceneIndex, Flags.dimension, Flags.seedlength, Flags.minfrequency,
+              luceneIndex, Flags.dimensions, Flags.seedlength, Flags.minfrequency,
               Flags.maxfrequency, Flags.maxnonalphabetchars, docVectors, Flags.contentsfields);
           docVectors = new DocVectors(vecStore);
         }

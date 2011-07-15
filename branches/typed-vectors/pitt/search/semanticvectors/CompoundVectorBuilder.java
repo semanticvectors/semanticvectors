@@ -107,9 +107,9 @@ public class CompoundVectorBuilder {
     }
 
     // Initialize other arguments.
-    Vector queryVec = VectorFactory.createZeroVector(Flags.vectortype, Flags.dimension);
+    Vector queryVec = VectorFactory.createZeroVector(Flags.vectortype, Flags.dimensions);
 
-    Vector tmpVec = VectorFactory.createZeroVector(Flags.vectortype, Flags.dimension);
+    Vector tmpVec = VectorFactory.createZeroVector(Flags.vectortype, Flags.dimensions);
     float weight = 1;
 
     for (int j = 0; j < queryTerms.length; ++j) {
@@ -126,7 +126,7 @@ public class CompoundVectorBuilder {
 
         if (tmpVec != null) {
           queryVec.superpose(tmpVec, weight,
-              PermutationUtils.getShiftPermutation(Flags.dimension, permutation));
+              PermutationUtils.getShiftPermutation(Flags.dimensions, permutation));
         } else {
           logger.log(Level.WARNING, "No vector for {0}", queryTerms[j]);
         }
@@ -166,7 +166,7 @@ public class CompoundVectorBuilder {
       LuceneUtils lUtils,
       String[] queryTerms) {
     CompoundVectorBuilder builder = new CompoundVectorBuilder(vecReader, lUtils);
-    Vector returnVector = VectorFactory.createZeroVector(Flags.vectortype, Flags.dimension);
+    Vector returnVector = VectorFactory.createZeroVector(Flags.vectortype, Flags.dimensions);
     // Check through args to see if we need to do negation.
     if (!Flags.suppressnegatedqueries) {
       for (int i = 0; i < queryTerms.length; ++i) {
@@ -190,7 +190,7 @@ public class CompoundVectorBuilder {
    * @param queryTerms String array of query terms to look up.
    */
   protected Vector getAdditiveQueryVector (String[] queryTerms) {
-    Vector queryVec = VectorFactory.createZeroVector(Flags.vectortype, Flags.dimension);
+    Vector queryVec = VectorFactory.createZeroVector(Flags.vectortype, Flags.dimensions);
     float weight = 1;
 
     for (int j = 0; j < queryTerms.length; ++j) {
@@ -221,7 +221,7 @@ public class CompoundVectorBuilder {
    * @param queryTerms String array of query terms to look up.
    */
   protected Vector getAdditiveQueryVectorRegex (String[] queryTerms) {
-    Vector queryVec = VectorFactory.createZeroVector(Flags.vectortype, Flags.dimension);
+    Vector queryVec = VectorFactory.createZeroVector(Flags.vectortype, Flags.dimensions);
     float weight = 1;
 
     for (int j = 0; j < queryTerms.length; ++j) {

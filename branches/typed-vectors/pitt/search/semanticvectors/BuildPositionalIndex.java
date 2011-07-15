@@ -130,7 +130,7 @@ public class BuildPositionalIndex {
 
     logger.info("Lucene index = " + luceneIndex
         + "\nSeedlength = " + Flags.seedlength
-        + "\nVector length = " + Flags.dimension
+        + "\nVector length = " + Flags.dimensions
         + "\nMinimum frequency = " + Flags.minfrequency
         + "\nMaximum frequency = " + Flags.maxfrequency
         + "\nNumber non-alphabet characters = " + Flags.maxnonalphabetchars
@@ -139,7 +139,7 @@ public class BuildPositionalIndex {
 
     try {
       TermTermVectorsFromLucene vecStore = new TermTermVectorsFromLucene(
-          luceneIndex, Flags.dimension, Flags.seedlength, Flags.minfrequency, Flags.maxfrequency,
+          luceneIndex, Flags.dimensions, Flags.seedlength, Flags.minfrequency, Flags.maxfrequency,
             Flags.maxnonalphabetchars, 2 * Flags.windowradius + 1, Flags.positionalmethod,
             newBasicTermVectors, Flags.contentsfields);
       
@@ -151,7 +151,7 @@ public class BuildPositionalIndex {
         newBasicTermVectors = vecStore.getBasicTermVectors();
         logger.info("\nRetraining with learned term vectors ...");
         vecStore = new TermTermVectorsFromLucene(
-            luceneIndex, Flags.dimension, Flags.seedlength, Flags.minfrequency, Flags.maxfrequency,
+            luceneIndex, Flags.dimensions, Flags.seedlength, Flags.minfrequency, Flags.maxfrequency,
             Flags.maxnonalphabetchars, 2 * Flags.windowradius + 1, Flags.positionalmethod,
             newBasicTermVectors, Flags.contentsfields);
       }
@@ -165,7 +165,7 @@ public class BuildPositionalIndex {
 
       if (!Flags.docindexing.equals("none")) {
         IncrementalDocVectors.createIncrementalDocVectors(
-            vecStore, luceneIndex, Flags.contentsfields, "incremental_"+docFile, Flags.dimension);
+            vecStore, luceneIndex, Flags.contentsfields, "incremental_"+docFile, Flags.dimensions);
       }
     }
     catch (IOException e) {

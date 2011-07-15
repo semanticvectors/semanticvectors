@@ -109,7 +109,7 @@ public class RealVector extends Vector {
   }
   
   @Override
-  public int getDimension() {
+  public int getDimensions() {
     return dimension;
   }
   

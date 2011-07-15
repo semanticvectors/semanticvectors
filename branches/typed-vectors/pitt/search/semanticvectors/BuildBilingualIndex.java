@@ -100,12 +100,12 @@ public class BuildBilingualIndex{
     String[] fields2 = new String[] {"contents_" + lang2};
 
     logger.info("seedLength = " + Flags.seedlength);
-    logger.info("Vector length = " + Flags.dimension);
+    logger.info("Vector length = " + Flags.dimensions);
     logger.info("Non-alphabet characters = " + Flags.maxnonalphabetchars);
     logger.info("Minimum frequency = " + Flags.minfrequency);
     try{
       TermVectorsFromLucene vecStore1 =
-          TermVectorsFromLucene.createTermVectorsFromLucene(luceneIndex, Flags.dimension,
+          TermVectorsFromLucene.createTermVectorsFromLucene(luceneIndex, Flags.dimensions,
                                     Flags.seedlength, Flags.minfrequency, Flags.maxfrequency,
                                     Flags.maxnonalphabetchars, null, fields1);
       VectorStoreWriter vecWriter = new VectorStoreWriter();
@@ -118,7 +118,7 @@ public class BuildBilingualIndex{
       VectorStore basicDocVectors = vecStore1.getBasicDocVectors();
       System.out.println("Keeping basic doc vectors, number: " + basicDocVectors.getNumVectors());
       TermVectorsFromLucene vecStore2 =
-          TermVectorsFromLucene.createTermVectorsFromLucene(luceneIndex, Flags.dimension,
+          TermVectorsFromLucene.createTermVectorsFromLucene(luceneIndex, Flags.dimensions,
                                     Flags.seedlength, Flags.minfrequency, Flags.maxfrequency,
                                     Flags.maxnonalphabetchars, basicDocVectors, fields2);
       logger.info("Writing term vectors to " + termFile2);

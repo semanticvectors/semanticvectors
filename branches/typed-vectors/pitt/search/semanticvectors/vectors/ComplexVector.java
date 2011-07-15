@@ -70,7 +70,7 @@ public class ComplexVector extends Vector {
   }
 
   @Override
-  public int getDimension() {
+  public int getDimensions() {
     return dimension;
   }
 
@@ -263,7 +263,7 @@ public class ComplexVector extends Vector {
     if (isSparse) return 0;
     if (complexOther.isSparse) return 0;
 
-	assert( dimension == other.getDimension());
+	assert( dimension == other.getDimensions());
 
 	float[] realLUT = ComplexVectorUtils.getRealLUT();
 	char[] phaseAnglesOther = complexOther.getPhaseAngles();
@@ -339,7 +339,7 @@ public class ComplexVector extends Vector {
    */
   public void convolve( ComplexVector other, int direction  )
   {
-    assert( dimension == other.getDimension() );
+    assert( dimension == other.getDimensions() );
     if (opMode!=MODE.POLAR) normalize();
     if (other.getOpMode()!=MODE.POLAR) other.normalize();
 	char[] otherAngles = other.getPhaseAngles();

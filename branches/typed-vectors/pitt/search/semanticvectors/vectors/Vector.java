@@ -74,7 +74,7 @@ public abstract class Vector {
   protected abstract Vector generateRandomVector(int dimension, int numEntries, Random random);
   
   /** Returns the dimension of the vector. */
-  public abstract int getDimension();
+  public abstract int getDimensions();
   
   /** Returns true if this is a representation of a zero vector. */
   public abstract boolean isZeroVector();

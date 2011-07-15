@@ -54,9 +54,9 @@ public class IncompatibleVectorsException extends RuntimeException {
       throw new IncompatibleVectorsException("Trying to combine vectors of type: "
           + first.getClass().getCanonicalName() + ", " + second.getClass().getCanonicalName());
     }
-    if (first.getDimension() != second.getDimension()) {
+    if (first.getDimensions() != second.getDimensions()) {
       throw new IncompatibleVectorsException("Trying to combine vectors of dimension: "
-          + first.getDimension() + ", " + second.getDimension());
+          + first.getDimensions() + ", " + second.getDimensions());
     }
   }
 }
