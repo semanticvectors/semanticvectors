@@ -40,6 +40,8 @@ import pitt.search.semanticvectors.LuceneUtils;
 import pitt.search.semanticvectors.VectorSearcher;
 import pitt.search.semanticvectors.VectorStore;
 import pitt.search.semanticvectors.ZeroVectorException;
+import pitt.search.semanticvectors.vectors.RealVector;
+import pitt.search.semanticvectors.vectors.Vector;
 import pitt.search.semanticvectors.vectors.VectorUtils;
 
 /**
@@ -58,7 +60,7 @@ import pitt.search.semanticvectors.vectors.VectorUtils;
 
 public class BeagleVectorSearcher extends VectorSearcher
 {
-	float[] queryVector;
+	Vector queryVector;
 	/**
 	 * @param queryVecStore Vector store to use for query generation.
 	 * @param searchVecStore The vector store to search.
@@ -74,16 +76,16 @@ public class BeagleVectorSearcher extends VectorSearcher
 				
 		BeagleCompoundVecBuilder bcvb = new BeagleCompoundVecBuilder();
 		
-		queryVector = bcvb.getNGramQueryVector(queryVecStore, queryTerms);
+		queryVector = new RealVector(bcvb.getNGramQueryVector(queryVecStore, queryTerms));
 				
-		if (VectorUtils.isZeroVector(this.queryVector)) {
+		if (this.queryVector.isZeroVector()) {
 			throw new ZeroVectorException("Query vector is zero ... no results.");
 		}
 	}
 
-	public float getScore(float[] testVector) 
+	public double getScore(Vector testVector) 
 	{
-		return VectorUtils.scalarProduct(this.queryVector, testVector);	
+		return this.queryVector.measureOverlap(testVector);	
 	}	
 	
 }

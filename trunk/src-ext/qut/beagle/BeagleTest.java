@@ -85,11 +85,11 @@ public class BeagleTest
 			System.out.println("\nTime to process: " + time/1000 + " secs.");
 			System.out.println("\nNumber of convolutions: " + utils.getNumConvolutions());
 
-			vecWriter = new VectorStoreWriter(Flags.dimension);
+			vecWriter = new VectorStoreWriter();
 			vecWriter.writeVectors(fileOut + "_" + vecLength + "_" + numGrams + ".bin", bngv);
 
 			VectorStore indexVectors = bngv.getIndexVectors();
-			vecWriter = new VectorStoreWriter(Flags.dimension);
+			vecWriter = new VectorStoreWriter();
 			vecWriter.writeVectors( fileOut + "_" + vecLength + "_" + numGrams + "_index.bin", indexVectors);
 
 			bngv = null;

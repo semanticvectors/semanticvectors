@@ -57,6 +57,8 @@ import pitt.search.semanticvectors.ObjectVector;
 import pitt.search.semanticvectors.VectorStore;
 import pitt.search.semanticvectors.VectorStoreRAM;
 import pitt.search.semanticvectors.VectorStoreWriter;
+import pitt.search.semanticvectors.vectors.RealVector;
+import pitt.search.semanticvectors.vectors.Vector;
 import cern.colt.matrix.tfcomplex.impl.DenseFComplexMatrix1D;
 import cern.colt.matrix.tfloat.impl.DenseFloatMatrix1D;
 
@@ -172,8 +174,8 @@ public class BeagleNGramVectors implements VectorStore {
       throw new IOException("Lucene indexes not built correctly.");
     }
 
-    this.indexVectors = new VectorStoreRAM(Flags.dimension);
-    this.termVectors = new VectorStoreRAM(Flags.dimension);
+    this.indexVectors = new VectorStoreRAM();
+    this.termVectors = new VectorStoreRAM();
 
     // Iterate through an enumeration of terms and create term vectors.
     System.out.println("Creating term vectors ...");
@@ -186,17 +188,16 @@ public class BeagleNGramVectors implements VectorStore {
       tc++;
 
       // Create random index vectors for terms that pass filter
-      if (iFilter.filter( term ))
-      {
+      if (iFilter.filter(term)) {
         float[] indexVector =  utils.generateNormalizedRandomVector();
-        this.indexVectors.putVector(term.text(), indexVector);
+        this.indexVectors.putVector(term.text(), new RealVector(indexVector));
       }
 
       // Create zero term vectors for terms that pass filter
-      if (tFilter.filter( term ))
+      if (tFilter.filter(term))
       {
         float[] termVector = new float[Flags.dimension];
-        this.termVectors.putVector(term.text(), termVector);
+        this.termVectors.putVector(term.text(), new RealVector(termVector));
       }
     }
 
@@ -258,7 +259,8 @@ public class BeagleNGramVectors implements VectorStore {
           // Create local index vectors
           if (this.indexVectors.getVector(docterms[tcn]) != null) {
             /** retrieve relevant random index vectors**/
-            localindexvectors[tcn] = new DenseFloatMatrix1D( indexVectors.getVector(docterms[tcn]) );
+            localindexvectors[tcn] = new DenseFloatMatrix1D(
+                ((RealVector) indexVectors.getVector(docterms[tcn])).getCoordinates() );
           }
 
           // Create local term vectors
@@ -328,7 +330,7 @@ public class BeagleNGramVectors implements VectorStore {
         float[] v;
         for (short tcn = 0; tcn < numwords; tcn++)
         {
-          if ((v = termVectors.getVector(docterms[tcn])) != null)
+          if ((v = ((RealVector) termVectors.getVector(docterms[tcn])).getCoordinates()) != null)
           {
             for (int i=0; i<v.length; i++)
             {
@@ -342,7 +344,7 @@ public class BeagleNGramVectors implements VectorStore {
     System.out.println("\nCreated " + termVectors.getNumVectors() + " term vectors ...");
     System.out.println("\nNormalizing term vectors");
 
-    Enumeration e = termVectors.getAllVectors();
+    Enumeration<ObjectVector> e = termVectors.getAllVectors();
     normalise( e );
 
     System.out.println("\nCreated " + indexVectors.getNumVectors() + " index vectors ...");
@@ -353,7 +355,7 @@ public class BeagleNGramVectors implements VectorStore {
 
   }
 
-  public void normalise( Enumeration e )
+  public void normalise( Enumeration<ObjectVector> e )
   {
     int zeroVecs = 0, totVecs = 0;
     while (e.hasMoreElements())
@@ -362,7 +364,7 @@ public class BeagleNGramVectors implements VectorStore {
 
       if (temp.getVector() == null) continue;
 
-      float[] next = temp.getVector();
+      float[] next = ((RealVector) temp.getVector()).getCoordinates();
 
       // Normalise and count any zero vectors
       // (There shouldn't be any zero vectors)
@@ -380,7 +382,7 @@ public class BeagleNGramVectors implements VectorStore {
   }
 
   // Basic VectorStore interface stuff now implemented through termVectors.
-  public float[] getVector(Object term) {
+  public Vector getVector(Object term) {
     return termVectors.getVector(term);
   }
 
