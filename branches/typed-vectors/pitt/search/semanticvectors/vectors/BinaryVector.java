@@ -504,7 +504,7 @@ public class BinaryVector extends Vector {
       }
     }
     this.bitSet = new OpenBitSet(bitArray, bitArray.length);
-    this.isSparse = false;
+    this.isSparse = true;
   }
 
   @Override
