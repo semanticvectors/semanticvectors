@@ -47,7 +47,7 @@ public class RealVectorTest extends TestCase {
   @Test
   public void testCreateZeroVectorAndOverlap() {
     Vector vector1 = VectorFactory.createZeroVector(VectorType.REAL, 2);
-    assertEquals(2, vector1.getDimension());
+    assertEquals(2, vector1.getDimensions());
     assertEquals(0.0, vector1.measureOverlap(vector1));
     Vector vector2 = VectorFactory.createZeroVector(VectorType.REAL, 3);
     try {

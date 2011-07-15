@@ -196,7 +196,7 @@ public class BeagleNGramVectors implements VectorStore {
       // Create zero term vectors for terms that pass filter
       if (tFilter.filter(term))
       {
-        float[] termVector = new float[Flags.dimension];
+        float[] termVector = new float[Flags.dimensions];
         this.termVectors.putVector(term.text(), new RealVector(termVector));
       }
     }
@@ -266,7 +266,7 @@ public class BeagleNGramVectors implements VectorStore {
           // Create local term vectors
           if (this.termVectors.getVector(docterms[tcn]) != null) {
             /** retrieve the relevant term vectors**/
-            localtermvectors[tcn] = utils.createZeroVector( Flags.dimension );
+            localtermvectors[tcn] = utils.createZeroVector( Flags.dimensions );
           }
         }
 
@@ -395,6 +395,6 @@ public class BeagleNGramVectors implements VectorStore {
   }
 
   public int getDimension() {
-    return Flags.dimension;
+    return Flags.dimensions;
   }
 }

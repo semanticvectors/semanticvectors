@@ -74,7 +74,7 @@ public class BeagleTest
 
 		try
 		{
-			Flags.dimension = vecLength;
+			Flags.dimensions = vecLength;
 
 			time = System.currentTimeMillis();
 

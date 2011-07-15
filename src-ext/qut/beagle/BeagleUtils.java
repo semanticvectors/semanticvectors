@@ -140,7 +140,7 @@ public class BeagleUtils
 
 	public DenseFloatMatrix1D generateColtRandomVector()
 	{
-		DenseFloatMatrix1D vec = new DenseFloatMatrix1D( Flags.dimension);
+		DenseFloatMatrix1D vec = new DenseFloatMatrix1D( Flags.dimensions);
 
 		this.mu = mu; this.sigma = sigma;
 		normal.setState( mu, sigma );
@@ -154,7 +154,7 @@ public class BeagleUtils
 
 	public float[] generateNormalizedRandomVector()
 	{
-		float[] vec = new float[Flags.dimension];
+		float[] vec = new float[Flags.dimensions];
 
 		for (int i=0; i<vec.length; i++)
 		{
