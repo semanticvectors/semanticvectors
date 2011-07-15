@@ -116,15 +116,15 @@ public class BinaryVector extends Vector {
    *
    * @return representation of basic binary vector.
    */
-  public BinaryVector generateRandomVector(int dimension, int numEntries, Random random) {
-    BinaryVector randomVector = new BinaryVector(dimension);
-    randomVector.bitSet = new OpenBitSet(dimension);
-    int testPlace = dimension - 1, entryCount = 0;
+  public BinaryVector generateRandomVector(int dimensions, int numEntries, Random random) {
+    BinaryVector randomVector = new BinaryVector(dimensions);
+    randomVector.bitSet = new OpenBitSet(dimensions);
+    int testPlace = dimensions - 1, entryCount = 0;
 
     // Iterate across dimensions of bitSet, changing 0 to 1 if random(1) > 0.5
     // until dimension/2 1's added.
     while (randomVector.bitSet.cardinality() < numEntries) {	
-      testPlace = random.nextInt(dimension);
+      testPlace = random.nextInt(dimensions);
       if (!randomVector.bitSet.fastGet(testPlace)) {
         randomVector.bitSet.fastSet(testPlace);
         entryCount++;	
@@ -345,7 +345,7 @@ public class BinaryVector extends Vector {
    * This method is used determine which dimensions will receive 1 and which 0 when the voting
    * process is concluded. It produces an OpenBitSet in which
    * "1" is assigned to all dimensions with a count > 50% of the total number of votes (i.e. more 1's than 0's added)
-   * "0" is assignaed to all dimensions with a count < 50% of the total number of votes (i.e. more 0's than 1's added)
+   * "0" is assigned to all dimensions with a count < 50% of the total number of votes (i.e. more 0's than 1's added)
    * "0" or "1" are assigned to all dimensions with a count = 50% of the total number of votes (i.e. equal 1's and 0's added)
    * 
    * @return an OpenBitSet representing the superposition of all vectors added up to this point
@@ -357,7 +357,9 @@ public class BinaryVector extends Vector {
   }
 
   public OpenBitSet concludeVote(int target, int row_ceiling) {
-    if (target ==0)
+    logger.info("Entering conclude vote, target " + target + " row_celiing " + row_ceiling
+        + " vector " + writeToString());
+    if (target == 0)
       return new OpenBitSet(dimensions);
 
     double rowfloor = Math.log(target)/Math.log(2);
@@ -501,34 +503,30 @@ public class BinaryVector extends Vector {
 
   @Override
   /**
-   * Writes vector to a string of the form 0|1|0| 
+   * Writes vector to a string of the form 010 etc. (no delimiters). 
    * 
-   * No terminating newline or | symbol.
+   * No terminating newline or delimiter.
    */
   public String writeToString() {
     StringBuilder builder = new StringBuilder();
     for (int i = 0; i < dimensions; ++i) {
       builder.append(Integer.toString(bitSet.getBit(i)));
-      if (i != dimensions - 1) {
-        builder.append("|");
-      }
     }
     return builder.toString();
   }
 
   @Override
   /**
-   * Writes vector from a string of the form x1|x2|x3| ... where the x's are the coordinates.
+   * Writes vector from a string of the form 01001 etc.
    */
   public void readFromString(String input) {
-    String[] entries = input.split("\\|");
-    if (entries.length != dimensions) {
-      throw new IllegalArgumentException("Found " + (entries.length) + " possible coordinates: "
+    if (input.length() != dimensions) {
+      throw new IllegalArgumentException("Found " + (input.length()) + " possible coordinates: "
           + "expected " + dimensions);
     }
 
     for (int i = 0; i < dimensions; ++i) {
-      if (Integer.parseInt(entries[i]) == 1)
+      if (input.charAt(i) == '1')
         bitSet.fastSet(i);
     }
   }

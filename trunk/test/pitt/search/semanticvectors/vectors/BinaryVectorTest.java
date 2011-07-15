@@ -49,14 +49,14 @@ public class BinaryVectorTest extends TestCase {
   @Test
   public void testCreateZeroVectorAndOverlap() {
     Vector zero = VectorFactory.createZeroVector(VectorType.BINARY, 8);
-    assertEquals("0|0|0|0|0|0|0|0", zero.writeToString());
+    assertEquals("00000000", zero.writeToString());
   }
   
   @Test
   public void testGenerateRandomVectorWriteAndRead() {
     Random random = new Random(0);
     Vector vector = VectorFactory.generateRandomVector(VectorType.BINARY, 8, 2, random);
-    assertEquals("0|0|0|0|0|1|1|0", vector.writeToString());
+    assertEquals("00000110", vector.writeToString());
     
     RAMDirectory directory = new RAMDirectory();
     try {
@@ -65,9 +65,9 @@ public class BinaryVectorTest extends TestCase {
       indexOutput.flush();
       IndexInput indexInput = directory.openInput("binaryvectors.bin");
       Vector vector2 = VectorFactory.createZeroVector(VectorType.BINARY, 8);
-      assertEquals("0|0|0|0|0|0|0|0", vector2.writeToString());
+      assertEquals("00000000", vector2.writeToString());
       vector2.readFromLuceneStream(indexInput);
-      assertEquals("0|0|0|0|0|1|1|0", vector2.writeToString());
+      assertEquals("00000110", vector2.writeToString());
     } catch (IOException e) {
       e.printStackTrace();
       fail();
