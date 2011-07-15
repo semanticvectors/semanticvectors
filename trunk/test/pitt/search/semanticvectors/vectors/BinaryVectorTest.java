@@ -97,6 +97,13 @@ public class BinaryVectorTest extends TestCase {
     assertEquals("01010101", vector.writeToString());
     vector.normalize();
     assertEquals("00001111", vector.writeToString());
+
+    BinaryVector vector3 = (BinaryVector) VectorFactory.createZeroVector(VectorType.BINARY, 5);
+    vector3.readFromString("00000");
+    BinaryVector vector4 = (BinaryVector) VectorFactory.createZeroVector(VectorType.BINARY, 5);
+    vector4.readFromString("01000");
+    vector3.superpose(vector4, 2, null);
+    vector3.normalize();
   }
 
   /*

@@ -319,35 +319,6 @@ public class BinaryVector extends Vector {
     return tempSet;		
   }
 
-  protected OpenBitSet concludeVote(int target) {
-    int target2 = (int) Math.ceil((double) target / (double) 2);
-    target2 = target2 - minimum;
-
-    // Unlikely other than in testing: minimum more than half the votes
-    if (target2 < 0) {
-      OpenBitSet ans = new OpenBitSet(dimensions);
-      ans.set(0, dimensions-1);
-      return ans;
-    }
-
-    boolean even = (target % 2 ==0);
-    OpenBitSet result = concludeVote(target2, votingRecord.size()-1);
-
-    if (even) {
-      tempSet = exact(target2);
-      boolean switcher = true;
-      // 50% chance of being true with split vote.
-      for (int q =0; q < dimensions; q++) {
-        if (tempSet.fastGet(q)) {
-          switcher = !switcher;
-          if (switcher) tempSet.fastClear(q);
-        }
-      }
-      result.andNot(tempSet);
-    }
-    return result;
-  }
-
   /**
    * This method is used determine which dimensions will receive 1 and which 0 when the voting
    * process is concluded. It produces an OpenBitSet in which
@@ -361,6 +332,35 @@ public class BinaryVector extends Vector {
     if (votingRecord.size() == 0) return new OpenBitSet(dimensions);
     else
       return concludeVote(actualVotes);
+  }
+
+  protected OpenBitSet concludeVote(int target) {
+    int target2 = (int) Math.ceil((double) target / (double) 2);
+    target2 = target2 - minimum;
+
+    // Unlikely other than in testing: minimum more than half the votes
+    if (target2 < 0) {
+      OpenBitSet ans = new OpenBitSet(dimensions);
+      ans.set(0, dimensions-1);
+      return ans;
+    }
+
+    boolean even = (target % 2 == 0);
+    OpenBitSet result = concludeVote(target2, votingRecord.size() - 1);
+
+    if (even) {
+      tempSet = exact(target2);
+      boolean switcher = true;
+      // 50% chance of being true with split vote.
+      for (int q = 0; q < dimensions; q++) {
+        if (tempSet.fastGet(q)) {
+          switcher = !switcher;
+          if (switcher) tempSet.fastClear(q);
+        }
+      }
+      result.andNot(tempSet);
+    }
+    return result;
   }
 
   protected OpenBitSet concludeVote(int target, int row_ceiling) {
