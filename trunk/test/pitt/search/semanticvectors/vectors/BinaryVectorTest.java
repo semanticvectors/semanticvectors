@@ -74,6 +74,31 @@ public class BinaryVectorTest extends TestCase {
     }
   }
   
+  @Test
+  public void testDimensionsMustMatchWhenReading() {
+    BinaryVector vector = (BinaryVector) VectorFactory.createZeroVector(VectorType.BINARY, 8);
+    try {
+      vector.readFromString("0101010101");
+      fail();
+    } catch (IllegalArgumentException e) {
+      assertTrue(e.getMessage().contains("expected 8"));
+    }
+  }
+  
+  @Test
+  public void testSuperposeAndNormalize() {
+    BinaryVector vector = (BinaryVector) VectorFactory.createZeroVector(VectorType.BINARY, 8);
+    vector.readFromString("01010101");
+    BinaryVector vector2 = (BinaryVector) VectorFactory.createZeroVector(VectorType.BINARY, 8);
+    vector2.readFromString("00001111");
+    vector.superpose(vector2, 1000, null);
+    // This is a surprise to me - calling normalize to make the superposition "take" was
+    // unexpected.
+    assertEquals("01010101", vector.writeToString());
+    vector.normalize();
+    assertEquals("00001111", vector.writeToString());
+  }
+
   /*
   {
   Random random = new Random();

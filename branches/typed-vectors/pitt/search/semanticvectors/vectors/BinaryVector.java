@@ -28,21 +28,25 @@ public class BinaryVector extends Vector {
   /** 
    * Representation of voting record for superposition. Each OpenBitSet object contains one bit
    * of the count for the vote in each dimension. The count for any given dimension is derived from
-   * all of the bits in that dimension across the OpenBitSets in the voting record
+   * all of the bits in that dimension across the OpenBitSets in the voting record.
    * 
-   * The precision of the voting record (in decimal places) is defined upon initialization
+   * The precision of the voting record (in decimal places) is defined upon initialization.
    * By default, if the first weight added is an integer, rounding occurs to the nearest integer
-   * Otherwise, rounding occurs to the second decimal place
+   * Otherwise, rounding occurs to the second decimal place.
    */ 
   private ArrayList<OpenBitSet> votingRecord;
+  // TODO(widdows) Understand and comment this.
   private OpenBitSet tempSet;
   int decimalPlaces = 0;
+  // TODO(widdows) Comment this. Understand why it's an int rather than a list of weights
+  // for each element of the voting record.
   int actualVotes = 0;
+  // TODO(widdows) Understand and comment this.
   int minimum = 0;
 
-  public BinaryVector(int dimension) {
-    this.dimensions = dimension;
-    this.bitSet = new OpenBitSet(dimension);
+  public BinaryVector(int dimensions) {
+    this.dimensions = dimensions;
+    this.bitSet = new OpenBitSet(dimensions);
     this.isSparse = true;
   }
 
@@ -60,16 +64,17 @@ public class BinaryVector extends Vector {
 
   public String toString() {
     StringBuilder debugString = new StringBuilder("BinaryVector.");
+    int printLength = Math.min(dimensions, 20);
     if (isSparse) {
-      debugString.append("  Elemental.  First 20 values are:\n");
-      for (int x =0; x < 20; x++) debugString.append(bitSet.getBit(x) + " ");
+      debugString.append("  Elemental.  First " + printLength + " values are:\n");
+      for (int x = 0; x < printLength; x++) debugString.append(bitSet.getBit(x) + " ");
       debugString.append("\nCardinality " + bitSet.cardinality()+"\n");
     }
     else {
-      debugString.append("  Semantic.  First 20 values are:\n");
+      debugString.append("  Semantic.  First " + printLength + " values are:\n");
       // TODO - output count from first 20 dimensions
       debugString.append("NORMALIZED: ");
-      for (int x =0; x < 20; x++) debugString.append(bitSet.getBit(x) + " ");
+      for (int x = 0; x < printLength; x++) debugString.append(bitSet.getBit(x) + " ");
       debugString.append("\n");
 
       // Calculate actual values for first 20 dimensions
@@ -77,12 +82,12 @@ public class BinaryVector extends Vector {
       debugString.append("COUNTS    : ");
 
       for (int x =0; x < votingRecord.size(); x++) {
-        for (int y =0; y < 20; y++) {
+        for (int y = 0; y < printLength; y++) {
           if (votingRecord.get(x).fastGet(y)) actualvals[y] += Math.pow(2, x); 
         }
       }
       
-      for (int x = 0; x < 20; x++) {
+      for (int x = 0; x < printLength; x++) {
         debugString.append((int) ((minimum + actualvals[x]) / Math.pow(10, decimalPlaces)) + " ");
       }
       debugString.append("\nCardinality " + bitSet.cardinality()+"\n");
@@ -286,9 +291,10 @@ public class BinaryVector extends Vector {
   }
 
   /**
-   * Returns a bitset with a "1" in the position of every dimension that exactly matches the target number
+   * Returns a bitset with a "1" in the position of every dimension
+   * that exactly matches the target number.
    */
-  public OpenBitSet exact(int target) {
+  private OpenBitSet exact(int target) {
     if (target == 0) {
       tempSet.set(0, dimensions);
       tempSet.xor(votingRecord.get(0));
@@ -308,12 +314,13 @@ public class BinaryVector extends Vector {
         else 
           tempSet.andNot(votingRecord.get(q));	
     }
+    // TODO(widdows): Figure out if there's a good reason for returning a member variable.
+    // Seems redundant to do this.
     return tempSet;		
   }
 
-
-  public OpenBitSet concludeVote(int target) {
-    int target2 = (int) Math.ceil((double) target/ (double) 2);
+  protected OpenBitSet concludeVote(int target) {
+    int target2 = (int) Math.ceil((double) target / (double) 2);
     target2 = target2 - minimum;
 
     // Unlikely other than in testing: minimum more than half the votes
@@ -350,15 +357,15 @@ public class BinaryVector extends Vector {
    * 
    * @return an OpenBitSet representing the superposition of all vectors added up to this point
    */
-  public OpenBitSet concludeVote() {
+  protected OpenBitSet concludeVote() {
     if (votingRecord.size() == 0) return new OpenBitSet(dimensions);
     else
       return concludeVote(actualVotes);
   }
 
-  public OpenBitSet concludeVote(int target, int row_ceiling) {
-    logger.info("Entering conclude vote, target " + target + " row_celiing " + row_ceiling
-        + " vector " + writeToString());
+  protected OpenBitSet concludeVote(int target, int row_ceiling) {
+    logger.info("Entering conclude vote, target " + target + " row_ceiling " + row_ceiling
+        + " vector\n" + toString());
     if (target == 0)
       return new OpenBitSet(dimensions);
 
@@ -396,7 +403,7 @@ public class BinaryVector extends Vector {
 
 
   /**
-   * Decrement every dimension. assumes at least one count in each dimension
+   * Decrement every dimension. Assumes at least one count in each dimension
    * i.e: no underflow check currently - will wreak havoc with zero counts
    */
   public void decrement() {	
@@ -439,8 +446,7 @@ public class BinaryVector extends Vector {
   }
 
   /**
-   * Find highest value shared by all dimensions.
-   * @return
+   * Returns the highest value shared by all dimensions.
    */
   public int getMaximum() {
     int thismaximum = 0;
@@ -460,8 +466,8 @@ public class BinaryVector extends Vector {
    * Normalizes the vector, converting sparse to dense representations in the process.
    */
   public void normalize() {
-    if (!isSparse) 
-      this.bitSet = concludeVote();
+    if (isSparse) elementalToSemantic();
+    this.bitSet = concludeVote();
   }
 
   @Override
