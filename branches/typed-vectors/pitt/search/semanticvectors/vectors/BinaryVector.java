@@ -122,7 +122,14 @@ public class BinaryVector extends Vector {
    * @return representation of basic binary vector.
    */
   public BinaryVector generateRandomVector(int dimensions, int numEntries, Random random) {
-    BinaryVector randomVector = new BinaryVector(dimensions);
+    
+	if (numEntries != dimensions/2)
+	{
+		 logger.warning("Creating binary vector with unequal number of zeros and ones."
+		          + "Unlikely to produce meaningful results. Seedlength of dimension/2 is recommended for binary vectors");
+	}
+	  
+	BinaryVector randomVector = new BinaryVector(dimensions);
     randomVector.bitSet = new OpenBitSet(dimensions);
     int testPlace = dimensions - 1, entryCount = 0;
 
@@ -345,6 +352,10 @@ public class BinaryVector extends Vector {
       return ans;
     }
 
+    //Voting record insufficient to hold half the votes (unlikely unless unbalanced vectors used), so return zero vector
+    if (votingRecord.size() < 1+ Math.log(target2)/Math.log(2))
+    	return new OpenBitSet(dimensions);
+    
     boolean even = (target % 2 == 0);
     OpenBitSet result = concludeVote(target2, votingRecord.size() - 1);
 
@@ -364,14 +375,25 @@ public class BinaryVector extends Vector {
   }
 
   protected OpenBitSet concludeVote(int target, int row_ceiling) {
-    logger.info("Entering conclude vote, target " + target + " row_ceiling " + row_ceiling
-        + " vector\n" + toString());
+  
+	  /**
+	  logger.info("Entering conclude vote, target " + target + " row_ceiling " + row_ceiling + 
+    		"voting record " + votingRecord.size() + 
+    		" minimum "+ minimum + " index "+  Math.log(target)/Math.log(2) +
+         " vector\n" + toString());
+	   **/
+   
     if (target == 0)
-      return new OpenBitSet(dimensions);
+    { 	OpenBitSet atLeastZero = new OpenBitSet(dimensions);
+    	atLeastZero.set(0, dimensions);
+    	return atLeastZero;
+    }
 
+    
     double rowfloor = Math.log(target)/Math.log(2);
     int row_floor = (int) Math.floor(rowfloor);  //for 0 index
     int remainder =  target - (int) Math.pow(2,row_floor);
+    
     //System.out.println(target+"\t"+rowfloor+"\t"+row_floor+"\t"+remainder);
 
     if (row_ceiling == 0 && target == 1) {
