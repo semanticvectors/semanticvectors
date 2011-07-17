@@ -1,6 +1,13 @@
 package pitt.search.semanticvectors.vectors;
 
+import java.io.IOException;
+import java.util.Random;
 import java.util.logging.Logger;
+
+import org.apache.lucene.store.IndexInput;
+import org.apache.lucene.store.IndexOutput;
+
+import pitt.search.semanticvectors.ObjectVector;
 
 /**
  * Complex number utilities class.
@@ -18,14 +25,16 @@ public class ComplexVectorUtils {
    */
   public static final int phaseResolution = 65536;
   public static final float pi = 3.1415926535f;
-  public static final float pi2 = pi * phaseResolution / 2;
-  public static final float pi3 = pi / phaseResolution / 2;
+  public static final float pi2 = phaseResolution / 2 / pi;
+  public static final float pi3 = pi * 2 / phaseResolution;
 
   /**
    * Lookup Table for mapping phase angle to cartesian coordinates.
    */
   private static float[] realLUT;
   private static float[] imLUT;
+
+  private Random ran;
 
   /**
    * Retrieve lookup tables if required.
@@ -60,19 +69,29 @@ public class ComplexVectorUtils {
    * vec2 is in POLAR mode.
    */
   public static void superposeWithAngle( ComplexVector vec1, ComplexVector vec2, float weight, int[] permutation ) {
-	if (permutation == null) return;
 	int positionToAdd;
     int dim =  vec1.getDimensions();
 
     char c[] = vec2.getPhaseAngles();
     float[] coordinates = vec1.getCoordinates();
 
-    for (int i=0; i<dim; i++) {
-      positionToAdd = permutation[i] << 1;
-      // Real part
-      coordinates[positionToAdd] += realLUT[c[i]] * weight;
-      // Imaginary Part
-      coordinates[positionToAdd+1] += imLUT[c[i]] * weight;
+    if (permutation != null) {
+      for (int i=0; i<dim; i++) {
+        positionToAdd = permutation[i] << 1;
+        // Real part
+        coordinates[positionToAdd] += realLUT[c[i]] * weight;
+        // Imaginary Part
+        coordinates[positionToAdd+1] += imLUT[c[i]] * weight;
+      }
+    }
+    else {
+      for (int i=0; i<dim; i++) {
+        positionToAdd = i << 1;
+        // Real part
+        coordinates[positionToAdd] += realLUT[c[i]] * weight;
+        // Imaginary Part
+        coordinates[positionToAdd+1] += imLUT[c[i]] * weight;
+      }
     }
   }
 
@@ -82,18 +101,33 @@ public class ComplexVectorUtils {
    * vec2 is in sparse POLAR mode.
    */
   public static void superposeWithSparseAngle( ComplexVector vec1, ComplexVector vec2, float weight, int[] permutation ) {
-	if (permutation == null) return;
 	int positionToAdd, phaseAngleIdx;
+    int dim =  vec1.getDimensions();
+
+    //System.out.println("Sparse...");
+
     char offsets[] = vec2.getSparseOffsets();
     float[] coordinates = vec1.getCoordinates();
 
-    for (int i=0; i<offsets.length; i+=2) {
-      positionToAdd = permutation[offsets[i]] << 1;
-      phaseAngleIdx = i+1;
-      // Real part
-      coordinates[positionToAdd] += realLUT[offsets[phaseAngleIdx]] * weight;
-      // Imaginary Part
-      coordinates[positionToAdd+1] += imLUT[offsets[phaseAngleIdx]] * weight;
+    if (permutation != null) {
+      for (int i=0; i<offsets.length; i+=2) {
+        positionToAdd = permutation[offsets[i]] << 1;
+        phaseAngleIdx = i+1;
+        // Real part
+        coordinates[positionToAdd] += realLUT[offsets[phaseAngleIdx]] * weight;
+        // Imaginary Part
+        coordinates[positionToAdd+1] += imLUT[offsets[phaseAngleIdx]] * weight;
+      }
+    }
+    else {
+      for (int i=0; i<offsets.length; i+=2) {
+        positionToAdd = offsets[i] << 1;
+        phaseAngleIdx = i+1;
+        // Real part
+        coordinates[positionToAdd] += realLUT[offsets[phaseAngleIdx]] * weight;
+        // Imaginary Part
+        coordinates[positionToAdd+1] += imLUT[offsets[phaseAngleIdx]] * weight;
+      }
     }
   }
 
@@ -144,15 +178,9 @@ public class ComplexVectorUtils {
     char c[] = vec.getPhaseAngles();
     float[] coordinates = new float[dim*2];
 
-    if (!vec.isZeroVector()) {
-      for (int i=0, j=0; i<dim; i++, j+=2) {
-        coordinates[j] = realLUT[c[i]];
-        coordinates[j+1] = imLUT[c[i]];
-      }
-    } else {
-      for (int i = 0; i < dim*2; ++i) {
-        coordinates[i] = 0;
-      }
+    for (int i=0, j=0; i<dim; i++, j+=2) {
+      coordinates[j] = realLUT[c[i]];
+      coordinates[j+1] = imLUT[c[i]];
     }
 
     vec.setOpMode(ComplexVector.MODE.CARTESIAN);
@@ -161,7 +189,6 @@ public class ComplexVectorUtils {
   }
   /**
    * Convert from cartesian coordinates to phase angles.
-   * We assume that the vector is already in POLAR mode
    */
   public static void toPhaseAngle( ComplexVector vec ) {
     int dim = vec.getDimensions();
@@ -182,8 +209,11 @@ public class ComplexVectorUtils {
    */
   public static char angleFromCartesianTrig( float real, float im )  {
     float theta = (float)Math.acos(real);
-    char c, d = (char)phaseResolution;
-    c = (char)(theta/pi2);
+    char c, d = (char)(phaseResolution-1);
+    c = (char)(theta*pi2);
+    //System.out.println(""+(int)c+"  "+(int)d);
+    //System.out.println(""+real+"  "+im);
+    //System.out.println(""+theta);
     if (im<0) c = (char)(d-c);
 
     return c;

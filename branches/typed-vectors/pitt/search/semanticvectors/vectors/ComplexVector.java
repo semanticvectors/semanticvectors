@@ -25,10 +25,10 @@ public class ComplexVector extends Vector {
   public static enum MODE { POLAR, CARTESIAN };
 
   /**
-   * The actual number of float coordinates is 'dimensions' X 2 because of real and
+   * The actual number of float coordinates is 'dimension' X 2 because of real and
    * imaginary components.
    */
-  private final int dimensions;
+  private final int dimension;
   /**
    * Dense Cartesian representation.  Coordinates can be anything expressed by floats.
    */
@@ -71,7 +71,7 @@ public class ComplexVector extends Vector {
 
   @Override
   public int getDimensions() {
-    return dimensions;
+    return dimension;
   }
 
   public MODE getOpMode() {
@@ -82,10 +82,10 @@ public class ComplexVector extends Vector {
     this.opMode = opMode;
   }
 
-  protected ComplexVector(int dimensions)
+  protected ComplexVector(int dimension)
   {
 	this.opMode = MODE.POLAR;
-    this.dimensions = dimensions;
+    this.dimension = dimension;
     this.sparseOffsets = new char[0];
     this.isSparse = true;
   }
@@ -109,17 +109,19 @@ public class ComplexVector extends Vector {
   public ComplexVector copy() {
     if (isSparse) {
       // If sparse then must be in Polar form
-      ComplexVector copy = new ComplexVector(dimensions);
+      ComplexVector copy = new ComplexVector(dimension);
       copy.sparseOffsets = new char[sparseOffsets.length];
       for (int i = 0; i < sparseOffsets.length; ++i) {
         copy.sparseOffsets[i] = sparseOffsets[i];
       }
+      copy.isSparse = true;
+      copy.opMode = MODE.POLAR;
       return copy;
     } else {
       // Dense
       if (opMode == MODE.CARTESIAN) {
         // Cartesian Form
-        int arraySize = dimensions * 2;
+        int arraySize = dimension * 2;
         float[] coordinatesCopy = new float[arraySize];
         for (int i = 0; i < arraySize; ++i) {
           coordinatesCopy[i] = coordinates[i];
@@ -128,8 +130,8 @@ public class ComplexVector extends Vector {
       }
       else {
         // Polar Form
-        char[] phaseAnglesCopy = new char[dimensions];
-        for (int i = 0; i < dimensions; ++i) {
+        char[] phaseAnglesCopy = new char[dimension];
+        for (int i = 0; i < dimension; ++i) {
         	phaseAnglesCopy[i] = phaseAngles[i];
         }
         return new ComplexVector(phaseAnglesCopy);
@@ -141,12 +143,19 @@ public class ComplexVector extends Vector {
     StringBuilder debugString = new StringBuilder("ComplexVector.");
     if (isSparse) {
       debugString.append("  Sparse.  Offsets are:\n");
-      for (char sparseOffset : sparseOffsets) debugString.append(sparseOffset + "|");
+      for (char sparseOffset : sparseOffsets) debugString.append((int)sparseOffset + " ");
       debugString.append("\n");
     } else {
-      debugString.append("  Dense.  Coordinates are:\n");
-      for (float coordinate : coordinates) debugString.append(coordinate + "|");
-      debugString.append("\n");
+      if (opMode == MODE.CARTESIAN) {
+        debugString.append("  Dense.  Catesian Coordinates are:\n");
+        for (float coordinate : coordinates) debugString.append(coordinate + " ");
+        debugString.append("\n");
+      }
+      else {
+        debugString.append("  Dense.  Polar Coordinates are:\n");
+        for (int coordinate : phaseAngles) debugString.append(coordinate + " ");
+        debugString.append("\n");
+      }
     }
     return debugString.toString();
   }
@@ -160,6 +169,7 @@ public class ComplexVector extends Vector {
     if (isSparse) {
       return sparseOffsets.length == 0;
     } else {
+      if (coordinates==null) return true;
       for (float coordinate: coordinates) {
         if (coordinate != 0) {
           return false;
@@ -176,18 +186,22 @@ public class ComplexVector extends Vector {
    *
    * @return Sparse representation of vector in Polar form.
    */
-  public ComplexVector generateRandomVector(int dimensions, int numEntries, Random random) {
-    ComplexVector randomVector = new ComplexVector(dimensions);
-    boolean[] occupiedPositions = new boolean[dimensions];
+  public ComplexVector generateRandomVector(int dimension, int numEntries, Random random) {
+    ComplexVector randomVector = new ComplexVector(dimension);
+    boolean[] occupiedPositions = new boolean[dimension];
     randomVector.sparseOffsets = new char[numEntries*2];
     randomVector.isSparse = true;
+    randomVector.opMode = MODE.POLAR;
 
     int testPlace, entryCount = 0, offsetIdx;
     char randomPhaseAngle;
+    int r;
 
     while (entryCount < numEntries) {
-      testPlace = random.nextInt(dimensions);
-      randomPhaseAngle = (char)random.nextInt(ComplexVectorUtils.phaseResolution);
+      testPlace = random.nextInt(dimension);
+      r = random.nextInt(ComplexVectorUtils.phaseResolution);
+      randomPhaseAngle = (char)r;
+      //System.out.println((int)randomPhaseAngle);
       if (!occupiedPositions[testPlace]) {
         offsetIdx = entryCount << 1;
         occupiedPositions[testPlace] = true;
@@ -204,9 +218,10 @@ public class ComplexVector extends Vector {
    *
    * @return Dense representation of vector in Polar form.
    */
-  public ComplexVector generateDensePolarRandomVector(int dimensions, Random random) {
-    ComplexVector randomVector = new ComplexVector(dimensions);
+  public ComplexVector generateDensePolarRandomVector(int dimension, Random random) {
+    ComplexVector randomVector = new ComplexVector(dimension);
     randomVector.makeDensePolarRandomVector(random);
+    randomVector.isSparse = false;
 
     return randomVector;
   }
@@ -217,9 +232,10 @@ public class ComplexVector extends Vector {
    *
    * @return Dense representation of vector in Cartesian form
    */
-  public ComplexVector generateDenseCartesianRandomVector(int dimensions, Random random) {
-    ComplexVector randomVector = new ComplexVector(dimensions);
+  public ComplexVector generateDenseCartesianRandomVector(int dimension, Random random) {
+    ComplexVector randomVector = new ComplexVector(dimension);
     randomVector.makeDenseCartesianRandomVector(random);
+    randomVector.isSparse = false;
 
     return randomVector;
   }
@@ -228,11 +244,12 @@ public class ComplexVector extends Vector {
    * Makes this vector a dense random vector in Polar form.
    */
   public void makeDensePolarRandomVector(Random random) {
-    phaseAngles = new char[dimensions];
+    phaseAngles = new char[dimension];
     opMode = MODE.POLAR;
+    isSparse = false;
     coordinates = null;
 
-    for(int i=0; i<dimensions;i++) {
+    for(int i=0; i<dimension;i++) {
       phaseAngles[i] = (char)random.nextInt(ComplexVectorUtils.phaseResolution);
     }
   }
@@ -258,24 +275,25 @@ public class ComplexVector extends Vector {
     IncompatibleVectorsException.checkVectorsCompatible(this, other);
     ComplexVector complexOther = (ComplexVector)other;
 
-    if (isZeroVector()) return 0;
-    if (complexOther.isZeroVector()) return 0;
+    if (opMode == MODE.CARTESIAN) return 0;
+    if (complexOther.getOpMode() == MODE.CARTESIAN) return 0;
     if (isSparse) return 0;
     if (complexOther.isSparse) return 0;
 
-	assert( dimensions == other.getDimensions());
+	assert( dimension == other.getDimensions());
 
 	float[] realLUT = ComplexVectorUtils.getRealLUT();
 	char[] phaseAnglesOther = complexOther.getPhaseAngles();
 	float sum = 0.0f;
 	int dif;
 
-	for (int i=0; i<dimensions; i++) {
+	for (int i=0; i<dimension; i++) {
 		dif = Math.abs(phaseAngles[i] - phaseAnglesOther[i]);
 		sum += realLUT[dif];
+	    //System.out.println("----");
 	}
 
-	return (sum/dimensions);
+	return (sum/dimension);
   }
 
   @Override
@@ -292,6 +310,8 @@ public class ComplexVector extends Vector {
     if (isZeroVector()) {
       // This should probably be using a reference to a previously created random function.
       makeDenseCartesianRandomVector(new Random());
+      //System.out.println(toString());
+      //if (complexOther.isSparse) System.out.println("***");
     }
     if (complexOther.isSparse) ComplexVectorUtils.superposeWithSparseAngle( this, complexOther, (float)weight, permutation );
     else ComplexVectorUtils.superposeWithAngle( this, complexOther, (float)weight, permutation );
@@ -302,24 +322,23 @@ public class ComplexVector extends Vector {
    * Normalizes the vector. Assume we have a dense vector in cartesian form.
    */
   public void normalize() {
-    if (isZeroVector()) return;
     float length, scale;
     int imIdx; // imaginary component index
-    for (int i=0, j=0; i<dimensions; i++, j+=2) {
+    for (int i=0, j=0; i<dimension; i++, j+=2) {
       imIdx = j+1;
       length = (float)Math.sqrt(coordinates[j]*coordinates[j] + coordinates[imIdx]*coordinates[imIdx]);
       scale = 1.0f/length;
        coordinates[j] = coordinates[j]*scale;
        coordinates[imIdx] = coordinates[imIdx]*scale;
     }
+    System.out.println(toString());
 	// Convert to Polar form
     toPhaseAngle();
-    opMode = MODE.POLAR;
   }
 
   public void toPhaseAngle() {
     // Create array for storing angles
-    phaseAngles = new char[dimensions];
+    phaseAngles = new char[dimension];
     if (!isZeroVector()) ComplexVectorUtils.toPhaseAngle( this );
     opMode = MODE.POLAR;
     // Free memory for storing cartesian form
@@ -328,7 +347,7 @@ public class ComplexVector extends Vector {
 
   public void toCoordinate() {
     // Create arrays for storing coordinates
-    coordinates = new float[dimensions*2];
+    coordinates = new float[dimension*2];
     if (!isZeroVector()) ComplexVectorUtils.toCartesian( this );
     opMode = MODE.CARTESIAN;
     // Free memory for storing angles
@@ -340,13 +359,13 @@ public class ComplexVector extends Vector {
    */
   public void convolve( ComplexVector other, int direction  )
   {
-    assert( dimensions == other.getDimensions() );
+    assert( dimension == other.getDimensions() );
     if (opMode!=MODE.POLAR) normalize();
     if (other.getOpMode()!=MODE.POLAR) other.normalize();
 	char[] otherAngles = other.getPhaseAngles();
 
-	if (direction>0) for (int i=0; i<dimensions; i++) phaseAngles[i] += otherAngles[i];
-	else for (int i=0; i<dimensions; i++) phaseAngles[i] -= otherAngles[i];
+	if (direction>0) for (int i=0; i<dimension; i++) phaseAngles[i] += otherAngles[i];
+	else for (int i=0; i<dimension; i++) phaseAngles[i] -= otherAngles[i];
   }
   /**
    * Transforms this vector into its complement.
@@ -355,7 +374,7 @@ public class ComplexVector extends Vector {
   public void complement() {
     assert( opMode == MODE.POLAR);
     char t = (char)(ComplexVectorUtils.phaseResolution/2);
-    for (int i=0; i<dimensions; i++ ) phaseAngles[i] += t;
+    for (int i=0; i<dimension; i++ ) phaseAngles[i] += t;
   }
 
   @Override
@@ -364,7 +383,7 @@ public class ComplexVector extends Vector {
    * and in Polar form.
    */
   public void writeToLuceneStream(IndexOutput outputStream) {
-    for (int i = 0; i < dimensions; ++i) {
+    for (int i = 0; i < dimension; ++i) {
       try {
         outputStream.writeInt(Float.floatToIntBits(phaseAngles[i]));
       } catch (IOException e) {
@@ -378,7 +397,7 @@ public class ComplexVector extends Vector {
    * Reads a dense vector in Polar form from a Lucene input stream.
    */
   public void readFromLuceneStream(IndexInput inputStream) {
-    for (int i = 0; i < dimensions; ++i) {
+    for (int i = 0; i < dimension; ++i) {
       try {
         phaseAngles[i] = (char)Float.intBitsToFloat(inputStream.readInt());
       } catch (IOException e) {
@@ -403,15 +422,18 @@ public class ComplexVector extends Vector {
     if (opMode == MODE.CARTESIAN) {
       for (int i = 0; i < coordinates.length; ++i) {
         builder.append(Float.toString(coordinates[i]));
-        if (i != dimensions - 1) {
+        if (i != coordinates.length - 1) {
           builder.append("|");
         }
       }
     }
     else {
-      for (int i = 0; i < phaseAngles.length; ++i) {
-        builder.append((int)phaseAngles[i]);
-        if (i != dimensions - 1) {
+      char[] toWrite;
+      if (isSparse) toWrite = sparseOffsets;
+      else toWrite = phaseAngles;
+      for (int i = 0; i < toWrite.length; ++i) {
+        builder.append((int)toWrite[i]);
+        if (i != toWrite.length - 1) {
           builder.append("|");
         }
       }
@@ -430,22 +452,22 @@ public class ComplexVector extends Vector {
   public void readFromString(String input) {
     String[] entries = input.split("\\|");
     if (opMode == MODE.CARTESIAN) {
-      if (entries.length != dimensions*2) {
+      if (entries.length != dimension*2) {
         throw new IllegalArgumentException("Found " + (entries.length) + " possible coordinates: "
-          + "expected " + dimensions*2);
+          + "expected " + dimension*2);
       }
-      if (coordinates.length==0) coordinates = new float[dimensions];
+      if (coordinates.length==0) coordinates = new float[dimension];
       for (int i = 0; i < coordinates.length; ++i) {
         coordinates[i] = Float.parseFloat(entries[i]);
       }
     }
     else {
       // MODE = Polar
-      if (entries.length != dimensions) {
+      if (entries.length != dimension) {
         throw new IllegalArgumentException("Found " + (entries.length) + " possible coordinates: "
-              + "expected " + dimensions);
+              + "expected " + dimension);
       }
-      if (phaseAngles.length==0) phaseAngles = new char[dimensions];
+      if (phaseAngles.length==0) phaseAngles = new char[dimension];
       for (int i = 0; i < phaseAngles.length; ++i) {
     	  phaseAngles[i] = (char)Integer.parseInt(entries[i]);
       }
@@ -454,15 +476,17 @@ public class ComplexVector extends Vector {
 
   //Available for testing and copying.
   protected ComplexVector(float[] coordinates) {
-    this.dimensions = coordinates.length/2;
+    this.dimension = coordinates.length/2;
     this.coordinates = coordinates;
     this.opMode = MODE.CARTESIAN;
+    this.isSparse = false;
   }
   //Available for testing and copying.
   protected ComplexVector(char[] phaseAngles) {
-    this.dimensions = phaseAngles.length;
+    this.dimension = phaseAngles.length;
     this.phaseAngles = phaseAngles;
     this.opMode = MODE.POLAR;
+    this.isSparse = false;
   }
 }
 
