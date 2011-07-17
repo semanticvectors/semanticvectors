@@ -141,11 +141,11 @@ public class ComplexVector extends Vector {
     StringBuilder debugString = new StringBuilder("ComplexVector.");
     if (isSparse) {
       debugString.append("  Sparse.  Offsets are:\n");
-      for (char sparseOffset : sparseOffsets) debugString.append(sparseOffset + " ");
+      for (char sparseOffset : sparseOffsets) debugString.append(sparseOffset + "|");
       debugString.append("\n");
     } else {
       debugString.append("  Dense.  Coordinates are:\n");
-      for (float coordinate : coordinates) debugString.append(coordinate + " ");
+      for (float coordinate : coordinates) debugString.append(coordinate + "|");
       debugString.append("\n");
     }
     return debugString.toString();
@@ -302,6 +302,7 @@ public class ComplexVector extends Vector {
    * Normalizes the vector. Assume we have a dense vector in cartesian form.
    */
   public void normalize() {
+    if (isZeroVector()) return;
     float length, scale;
     int imIdx; // imaginary component index
     for (int i=0, j=0; i<dimensions; i++, j+=2) {

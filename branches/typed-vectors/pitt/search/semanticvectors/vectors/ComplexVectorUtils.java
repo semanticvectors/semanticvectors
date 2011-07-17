@@ -1,13 +1,6 @@
 package pitt.search.semanticvectors.vectors;
 
-import java.io.IOException;
-import java.util.Random;
 import java.util.logging.Logger;
-
-import org.apache.lucene.store.IndexInput;
-import org.apache.lucene.store.IndexOutput;
-
-import pitt.search.semanticvectors.ObjectVector;
 
 /**
  * Complex number utilities class.
@@ -33,8 +26,6 @@ public class ComplexVectorUtils {
    */
   private static float[] realLUT;
   private static float[] imLUT;
-
-  private Random ran;
 
   /**
    * Retrieve lookup tables if required.
@@ -93,8 +84,6 @@ public class ComplexVectorUtils {
   public static void superposeWithSparseAngle( ComplexVector vec1, ComplexVector vec2, float weight, int[] permutation ) {
 	if (permutation == null) return;
 	int positionToAdd, phaseAngleIdx;
-    int dim =  vec1.getDimensions();
-
     char offsets[] = vec2.getSparseOffsets();
     float[] coordinates = vec1.getCoordinates();
 
@@ -155,9 +144,15 @@ public class ComplexVectorUtils {
     char c[] = vec.getPhaseAngles();
     float[] coordinates = new float[dim*2];
 
-    for (int i=0, j=0; i<dim; i++, j+=2) {
-      coordinates[j] = realLUT[c[i]];
-      coordinates[j+1] = imLUT[c[i]];
+    if (!vec.isZeroVector()) {
+      for (int i=0, j=0; i<dim; i++, j+=2) {
+        coordinates[j] = realLUT[c[i]];
+        coordinates[j+1] = imLUT[c[i]];
+      }
+    } else {
+      for (int i = 0; i < dim*2; ++i) {
+        coordinates[i] = 0;
+      }
     }
 
     vec.setOpMode(ComplexVector.MODE.CARTESIAN);
