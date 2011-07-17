@@ -2,11 +2,17 @@ package pitt.search.semanticvectors.vectors;
 
 import java.util.Random;
 
-public class ComplexVectorTest {
+import junit.framework.TestCase;
+
+import org.junit.BeforeClass;
+import org.junit.Test;
+
+public class ComplexVectorTest extends TestCase {
 
   /**
     * Initialise whatever has to be initialized
    */
+  @BeforeClass
   public void initialize() {
     ComplexVectorUtils.generateAngleToCartesianLUT();
   }
@@ -14,6 +20,7 @@ public class ComplexVectorTest {
   /**
    * Test LUT
   */
+  @Test
   public void test1() {
     float[] realLUT = ComplexVectorUtils.getRealLUT();
     float[] imLUT = ComplexVectorUtils.getImagLUT();
@@ -28,6 +35,7 @@ public class ComplexVectorTest {
   /**
    * Test writeToString
   */
+  @Test
   public void test2() {
 	int dim = 10;
     int seedLength = 3;
@@ -39,6 +47,7 @@ public class ComplexVectorTest {
   /**
    * Test dense vector cartesian constructor
    */
+  @Test
   public void test3() {
     float[] coords = { 12.3f, 3.2f, 2.6f, -1.3f, -0.01f, -1000.2f };
     ComplexVector cv = new ComplexVector(coords);
@@ -48,6 +57,7 @@ public class ComplexVectorTest {
   /**
    * Test generateRandomVector
    */
+  @Test
   public void test4() {
     int dim = 10;
     int seedLength = 3;
@@ -59,6 +69,7 @@ public class ComplexVectorTest {
   /**
    * Test generateDenseCartesianRandomVector
    */
+  @Test
   public void test5() {
     int dim = 3;
     ComplexVector complexInstance = new ComplexVector(0);
@@ -67,8 +78,9 @@ public class ComplexVectorTest {
   }
 
   /**
-   * Test superposition of random sparse vector with zero vector
+   * Test superposition of zero vector with random sparse vector
    */
+  @Test
   public void test6() {
     int dim = 5;
     int seedLength = 2;
@@ -85,12 +97,12 @@ public class ComplexVectorTest {
     cv2.superpose(cv1, 1.0, null);
 
     System.out.println(cv2.toString());
-
   }
 
   /**
-   * Test superposition of random dense vector with zero vector
+   * Test superposition of zero vector with random dense vector
    */
+  @Test
   public void test7() {
     int dim = 5;
     ComplexVector complexInstance = new ComplexVector(0);
@@ -107,12 +119,12 @@ public class ComplexVectorTest {
     cv2.superpose(cv1, 1.0, null);
 
     System.out.println(cv2.toString());
-
   }
 
   /**
    * Test vector copy
    */
+  @Test
   public void test8() {
     float[] coords = { 12.3f, 3.2f, 2.6f, -1.3f, -0.01f, -1000.2f};
     ComplexVector complexInstance = new ComplexVector(0);
@@ -124,6 +136,7 @@ public class ComplexVectorTest {
   /**
    * Test normalization
    */
+  @Test
   public void test9() {
     float[] coords = { 12.3f, 3.2f, 2.6f, -1.3f, -0.01f, -1000.2f};
     ComplexVector complexInstance = new ComplexVector(0);
@@ -136,6 +149,7 @@ public class ComplexVectorTest {
   /**
    * Test similarity function
    */
+  @Test
   public void test10() {
     double score;
     char[] angles1 = { 0, 16000, 32000 };
@@ -180,3 +194,5 @@ public class ComplexVectorTest {
   }
 
 }
+
+
