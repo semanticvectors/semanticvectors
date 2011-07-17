@@ -131,14 +131,14 @@ abstract public class VectorSearcher {
             luceneUtils.getGlobalTermWeightFromString((String) testElement.getObject());
       }
 
-      if (Flags.standard_deviations) {
+      if (Flags.stdev) {
     	  count++;
     	  sum += score;
     	  sumsquared += Math.pow(score, 2);
       }
     	  
     	  //Defer check until after transformed if standard deviations option selected
-      if (score > threshold | Flags.standard_deviations) {
+      if (score > threshold || Flags.stdev) {
         boolean added = false;
         for (int i = 0; i < results.size(); ++i) {
           // Add to list if this is right place.
@@ -159,7 +159,7 @@ abstract public class VectorSearcher {
       }
     }
     
-    if (Flags.standard_deviations) results = transformToStats(results, count, sum, sumsquared);
+    if (Flags.stdev) results = transformToStats(results, count, sum, sumsquared);
     return results;
   }
   

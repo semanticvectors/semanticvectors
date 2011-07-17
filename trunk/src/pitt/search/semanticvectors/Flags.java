@@ -93,8 +93,8 @@ public class Flags {
   public static final String porterstemmerDescription =
       "Set to true when using IndexFilePositions if you would like to stem terms";
 
-  public static boolean standard_deviations = false;
-  public static final String standard_deviationsDescription = 
+  public static boolean stdev = false;
+  public static final String stdevDescription = 
 	  "Set to true when you would prefer results scored as SD above the mean across all search vectors";
   
   public static boolean usetermweightsinsearch = false;
