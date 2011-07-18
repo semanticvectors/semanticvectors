@@ -95,6 +95,7 @@ abstract public class VectorSearcher {
     LinkedList<SearchResult> results = new LinkedList<SearchResult>();
     float score;
     double threshold = Flags.searchresultsminscore;
+    if (Flags.stdev) threshold = 0;
 
     //Counters for statistics to calculate standard deviation
     double sum=0, sumsquared=0;
@@ -138,7 +139,7 @@ abstract public class VectorSearcher {
       }
     	  
     	  //Defer check until after transformed if standard deviations option selected
-      if (score > threshold || Flags.stdev) {
+      if (score > threshold) {
         boolean added = false;
         for (int i = 0; i < results.size(); ++i) {
           // Add to list if this is right place.
