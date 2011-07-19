@@ -331,8 +331,8 @@ public class ComplexVector extends Vector {
        coordinates[j] = coordinates[j]*scale;
        coordinates[imIdx] = coordinates[imIdx]*scale;
     }
-    System.out.println(toString());
-	// Convert to Polar form
+
+    // Convert to Polar form
     toPhaseAngle();
   }
 

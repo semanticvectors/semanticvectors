@@ -242,7 +242,7 @@ public class Flags {
       }
 
       if (argc >= args.length) {
-        logger.warning("Consumed all command line input while parsing flags");
+        logger.fine("Consumed all command line input while parsing flags");
         return null;
       }
     }
