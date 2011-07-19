@@ -2,24 +2,11 @@ package pitt.search.semanticvectors.vectors;
 
 import java.util.Random;
 
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import junit.framework.TestCase;
 
 public class ComplexVectorTest extends TestCase {
-
-  private ComplexVectorUtils complexVectorUtils;
-  
- /**
-  * Initialise whatever has to be initialized
-  */    
- @BeforeClass
- public void initialize() {
-   System.out.println("Initializing CVU.");
-   ComplexVectorUtils.generateAngleToCartesianLUT();
- }
-
  @Test
  public void testCreateLookupTable() {
    float[] realLUT = ComplexVectorUtils.getRealLUT();
@@ -41,10 +28,10 @@ public class ComplexVectorTest extends TestCase {
    Random random = new Random(0);
    vector = (ComplexVector) VectorFactory.generateRandomVector(VectorType.COMPLEX, 10, 2, random);
    System.out.println(vector.toString());
-   ComplexVectorUtils.toCartesian(vector);
+   vector.toCartesian();
    System.out.println("Cartesian: " + vector.toString());
  }
- 
+
  @Test
  public void testWriteToString() {
    int dim = 10;
@@ -119,7 +106,6 @@ public class ComplexVectorTest extends TestCase {
  @Test
  public void testVectorCopy() {
    float[] coords = { 12.3f, 3.2f, 2.6f, -1.3f, -0.01f, -1000.2f};
-   ComplexVector complexInstance = new ComplexVector(0);
    ComplexVector cv1 = new ComplexVector(coords);
    ComplexVector cv2 = cv1.copy();
    System.out.println(cv2.toString());
@@ -128,7 +114,6 @@ public class ComplexVectorTest extends TestCase {
  @Test
  public void testNormalize() {
    float[] coords = { 12.3f, 3.2f, 2.6f, -1.3f, -0.01f, -1000.2f};
-   ComplexVector complexInstance = new ComplexVector(0);
    ComplexVector cv = new ComplexVector(coords);
    System.out.println(cv.toString());
    cv.normalize();
@@ -142,7 +127,6 @@ public class ComplexVectorTest extends TestCase {
    char[] angles2 = { 0, 48000, 33000 };
    char[] angles3 = { 32000, 16000, 37000 };
 
-   ComplexVector complexInstance = new ComplexVector(0);
    ComplexVector cv1 = new ComplexVector(angles1);
    ComplexVector cv2 = new ComplexVector(angles2);
    ComplexVector cv3 = new ComplexVector(angles3);
