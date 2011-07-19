@@ -1,13 +1,6 @@
 package pitt.search.semanticvectors.vectors;
 
-import java.io.IOException;
-import java.util.Random;
 import java.util.logging.Logger;
-
-import org.apache.lucene.store.IndexInput;
-import org.apache.lucene.store.IndexOutput;
-
-import pitt.search.semanticvectors.ObjectVector;
 
 /**
  * Complex number utilities class.
@@ -33,8 +26,6 @@ public class ComplexVectorUtils {
    */
   private static float[] realLUT;
   private static float[] imLUT;
-
-  private Random ran;
 
   /**
    * Retrieve lookup tables if required.

@@ -1,5 +1,9 @@
 package pitt.search.semanticvectors.vectors;
 
+/**
+ * TODO(widdows): Remove this once it's working in test.
+ */
+
 import java.util.Random;
 
 import junit.framework.TestCase;
@@ -7,7 +11,7 @@ import junit.framework.TestCase;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-public class ComplexVectorTest extends TestCase {
+public class ComplexVectorTestMain extends TestCase {
 
   /**
     * Initialise whatever has to be initialized
@@ -179,7 +183,7 @@ public class ComplexVectorTest extends TestCase {
    * @param args
    */
   public static void main(String[] args) {
-    ComplexVectorTest cvt = new ComplexVectorTest();
+    ComplexVectorTestMain cvt = new ComplexVectorTestMain();
     cvt.initialize();
     cvt.test1();
     cvt.test2();
