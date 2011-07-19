@@ -410,6 +410,7 @@ public class ComplexVector extends Vector {
    * Reads a dense vector in Polar form from a Lucene input stream.
    */
   public void readFromLuceneStream(IndexInput inputStream) {
+    phaseAngles = new char[dimension];
     for (int i = 0; i < dimension; ++i) {
       try {
         phaseAngles[i] = (char)Float.intBitsToFloat(inputStream.readInt());

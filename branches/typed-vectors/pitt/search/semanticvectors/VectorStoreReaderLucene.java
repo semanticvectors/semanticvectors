@@ -152,6 +152,7 @@ public class VectorStoreReaderLucene implements CloseableVectorStore {
       while (getIndexInput().getFilePointer() < getIndexInput().length() - 1) {
         String objectString = getIndexInput().readString();
         if (objectString.equals(stringTarget)) {
+          logger.info("Found vector for '" + stringTarget + "'");
           Vector vector = VectorFactory.createZeroVector(Flags.vectortype, Flags.dimensions);
           vector.readFromLuceneStream(getIndexInput());
           return vector;
