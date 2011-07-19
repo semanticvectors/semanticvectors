@@ -18,7 +18,7 @@ public class ComplexVectorTestMain extends TestCase {
    */
   @BeforeClass
   public void initialize() {
-    ComplexVectorUtils.generateAngleToCartesianLUT();
+  //  ComplexVectorUtils.generateAngleToCartesianLUT();
   }
 
   /**

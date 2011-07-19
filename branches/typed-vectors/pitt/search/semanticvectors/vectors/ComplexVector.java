@@ -147,7 +147,7 @@ public class ComplexVector extends Vector {
       debugString.append("\n");
     } else {
       if (opMode == MODE.CARTESIAN) {
-        debugString.append("  Dense.  Catesian Coordinates are:\n");
+        debugString.append("  Dense.  Cartesian Coordinates are:\n");
         for (float coordinate : coordinates) debugString.append(coordinate + " ");
         debugString.append("\n");
       }
@@ -199,7 +199,7 @@ public class ComplexVector extends Vector {
 
     while (entryCount < numEntries) {
       testPlace = random.nextInt(dimension);
-      r = random.nextInt(ComplexVectorUtils.phaseResolution);
+      r = random.nextInt(CircleLookupTable.phaseResolution);
       randomPhaseAngle = (char)r;
       //System.out.println((int)randomPhaseAngle);
       if (!occupiedPositions[testPlace]) {
@@ -250,7 +250,7 @@ public class ComplexVector extends Vector {
     coordinates = null;
 
     for(int i=0; i<dimension;i++) {
-      phaseAngles[i] = (char)random.nextInt(ComplexVectorUtils.phaseResolution);
+      phaseAngles[i] = (char)random.nextInt(CircleLookupTable.phaseResolution);
     }
   }
 
@@ -260,7 +260,7 @@ public class ComplexVector extends Vector {
    */
   public void makeDenseCartesianRandomVector(Random random) {
     makeDensePolarRandomVector(random);
-    ComplexVectorUtils.toCartesian(this);
+    toCartesian();
     ComplexVectorUtils.scaleFloatArray(coordinates, 0.1f);
   }
 
@@ -339,7 +339,20 @@ public class ComplexVector extends Vector {
   public void toPhaseAngle() {
     // Create array for storing angles
     phaseAngles = new char[dimension];
-    if (!isZeroVector()) ComplexVectorUtils.toPhaseAngle( this );
+    if (!isZeroVector()) {
+      if (opMode == MODE.POLAR) {
+        return;
+      }
+      char[] c = new char[dimension];
+      
+      for (int i=0, j=0; i<dimension; i++, j+=2) {
+        c[i] = ComplexVectorUtils.angleFromCartesianTrig( coordinates[j], coordinates[j+1] );;
+      }
+      
+      setOpMode(ComplexVector.MODE.POLAR);
+      setCoordinates(null);
+      setPhaseAngles(c);
+    }
     opMode = MODE.POLAR;
     // Free memory for storing cartesian form
     coordinates = null;
@@ -348,7 +361,7 @@ public class ComplexVector extends Vector {
   public void toCoordinate() {
     // Create arrays for storing coordinates
     coordinates = new float[dimension*2];
-    if (!isZeroVector()) ComplexVectorUtils.toCartesian( this );
+    if (!isZeroVector()) toCartesian();
     opMode = MODE.CARTESIAN;
     // Free memory for storing angles
     phaseAngles = null;
@@ -373,7 +386,7 @@ public class ComplexVector extends Vector {
    */
   public void complement() {
     assert( opMode == MODE.POLAR);
-    char t = (char)(ComplexVectorUtils.phaseResolution/2);
+    char t = (char)(CircleLookupTable.phaseResolution/2);
     for (int i=0; i<dimension; i++ ) phaseAngles[i] += t;
   }
 
@@ -472,6 +485,28 @@ public class ComplexVector extends Vector {
     	  phaseAngles[i] = (char)Integer.parseInt(entries[i]);
       }
     }
+  }
+
+  /**
+   * Convert from phase angles to cartesian coordinates using LUT.
+   */
+  public void toCartesian() {
+    if (opMode == MODE.CARTESIAN) {
+      return;
+    }
+    if (isSparse) {
+      return;
+    }
+    float[] coordinates = new float[dimension*2];
+  
+    for (int i=0, j=0; i<dimension; i++, j+=2) {
+      coordinates[j] = CircleLookupTable.getRealLUT()[phaseAngles[i]];
+      coordinates[j+1] = CircleLookupTable.getImagLUT()[phaseAngles[i]];
+    }
+  
+    setOpMode(ComplexVector.MODE.CARTESIAN);
+    setCoordinates(coordinates);
+    setPhaseAngles(null);
   }
 
   //Available for testing and copying.

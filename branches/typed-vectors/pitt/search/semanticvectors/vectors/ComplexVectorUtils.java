@@ -2,6 +2,7 @@ package pitt.search.semanticvectors.vectors;
 
 import java.util.logging.Logger;
 
+
 /**
  * Complex number utilities class.
  *
@@ -11,28 +12,12 @@ import java.util.logging.Logger;
  */
 public class ComplexVectorUtils {
   public static final Logger logger = Logger.getLogger(RealVector.class.getCanonicalName());
-
-  /**
-   * Resolution at which we discretise the phase angle. This is fixed at 2^16 since we are
-   * using 16 bit chars to represent phase angles.
-   */
-  public static final int phaseResolution = 65536;
-  public static final float pi = 3.1415926535f;
-  public static final float pi2 = phaseResolution / 2 / pi;
-  public static final float pi3 = pi * 2 / phaseResolution;
-
-  /**
-   * Lookup Table for mapping phase angle to cartesian coordinates.
-   */
-  private static float[] realLUT;
-  private static float[] imLUT;
-
+  
   /**
    * Retrieve lookup tables if required.
    */
-  public static float[] getRealLUT() { return realLUT; }
-  public static float[] getImagLUT() { return imLUT; }
-
+  public static float[] getRealLUT() { return CircleLookupTable.getRealLUT(); }
+  public static float[] getImagLUT() { return CircleLookupTable.getImagLUT(); }
 
   /**
    * Superposes vec2 with vec1.
@@ -49,8 +34,8 @@ public class ComplexVectorUtils {
     float[] coordinates = vec1.getCoordinates();
 
     for (int i=0, j=0; i<dim; i++, j+=2) {
-	  coordinates[j] += realLUT[c[i]];
-	  coordinates[j+1] += imLUT[c[i]];
+	  coordinates[j] += getRealLUT()[c[i]];
+	  coordinates[j+1] += getImagLUT()[c[i]];
     }
   }
 
@@ -70,18 +55,18 @@ public class ComplexVectorUtils {
       for (int i=0; i<dim; i++) {
         positionToAdd = permutation[i] << 1;
         // Real part
-        coordinates[positionToAdd] += realLUT[c[i]] * weight;
+        coordinates[positionToAdd] += getRealLUT()[c[i]] * weight;
         // Imaginary Part
-        coordinates[positionToAdd+1] += imLUT[c[i]] * weight;
+        coordinates[positionToAdd+1] += getImagLUT()[c[i]] * weight;
       }
     }
     else {
       for (int i=0; i<dim; i++) {
         positionToAdd = i << 1;
         // Real part
-        coordinates[positionToAdd] += realLUT[c[i]] * weight;
+        coordinates[positionToAdd] += getRealLUT()[c[i]] * weight;
         // Imaginary Part
-        coordinates[positionToAdd+1] += imLUT[c[i]] * weight;
+        coordinates[positionToAdd+1] += getImagLUT()[c[i]] * weight;
       }
     }
   }
@@ -93,9 +78,6 @@ public class ComplexVectorUtils {
    */
   public static void superposeWithSparseAngle( ComplexVector vec1, ComplexVector vec2, float weight, int[] permutation ) {
 	int positionToAdd, phaseAngleIdx;
-    int dim =  vec1.getDimensions();
-
-    //System.out.println("Sparse...");
 
     char offsets[] = vec2.getSparseOffsets();
     float[] coordinates = vec1.getCoordinates();
@@ -105,9 +87,9 @@ public class ComplexVectorUtils {
         positionToAdd = permutation[offsets[i]] << 1;
         phaseAngleIdx = i+1;
         // Real part
-        coordinates[positionToAdd] += realLUT[offsets[phaseAngleIdx]] * weight;
+        coordinates[positionToAdd] += getRealLUT()[offsets[phaseAngleIdx]] * weight;
         // Imaginary Part
-        coordinates[positionToAdd+1] += imLUT[offsets[phaseAngleIdx]] * weight;
+        coordinates[positionToAdd+1] += getImagLUT()[offsets[phaseAngleIdx]] * weight;
       }
     }
     else {
@@ -115,9 +97,9 @@ public class ComplexVectorUtils {
         positionToAdd = offsets[i] << 1;
         phaseAngleIdx = i+1;
         // Real part
-        coordinates[positionToAdd] += realLUT[offsets[phaseAngleIdx]] * weight;
+        coordinates[positionToAdd] += getRealLUT()[offsets[phaseAngleIdx]] * weight;
         // Imaginary Part
-        coordinates[positionToAdd+1] += imLUT[offsets[phaseAngleIdx]] * weight;
+        coordinates[positionToAdd+1] += getImagLUT()[offsets[phaseAngleIdx]] * weight;
       }
     }
   }
@@ -162,46 +144,13 @@ public class ComplexVectorUtils {
   }
 
   /**
-   * Convert from phase angles to cartesian coordinates using LUT.
-   */
-  public static void toCartesian( ComplexVector vec ) {
-    int dim =  vec.getDimensions();
-    char c[] = vec.getPhaseAngles();
-    float[] coordinates = new float[dim*2];
-
-    for (int i=0, j=0; i<dim; i++, j+=2) {
-      coordinates[j] = realLUT[c[i]];
-      coordinates[j+1] = imLUT[c[i]];
-    }
-
-    vec.setOpMode(ComplexVector.MODE.CARTESIAN);
-    vec.setCoordinates(coordinates);
-    vec.setPhaseAngles(null);
-  }
-  /**
-   * Convert from cartesian coordinates to phase angles.
-   */
-  public static void toPhaseAngle( ComplexVector vec ) {
-    int dim = vec.getDimensions();
-    char[] c = new char[dim];
-    float[] coordinates = vec.getCoordinates();
-
-	for (int i=0, j=0; i<dim; i++, j+=2) {
-	  c[i] = angleFromCartesianTrig( coordinates[j], coordinates[j+1] );;
-    }
-
-    vec.setOpMode(ComplexVector.MODE.POLAR);
-	vec.setCoordinates(null);
-    vec.setPhaseAngles(c);
-  }
-  /**
    * Convert from cartesian coordinates to phase angle using trig
    * function.
    */
   public static char angleFromCartesianTrig( float real, float im )  {
     float theta = (float)Math.acos(real);
-    char c, d = (char)(phaseResolution-1);
-    c = (char)(theta*pi2);
+    char c, d = (char)(CircleLookupTable.phaseResolution - 1);
+    c = (char)(theta * CircleLookupTable.pi2);
     //System.out.println(""+(int)c+"  "+(int)d);
     //System.out.println(""+real+"  "+im);
     //System.out.println(""+theta);
@@ -216,22 +165,6 @@ public class ComplexVectorUtils {
 
   public static void scaleFloatArray( float[] array, float weight) {
 	  for (int i=0; i<array.length; i++) array[i] = array[i]*weight;
-  }
-
-  /**
-   * Generate the phase angle to cartesian LUT.
-   */
-  public static void generateAngleToCartesianLUT() {
-    realLUT = new float[phaseResolution];
-    imLUT = new float[phaseResolution];
-
-    float theta;
-
-    for (int i=0; i<phaseResolution; i++) {
-	  theta = ((float)i) * pi3;
-	  realLUT[i] = (float)Math.cos(theta);
-	  imLUT[i] = (float)Math.sin(theta);
-    }
   }
 }
 
