@@ -62,7 +62,7 @@ public class VectorStoreReaderLuceneTest {
     assertEquals(2, reader.getNumVectors());
     Vector abraham = reader.getVector("abraham");
     reader.close();
-    assertEquals(1.0f, abraham.measureOverlap(new RealVector(new float[] {1, 0})), TOL);
+    assertEquals(1.0f, abraham.measureOverlap(new RealVector(new float[] {1, 0, 0})), TOL);
   }
 
   @Test
