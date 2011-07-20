@@ -414,6 +414,8 @@ public class ComplexVector extends Vector {
     for (int i = 0; i < dimension; ++i) {
       try {
         phaseAngles[i] = (char)Float.intBitsToFloat(inputStream.readInt());
+        logger.info("Setting char: " + phaseAngles[i] + " from float "
+            + Float.intBitsToFloat(inputStream.readInt()));
       } catch (IOException e) {
         logger.severe("Failed to parse vector from Lucene stream.  This signifies a "
             + "programming or runtime error, e.g., a dimension mismatch.");

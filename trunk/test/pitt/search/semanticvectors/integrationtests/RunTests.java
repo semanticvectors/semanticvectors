@@ -73,8 +73,8 @@ public class RunTests {
   public static String vectorBinFile = "testtermvectors.bin";
   public static String luceneIndexDir = "index";
   public static String lucenePositionalIndexDir = "positional_index";
-
-  public static String testVectors = "-dimension|3\n"
+  
+  public static String testVectors = "-dimensions 3 -vectortype real\n"
     + "abraham|1.0|0.0|0.0\n"
     + "isaac|0.8|0.2|0.2\n";
 

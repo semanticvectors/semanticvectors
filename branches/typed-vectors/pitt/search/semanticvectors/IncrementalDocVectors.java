@@ -47,7 +47,6 @@ import org.apache.lucene.store.FSDirectory;
 
 import pitt.search.semanticvectors.vectors.Vector;
 import pitt.search.semanticvectors.vectors.VectorFactory;
-import pitt.search.semanticvectors.vectors.VectorUtils;
 
 /**
  * Generates document vectors incrementally.
@@ -63,10 +62,9 @@ public class IncrementalDocVectors {
   private String[] fieldsToIndex;
   private LuceneUtils lUtils;
   private String vectorFileName;
-  private int dimension;
-  
+
   private IncrementalDocVectors() {};
-  
+
   /**
    * Creates incremental doc vectors, getting everything it needs from a
    * TermVectorsFromLucene object and a Lucene Index directory, and writing to a named file.
@@ -77,20 +75,19 @@ public class IncrementalDocVectors {
    * @param vectorFileName Filename for the document vectors
    */
   public static void createIncrementalDocVectors(
-		  VectorStore termVectorData, String indexDir,
-		  String[] fieldsToIndex, String vectorFileName, int dimension) throws IOException {
-	IncrementalDocVectors incrementalDocVectors = new IncrementalDocVectors();
-	incrementalDocVectors.termVectorData = termVectorData;
-	incrementalDocVectors.indexReader = IndexReader.open(FSDirectory.open(new File(indexDir)));
-	incrementalDocVectors.fieldsToIndex = fieldsToIndex;
-	incrementalDocVectors.vectorFileName = vectorFileName;
-	incrementalDocVectors.dimension = dimension;
+      VectorStore termVectorData, String indexDir,
+      String[] fieldsToIndex, String vectorFileName) throws IOException {
+    IncrementalDocVectors incrementalDocVectors = new IncrementalDocVectors();
+    incrementalDocVectors.termVectorData = termVectorData;
+    incrementalDocVectors.indexReader = IndexReader.open(FSDirectory.open(new File(indexDir)));
+    incrementalDocVectors.fieldsToIndex = fieldsToIndex;
+    incrementalDocVectors.vectorFileName = vectorFileName;
     if (incrementalDocVectors.lUtils == null) {
-    	incrementalDocVectors.lUtils = new LuceneUtils(indexDir);
+      incrementalDocVectors.lUtils = new LuceneUtils(indexDir);
     }
     incrementalDocVectors.trainIncrementalDocVectors();
   }
-    
+
   private void trainIncrementalDocVectors() throws IOException {
     int numdocs = indexReader.numDocs();
 
@@ -104,8 +101,7 @@ public class IncrementalDocVectors {
     logger.info("Write vectors incrementally to file " + vectorFile);
 
     // Write header giving number of dimensions for all vectors.
-    outputStream.writeString("-dimensions");
-    outputStream.writeInt(dimension);
+    outputStream.writeString(VectorStoreWriter.generateHeaderString());
 
     // Iterate through documents.
     for (int dc = 0; dc < numdocs; dc++) {
@@ -113,7 +109,7 @@ public class IncrementalDocVectors {
       if ((dc > 0) && ((dc % 50000 == 0) || ( dc < 50000 && dc % 10000 == 0 ))) {
         logger.fine("Processed " + dc + " documents ... ");
       }
-    
+
       String docID = Integer.toString(dc); 
       // Use filename and path rather than Lucene index number for document vector.
       if (this.indexReader.document(dc).getField(Flags.docidfield) != null) {
@@ -124,7 +120,7 @@ public class IncrementalDocVectors {
         }
       }
 
-      Vector docVector = VectorFactory.createZeroVector(Flags.vectortype, dimension);
+      Vector docVector = VectorFactory.createZeroVector(Flags.vectortype, Flags.dimensions);
 
       for (String fieldName: fieldsToIndex) {
         TermFreqVector vex =
@@ -177,32 +173,29 @@ public class IncrementalDocVectors {
   }
 
   public static void main(String[] args) throws Exception {
-   
+    try {
+      args = Flags.parseCommandLineFlags(args);
+    } catch (IllegalArgumentException e) {
 
-        try {
-          args = Flags.parseCommandLineFlags(args);
-        } catch (IllegalArgumentException e) {
-         
-          throw e;
-        }
+      throw e;
+    }
 
-        // Only two arguments should remain, the path to the Lucene index.
-        if (args.length != 2) {
-        
-          throw (new IllegalArgumentException("After parsing command line flags, there were " + args.length
-                                              + " arguments, instead of the expected 2."));
-        }
+    // Only two arguments should remain, the path to the Lucene index.
+    if (args.length != 2) {
 
-        String vectorFile = args[0].replaceAll("\\.bin","")+"_docvectors.bin";
-        VectorStoreRAM vsr = new VectorStoreRAM();
-        vsr.initFromFile(args[0]);
-        
-        logger.info("Minimum frequency = " + Flags.minfrequency);
-        logger.info("Maximum frequency = " + Flags.maxfrequency);
-        logger.info("Number non-alphabet characters = " + Flags.maxnonalphabetchars);
-        logger.info("Contents fields are: " + Arrays.toString(Flags.contentsfields));
+      throw (new IllegalArgumentException("After parsing command line flags, there were " + args.length
+          + " arguments, instead of the expected 2."));
+    }
 
-    
-    createIncrementalDocVectors(vsr, args[1], Flags.contentsfields, vectorFile, Flags.dimensions);
+    String vectorFile = args[0].replaceAll("\\.bin","")+"_docvectors.bin";
+    VectorStoreRAM vsr = new VectorStoreRAM();
+    vsr.initFromFile(args[0]);
+
+    logger.info("Minimum frequency = " + Flags.minfrequency);
+    logger.info("Maximum frequency = " + Flags.maxfrequency);
+    logger.info("Number non-alphabet characters = " + Flags.maxnonalphabetchars);
+    logger.info("Contents fields are: " + Arrays.toString(Flags.contentsfields));
+
+    createIncrementalDocVectors(vsr, args[1], Flags.contentsfields, vectorFile);
   }
 }

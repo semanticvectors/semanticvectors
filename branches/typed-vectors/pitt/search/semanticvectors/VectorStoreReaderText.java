@@ -69,9 +69,7 @@ public class VectorStoreReaderText implements CloseableVectorStore {
       VectorStoreReaderText.class.getCanonicalName());
 
   private String vectorFileText;
-  private boolean hasHeader;
   private BufferedReader inBuf;
-  private int dimension;
 
   public VectorStoreReaderText (String vectorFileText) throws IOException {
     this.vectorFileText = vectorFileText;
@@ -79,20 +77,7 @@ public class VectorStoreReaderText implements CloseableVectorStore {
     try {
       // Read number of dimensions from header information.
       String firstLine = inBuf.readLine();
-      // Include "-" character to avoid unlikely case that first term is "dimensions"!
-      String[] firstLineData = firstLine.split("\\|");
-      if ((firstLineData[0].equalsIgnoreCase("-dimension"))) {
-        dimension = Integer.parseInt(firstLineData[1]);
-        this.hasHeader = true;
-      }
-      else {
-        logger.info("No file header for file " + vectorFileText +
-            "\nPresuming vector length is: " + (firstLineData.length - 1) +
-            "\nIf this fails, consider rebuilding indexes - existing " +
-        "ones were probably created with old version of software.");
-        dimension = firstLineData.length - 1;
-        this.hasHeader = false;
-      }
+      Flags.parseFlagsFromString(firstLine);
     } catch (IOException e) {
       System.out.println("Cannot read file: " + vectorFileText + "\n" + e.getMessage());
     }
@@ -112,9 +97,7 @@ public class VectorStoreReaderText implements CloseableVectorStore {
     BufferedReader vecBuf;
     try{
       vecBuf = new BufferedReader(new FileReader (vectorFileText));
-      if (hasHeader) {
-        vecBuf.readLine();
-      }
+      vecBuf.readLine();  // Header line will already have been parsed.
     }
     catch (IOException e) {
       //empty, nextElement will always return false
@@ -131,7 +114,7 @@ public class VectorStoreReaderText implements CloseableVectorStore {
   public ObjectVector parseVectorLine(String line) throws IOException {
     int firstSplitPoint = line.indexOf("|");
     String objectName = new String(line.substring(0, firstSplitPoint));
-    Vector tmpVector = VectorFactory.createZeroVector(Flags.vectortype, dimension);
+    Vector tmpVector = VectorFactory.createZeroVector(Flags.vectortype, Flags.dimensions);
     tmpVector.readFromString(line.substring(firstSplitPoint + 1, line.length()));
     return new ObjectVector(objectName, tmpVector);
   }
@@ -146,9 +129,7 @@ public class VectorStoreReaderText implements CloseableVectorStore {
     try {
       this.close();
       inBuf = new BufferedReader(new FileReader (vectorFileText));
-      if (this.hasHeader) {
-        inBuf.readLine();
-      }
+      inBuf.readLine();  // Skip header line.
       String line;
       while ((line = inBuf.readLine()) != null) {
         String[] entries = line.split("\\|");
@@ -176,10 +157,6 @@ public class VectorStoreReaderText implements CloseableVectorStore {
       ++i;
     }
     return i;
-  }
-
-  public int getDimension() {
-    return dimension;
   }
 
   /**

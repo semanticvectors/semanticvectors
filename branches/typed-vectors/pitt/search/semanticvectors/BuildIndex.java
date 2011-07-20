@@ -139,7 +139,7 @@ public class BuildIndex {
         logger.info("Writing term vectors to " + termFile);
         vecWriter.writeVectors(termFile, vecStore);
         IncrementalDocVectors.createIncrementalDocVectors(
-            vecStore, luceneIndex, Flags.contentsfields, "incremental_"+docFile, Flags.dimensions);
+            vecStore, luceneIndex, Flags.contentsfields, "incremental_"+docFile);
         IncrementalTermVectors itermVectors = null;
 
         for (int i = 1; i < Flags.trainingcycles; ++i) {
@@ -155,7 +155,7 @@ public class BuildIndex {
 
         IncrementalDocVectors.createIncrementalDocVectors(
             itermVectors, luceneIndex, Flags.contentsfields,
-            "incremental_"+docFile, Flags.dimensions);
+            "incremental_"+docFile);
         }
       } else if (Flags.docindexing.equals("inmemory")) {
         DocVectors docVectors = new DocVectors(vecStore);

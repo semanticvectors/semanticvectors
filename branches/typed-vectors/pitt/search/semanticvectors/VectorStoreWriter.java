@@ -158,7 +158,7 @@ public class VectorStoreWriter {
     Enumeration<ObjectVector> vecEnum = objectVectors.getAllVectors();
     
     // Write header giving vector type and dimension for all vectors.
-    outBuf.write(generateHeaderString());
+    outBuf.write(generateHeaderString() + "\n");
 
     // Write each vector.
     while (vecEnum.hasMoreElements()) {
