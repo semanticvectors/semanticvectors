@@ -119,13 +119,13 @@ public class IncrementalTermVectors implements VectorStore {
       // Place each term vector in the vector store.
       termVectorData.putVector(term.text(), termVector);
     }
-    logger.info("There are " + tc + " terms (and " + indexReader.numDocs() + " docs)");
+    VerbatimLogger.info("There are " + tc + " terms (and " + indexReader.numDocs() + " docs)");
 
     // Iterate through documents.
     for (int dc=0; dc < numdocs; dc++) {
       /* output progress counter */
       if (( dc % 10000 == 0 ) || ( dc < 10000 && dc % 1000 == 0 )) {
-        logger.info(dc + " ... ");
+        VerbatimLogger.info(dc + " ... ");
       }
 
       int dcount = dc;

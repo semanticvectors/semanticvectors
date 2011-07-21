@@ -119,7 +119,7 @@ public class CompoundVectorBuilder {
 
         if (lUtils != null) {
           weight = lUtils.getGlobalTermWeightFromString(queryTerms[j]);
-          logger.log(Level.INFO, "Term {0} weight {1}", new Object[]{queryTerms[j], weight});
+          logger.log(Level.FINE, "Term {0} weight {1}", new Object[]{queryTerms[j], weight});
         } else {
           weight = 1;
         }
@@ -128,7 +128,7 @@ public class CompoundVectorBuilder {
           queryVec.superpose(tmpVec, weight,
               PermutationUtils.getShiftPermutation(Flags.dimension, permutation));
         } else {
-          logger.log(Level.WARNING, "No vector for {0}", queryTerms[j]);
+          logger.log(Level.WARNING, "No vector for '{0}'", queryTerms[j]);
         }
       }
     }

@@ -197,14 +197,14 @@ public class TermTermVectorsFromLucene implements VectorStore {
         ((VectorStoreSparseRAM) this.indexVectors).putVector(term.text(), indexVector);
       }
     }
-    logger.info("There are " + tc + " terms (and " + luceneIndexReader.numDocs() + " docs)");
+    VerbatimLogger.info("There are " + tc + " terms (and " + luceneIndexReader.numDocs() + " docs)");
 
     // Iterate through documents.
     int numdocs = this.luceneIndexReader.numDocs();
     for (int dc = 0; dc < numdocs; ++dc) {
       // Output progress counter.
-      if ((dc % 50000 == 0) || (dc < 50000 && dc % 10000 == 0)) {
-        logger.fine("Processed " + dc + " documents ... ");
+      if ((dc % 10000 == 0) || (dc < 10000 && dc % 1000 == 0)) {
+        VerbatimLogger.info("Processed " + dc + " documents ... ");
       }
 
       try {
@@ -218,8 +218,8 @@ public class TermTermVectorsFromLucene implements VectorStore {
       }
     }
 
-    logger.info("Created " + termVectors.getNumVectors() + " term vectors ...");
-    logger.info("Normalizing term vectors");
+    VerbatimLogger.info("Created " + termVectors.getNumVectors() + " term vectors ...");
+    VerbatimLogger.info("Normalizing term vectors");
     Enumeration<ObjectVector> e = termVectors.getAllVectors();
     while (e.hasMoreElements())	{
       ObjectVector temp = e.nextElement();
@@ -232,7 +232,7 @@ public class TermTermVectorsFromLucene implements VectorStore {
     // If building a permutation index, these need to be written out to be reused.
     if ((positionalmethod.equals("permutation") || (positionalmethod.equals("permutation_plus_basic"))) 
         && !retraining) {
-      logger.info("\nNormalizing and writing random vectors to " + randFile);
+      VerbatimLogger.info("\nNormalizing and writing random vectors to " + randFile);
       Enumeration<ObjectVector> f = indexVectors.getAllVectors();
       while (f.hasMoreElements())	{
         ObjectVector temp = f.nextElement();

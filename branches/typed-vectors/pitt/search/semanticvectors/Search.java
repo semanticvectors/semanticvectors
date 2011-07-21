@@ -193,7 +193,8 @@ public class Search {
       if (Flags.luceneindexpath != "") {
         try { luceneUtils = new LuceneUtils(Flags.luceneindexpath); }
         catch (IOException e) {
-          logger.info("Couldn't open Lucene index at " + Flags.luceneindexpath);
+          logger.info("Couldn't open Lucene index at " + Flags.luceneindexpath
+              + ". Will continue without term weighting.");
         }
       }
     }
@@ -220,7 +221,7 @@ public class Search {
                                                     searchVecReader,
                                                     luceneUtils,
                                                     args);
-        logger.info("Searching term vectors, searchtype SUM ... \n");
+        logger.info("Searching term vectors, searchtype SUM ... ");
         results = vecSearcher.getNearestNeighbors(numResults);
       } catch (ZeroVectorException zve) {
         logger.info(zve.getMessage());

@@ -106,8 +106,8 @@ public class IncrementalDocVectors {
     // Iterate through documents.
     for (int dc = 0; dc < numdocs; dc++) {
       // Output progress counter.
-      if ((dc > 0) && ((dc % 50000 == 0) || ( dc < 50000 && dc % 10000 == 0 ))) {
-        logger.fine("Processed " + dc + " documents ... ");
+      if ((dc > 0) && ((dc % 10000 == 0) || ( dc < 10000 && dc % 1000 == 0 ))) {
+        VerbatimLogger.info("Processed " + dc + " documents ... ");
       }
 
       String docID = Integer.toString(dc); 
@@ -132,7 +132,7 @@ public class IncrementalDocVectors {
           int[] freqs = vex.getTermFrequencies();
 
           for (int b = 0; b < freqs.length; ++b) {
-            String term_string = terms[b];
+            String termString = terms[b];
             int freq = freqs[b];
             float localweight = freq;
             float globalweight = 1;
@@ -140,21 +140,20 @@ public class IncrementalDocVectors {
             if (Flags.termweight.equals("logentropy")) {
               //local weighting: 1+ log (local frequency)
               localweight = new Double(1 + Math.log(localweight)).floatValue();
-              Term term = new Term(fieldName,term_string);
+              Term term = new Term(fieldName, termString);
               globalweight = globalweight * lUtils.getEntropy(term);
             }
 
             // Add contribution from this term, excluding terms that
             // are not represented in termVectorData.
             try {
-              Vector termVector = termVectorData.getVector(term_string);
+              Vector termVector = termVectorData.getVector(termString);
               if (termVector != null && termVector.getDimension() > 0) {
                 docVector.superpose(termVector, localweight * globalweight, null);
               }
             } catch (NullPointerException npe) {
               // Don't normally print anything - too much data!
-              // TODO(dwiddows): Replace with a configurable logging system.
-              // logger.info("term "+term+ " not represented");
+              logger.finest("term " + termString + " not represented");
             }
           }
         }
@@ -176,15 +175,13 @@ public class IncrementalDocVectors {
     try {
       args = Flags.parseCommandLineFlags(args);
     } catch (IllegalArgumentException e) {
-
       throw e;
     }
 
     // Only two arguments should remain, the path to the Lucene index.
     if (args.length != 2) {
-
-      throw (new IllegalArgumentException("After parsing command line flags, there were " + args.length
-          + " arguments, instead of the expected 2."));
+      throw (new IllegalArgumentException("After parsing command line flags, there were "
+          + args.length + " arguments, instead of the expected 2."));
     }
 
     String vectorFile = args[0].replaceAll("\\.bin","")+"_docvectors.bin";

@@ -91,8 +91,8 @@ public class DocVectors implements VectorStore {
       int tc = 0;
       while (termEnum.hasMoreElements()) {
         // Output progress counter.
-        if ((tc % 50000 == 0) || (tc < 50000 && tc % 10000 == 0)) {
-          logger.info("Processed " + tc + " terms ... ");
+        if ((tc % 10000 == 0) || (tc < 10000 && tc % 1000 == 0)) {
+          VerbatimLogger.info("Processed " + tc + " terms ... ");
         }
         tc++;
 
@@ -133,7 +133,7 @@ public class DocVectors implements VectorStore {
       e.printStackTrace();
     }
 
-    logger.info("\nNormalizing doc vectors ...");
+    VerbatimLogger.info("\nNormalizing doc vectors ...");
     for (int i = 0; i < indexReader.numDocs(); ++i) {
       docVectors.getVector(Integer.toString(i)).normalize();
     }

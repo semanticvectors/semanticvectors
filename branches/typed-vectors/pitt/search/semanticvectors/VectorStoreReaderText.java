@@ -125,7 +125,6 @@ public class VectorStoreReaderText implements CloseableVectorStore {
    * @param desiredObject - the string identifying the object being searched for.
    */
   public Vector getVector(Object desiredObject) {
-    logger.info("Seeking vector for ... " + desiredObject + " ... ");
     try {
       this.close();
       inBuf = new BufferedReader(new FileReader (vectorFileText));
@@ -134,7 +133,7 @@ public class VectorStoreReaderText implements CloseableVectorStore {
       while ((line = inBuf.readLine()) != null) {
         String[] entries = line.split("\\|");
         if (entries[0].equals(desiredObject)) {
-          logger.info("Found it ...");
+          VerbatimLogger.info("Found vector for '" + desiredObject + "'\n");
           return (parseVectorLine(line).getVector());
         }
       }
@@ -142,7 +141,7 @@ public class VectorStoreReaderText implements CloseableVectorStore {
     catch (IOException e) {
       e.printStackTrace();
     }
-    logger.info("Didn't find it ...");
+    VerbatimLogger.info("Failed to find vector for '" + desiredObject + "'\n");
     return null;
   }
 

@@ -152,7 +152,7 @@ public class VectorStoreReaderLucene implements CloseableVectorStore {
       while (getIndexInput().getFilePointer() < getIndexInput().length() - 1) {
         String objectString = getIndexInput().readString();
         if (objectString.equals(stringTarget)) {
-          logger.info("Found vector for '" + stringTarget + "'");
+          VerbatimLogger.info("Found vector for '" + stringTarget + "'\n");
           Vector vector = VectorFactory.createZeroVector(Flags.vectortype, Flags.dimension);
           vector.readFromLuceneStream(getIndexInput());
           return vector;
@@ -166,7 +166,7 @@ public class VectorStoreReaderLucene implements CloseableVectorStore {
     catch (IOException e) {
       e.printStackTrace();
     }
-    logger.info("Didn't find vector for '" + desiredObject + "'");
+    VerbatimLogger.info("Didn't find vector for '" + desiredObject + "'\n");
     return null;
   }
 
