@@ -59,8 +59,8 @@ public class Flags {
   // Add new command line flags here. By convention, please use lower case.
   //
   // DO NOT DUPLICATE NAMES HERE! YOU WILL OVERWRITE OTHER PEOPLE's FLAGS!
-  public static int dimensions = 200;
-  public static final String dimensionsDescription = "Dimension of semantic vector space";
+  public static int dimension = 200;
+  public static final String dimensionDescription = "Dimension of semantic vector space";
   
   public static String vectortype = "real";
   public static final String vectortypeDescription = "Ground field for vectors: real, binary or complex.";

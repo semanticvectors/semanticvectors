@@ -81,9 +81,9 @@ public class VectorStoreRAM implements VectorStore {
 
   // Add a single vector.
   public void putVector(Object key, Vector vector) {
-	if (vector.getDimensions() != Flags.dimensions) {
+	if (vector.getDimension() != Flags.dimension) {
 	  throw new IllegalArgumentException("Trying to add vector of dimension "
-	      + vector.getDimensions() + " to VectorStore of dimension " + Flags.dimensions);
+	      + vector.getDimension() + " to VectorStore of dimension " + Flags.dimension);
 	}
     ObjectVector objectVector = new ObjectVector(key, vector);
     this.objectVectors.put(key, objectVector);

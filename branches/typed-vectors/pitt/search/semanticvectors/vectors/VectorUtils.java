@@ -295,12 +295,12 @@ public class VectorUtils {
    * floats) to be orthogonalized in place.
    */
   public static boolean orthogonalizeVectors(ArrayList<Vector> vectors) {
-    int dimension = vectors.get(0).getDimensions();
+    int dimension = vectors.get(0).getDimension();
     // Go up through vectors in turn, parameterized by k.
     for (int k = 0; k < vectors.size(); ++k) {
       Vector kthVector = vectors.get(k);
       kthVector.normalize();
-      if (kthVector.getDimensions() != dimension) {
+      if (kthVector.getDimension() != dimension) {
         logger.warning("In orthogonalizeVector: not all vectors have required dimension.");
         return false;
       }
@@ -471,7 +471,7 @@ public class VectorUtils {
    * alternative to random permutation
    * @param indexVector the sparse vector to be permuted
    * @param rotation the direction and number of places to rotate
-   * @param dimension number of dimensions used
+   * @param dimension number of dimension used
    * @return sparse vector with permutation
    */
   public static short[] permuteVector (short[] indexVector, int rotation, int dimension) {

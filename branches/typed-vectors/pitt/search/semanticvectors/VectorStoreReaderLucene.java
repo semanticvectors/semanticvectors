@@ -82,7 +82,7 @@ public class VectorStoreReaderLucene implements CloseableVectorStore {
       String parentPath = this.vectorFile.getParent();
       if (parentPath == null) parentPath = "";
       this.fsDirectory = FSDirectory.open(new File(parentPath));
-      // Read number of dimensions from header information.
+      // Read number of dimension from header information.
       this.threadLocalIndexInput = new ThreadLocal<IndexInput>() {
         @Override
         protected IndexInput initialValue() {
@@ -153,13 +153,13 @@ public class VectorStoreReaderLucene implements CloseableVectorStore {
         String objectString = getIndexInput().readString();
         if (objectString.equals(stringTarget)) {
           logger.info("Found vector for '" + stringTarget + "'");
-          Vector vector = VectorFactory.createZeroVector(Flags.vectortype, Flags.dimensions);
+          Vector vector = VectorFactory.createZeroVector(Flags.vectortype, Flags.dimension);
           vector.readFromLuceneStream(getIndexInput());
           return vector;
         }
         else{
           getIndexInput().seek(getIndexInput().getFilePointer()
-              + VectorFactory.getLuceneByteSize(Flags.vectortype, Flags.dimensions));
+              + VectorFactory.getLuceneByteSize(Flags.vectortype, Flags.dimension));
         }
       }
     }
@@ -200,7 +200,7 @@ public class VectorStoreReaderLucene implements CloseableVectorStore {
 
     public ObjectVector nextElement() {
       String object = null;
-      Vector vector = VectorFactory.createZeroVector(Flags.vectortype, Flags.dimensions);
+      Vector vector = VectorFactory.createZeroVector(Flags.vectortype, Flags.dimension);
       try {
         object = indexInput.readString();
         vector.readFromLuceneStream(indexInput);

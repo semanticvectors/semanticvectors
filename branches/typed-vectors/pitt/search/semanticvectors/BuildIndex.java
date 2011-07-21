@@ -52,11 +52,11 @@ public class BuildIndex {
    * <br> Usage: java pitt.search.semanticvectors.BuildIndex PATH_TO_LUCENE_INDEX
    * <br> BuildIndex creates termvectors and docvectors files in local directory.
    * <br> Other parameters that can be changed include vector length,
-   * <br>     (number of dimensions), seed length (number of non-zero
+   * <br>     (number of dimension), seed length (number of non-zero
    * <br>     entries in basic vectors), minimum term frequency,
    * <br>     and number of iterative training cycles.
    * <br> To change these use the following command line arguments:
-   * <br> -dimension [number of dimensions]
+   * <br> -dimension [number of dimension]
    * <br> -seedlength [seed length]
    * <br> -minfrequency [minimum term frequency]
    * <br> -maxnonalphabetchars [number non-alphabet characters (-1 for any number)]
@@ -70,11 +70,11 @@ public class BuildIndex {
         + "\nUsage: java pitt.search.semanticvectors.BuildIndex PATH_TO_LUCENE_INDEX"
         + "\nBuildIndex creates termvectors and docvectors files in local directory."
         + "\nOther parameters that can be changed include vector length,"
-        + "\n    (number of dimensions), seed length (number of non-zero"
+        + "\n    (number of dimension), seed length (number of non-zero"
         + "\n    entries in basic vectors), minimum term frequency,"
         + "\n    and number of iterative training cycles."
         + "\nTo change these use the command line arguments "
-        + "\n  -dimension [number of dimensions]"
+        + "\n  -dimension [number of dimension]"
         + "\n  -seedlength [seed length]"
         + "\n  -minfrequency [minimum term frequency]"
         + "\n  -maxnonalphabetchars [number non-alphabet characters (-1 for any number)]"
@@ -106,7 +106,7 @@ public class BuildIndex {
 
     String luceneIndex = args[0];
     logger.info("Seedlength = " + Flags.seedlength 
-        + "\nDimension = " + Flags.dimensions
+        + "\nDimension = " + Flags.dimension
         + "\nMinimum frequency = " + Flags.minfrequency
         + "\nMaximum frequency = " + Flags.maxfrequency
         + "\nNumber non-alphabet characters = " + Flags.maxnonalphabetchars
@@ -124,12 +124,12 @@ public class BuildIndex {
         // Otherwise attempt to load pre-existing semantic term vectors.
         logger.info("Creating term vectors ...");
         vecStore = TermVectorsFromLucene.createTermBasedRRIVectors(
-            luceneIndex, Flags.dimensions, Flags.seedlength, Flags.minfrequency, Flags.maxfrequency,
+            luceneIndex, Flags.dimension, Flags.seedlength, Flags.minfrequency, Flags.maxfrequency,
             Flags.maxnonalphabetchars, Flags.initialtermvectors, Flags.contentsfields);
       } else {
         logger.info("Creating elemental document vectors ...");
         vecStore = TermVectorsFromLucene.createTermVectorsFromLucene(
-            luceneIndex, Flags.dimensions, Flags.seedlength, Flags.minfrequency, Flags.maxfrequency,
+            luceneIndex, Flags.dimension, Flags.seedlength, Flags.minfrequency, Flags.maxfrequency,
             Flags.maxnonalphabetchars, null, Flags.contentsfields);
       }
 
@@ -143,7 +143,7 @@ public class BuildIndex {
         IncrementalTermVectors itermVectors = null;
 
         for (int i = 1; i < Flags.trainingcycles; ++i) {
-          itermVectors = new IncrementalTermVectors(luceneIndex,  Flags.dimensions,
+          itermVectors = new IncrementalTermVectors(luceneIndex,  Flags.dimension,
                                                     Flags.contentsfields, "incremental_"+docFile);
 
           new VectorStoreWriter().writeVectors(
@@ -162,7 +162,7 @@ public class BuildIndex {
         for (int i = 1; i < Flags.trainingcycles; ++i) {
           logger.info("\nRetraining with learned document vectors ...");
           vecStore = TermVectorsFromLucene.createTermVectorsFromLucene(
-              luceneIndex, Flags.dimensions, Flags.seedlength, Flags.minfrequency,
+              luceneIndex, Flags.dimension, Flags.seedlength, Flags.minfrequency,
               Flags.maxfrequency, Flags.maxnonalphabetchars, docVectors, Flags.contentsfields);
           docVectors = new DocVectors(vecStore);
         }

@@ -25,8 +25,8 @@ public class ComplexVectorUtils {
    * vec2 is in POLAR mode.
    */
   public static void superposeWithAngle( ComplexVector vec1, ComplexVector vec2  ) {
-    int dim =  vec1.getDimensions();
-    assert( dim == vec2.getDimensions() );
+    int dim =  vec1.getDimension();
+    assert( dim == vec2.getDimension() );
     assert( vec1.getOpMode() == ComplexVector.MODE.CARTESIAN );
     assert( vec2.getOpMode() == ComplexVector.MODE.POLAR );
 
@@ -46,7 +46,7 @@ public class ComplexVectorUtils {
    */
   public static void superposeWithAngle( ComplexVector vec1, ComplexVector vec2, float weight, int[] permutation ) {
 	int positionToAdd;
-    int dim =  vec1.getDimensions();
+    int dim =  vec1.getDimension();
 
     char c[] = vec2.getPhaseAngles();
     float[] coordinates = vec1.getCoordinates();
@@ -109,8 +109,8 @@ public class ComplexVectorUtils {
    * Both vectors are in CARTESIAN mode.
    */
   public static void superposeWithCoord( ComplexVector vec1, ComplexVector vec2  ) {
-    int arrayDim =  vec1.getDimensions()*2;
-    assert( vec1.getDimensions() == vec2.getDimensions() );
+    int arrayDim =  vec1.getDimension()*2;
+    assert( vec1.getDimension() == vec2.getDimension() );
     assert( vec1.getOpMode() == ComplexVector.MODE.CARTESIAN );
     assert( vec2.getOpMode() == ComplexVector.MODE.CARTESIAN );
 
@@ -126,8 +126,8 @@ public class ComplexVectorUtils {
    */
   public static void superposeWithCoord( ComplexVector vec1, ComplexVector vec2, float weight, int[] permutation ) {
     int positionToAdd;
-    int dim =  vec1.getDimensions()*2;
-    assert( vec1.getDimensions() == vec2.getDimensions() );
+    int dim =  vec1.getDimension()*2;
+    assert( vec1.getDimension() == vec2.getDimension() );
     assert( vec1.getOpMode() == ComplexVector.MODE.CARTESIAN );
     assert( vec2.getOpMode() == ComplexVector.MODE.CARTESIAN );
 

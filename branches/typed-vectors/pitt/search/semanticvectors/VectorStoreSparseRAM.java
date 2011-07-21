@@ -73,7 +73,7 @@ public class VectorStoreSparseRAM implements VectorStore {
     logger.info("Creating store of sparse vectors  ...");
     for (int i = 0; i < numVectors; ++i) {
       Vector sparseVector = VectorFactory.generateRandomVector(
-          Flags.vectortype, Flags.dimensions, seedLength, random);
+          Flags.vectortype, Flags.dimension, seedLength, random);
       this.sparseVectors.put(Integer.toString(i), sparseVector);
     }
     logger.info("Created " + sparseVectors.size() + " sparse random vectors.");

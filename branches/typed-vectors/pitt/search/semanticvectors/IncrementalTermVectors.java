@@ -96,9 +96,9 @@ public class IncrementalTermVectors implements VectorStore {
 
     logger.info("Read vectors incrementally from file " + vectorFile);
 
-    // Read number of dimensions from document vectors
+    // Read number of dimension from document vectors
     String header = inputStream.readString();
-    // Include "-" character to avoid unlikely case that first term is "dimensions"!
+    // Include "-" character to avoid unlikely case that first term is "dimension"!
     Flags.parseFlagsFromString(header);
 
     logger.info("Opening index at " + luceneIndexDir);
@@ -114,7 +114,7 @@ public class IncrementalTermVectors implements VectorStore {
           Flags.minfrequency, Flags.maxfrequency, Flags.maxnonalphabetchars))
         continue;
       tc++;
-      Vector termVector = VectorFactory.createZeroVector(Flags.vectortype, Flags.dimensions);
+      Vector termVector = VectorFactory.createZeroVector(Flags.vectortype, Flags.dimension);
 
       // Place each term vector in the vector store.
       termVectorData.putVector(term.text(), termVector);
@@ -129,7 +129,7 @@ public class IncrementalTermVectors implements VectorStore {
       }
 
       int dcount = dc;
-      Vector docVector = VectorFactory.createZeroVector(Flags.vectortype, Flags.dimensions);
+      Vector docVector = VectorFactory.createZeroVector(Flags.vectortype, Flags.dimension);
 
       try {
     	 /**
@@ -166,7 +166,7 @@ public class IncrementalTermVectors implements VectorStore {
               // logger.finest("term "+term+ " not represented");
             }
             // Exclude terms that are not represented in termVectorData
-            if (termVector != null && termVector.getDimensions() > 0) {
+            if (termVector != null && termVector.getDimension() > 0) {
               termVector.superpose(docVector, freq, null);
             }
           }
@@ -211,11 +211,11 @@ public class IncrementalTermVectors implements VectorStore {
    * <br> Usage: java pitt.search.semanticvectors.IncrementalTermVectors [document vector file] [lucene index]
    * <br>
    * <br> Other parameters that can be changed include vector length,
-   * <br>     (number of dimensions), seed length (number of non-zero
+   * <br>     (number of dimension), seed length (number of non-zero
    * <br>     entries in basic vectors), minimum term frequency,
    * <br>     and number of iterative training cycles.
    * <br> To change these use the following command line arguments:
-   * <br> -dimension [number of dimensions]
+   * <br> -dimension [number of dimension]
    * <br> -seedlength [seed length]
    * <br> -minfrequency [minimum term frequency]
    * <br> -maxnonalphabetchars [number non-alphabet characters (-1 for any number)]
@@ -226,11 +226,11 @@ public class IncrementalTermVectors implements VectorStore {
         + "\nUsage: java pitt.search.semanticvectors.IncrementalTermVectors [document vector file] [lucene index]"
         + "\nIncrementalTermVectors creates termvectors files in local directory from docvectors file."
         + "\nOther parameters that can be changed include vector length,"
-        + "\n    (number of dimensions), seed length (number of non-zero"
+        + "\n    (number of dimension), seed length (number of non-zero"
         + "\n    entries in basic vectors), minimum term frequency,"
         + "\n    and number of iterative training cycles."
         + "\nTo change these use the command line arguments "
-        + "\n  -dimension [number of dimensions]"
+        + "\n  -dimension [number of dimension]"
         + "\n  -seedlength [seed length]"
         + "\n  -minfrequency [minimum term frequency]"
         + "\n  -maxnonalphabetchars [number non-alphabet characters (-1 for any number)]"
@@ -264,7 +264,7 @@ public class IncrementalTermVectors implements VectorStore {
     String luceneIndex = args[1];
 
     VectorStore termVectors = new IncrementalTermVectors(
-        luceneIndex, Flags.dimensions, Flags.contentsfields, vectorFile);
+        luceneIndex, Flags.dimension, Flags.contentsfields, vectorFile);
     new VectorStoreWriter().writeVectors("incremental_termvectors.bin", termVectors);
   }
 }

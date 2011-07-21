@@ -43,11 +43,11 @@ public class FlagsTest extends TestCase {
 
   @Test
   public void testParseCommandLineFlags() {
-    String[] args = {"-searchtype", "subspace", "--dimensions", "3",
+    String[] args = {"-searchtype", "subspace", "--dimension", "3",
         "-queryvectorfile", "myvectors.bin", "queryterm"};
     args = Flags.parseCommandLineFlags(args);
     assertEquals("subspace", Flags.searchtype);
-    assertEquals(3, Flags.dimensions);
+    assertEquals(3, Flags.dimension);
     assertEquals("myvectors.bin", Flags.queryvectorfile);
 
     // Test remaining query args correct.
@@ -57,10 +57,10 @@ public class FlagsTest extends TestCase {
 
   @Test
   public void testParseFlagsFromString() {
-    Flags.dimensions = 3;
+    Flags.dimension = 3;
     Flags.vectortype = "real";
-    Flags.parseFlagsFromString("-vectortype binary -dimensions 2");
-    assertEquals(2, Flags.dimensions);
+    Flags.parseFlagsFromString("-vectortype binary -dimension 2");
+    assertEquals(2, Flags.dimension);
     assertEquals("binary", Flags.vectortype);
     Flags.vectortype = "real";  // Cleanup!!
   }

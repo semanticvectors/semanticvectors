@@ -43,12 +43,12 @@ public class VectorStoreSparseRAMTest extends TestCase {
 
   @Test
   public void testCreateAndRead() {
-    Flags.dimensions = 200;
+    Flags.dimension = 200;
     VectorStoreSparseRAM sparseVectorStore = new VectorStoreSparseRAM();
     assertEquals(0, sparseVectorStore.getNumVectors());
     sparseVectorStore.createRandomVectors(10, 20);
     assertEquals(10, sparseVectorStore.getNumVectors());
     Vector vectorFor1 = sparseVectorStore.getVector("1");
-    assertEquals(200, vectorFor1.getDimensions());
+    assertEquals(200, vectorFor1.getDimension());
   }
 }

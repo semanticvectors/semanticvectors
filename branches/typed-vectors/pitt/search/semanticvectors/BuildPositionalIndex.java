@@ -54,10 +54,10 @@ public class BuildPositionalIndex {
    * <br> Usage: java pitt.search.semanticvectors.BuildPositionalIndex PATH_TO_LUCENE_INDEX
    * <br> BuildPositionalIndex creates file termtermvectors.bin in local directory.
    * <br> Other parameters that can be changed include windowlength (size of context window),
-   * <br>     vector length (number of dimensions), seed length (number of non-zero
+   * <br>     vector length (number of dimension), seed length (number of non-zero
    * <br>     entries in basic vectors), and minimum term frequency.
    * <br> To change these use the following command line arguments:
-   * <br> -dimension [number of dimensions]
+   * <br> -dimension [number of dimension]
    * <br> -seedlength [seed length]
    * <br> -mintermfreq [minimum term frequency]
    * <br> -windowradius [window half size]
@@ -70,11 +70,11 @@ public class BuildPositionalIndex {
       + "\nBuildPositionalIndex creates file termtermvectors.bin in local directory."
       + "\nOther parameters that can be changed include vector length,"
       + "\n windowlength (size of sliding context window),"
-      + "\n    (number of dimensions), seed length (number of non-zero"
+      + "\n    (number of dimension), seed length (number of non-zero"
       + "\n    entries in basic vectors), size of sliding window (including focus term)"
       + "\n and minimum term frequency.\n"
       + "\nTo change these use the command line arguments "
-      + "\n  -dimension [number of dimensions]"
+      + "\n  -dimension [number of dimension]"
       + "\n  -seedlength [seed length]"
       + "\n  -mintermfreq [minimum term frequency]"
       + "\n  -initialtermvectors [name of preexisting vectorstore for term vectors]"
@@ -130,7 +130,7 @@ public class BuildPositionalIndex {
 
     logger.info("Lucene index = " + luceneIndex
         + "\nSeedlength = " + Flags.seedlength
-        + "\nVector length = " + Flags.dimensions
+        + "\nVector length = " + Flags.dimension
         + "\nMinimum frequency = " + Flags.minfrequency
         + "\nMaximum frequency = " + Flags.maxfrequency
         + "\nNumber non-alphabet characters = " + Flags.maxnonalphabetchars
@@ -139,7 +139,7 @@ public class BuildPositionalIndex {
 
     try {
       TermTermVectorsFromLucene vecStore = new TermTermVectorsFromLucene(
-          luceneIndex, Flags.dimensions, Flags.seedlength, Flags.minfrequency, Flags.maxfrequency,
+          luceneIndex, Flags.dimension, Flags.seedlength, Flags.minfrequency, Flags.maxfrequency,
             Flags.maxnonalphabetchars, 2 * Flags.windowradius + 1, Flags.positionalmethod,
             newBasicTermVectors, Flags.contentsfields);
       
@@ -151,7 +151,7 @@ public class BuildPositionalIndex {
         newBasicTermVectors = vecStore.getBasicTermVectors();
         logger.info("\nRetraining with learned term vectors ...");
         vecStore = new TermTermVectorsFromLucene(
-            luceneIndex, Flags.dimensions, Flags.seedlength, Flags.minfrequency, Flags.maxfrequency,
+            luceneIndex, Flags.dimension, Flags.seedlength, Flags.minfrequency, Flags.maxfrequency,
             Flags.maxnonalphabetchars, 2 * Flags.windowradius + 1, Flags.positionalmethod,
             newBasicTermVectors, Flags.contentsfields);
       }

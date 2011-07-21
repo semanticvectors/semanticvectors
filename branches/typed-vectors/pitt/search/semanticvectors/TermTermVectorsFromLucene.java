@@ -121,7 +121,7 @@ public class TermTermVectorsFromLucene implements VectorStore {
   /**
    * This constructor uses only the values passed, no parameters from Flag.
    * @param luceneIndexDir Directory containing Lucene index.
-   * @param dimension number of dimensions to use for the vectors
+   * @param dimension number of dimension to use for the vectors
    * @param seedLength Number of +1 or -1 entries in basic
    * vectors. Should be even to give same number of each.
    * @param minFreq The minimum term frequency for a term to be indexed.

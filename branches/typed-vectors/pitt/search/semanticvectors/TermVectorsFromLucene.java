@@ -110,7 +110,7 @@ public class TermVectorsFromLucene implements VectorStore {
    * Creates term vectors from a Lucene index.
    * 
    * @param indexDir directory containing Lucene index.
-   * @param dimension number of dimensions
+   * @param dimension number of dimension
    * @param seedLength number of +1 or -1 entries in basic
    * vectors. Should be even to give same number of each.
    * @param minFreq The minimum term frequency for a term to be indexed.
@@ -192,7 +192,7 @@ public class TermVectorsFromLucene implements VectorStore {
       }
 
       // Initialize new termVector.
-      Vector termVector = VectorFactory.createZeroVector(Flags.vectortype, Flags.dimensions);
+      Vector termVector = VectorFactory.createZeroVector(Flags.vectortype, Flags.dimension);
 
       TermDocs tDocs = indexReader.termDocs(term);
       while (tDocs.next()) {
@@ -263,7 +263,7 @@ public class TermVectorsFromLucene implements VectorStore {
         }
         tc++;
         Vector indexVector = VectorFactory.generateRandomVector(
-            Flags.vectortype, Flags.dimensions, seedLength, random);
+            Flags.vectortype, Flags.dimension, seedLength, random);
         // Place each term vector in the vector store.
         this.termVectors.put(term.text(), new ObjectVector(term.text(), indexVector));
       }

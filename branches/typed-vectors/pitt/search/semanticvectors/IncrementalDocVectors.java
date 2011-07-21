@@ -100,7 +100,7 @@ public class IncrementalDocVectors {
 
     logger.info("Write vectors incrementally to file " + vectorFile);
 
-    // Write header giving number of dimensions for all vectors.
+    // Write header giving number of dimension for all vectors.
     outputStream.writeString(VectorStoreWriter.generateHeaderString());
 
     // Iterate through documents.
@@ -120,7 +120,7 @@ public class IncrementalDocVectors {
         }
       }
 
-      Vector docVector = VectorFactory.createZeroVector(Flags.vectortype, Flags.dimensions);
+      Vector docVector = VectorFactory.createZeroVector(Flags.vectortype, Flags.dimension);
 
       for (String fieldName: fieldsToIndex) {
         TermFreqVector vex =
@@ -148,7 +148,7 @@ public class IncrementalDocVectors {
             // are not represented in termVectorData.
             try {
               Vector termVector = termVectorData.getVector(term_string);
-              if (termVector != null && termVector.getDimensions() > 0) {
+              if (termVector != null && termVector.getDimension() > 0) {
                 docVector.superpose(termVector, localweight * globalweight, null);
               }
             } catch (NullPointerException npe) {

@@ -7,31 +7,36 @@ import org.junit.Test;
 import junit.framework.TestCase;
 
 public class ComplexVectorTest extends TestCase {
- @Test
- public void testCreateLookupTable() {
-   float[] realLUT = ComplexVectorUtils.getRealLUT();
-   float[] imLUT = ComplexVectorUtils.getImagLUT();
 
-   char[] angles = { 0, 16300, 32800 };
+  private static final double TOL = 0.0001;
 
-   for (int i=0; i<angles.length; i++) {
-     System.out.println( ""+(int)angles[i]+"  "+realLUT[angles[i]]+"  "+imLUT[angles[i]]);
-   }
- }
+  @Test
+  public void testCreateLookupTable() {
+    float[] realLUT = ComplexVectorUtils.getRealLUT();
+    float[] imagLUT = ComplexVectorUtils.getImagLUT();
 
- @Test
- public void testComplexVectorCreation() {
-   ComplexVector vector = (ComplexVector) VectorFactory.createZeroVector(VectorType.COMPLEX, 10);
-   assertTrue(vector.isZeroVector());
-   assertEquals(10, vector.getDimensions());
-   
-   Random random = new Random(0);
-   vector = (ComplexVector) VectorFactory.generateRandomVector(VectorType.COMPLEX, 10, 2, random);
-   System.out.println(vector.toString());
-   vector.toCartesian();
-   System.out.println("Cartesian: " + vector.toString());
- }
+    assertEquals(1, realLUT[0], TOL);
+    assertEquals(0, imagLUT[0], TOL);
+    assertEquals(0, realLUT[(int) Math.pow(2, 14)], TOL);
+    assertEquals(1, imagLUT[(int) Math.pow(2, 14)], TOL);
+    assertEquals(-1, realLUT[(int) Math.pow(2, 15)], TOL);
+    assertEquals(0, imagLUT[(int) Math.pow(2, 15)], TOL);
+  }
 
+  @Test
+  public void testComplexVectorCreation() {
+    ComplexVector vector = (ComplexVector) VectorFactory.createZeroVector(VectorType.COMPLEX, 10);
+    assertTrue(vector.isZeroVector());
+    assertEquals(10, vector.getDimension());
+
+    Random random = new Random(0);
+    vector = (ComplexVector) VectorFactory.generateRandomVector(VectorType.COMPLEX, 10, 2, random);
+    System.out.println(vector.toString());
+    vector.toCartesian();
+    System.out.println("Cartesian: " + vector.toString());
+  }
+
+  /*
  @Test
  public void testWriteToString() {
    int dim = 10;
@@ -144,4 +149,5 @@ public class ComplexVectorTest extends TestCase {
    score = cv2.measureOverlap(cv3);
    System.out.println("Score - v2 with v3 : "+score);
  }
+   */
 }

@@ -47,14 +47,14 @@ public class VectorFactory {
   private static final RealVector realInstance = new RealVector(0);
   private static final ComplexVector complexInstance = new ComplexVector(0);
 
-  public static Vector createZeroVector(VectorType type, int dimensions) {
+  public static Vector createZeroVector(VectorType type, int dimension) {
     switch (type) {
       case BINARY:
-        return new BinaryVector(dimensions);
+        return new BinaryVector(dimension);
       case REAL:
-        return new RealVector(dimensions);
+        return new RealVector(dimension);
       case COMPLEX:
-        return new ComplexVector(dimensions);
+        return new ComplexVector(dimension);
       default:
         throw new IllegalArgumentException("Unrecognized VectorType: " + type);
     }
@@ -69,32 +69,32 @@ public class VectorFactory {
    * @param type must be one of "binary", "real", "complex".
    * @return new vector of the appropriate type and dimension.
    */
-  public static Vector createZeroVector(String type, int dimensions) {
-    return createZeroVector(VectorType.valueOf(type.toUpperCase()), dimensions);
+  public static Vector createZeroVector(String type, int dimension) {
+    return createZeroVector(VectorType.valueOf(type.toUpperCase()), dimension);
   }
   
   /**
    * Generates an appropriate random vector.
    * 
    * @param type one of the recognized vector types
-   * @param dimensions number of dimensions in the generated vector
+   * @param dimension number of dimension in the generated vector
    * @param numEntries total number of non-sero entries; must be less than half of dimension
    * @param random random number generator; passed in to enable deterministic testing
    * @return vector generated with appropriate type, dimension and number of nonzero entries
    */
   public static Vector generateRandomVector(
-      VectorType type, int dimensions, int numEntries, Random random) {
-    if (2 * numEntries > dimensions) {
+      VectorType type, int dimension, int numEntries, Random random) {
+    if (2 * numEntries > dimension) {
       throw new RuntimeException("Requested " + numEntries + " to be filled in sparse "
-          + "vector of dimension " + dimensions + ". This is not sparse and may cause problems.");
+          + "vector of dimension " + dimension + ". This is not sparse and may cause problems.");
     }
     switch (type) {
     case BINARY:
-      return binaryInstance.generateRandomVector(dimensions, numEntries, random);
+      return binaryInstance.generateRandomVector(dimension, numEntries, random);
     case REAL:
-      return realInstance.generateRandomVector(dimensions, numEntries, random);
+      return realInstance.generateRandomVector(dimension, numEntries, random);
     case COMPLEX:
-      return complexInstance.generateRandomVector(dimensions, numEntries, random);
+      return complexInstance.generateRandomVector(dimension, numEntries, random);
     default:
       throw new IllegalArgumentException("Unrecognized VectorType: " + type);
     }
@@ -110,20 +110,20 @@ public class VectorFactory {
    * @return vector generated with appropriate type, dimension and number of nonzero entries
    */
   public static Vector generateRandomVector(
-      String type, int dimensions, int numEntries, Random random) {
+      String type, int dimension, int numEntries, Random random) {
     return generateRandomVector(
-        VectorType.valueOf(type.toUpperCase()), dimensions, numEntries, random);
+        VectorType.valueOf(type.toUpperCase()), dimension, numEntries, random);
   }
 
-  public static int getLuceneByteSize(String vectorType, int dimensions) {
+  public static int getLuceneByteSize(String vectorType, int dimension) {
     VectorType type = VectorType.valueOf(vectorType.toUpperCase());
     switch (type) {
       case BINARY:
-        return 8 * ((dimensions / 64) + 1);
+        return 8 * ((dimension / 64) + 1);
       case REAL:
-        return 4 * dimensions;
+        return 4 * dimension;
       case COMPLEX:
-        return 4 * dimensions;
+        return 4 * dimension;
       default:
         throw new IllegalArgumentException("Unrecognized VectorType: " + type);
     }

@@ -36,7 +36,7 @@
 package pitt.search.semanticvectors.vectors;
 
 /**
- * Exception indicating an attempt to combine vectors of different types or dimensions.
+ * Exception indicating an attempt to combine vectors of different types or dimension.
  * 
  * @author widdows
  */
@@ -54,9 +54,9 @@ public class IncompatibleVectorsException extends RuntimeException {
       throw new IncompatibleVectorsException("Trying to combine vectors of type: "
           + first.getClass().getCanonicalName() + ", " + second.getClass().getCanonicalName());
     }
-    if (first.getDimensions() != second.getDimensions()) {
+    if (first.getDimension() != second.getDimension()) {
       throw new IncompatibleVectorsException("Trying to combine vectors of dimension: "
-          + first.getDimensions() + ", " + second.getDimensions());
+          + first.getDimension() + ", " + second.getDimension());
     }
   }
 }

@@ -54,7 +54,7 @@ import org.apache.lucene.store.IndexOutput;
 public class RealVector extends Vector {
   public static final Logger logger = Logger.getLogger(RealVector.class.getCanonicalName());
 
-  private final int dimensions;
+  private final int dimension;
   /**
    * Dense representation.  Coordinates can be anything expressed by floats.
    */
@@ -68,7 +68,7 @@ public class RealVector extends Vector {
   private boolean isSparse;
   
   protected RealVector(int dimension) {
-    this.dimensions = dimension;
+    this.dimension = dimension;
     this.sparseOffsets = new short[0];
     this.isSparse = true;
   }
@@ -78,15 +78,15 @@ public class RealVector extends Vector {
    */
   public RealVector copy() {
     if (isSparse) {
-      RealVector copy = new RealVector(dimensions);
+      RealVector copy = new RealVector(dimension);
       copy.sparseOffsets = new short[sparseOffsets.length];
       for (int i = 0; i < sparseOffsets.length; ++i) {
         copy.sparseOffsets[i] = sparseOffsets[i];
       }
       return copy;
     } else {
-      float[] coordinatesCopy = new float[dimensions];
-      for (int i = 0; i < dimensions; ++i) {
+      float[] coordinatesCopy = new float[dimension];
+      for (int i = 0; i < dimension; ++i) {
         coordinatesCopy[i] = coordinates[i];
       }
       return new RealVector(coordinatesCopy);
@@ -109,8 +109,8 @@ public class RealVector extends Vector {
   }
   
   @Override
-  public int getDimensions() {
-    return dimensions;
+  public int getDimension() {
+    return dimension;
   }
   
   public RealVector createZeroVector(int dimension) {
@@ -200,7 +200,7 @@ public class RealVector extends Vector {
     double result = 0;
     double norm1 = 0;
     double norm2 = 0;
-    for (int i = 0; i < dimensions; ++i) {
+    for (int i = 0; i < dimension; ++i) {
       result += coordinates[i] * realOther.coordinates[i];
       norm1 += coordinates[i] * coordinates[i];
       norm2 += realOther.coordinates[i] * realOther.coordinates[i];
@@ -228,7 +228,7 @@ public class RealVector extends Vector {
         coordinates[positionToAdd] +=  entry * weight;
       }
     } else {
-      for (int i = 0; i < dimensions; ++i) {
+      for (int i = 0; i < dimension; ++i) {
         int positionToAdd = i;
         if (permutation != null) {
           positionToAdd = permutation[positionToAdd];
@@ -247,11 +247,11 @@ public class RealVector extends Vector {
       this.sparseToDense();
     }
     double normSq = 0;
-    for (int i = 0; i < dimensions; ++i) {
+    for (int i = 0; i < dimension; ++i) {
       normSq += coordinates[i] * coordinates[i];
     }
     float norm = (float) Math.sqrt(normSq);
-    for (int i = 0; i < dimensions; ++i) {
+    for (int i = 0; i < dimension; ++i) {
       coordinates[i] = coordinates[i] / norm;
     }
   }
@@ -270,7 +270,7 @@ public class RealVector extends Vector {
     } else {
       coordsToWrite = coordinates;
     }
-    for (int i = 0; i < dimensions; ++i) {
+    for (int i = 0; i < dimension; ++i) {
       try {
         outputStream.writeInt(Float.floatToIntBits(coordsToWrite[i]));
       } catch (IOException e) {
@@ -285,11 +285,11 @@ public class RealVector extends Vector {
    */
   public void readFromLuceneStream(IndexInput inputStream) {
     if (isSparse) {
-      coordinates = new float[dimensions];
+      coordinates = new float[dimension];
       sparseOffsets = null;
       isSparse = false;
     }
-    for (int i = 0; i < dimensions; ++i) {
+    for (int i = 0; i < dimension; ++i) {
       try {
         coordinates[i] = Float.intBitsToFloat(inputStream.readInt());
       } catch (IOException e) {
@@ -308,9 +308,9 @@ public class RealVector extends Vector {
    */
   public String writeToString() {
     StringBuilder builder = new StringBuilder();
-    for (int i = 0; i < dimensions; ++i) {
+    for (int i = 0; i < dimension; ++i) {
       builder.append(Float.toString(coordinates[i]));
-      if (i != dimensions - 1) {
+      if (i != dimension - 1) {
         builder.append("|");
       }
     }
@@ -323,16 +323,16 @@ public class RealVector extends Vector {
    */
   public void readFromString(String input) {
     String[] entries = input.split("\\|");
-    if (entries.length != dimensions) {
+    if (entries.length != dimension) {
       throw new IllegalArgumentException("Found " + (entries.length) + " possible coordinates: "
-          + "expected " + dimensions);
+          + "expected " + dimension);
     }
     if (isSparse) {
-      coordinates = new float[dimensions];
+      coordinates = new float[dimension];
       sparseOffsets = null;
       isSparse = false;
     }
-    for (int i = 0; i < dimensions; ++i) {
+    for (int i = 0; i < dimension; ++i) {
       coordinates[i] = Float.parseFloat(entries[i]);
     }
   }
@@ -351,8 +351,8 @@ public class RealVector extends Vector {
           + "This may be a programming error.");
       return;
     }
-    coordinates = new float[dimensions];
-    for (int i = 0; i < dimensions; ++i) {
+    coordinates = new float[dimension];
+    for (int i = 0; i < dimension; ++i) {
       coordinates[i] = 0;
     }
     for (int i = 0; i < sparseOffsets.length; ++i) {
@@ -372,7 +372,7 @@ public class RealVector extends Vector {
    *  Available for testing and copying.  Try not to use in new code!
    */
   public RealVector(float[] coordinates) {
-    this.dimensions = coordinates.length;
+    this.dimension = coordinates.length;
     this.coordinates = coordinates;
   }
 
@@ -381,7 +381,7 @@ public class RealVector extends Vector {
    */
   public RealVector(int dimension, short[] sparseOffsets) {
     this.isSparse = true;
-    this.dimensions = dimension;
+    this.dimension = dimension;
     for (Short offset : sparseOffsets) {
       if ((offset == 0) || (offset > dimension) || (offset < -1 * dimension)) {
         throw new IllegalArgumentException("Offsets too large for dimension!");

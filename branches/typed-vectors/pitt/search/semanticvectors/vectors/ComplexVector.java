@@ -21,6 +21,8 @@ public class ComplexVector extends Vector {
    * MODE.POLAR uses a 16 bit char for each element.
    * MODE.CARTESIAN uses two 32 bit floats for each element, one for the real coordinate
    * and one for the imaginary.
+   * 
+   * Only POLAR vectors can be in sparse form.
    */
   public static enum MODE { POLAR, CARTESIAN };
 
@@ -70,7 +72,7 @@ public class ComplexVector extends Vector {
   }
 
   @Override
-  public int getDimensions() {
+  public int getDimension() {
     return dimension;
   }
 
@@ -280,7 +282,7 @@ public class ComplexVector extends Vector {
     if (isSparse) return 0;
     if (complexOther.isSparse) return 0;
 
-	assert( dimension == other.getDimensions());
+	assert( dimension == other.getDimension());
 
 	float[] realLUT = ComplexVectorUtils.getRealLUT();
 	char[] phaseAnglesOther = complexOther.getPhaseAngles();
@@ -372,7 +374,7 @@ public class ComplexVector extends Vector {
    */
   public void convolve( ComplexVector other, int direction  )
   {
-    assert( dimension == other.getDimensions() );
+    assert( dimension == other.getDimension() );
     if (opMode!=MODE.POLAR) normalize();
     if (other.getOpMode()!=MODE.POLAR) other.normalize();
 	char[] otherAngles = other.getPhaseAngles();
@@ -392,10 +394,13 @@ public class ComplexVector extends Vector {
 
   @Override
   /**
-   * Writes vector out in dense format. Assumes that vector is dense
-   * and in Polar form.
+   * Writes vector out in dense format.  Transforms vector to polar form.
    */
   public void writeToLuceneStream(IndexOutput outputStream) {
+    if (opMode == MODE.CARTESIAN) {
+      toPhaseAngle();
+    }
+    
     for (int i = 0; i < dimension; ++i) {
       try {
         outputStream.writeInt(Float.floatToIntBits(phaseAngles[i]));
@@ -492,6 +497,8 @@ public class ComplexVector extends Vector {
 
   /**
    * Convert from phase angles to cartesian coordinates using LUT.
+   * 
+   * Only applies to dense vectors.
    */
   public void toCartesian() {
     if (opMode == MODE.CARTESIAN) {

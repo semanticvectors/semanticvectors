@@ -58,9 +58,9 @@ public class VectorStoreWriterTest extends TestCase {
   
   @Test
   public void testGenerateHeaderString() {
-    Flags.dimensions = 2;
+    Flags.dimension = 2;
     Flags.vectortype = "binary";
-    assertEquals(VectorStoreWriter.generateHeaderString(), "-vectortype binary -dimensions 2");
+    assertEquals(VectorStoreWriter.generateHeaderString(), "-vectortype binary -dimension 2");
     Flags.vectortype = "real";  // Cleanup!
   }
   

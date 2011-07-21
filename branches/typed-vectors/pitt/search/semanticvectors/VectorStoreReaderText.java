@@ -50,7 +50,7 @@ import pitt.search.semanticvectors.vectors.VectorFactory;
    This class provides methods for reading a VectorStore from a textfile.<p>
 
    The textfile should start with an optional header line,
-   "<code>-dimensions|N</code>".<br>
+   "<code>-dimension|N</code>".<br>
    All subsequent lines should be of the form <br>
    <code>String|Num1|Num2|...|NumN</code><p>
 
@@ -75,7 +75,7 @@ public class VectorStoreReaderText implements CloseableVectorStore {
     this.vectorFileText = vectorFileText;
     this.inBuf = new BufferedReader(new FileReader(vectorFileText));
     try {
-      // Read number of dimensions from header information.
+      // Read number of dimension from header information.
       String firstLine = inBuf.readLine();
       Flags.parseFlagsFromString(firstLine);
     } catch (IOException e) {
@@ -114,7 +114,7 @@ public class VectorStoreReaderText implements CloseableVectorStore {
   public ObjectVector parseVectorLine(String line) throws IOException {
     int firstSplitPoint = line.indexOf("|");
     String objectName = new String(line.substring(0, firstSplitPoint));
-    Vector tmpVector = VectorFactory.createZeroVector(Flags.vectortype, Flags.dimensions);
+    Vector tmpVector = VectorFactory.createZeroVector(Flags.vectortype, Flags.dimension);
     tmpVector.readFromString(line.substring(firstSplitPoint + 1, line.length()));
     return new ObjectVector(objectName, tmpVector);
   }

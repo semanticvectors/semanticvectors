@@ -66,7 +66,7 @@ public abstract class Vector {
    * express this with either an abstract class or an interface.  Client implementations should
    * use the {@link VectorFactory} class, hence the protected status.
    * 
-   * @param dimension number of dimensions of vector returned
+   * @param dimension number of dimension of vector returned
    * @param numEntries number of non-zero entries, usually a combination of +/-1 entries 
    *        as determined by implementation
    * @param random random seed for generation
@@ -74,7 +74,7 @@ public abstract class Vector {
   protected abstract Vector generateRandomVector(int dimension, int numEntries, Random random);
   
   /** Returns the dimension of the vector. */
-  public abstract int getDimensions();
+  public abstract int getDimension();
   
   /** Returns true if this is a representation of a zero vector. */
   public abstract boolean isZeroVector();

@@ -17,7 +17,7 @@ import org.apache.lucene.util.OpenBitSet;
 public class BinaryVector extends Vector {
   public static final Logger logger = Logger.getLogger(BinaryVector.class.getCanonicalName());
 
-  private final int dimensions;
+  private final int dimension;
 
   /**
    * Elemental representation for binary vectors. 
@@ -44,9 +44,9 @@ public class BinaryVector extends Vector {
   // TODO(widdows) Understand and comment this.
   int minimum = 0;
 
-  public BinaryVector(int dimensions) {
-    this.dimensions = dimensions;
-    this.bitSet = new OpenBitSet(dimensions);
+  public BinaryVector(int dimension) {
+    this.dimension = dimension;
+    this.bitSet = new OpenBitSet(dimension);
     this.isSparse = true;
   }
 
@@ -55,7 +55,7 @@ public class BinaryVector extends Vector {
    */
   @SuppressWarnings("unchecked")
   public BinaryVector copy() {
-    BinaryVector copy = new BinaryVector(dimensions);
+    BinaryVector copy = new BinaryVector(dimension);
     copy.bitSet = (OpenBitSet) bitSet.clone();
     if (!isSparse)
       copy.votingRecord = (ArrayList<OpenBitSet>) votingRecord.clone();
@@ -64,7 +64,7 @@ public class BinaryVector extends Vector {
 
   public String toString() {
     StringBuilder debugString = new StringBuilder("BinaryVector.");
-    int printLength = Math.min(dimensions, 20);
+    int printLength = Math.min(dimension, 20);
     if (isSparse) {
       debugString.append("  Elemental.  First " + printLength + " values are:\n");
       for (int x = 0; x < printLength; x++) debugString.append(bitSet.getBit(x) + " ");
@@ -72,12 +72,12 @@ public class BinaryVector extends Vector {
     }
     else {
       debugString.append("  Semantic.  First " + printLength + " values are:\n");
-      // TODO - output count from first 20 dimensions
+      // TODO - output count from first 20 dimension
       debugString.append("NORMALIZED: ");
       for (int x = 0; x < printLength; x++) debugString.append(bitSet.getBit(x) + " ");
       debugString.append("\n");
 
-      // Calculate actual values for first 20 dimensions
+      // Calculate actual values for first 20 dimension
       double[] actualvals = new double[20];
       debugString.append("COUNTS    : ");
 
@@ -98,12 +98,12 @@ public class BinaryVector extends Vector {
   }
 
   @Override
-  public int getDimensions() {
-    return dimensions;
+  public int getDimension() {
+    return dimension;
   }
 
-  public BinaryVector createZeroVector(int dimensions) {
-    return new BinaryVector(dimensions);
+  public BinaryVector createZeroVector(int dimension) {
+    return new BinaryVector(dimension);
   }
 
   @Override
@@ -121,22 +121,22 @@ public class BinaryVector extends Vector {
    *
    * @return representation of basic binary vector.
    */
-  public BinaryVector generateRandomVector(int dimensions, int numEntries, Random random) {
+  public BinaryVector generateRandomVector(int dimension, int numEntries, Random random) {
     
-	if (numEntries != dimensions/2)
+	if (numEntries != dimension/2)
 	{
 		 logger.warning("Creating binary vector with unequal number of zeros and ones."
 		          + "Unlikely to produce meaningful results. Seedlength of dimension/2 is recommended for binary vectors");
 	}
 	  
-	BinaryVector randomVector = new BinaryVector(dimensions);
-    randomVector.bitSet = new OpenBitSet(dimensions);
-    int testPlace = dimensions - 1, entryCount = 0;
+	BinaryVector randomVector = new BinaryVector(dimension);
+    randomVector.bitSet = new OpenBitSet(dimension);
+    int testPlace = dimension - 1, entryCount = 0;
 
-    // Iterate across dimensions of bitSet, changing 0 to 1 if random(1) > 0.5
+    // Iterate across dimension of bitSet, changing 0 to 1 if random(1) > 0.5
     // until dimension/2 1's added.
     while (randomVector.bitSet.cardinality() < numEntries) {	
-      testPlace = random.nextInt(dimensions);
+      testPlace = random.nextInt(dimension);
       if (!randomVector.bitSet.fastGet(testPlace)) {
         randomVector.bitSet.fastSet(testPlace);
         entryCount++;	
@@ -162,7 +162,7 @@ public class BinaryVector extends Vector {
     this.bitSet.xor(binaryOther.bitSet);
     double hammingDistance = this.bitSet.cardinality();
     this.bitSet.xor(binaryOther.bitSet);
-    return 1 - (hammingDistance / (double) dimensions);
+    return 1 - (hammingDistance / (double) dimension);
   }
 
   @Override
@@ -266,14 +266,14 @@ public class BinaryVector extends Vector {
     }
 
     if (tempSet.cardinality() > 0) {
-      votingRecord.add(new OpenBitSet(dimensions));
+      votingRecord.add(new OpenBitSet(dimension));
     }
 
     // Sweep copy of bitset to be added across rows of voting record.
     // If a new '1' is added, this position in the copy is changed to zero
     // and will not affect future rows.
     // The xor step will transform 1's to 0's or vice versa for 
-    // dimensions in which the temporary bitset contains a '1'.
+    // dimension in which the temporary bitset contains a '1'.
     votingRecord.get(rowfloor).xor(incomingBitSet);
 
     tempSet.xor(tempSet);
@@ -303,7 +303,7 @@ public class BinaryVector extends Vector {
    */
   private OpenBitSet exact(int target) {
     if (target == 0) {
-      tempSet.set(0, dimensions);
+      tempSet.set(0, dimension);
       tempSet.xor(votingRecord.get(0));
       for (int x=1; x < votingRecord.size(); x++)
         tempSet.andNot(votingRecord.get(x));
@@ -327,16 +327,16 @@ public class BinaryVector extends Vector {
   }
 
   /**
-   * This method is used determine which dimensions will receive 1 and which 0 when the voting
+   * This method is used determine which dimension will receive 1 and which 0 when the voting
    * process is concluded. It produces an OpenBitSet in which
-   * "1" is assigned to all dimensions with a count > 50% of the total number of votes (i.e. more 1's than 0's added)
-   * "0" is assigned to all dimensions with a count < 50% of the total number of votes (i.e. more 0's than 1's added)
-   * "0" or "1" are assigned to all dimensions with a count = 50% of the total number of votes (i.e. equal 1's and 0's added)
+   * "1" is assigned to all dimension with a count > 50% of the total number of votes (i.e. more 1's than 0's added)
+   * "0" is assigned to all dimension with a count < 50% of the total number of votes (i.e. more 0's than 1's added)
+   * "0" or "1" are assigned to all dimension with a count = 50% of the total number of votes (i.e. equal 1's and 0's added)
    * 
    * @return an OpenBitSet representing the superposition of all vectors added up to this point
    */
   protected OpenBitSet concludeVote() {
-    if (votingRecord.size() == 0) return new OpenBitSet(dimensions);
+    if (votingRecord.size() == 0) return new OpenBitSet(dimension);
     else
       return concludeVote(actualVotes);
   }
@@ -347,14 +347,14 @@ public class BinaryVector extends Vector {
 
     // Unlikely other than in testing: minimum more than half the votes
     if (target2 < 0) {
-      OpenBitSet ans = new OpenBitSet(dimensions);
-      ans.set(0, dimensions-1);
+      OpenBitSet ans = new OpenBitSet(dimension);
+      ans.set(0, dimension-1);
       return ans;
     }
 
     //Voting record insufficient to hold half the votes (unlikely unless unbalanced vectors used), so return zero vector
     if (votingRecord.size() < 1+ Math.log(target2)/Math.log(2))
-    	return new OpenBitSet(dimensions);
+    	return new OpenBitSet(dimension);
     
     boolean even = (target % 2 == 0);
     OpenBitSet result = concludeVote(target2, votingRecord.size() - 1);
@@ -363,7 +363,7 @@ public class BinaryVector extends Vector {
       tempSet = exact(target2);
       boolean switcher = true;
       // 50% chance of being true with split vote.
-      for (int q = 0; q < dimensions; q++) {
+      for (int q = 0; q < dimension; q++) {
         if (tempSet.fastGet(q)) {
           switcher = !switcher;
           if (switcher) tempSet.fastClear(q);
@@ -384,8 +384,8 @@ public class BinaryVector extends Vector {
 	   **/
    
     if (target == 0)
-    { 	OpenBitSet atLeastZero = new OpenBitSet(dimensions);
-    	atLeastZero.set(0, dimensions);
+    { 	OpenBitSet atLeastZero = new OpenBitSet(dimension);
+    	atLeastZero.set(0, dimension);
     	return atLeastZero;
     }
 
@@ -402,14 +402,14 @@ public class BinaryVector extends Vector {
 
     if (remainder == 0) {
       // Simple case - the number we're looking for is 2^n, so anything with a "1" in row n or above is true.
-      OpenBitSet definitePositives = new OpenBitSet(dimensions);
+      OpenBitSet definitePositives = new OpenBitSet(dimension);
       for (int q = row_floor; q <= row_ceiling; q++)
         definitePositives.or(votingRecord.get(q));
       return definitePositives;
     }
     else {
       // Simple part of complex case: first get anything with a "1" in a row above n (all true).
-      OpenBitSet definitePositives = new OpenBitSet(dimensions);
+      OpenBitSet definitePositives = new OpenBitSet(dimension);
       for (int q = row_floor+1; q <= row_ceiling; q++)
         definitePositives.or(votingRecord.get(q));
 
@@ -429,7 +429,7 @@ public class BinaryVector extends Vector {
    * i.e: no underflow check currently - will wreak havoc with zero counts
    */
   public void decrement() {	
-    tempSet.set(0, dimensions);
+    tempSet.set(0, dimension);
     for (int q = 0; q < votingRecord.size(); q++) {
       votingRecord.get(q).xor(tempSet);
       tempSet.and(votingRecord.get(q));
@@ -460,7 +460,7 @@ public class BinaryVector extends Vector {
   }
 
   public void selected_decrement(int floor) {
-    tempSet.set(0, dimensions);
+    tempSet.set(0, dimension);
     for (int q = floor; q < votingRecord.size(); q++) {
       votingRecord.get(q).xor(tempSet);
       tempSet.and(votingRecord.get(q));
@@ -468,14 +468,14 @@ public class BinaryVector extends Vector {
   }
 
   /**
-   * Returns the highest value shared by all dimensions.
+   * Returns the highest value shared by all dimension.
    */
   public int getMaximum() {
     int thismaximum = 0;
     tempSet.xor(tempSet);
     for (int x = votingRecord.size()-1; x >= 0; x--) {
       tempSet.or(votingRecord.get(x));
-      if (tempSet.cardinality() == dimensions) {
+      if (tempSet.cardinality() == dimension) {
         thismaximum += (int) Math.pow(2, x);
         tempSet.xor(tempSet);
       }
@@ -516,8 +516,8 @@ public class BinaryVector extends Vector {
    * Reads a (dense) version of a vector from a Lucene input stream. 
    */
   public void readFromLuceneStream(IndexInput inputStream) {
-    long bitArray[] = new long[(dimensions / 64) + 1];
-    for (int i = 0; i <= dimensions / 64; ++i) {
+    long bitArray[] = new long[(dimension / 64) + 1];
+    for (int i = 0; i <= dimension / 64; ++i) {
       try {
         bitArray[i] = inputStream.readLong();
       } catch (IOException e) {
@@ -537,7 +537,7 @@ public class BinaryVector extends Vector {
    */
   public String writeToString() {
     StringBuilder builder = new StringBuilder();
-    for (int i = 0; i < dimensions; ++i) {
+    for (int i = 0; i < dimension; ++i) {
       builder.append(Integer.toString(bitSet.getBit(i)));
     }
     return builder.toString();
@@ -548,12 +548,12 @@ public class BinaryVector extends Vector {
    * Writes vector from a string of the form 01001 etc.
    */
   public void readFromString(String input) {
-    if (input.length() != dimensions) {
+    if (input.length() != dimension) {
       throw new IllegalArgumentException("Found " + (input.length()) + " possible coordinates: "
-          + "expected " + dimensions);
+          + "expected " + dimension);
     }
 
-    for (int i = 0; i < dimensions; ++i) {
+    for (int i = 0; i < dimension; ++i) {
       if (input.charAt(i) == '1')
         bitSet.fastSet(i);
     }
@@ -571,14 +571,14 @@ public class BinaryVector extends Vector {
     }
 
     this.votingRecord = new ArrayList<OpenBitSet>();
-    this.tempSet = new OpenBitSet(dimensions);
+    this.tempSet = new OpenBitSet(dimension);
     this.isSparse = false;
 
   }
 
   // Available for testing and copying.
   protected BinaryVector(OpenBitSet inSet) {
-    this.dimensions = (int) inSet.size();
+    this.dimension = (int) inSet.size();
     this.bitSet = inSet;
   }
 
