@@ -52,7 +52,6 @@ import org.apache.lucene.store.FSDirectory;
 import pitt.search.semanticvectors.vectors.PermutationUtils;
 import pitt.search.semanticvectors.vectors.Vector;
 import pitt.search.semanticvectors.vectors.VectorFactory;
-import pitt.search.semanticvectors.vectors.VectorUtils;
 
 /**
  * Implementation of vector store that creates term by term

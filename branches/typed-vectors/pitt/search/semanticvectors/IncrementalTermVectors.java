@@ -44,7 +44,6 @@ import org.apache.lucene.store.FSDirectory;
 
 import pitt.search.semanticvectors.vectors.Vector;
 import pitt.search.semanticvectors.vectors.VectorFactory;
-import pitt.search.semanticvectors.vectors.VectorUtils;
 
 import java.util.Arrays;
 import java.util.Enumeration;
@@ -140,7 +139,7 @@ public class IncrementalTermVectors implements VectorStore {
       }
       catch (Exception e) {
     	System.out.println("Doc vectors less than total number of documents");
-        dc = numdocs +1;
+        dc = numdocs + 1;
         continue;
       }
 
@@ -162,8 +161,7 @@ public class IncrementalTermVectors implements VectorStore {
               termVector = termVectorData.getVector(term);
             } catch (NullPointerException npe) {
               // Don't normally print anything - too much data!
-              // TODO(dwiddows): Replace with a configurable logging system.
-              // logger.finest("term "+term+ " not represented");
+              logger.finest("term " + term + " not represented");
             }
             // Exclude terms that are not represented in termVectorData
             if (termVector != null && termVector.getDimension() > 0) {

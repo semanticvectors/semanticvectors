@@ -88,11 +88,4 @@ public class CircleLookupTable {
     }
     return singletonInstance.imagLUT;
   }
-
-  /**
-   * Generate the phase angle to cartesian LUT.
-   */
-  private static void generateAngleToCartesianLUT() {
-
-  }
 }

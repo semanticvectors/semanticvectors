@@ -60,7 +60,6 @@ public class ClusterResults {
   public static int[] kMeansCluster (ObjectVector[] objectVectors, int numClusters) {
     int[] clusterMappings = new int[objectVectors.length];
     Random rand = new Random();
-    int dim = objectVectors[0].getVector().getDimension();
     Vector[] centroids = new Vector[numClusters];
 
     logger.info("Initializing clusters ...");
