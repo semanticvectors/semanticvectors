@@ -488,7 +488,7 @@ public class ComplexVector extends Vector {
         throw new IllegalArgumentException("Found " + (entries.length) + " possible coordinates: "
               + "expected " + dimension);
       }
-      if (phaseAngles.length==0) phaseAngles = new char[dimension];
+      if (phaseAngles == null || phaseAngles.length==0) phaseAngles = new char[dimension];
       for (int i = 0; i < phaseAngles.length; ++i) {
     	  phaseAngles[i] = (char)Integer.parseInt(entries[i]);
       }
