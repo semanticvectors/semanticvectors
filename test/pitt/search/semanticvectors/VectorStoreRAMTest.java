@@ -46,29 +46,29 @@ public class VectorStoreRAMTest extends TestCase {
 
   @Test
   public void testCreateWriteAndRead() {
-    Flags.dimensions = 2;
+    Flags.dimension = 2;
     VectorStoreRAM vectorStore = new VectorStoreRAM();
     assertEquals(0, vectorStore.getNumVectors());
     Vector vector = new RealVector(new float[] {1.0f, 0.0f});
     vectorStore.putVector("my vector", vector);
     assertEquals(1, vectorStore.getNumVectors());
     Vector vectorOut = vectorStore.getVector("my vector"); 
-    assertEquals(2, vectorOut.getDimensions());
+    assertEquals(2, vectorOut.getDimension());
     assertEquals(1, vectorOut.measureOverlap(vector), TOL);
   }
 
   @Test
   public void testRepeatReads() {
-    Flags.dimensions = 2;
+    Flags.dimension = 2;
     VectorStoreRAM vectorStore = new VectorStoreRAM();
     assertEquals(0, vectorStore.getNumVectors());
     Vector vector = new RealVector(new float[] {1.0f, 0.0f});
     vectorStore.putVector("my vector", vector);
     assertEquals(1, vectorStore.getNumVectors());
     Vector vectorOut = vectorStore.getVector("my vector"); 
-    assertEquals(2, vectorOut.getDimensions());
+    assertEquals(2, vectorOut.getDimension());
     vectorOut = null;
     vectorOut = vectorStore.getVector("my vector"); 
-    assertEquals(2, vectorOut.getDimensions());
+    assertEquals(2, vectorOut.getDimension());
   }
 }

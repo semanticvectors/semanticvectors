@@ -75,7 +75,7 @@ public class BinaryVectorTest extends TestCase {
   }
   
   @Test
-  public void testDimensionsMustMatchWhenReading() {
+  public void testDimensionMustMatchWhenReading() {
     BinaryVector vector = (BinaryVector) VectorFactory.createZeroVector(VectorType.BINARY, 8);
     try {
       vector.readFromString("0101010101");

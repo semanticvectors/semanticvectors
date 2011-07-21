@@ -62,7 +62,7 @@ public class PrincipalComponents {
 
   public PrincipalComponents (ObjectVector[] vectorInput) {
     this.vectorInput = vectorInput;
-    this.dimension = vectorInput[0].getVector().getDimensions();
+    this.dimension = vectorInput[0].getVector().getDimension();
     double[][] vectorArray = new double[vectorInput.length][dimension];
 
     for (int i = 0; i < vectorInput.length; ++i) {
@@ -70,7 +70,7 @@ public class PrincipalComponents {
         throw new IncompatibleVectorsException(
             "Principal components class only works with Real Vectors so far!");
       }
-      if (vectorInput[i].getVector().getDimensions() != dimension) {
+      if (vectorInput[i].getVector().getDimension() != dimension) {
         throw new IncompatibleVectorsException("Dimensions must all be equal!");
       }
       RealVector realVector = (RealVector) vectorInput[i].getVector();

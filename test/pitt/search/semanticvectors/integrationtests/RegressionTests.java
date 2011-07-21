@@ -66,7 +66,7 @@ public class RegressionTests {
   public void testBuildAndSearchBasicIndex() {
     assert(!(new File("termvectors.bin")).isFile());
     assert(!(new File("docvectors.bin")).isFile());
-    String[] args = {"-dimensions", "200", "index"};
+    String[] args = {"-dimension", "200", "index"};
     BuildIndex.main(args);
     assert((new File("termvectors.bin")).isFile());
     assert((new File("docvectors.bin")).isFile());
@@ -87,7 +87,7 @@ public class RegressionTests {
     assert(!(new File(RunTests.testVectors)).isFile());
     assert(!(new File("incremental_docvectors.bin")).isFile());
 
-    String[] args2 = {"-dimensions", "200", "positional_index"};
+    String[] args2 = {"-dimension", "200", "positional_index"};
     BuildPositionalIndex.main(args2);
 
     assert((new File("termtermvectors.bin")).isFile());
@@ -133,7 +133,7 @@ public class RegressionTests {
 
   @Test
   public void testBuildAndSearchPermutationIndex() {
-    String[] args3 = {"-dimensions", "200", "-positionalmethod",
+    String[] args3 = {"-dimension", "200", "-positionalmethod",
         "permutation", "positional_index"};
     BuildPositionalIndex.main(args3);
 

@@ -45,7 +45,7 @@ public class CompoundVectorBuilderTest extends TestCase {
   static double TOL = 0.0001;
 
   private VectorStoreRAM createVectorStore() {
-    Flags.dimensions = 2;
+    Flags.dimension = 2;
     VectorStoreRAM vectorStore = new VectorStoreRAM();
     Vector vector1 = new RealVector(new float[] {1.0f, 0.0f});
     vectorStore.putVector("vector1", vector1);
@@ -55,7 +55,7 @@ public class CompoundVectorBuilderTest extends TestCase {
   }
 
   private VectorStoreRAM createNormalizedVectorStore() {
-    Flags.dimensions = 2;
+    Flags.dimension = 2;
     VectorStoreRAM vectorStore = new VectorStoreRAM();
     Vector vector1 = new RealVector(new float[] {1.0f, 0.0f});
     vector1.normalize();
@@ -71,15 +71,15 @@ public class CompoundVectorBuilderTest extends TestCase {
     VectorStore vectorStore = createVectorStore();
     Vector queryVector =
       CompoundVectorBuilder.getQueryVectorFromString(vectorStore, null, "vector1 vector2");
-    assertEquals(2, queryVector.getDimensions());
+    assertEquals(2, queryVector.getDimension());
     assertEquals(0.8944272, queryVector.measureOverlap(vectorStore.getVector("vector1")), TOL);
 
     // Test again to check for side effects.
     Vector queryVector2 =
       CompoundVectorBuilder.getQueryVectorFromString(vectorStore, null, "vector1 vector2");
-    assertEquals(2, queryVector.getDimensions());
+    assertEquals(2, queryVector.getDimension());
     assertEquals(0.8944272, queryVector.measureOverlap(vectorStore.getVector("vector1")), TOL);
-    assertEquals(2, queryVector2.getDimensions());
+    assertEquals(2, queryVector2.getDimension());
     assertEquals(0.8944272, queryVector2.measureOverlap(vectorStore.getVector("vector1")), TOL);
   }
 
