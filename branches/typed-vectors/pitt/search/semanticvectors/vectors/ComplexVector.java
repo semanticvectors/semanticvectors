@@ -21,7 +21,7 @@ public class ComplexVector extends Vector {
    * MODE.POLAR uses a 16 bit char for each element.
    * MODE.CARTESIAN uses two 32 bit floats for each element, one for the real coordinate
    * and one for the imaginary.
-   * 
+   *
    * Only POLAR vectors can be in sparse form.
    */
   public static enum MODE { POLAR, CARTESIAN };
@@ -346,11 +346,11 @@ public class ComplexVector extends Vector {
         return;
       }
       char[] c = new char[dimension];
-      
+
       for (int i=0, j=0; i<dimension; i++, j+=2) {
         c[i] = ComplexVectorUtils.angleFromCartesianTrig( coordinates[j], coordinates[j+1] );;
       }
-      
+
       setOpMode(ComplexVector.MODE.POLAR);
       setCoordinates(null);
       setPhaseAngles(c);
@@ -400,10 +400,9 @@ public class ComplexVector extends Vector {
     if (opMode == MODE.CARTESIAN) {
       toPhaseAngle();
     }
-    
     for (int i = 0; i < dimension; ++i) {
       try {
-        outputStream.writeInt(Float.floatToIntBits(phaseAngles[i]));
+        outputStream.writeInt((int)(phaseAngles[i]));
       } catch (IOException e) {
         e.printStackTrace();
       }
@@ -415,12 +414,14 @@ public class ComplexVector extends Vector {
    * Reads a dense vector in Polar form from a Lucene input stream.
    */
   public void readFromLuceneStream(IndexInput inputStream) {
-    phaseAngles = new char[dimension];
+//    phaseAngles = new char[dimension];
+    toPhaseAngle();
+    isSparse = false;
     for (int i = 0; i < dimension; ++i) {
       try {
-        phaseAngles[i] = (char)Float.intBitsToFloat(inputStream.readInt());
-        logger.info("Setting char: " + phaseAngles[i] + " from float "
-            + Float.intBitsToFloat(inputStream.readInt()));
+        phaseAngles[i] = (char)inputStream.readInt();
+        logger.info("Setting char: " + (int)phaseAngles[i] + " from int "
+            + (int)phaseAngles[i]);
       } catch (IOException e) {
         logger.severe("Failed to parse vector from Lucene stream.  This signifies a "
             + "programming or runtime error, e.g., a dimension mismatch.");
@@ -497,7 +498,7 @@ public class ComplexVector extends Vector {
 
   /**
    * Convert from phase angles to cartesian coordinates using LUT.
-   * 
+   *
    * Only applies to dense vectors.
    */
   public void toCartesian() {
@@ -508,12 +509,12 @@ public class ComplexVector extends Vector {
       return;
     }
     float[] coordinates = new float[dimension*2];
-  
+
     for (int i=0, j=0; i<dimension; i++, j+=2) {
       coordinates[j] = CircleLookupTable.getRealLUT()[phaseAngles[i]];
       coordinates[j+1] = CircleLookupTable.getImagLUT()[phaseAngles[i]];
     }
-  
+
     setOpMode(ComplexVector.MODE.CARTESIAN);
     setCoordinates(coordinates);
     setPhaseAngles(null);

@@ -4,10 +4,14 @@ package pitt.search.semanticvectors.vectors;
  * TODO(widdows): Remove this once it's working in test.
  */
 
+import java.io.IOException;
 import java.util.Random;
 
 import junit.framework.TestCase;
 
+import org.apache.lucene.store.IndexInput;
+import org.apache.lucene.store.IndexOutput;
+import org.apache.lucene.store.RAMDirectory;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -180,6 +184,35 @@ public class ComplexVectorTestMain extends TestCase {
   }
 
   /**
+   * Test readWrite
+  */
+  @Test
+  public void test11() {
+    char[] angles1 = { 0, 16000, 32000 };
+    Vector v1 = new ComplexVector(angles1);
+
+    RAMDirectory directory = new RAMDirectory();
+
+    try {
+      IndexOutput indexOutput = directory.createOutput("binaryvectors.bin");
+      v1.writeToLuceneStream(indexOutput);
+      indexOutput.flush();
+
+      IndexInput indexInput = directory.openInput("binaryvectors.bin");
+      ComplexVector v2 = new ComplexVector(3);
+      v2.readFromLuceneStream(indexInput);
+
+      System.out.println(v2.toString());
+
+    } catch (IOException e) {
+      e.printStackTrace();
+      fail();
+    }
+
+  }
+
+
+  /**
    * @param args
    */
   public static void main(String[] args) {
@@ -195,6 +228,7 @@ public class ComplexVectorTestMain extends TestCase {
     cvt.test8();
     cvt.test9();
     cvt.test10();
+    cvt.test11();
   }
 
 }
