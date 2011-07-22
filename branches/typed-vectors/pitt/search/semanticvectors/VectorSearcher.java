@@ -55,7 +55,6 @@ import pitt.search.semanticvectors.vectors.VectorUtils;
 abstract public class VectorSearcher {
   private static final Logger logger = Logger.getLogger(VectorSearcher.class.getCanonicalName());
   
-  private VectorStore queryVecStore;
   private VectorStore searchVecStore;
   private LuceneUtils luceneUtils;
 
@@ -75,7 +74,6 @@ abstract public class VectorSearcher {
   public VectorSearcher(VectorStore queryVecStore,
                         VectorStore searchVecStore,
                         LuceneUtils luceneUtils) {
-    this.queryVecStore = queryVecStore;
     this.searchVecStore = searchVecStore;
     this.luceneUtils = luceneUtils;
   }

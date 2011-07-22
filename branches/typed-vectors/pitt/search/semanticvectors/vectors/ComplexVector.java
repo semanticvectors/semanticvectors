@@ -170,7 +170,15 @@ public class ComplexVector extends Vector {
   public boolean isZeroVector() {
     if (isSparse) {
       return sparseOffsets.length == 0;
-    } else {
+    }
+    
+    if (opMode == MODE.POLAR) {
+      if (phaseAngles==null) {
+        return true;
+      }
+    }
+
+    if (opMode == MODE.CARTESIAN) {
       if (coordinates==null) return true;
       for (float coordinate: coordinates) {
         if (coordinate != 0) {
@@ -179,6 +187,8 @@ public class ComplexVector extends Vector {
       }
       return true;
     }
+    
+    return false;
   }
 
   /**
@@ -472,6 +482,7 @@ public class ComplexVector extends Vector {
    * Reads polar vector as 16 bit integers.
    */
   public void readFromString(String input) {
+    // logger.info("Reading from string: "  + input);
     String[] entries = input.split("\\|");
     if (opMode == MODE.CARTESIAN) {
       if (entries.length != dimension*2) {
@@ -485,15 +496,21 @@ public class ComplexVector extends Vector {
     }
     else {
       // MODE = Polar
+      if (isSparse) {
+        isSparse = false;
+      }
+      
       if (entries.length != dimension) {
         throw new IllegalArgumentException("Found " + (entries.length) + " possible coordinates: "
               + "expected " + dimension);
       }
       if (phaseAngles == null || phaseAngles.length==0) phaseAngles = new char[dimension];
       for (int i = 0; i < phaseAngles.length; ++i) {
-    	  phaseAngles[i] = (char)Integer.parseInt(entries[i]);
+    	phaseAngles[i] = (char)Integer.parseInt(entries[i]);
       }
     }
+    
+    //logger.info("Resulting vector is: " + toString());
   }
 
   /**

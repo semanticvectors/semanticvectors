@@ -39,7 +39,6 @@ import java.io.IOException;
 import java.util.logging.Logger;
 
 import pitt.search.semanticvectors.vectors.Vector;
-import pitt.search.semanticvectors.vectors.VectorUtils;
 
 /**
  * Command line term vector comparison utility. This enables users to
