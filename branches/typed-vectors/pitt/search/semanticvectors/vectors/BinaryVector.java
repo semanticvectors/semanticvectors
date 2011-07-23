@@ -353,8 +353,8 @@ public class BinaryVector extends Vector {
     }
 
     //Voting record insufficient to hold half the votes (unlikely unless unbalanced vectors used), so return zero vector
-    if (votingRecord.size() < 1+ Math.log(target2)/Math.log(2))
-    	return new OpenBitSet(dimension);
+   // if (votingRecord.size() < 1+ Math.log(target2)/Math.log(2))
+    //	return new OpenBitSet(dimension);
     
     boolean even = (target % 2 == 0);
     OpenBitSet result = concludeVote(target2, votingRecord.size() - 1);
