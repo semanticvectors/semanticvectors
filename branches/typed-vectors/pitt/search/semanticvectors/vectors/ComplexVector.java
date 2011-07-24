@@ -424,14 +424,11 @@ public class ComplexVector extends Vector {
    * Reads a dense vector in Polar form from a Lucene input stream.
    */
   public void readFromLuceneStream(IndexInput inputStream) {
-//    phaseAngles = new char[dimension];
     toPhaseAngle();
     isSparse = false;
     for (int i = 0; i < dimension; ++i) {
       try {
         phaseAngles[i] = (char)inputStream.readInt();
-        logger.info("Setting char: " + (int)phaseAngles[i] + " from int "
-            + (int)phaseAngles[i]);
       } catch (IOException e) {
         logger.severe("Failed to parse vector from Lucene stream.  This signifies a "
             + "programming or runtime error, e.g., a dimension mismatch.");
