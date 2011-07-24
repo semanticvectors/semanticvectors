@@ -46,65 +46,107 @@ import org.junit.Test;
 
 public class BinaryVectorTest extends TestCase {
 
-  @Test
-  public void testCreateZeroVectorAndOverlap() {
-    Vector zero = VectorFactory.createZeroVector(VectorType.BINARY, 8);
-    assertEquals("00000000", zero.writeToString());
-  }
-  
-  @Test
-  public void testGenerateRandomVectorWriteAndRead() {
-    Random random = new Random(0);
-    Vector vector = VectorFactory.generateRandomVector(VectorType.BINARY, 8, 2, random);
-    assertEquals("00000110", vector.writeToString());
-    
-    RAMDirectory directory = new RAMDirectory();
-    try {
-      IndexOutput indexOutput = directory.createOutput("binaryvectors.bin");
-      vector.writeToLuceneStream(indexOutput);
-      indexOutput.flush();
-      IndexInput indexInput = directory.openInput("binaryvectors.bin");
-      Vector vector2 = VectorFactory.createZeroVector(VectorType.BINARY, 8);
-      assertEquals("00000000", vector2.writeToString());
-      vector2.readFromLuceneStream(indexInput);
-      assertEquals("00000110", vector2.writeToString());
-    } catch (IOException e) {
-      e.printStackTrace();
-      fail();
-    }
-  }
+
   
   @Test
   public void testDimensionMustMatchWhenReading() {
-    BinaryVector vector = (BinaryVector) VectorFactory.createZeroVector(VectorType.BINARY, 8);
+    BinaryVector vector = (BinaryVector) VectorFactory.createZeroVector(VectorType.BINARY, 128);
     try {
       vector.readFromString("0101010101");
       fail();
     } catch (IllegalArgumentException e) {
-      assertTrue(e.getMessage().contains("expected 8"));
+      assertTrue(e.getMessage().contains("expected 128"));
     }
   }
   
   @Test
   public void testSuperposeAndNormalize() {
-    BinaryVector vector = (BinaryVector) VectorFactory.createZeroVector(VectorType.BINARY, 8);
-    vector.readFromString("01010101");
-    BinaryVector vector2 = (BinaryVector) VectorFactory.createZeroVector(VectorType.BINARY, 8);
-    vector2.readFromString("00001111");
+    BinaryVector vector = (BinaryVector) VectorFactory.createZeroVector(VectorType.BINARY, 64);
+    vector.readFromString("0101010111000011110100011111110110100000001110111000011000100100");
+    BinaryVector vector2 = (BinaryVector) VectorFactory.createZeroVector(VectorType.BINARY, 64);
+    vector2.readFromString("0000111111000011110100011111110110100000001110111000011000100100");
     vector.superpose(vector2, 1000, null);
     // This is a surprise to me - calling normalize to make the superposition "take" was
     // unexpected.
-    assertEquals("01010101", vector.writeToString());
+    assertEquals("0101010111000011110100011111110110100000001110111000011000100100", vector.writeToString());
     vector.normalize();
-    assertEquals("00001111", vector.writeToString());
+    assertEquals("0000111111000011110100011111110110100000001110111000011000100100", vector.writeToString());
 
-    BinaryVector vector3 = (BinaryVector) VectorFactory.createZeroVector(VectorType.BINARY, 5);
-    vector3.readFromString("00000");
-    BinaryVector vector4 = (BinaryVector) VectorFactory.createZeroVector(VectorType.BINARY, 5);
-    vector4.readFromString("01000");
+    BinaryVector vector3 = (BinaryVector) VectorFactory.createZeroVector(VectorType.BINARY, 64);
+    vector3.readFromString("0000000001111110000111101000111111101101000000011101110000110101");
+    BinaryVector vector4 = (BinaryVector) VectorFactory.createZeroVector(VectorType.BINARY, 64);
+    vector4.readFromString("0100000001111110000111101000111111101101000000011101110000110101");
     vector3.superpose(vector4, 2, null);
     vector3.normalize();
   }
+  
+ 
+  @Test
+	  public void testCreateZeroVectorAndOverlap() {
+	    Vector zero = VectorFactory.createZeroVector(VectorType.BINARY, 8);
+	    assertEquals("0|", ((BinaryVector) zero).writeLongToString());
+	  }
+
+  @Test
+	  public void testPermutation() {
+		  
+		int dim = 513;
+		Random random = new Random();
+	    BinaryVector elementalVector = new BinaryVector(10).generateRandomVector(dim,dim/2,random);
+	    Vector semanticVector = VectorFactory.createZeroVector(VectorType.BINARY, dim);
+	    
+	    int longDim = (int) dim/64;
+	    if (dim % 64 > 0) longDim++;
+	    
+	    //check that number of long in array meets expectation 
+	    assertEquals(elementalVector.bitLength(),longDim);
+	        
+	    int[] shiftRight = PermutationUtils.getShiftPermutation(longDim, 1);
+	    int[] shiftLeft = PermutationUtils.getInversePermutation(shiftRight);
+	     
+	    BinaryVector elementalClone = elementalVector.copy();
+	   
+	    //check superposition + permutation
+	    semanticVector.superpose(elementalVector, 1, shiftRight);
+	    semanticVector.normalize();
+	      
+	    //check that vector not altered during permutation
+	    assertEquals(((BinaryVector) elementalVector).writeLongToString(), ((BinaryVector) elementalClone).writeLongToString());
+	    
+	    //check that permuted elemental vector matches added elemental vector
+	    BinaryVector.permute(elementalVector, shiftRight);
+	    assertEquals(((BinaryVector) elementalVector).writeLongToString(), ((BinaryVector) semanticVector).writeLongToString());
+	    
+	     //check that permutation is invertible
+	    BinaryVector.permute(elementalVector, shiftLeft);
+	    assertEquals(((BinaryVector) elementalVector).writeLongToString(), ((BinaryVector) elementalClone).writeLongToString());
+	      
+	  }
+	  
+	  
+	  @Test
+	  public void testGenerateRandomVectorWriteAndRead() {
+	    Random random = new Random(0);
+	    
+	    Vector vector = VectorFactory.generateRandomVector(VectorType.BINARY, 64, 2, random);
+	    assertEquals("1100001111010001111111011010000000111011100001100010010010001111", vector.writeToString());
+	    
+	    RAMDirectory directory = new RAMDirectory();
+	    try {
+	      IndexOutput indexOutput = directory.createOutput("binaryvectors.bin");
+	      vector.writeToLuceneStream(indexOutput);
+	      indexOutput.flush();
+	      IndexInput indexInput = directory.openInput("binaryvectors.bin");
+	      Vector vector2 = VectorFactory.createZeroVector(VectorType.BINARY, 64);
+	      assertEquals("0000000000000000000000000000000000000000000000000000000000000000", vector2.writeToString());
+	      vector2.readFromLuceneStream(indexInput);
+	      assertEquals("1100001111010001111111011010000000111011100001100010010010001111", vector2.writeToString());
+	    } catch (IOException e) {
+	      e.printStackTrace();
+	      fail();
+	    }
+	  }  
+  
 
   /*
   {

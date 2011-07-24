@@ -550,8 +550,8 @@ public class BinaryVector extends Vector {
    * Reads a (dense) version of a vector from a Lucene input stream. 
    */
   public void readFromLuceneStream(IndexInput inputStream) {
-    long bitArray[] = new long[(dimension / 64) + 1];
-    for (int i = 0; i <= dimension / 64; ++i) {
+    long bitArray[] = new long[(dimension / 64)];
+    for (int i = 0; i < dimension / 64; ++i) {
       try {
         bitArray[i] = inputStream.readLong();
       } catch (IOException e) {
