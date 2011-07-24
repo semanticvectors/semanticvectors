@@ -45,6 +45,14 @@ public class BinaryVector extends Vector {
   int minimum = 0;
 
   public BinaryVector(int dimension) {
+	  
+	//impose "multiple-of-64" constraint, to facilitate permutation of 64-bit chunks
+      if (dimension % 64 != 0)
+      {
+          dimension = (1+dimension/64)*64;
+          logger.warning("Dimensionality set to: "+dimension+". This is   an implementation detail to facilitate permutation in a manner   consistent with other (non-binary) implementations");
+      }
+	  
     this.dimension = dimension;
     this.bitSet = new OpenBitSet(dimension);
     this.isSparse = true;
@@ -103,6 +111,14 @@ public class BinaryVector extends Vector {
   }
 
   public BinaryVector createZeroVector(int dimension) {
+	  
+	//impose "multiple-of-64" constraint, to facilitate permutation of 64-bit chunks
+      if (dimension % 64 != 0)
+      {
+          dimension = (1+dimension/64)*64;
+          logger.warning("Dimensionality set to: "+dimension+". This is   an implementation detail to facilitate permutation in a manner   consistent with other (non-binary) implementations");
+      }
+	  
     return new BinaryVector(dimension);
   }
 
@@ -123,12 +139,23 @@ public class BinaryVector extends Vector {
    */
   public BinaryVector generateRandomVector(int dimension, int numEntries, Random random) {
     
-	if (numEntries != dimension/2)
-	{
-		 logger.warning("Creating binary vector with unequal number of zeros and ones."
-		          + "Unlikely to produce meaningful results. Seedlength of dimension/2 is recommended for binary vectors");
-	}
-	  
+      //impose "multiple-of-64" constraint, to facilitate permutation of 64-bit chunks
+	         if (dimension % 64 != 0)
+	         {
+	             dimension = (1+dimension/64)*64;
+	             logger.warning("Dimensionality set to: "+dimension+". This is   an implementation detail to facilitate permutation in a manner consistent with other (non-binary) implementations");
+	         }
+
+
+	         //check for balance between 1's and 0's
+	       if (numEntries != dimension/2)
+	       {
+	            logger.warning("Attempting to create binary vector with unequal number of zeros and ones."
+	                     + " Unlikely to produce meaningful results. Therefore, seedlength has been set to dimension/2, as recommended for binary vectors");
+
+	            numEntries = dimension/2;
+	       }
+  
 	BinaryVector randomVector = new BinaryVector(dimension);
     randomVector.bitSet = new OpenBitSet(dimension);
     int testPlace = dimension - 1, entryCount = 0;
@@ -181,7 +208,7 @@ public class BinaryVector extends Vector {
    */
   public void superpose(Vector other, double weight, int[] permutation) {
     IncompatibleVectorsException.checkVectorsCompatible(this, other);
-    BinaryVector realOther = (BinaryVector) other;
+    BinaryVector binaryOther = (BinaryVector) other;
     if (isSparse) {
       if (Math.round(weight) != weight) {
         decimalPlaces = 2; 
@@ -190,12 +217,19 @@ public class BinaryVector extends Vector {
     }
 
     if (permutation != null) {
-      // TODO: allow for permutation of incoming vector (i.e. generate new vector with appropriate
-      // permutations and add this instead).
-      logger.warning("Permutation for binary vectors is not yet implemented.");
+      
+     //rather than permuting individual dimensions, we permute 64 dimensions at a time
+     //this should be considerably quicker, and dimensions/64 should allow for sufficient
+     //permutations
+     
+    //TODO permute in place and reverse, to avoid creating a new BinaryVector here
+      BinaryVector temp = binaryOther.copy();
+      permute(temp,permutation);
+      superpose(temp.bitSet, weight);
+   
     }
-
-    superpose(realOther.bitSet, weight);
+    else
+    superpose(binaryOther.bitSet, weight);
   }
 
   /**
@@ -543,6 +577,20 @@ public class BinaryVector extends Vector {
     return builder.toString();
   }
 
+
+  /**
+   * Writes vector to a string of the form 010 etc. (no delimiters). 
+   * 
+   * No terminating newline or delimiter.
+   */
+  public String writeLongToString() {
+    StringBuilder builder = new StringBuilder();
+    for (int i = 0; i < (bitSet.getBits().length); ++i) {
+      builder.append(Long.toString(bitSet.getBits()[i])+"|");
+    }
+    return builder.toString();
+  }
+  
   @Override
   /**
    * Writes vector from a string of the form 01001 etc.
@@ -576,15 +624,47 @@ public class BinaryVector extends Vector {
 
   }
 
+  
+  /*
+   * permute the long[] array underlying the OpenBitSet binary representation
+   */
+  
+  public static long[] permute(BinaryVector toPermute, int[] permutation)
+  {
+	  
+	  //TODO permute in place without creating additional long[] (if proves problematic at scale)
+	  
+	  long[] coordinates = toPermute.bitSet.getBits();
+	  long[] new_coordinates = new long[coordinates.length];
+	  
+	  for (int i = 0; i < coordinates.length; ++i) {
+		  
+		  int positionToAdd = i;
+          long temp = coordinates[i];
+          positionToAdd = permutation[positionToAdd];
+          new_coordinates[i] = coordinates[positionToAdd];
+     	  }
+	  
+	  return new_coordinates;
+  }
+  
   // Available for testing and copying.
   protected BinaryVector(OpenBitSet inSet) {
     this.dimension = (int) inSet.size();
     this.bitSet = inSet;
   }
 
+  // Available for testing
+  protected int bitLength() {
+	  return bitSet.getBits().length;
+  }
+
+  
   // Monitor growth of voting record.
   protected int numRows() {
     return votingRecord.size();
   }
+
+
 }
 
