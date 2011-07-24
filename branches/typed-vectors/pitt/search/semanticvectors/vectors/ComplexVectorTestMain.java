@@ -47,8 +47,8 @@ public class ComplexVectorTestMain extends TestCase {
   public void test2() {
 	int dim = 10;
     int seedLength = 3;
-    ComplexVector complexInstance = new ComplexVector(0);
-    ComplexVector cv = complexInstance.generateRandomVector(dim, seedLength, new Random());
+    Vector vInstance = VectorFactory.createZeroVector("complex", 0);
+    Vector cv = vInstance.generateRandomVector(dim, seedLength, new Random());
     System.out.println(cv.writeToString());
   }
 
@@ -108,10 +108,37 @@ public class ComplexVectorTestMain extends TestCase {
   }
 
   /**
-   * Test superposition of zero vector with random dense vector
+   * Test superposition of zero vector with permuted random sparse vector
    */
   @Test
   public void test7() {
+    int dim = 5;
+    int seedLength = 2;
+    ComplexVector complexInstance = new ComplexVector(0);
+
+    System.out.println("TEST - Superosition with permutation: " );
+
+    // Generate random vector
+    ComplexVector cv1 = complexInstance.generateRandomVector(dim, seedLength, new Random());
+    System.out.println(cv1.toString());
+
+    // Create zero vector
+    ComplexVector cv2 = complexInstance.createZeroVector(dim);
+
+    int[] permutation = null;
+    permutation = PermutationUtils.getShiftPermutation(5, -3);
+
+    // Superpose
+    cv2.superpose(cv1, 1.0, permutation );
+
+    System.out.println(cv2.toString());
+  }
+
+  /**
+   * Test superposition of zero vector with random dense vector
+   */
+  @Test
+  public void test8() {
     int dim = 5;
     ComplexVector complexInstance = new ComplexVector(0);
     System.out.println("....");
@@ -133,7 +160,7 @@ public class ComplexVectorTestMain extends TestCase {
    * Test vector copy
    */
   @Test
-  public void test8() {
+  public void test9() {
     float[] coords = { 12.3f, 3.2f, 2.6f, -1.3f, -0.01f, -1000.2f};
     ComplexVector complexInstance = new ComplexVector(0);
     ComplexVector cv1 = new ComplexVector(coords);
@@ -145,7 +172,7 @@ public class ComplexVectorTestMain extends TestCase {
    * Test normalization
    */
   @Test
-  public void test9() {
+  public void test10() {
     float[] coords = { 12.3f, 3.2f, 2.6f, -1.3f, -0.01f, -1000.2f};
     ComplexVector complexInstance = new ComplexVector(0);
     ComplexVector cv = new ComplexVector(coords);
@@ -158,7 +185,7 @@ public class ComplexVectorTestMain extends TestCase {
    * Test similarity function
    */
   @Test
-  public void test10() {
+  public void test11() {
     double score;
     char[] angles1 = { 0, 16000, 32000 };
     char[] angles2 = { 0, 48000, 33000 };
@@ -187,18 +214,18 @@ public class ComplexVectorTestMain extends TestCase {
    * Test readWrite
   */
   @Test
-  public void test11() {
+  public void test12() {
     char[] angles1 = { 0, 16000, 32000 };
     Vector v1 = new ComplexVector(angles1);
 
     RAMDirectory directory = new RAMDirectory();
 
     try {
-      IndexOutput indexOutput = directory.createOutput("binaryvectors.bin");
+      IndexOutput indexOutput = directory.createOutput("complexvectors.bin");
       v1.writeToLuceneStream(indexOutput);
       indexOutput.flush();
 
-      IndexInput indexInput = directory.openInput("binaryvectors.bin");
+      IndexInput indexInput = directory.openInput("complexvectors.bin");
       ComplexVector v2 = new ComplexVector(3);
       v2.readFromLuceneStream(indexInput);
 
@@ -210,7 +237,6 @@ public class ComplexVectorTestMain extends TestCase {
     }
 
   }
-
 
   /**
    * @param args
@@ -229,6 +255,7 @@ public class ComplexVectorTestMain extends TestCase {
     cvt.test9();
     cvt.test10();
     cvt.test11();
+    cvt.test12();
   }
 
 }
