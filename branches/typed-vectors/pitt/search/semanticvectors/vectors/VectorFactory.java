@@ -119,7 +119,7 @@ public class VectorFactory {
     VectorType type = VectorType.valueOf(vectorType.toUpperCase());
     switch (type) {
       case BINARY:
-        return 8 * ((dimension / 64) + 1);
+        return 8 * ((dimension / 64) );
       case REAL:
         return 4 * dimension;
       case COMPLEX:

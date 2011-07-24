@@ -162,7 +162,7 @@ public class BinaryVector extends Vector {
 
     // Iterate across dimension of bitSet, changing 0 to 1 if random(1) > 0.5
     // until dimension/2 1's added.
-    while (randomVector.bitSet.cardinality() < numEntries) {	
+    while (entryCount < numEntries) {	
       testPlace = random.nextInt(dimension);
       if (!randomVector.bitSet.fastGet(testPlace)) {
         randomVector.bitSet.fastSet(testPlace);
@@ -337,7 +337,7 @@ public class BinaryVector extends Vector {
    */
   private OpenBitSet exact(int target) {
     if (target == 0) {
-      tempSet.set(0, dimension);
+      tempSet.set(0, dimension-1);
       tempSet.xor(votingRecord.get(0));
       for (int x=1; x < votingRecord.size(); x++)
         tempSet.andNot(votingRecord.get(x));
@@ -419,7 +419,7 @@ public class BinaryVector extends Vector {
    
     if (target == 0)
     { 	OpenBitSet atLeastZero = new OpenBitSet(dimension);
-    	atLeastZero.set(0, dimension);
+    	atLeastZero.set(0, dimension-1);
     	return atLeastZero;
     }
 
@@ -463,7 +463,7 @@ public class BinaryVector extends Vector {
    * i.e: no underflow check currently - will wreak havoc with zero counts
    */
   public void decrement() {	
-    tempSet.set(0, dimension);
+    tempSet.set(0, dimension-1);
     for (int q = 0; q < votingRecord.size(); q++) {
       votingRecord.get(q).xor(tempSet);
       tempSet.and(votingRecord.get(q));
@@ -494,7 +494,7 @@ public class BinaryVector extends Vector {
   }
 
   public void selected_decrement(int floor) {
-    tempSet.set(0, dimension);
+    tempSet.set(0, dimension-1);
     for (int q = floor; q < votingRecord.size(); q++) {
       votingRecord.get(q).xor(tempSet);
       tempSet.and(votingRecord.get(q));
@@ -535,7 +535,8 @@ public class BinaryVector extends Vector {
       elementalToSemantic();
     }
     long[] bitArray = bitSet.getBits();
-    for (int i = 0; i < bitArray.length; ++i) {
+   
+    for (int i = 0; i < bitArray.length; i++) {
       try {
         outputStream.writeLong(bitArray[i]);
       } catch (IOException e) {
@@ -551,6 +552,7 @@ public class BinaryVector extends Vector {
    */
   public void readFromLuceneStream(IndexInput inputStream) {
     long bitArray[] = new long[(dimension / 64)];
+    
     for (int i = 0; i < dimension / 64; ++i) {
       try {
         bitArray[i] = inputStream.readLong();
