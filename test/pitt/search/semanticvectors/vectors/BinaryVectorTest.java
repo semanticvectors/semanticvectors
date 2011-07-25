@@ -83,16 +83,17 @@ public class BinaryVectorTest extends TestCase {
  
   @Test
 	  public void testCreateZeroVectorAndOverlap() {
-	    Vector zero = VectorFactory.createZeroVector(VectorType.BINARY, 8);
+	    Vector zero = VectorFactory.createZeroVector(VectorType.BINARY, 64);
 	    assertEquals("0|", ((BinaryVector) zero).writeLongToString());
 	  }
 
   @Test
 	  public void testPermutation() {
 		  
-		int dim = 513;
+		int dim = 512;
 		Random random = new Random();
-	    BinaryVector elementalVector = new BinaryVector(10).generateRandomVector(dim,dim/2,random);
+	    BinaryVector elementalVector = (BinaryVector) VectorFactory.generateRandomVector(
+	        VectorType.BINARY, dim, dim/2, random);
 	    Vector semanticVector = VectorFactory.createZeroVector(VectorType.BINARY, dim);
 	    
 	    int longDim = (int) dim/64;
