@@ -59,9 +59,9 @@ public class FlagsTest extends TestCase {
   public void testParseFlagsFromString() {
     Flags.dimension = 3;
     Flags.vectortype = "real";
-    Flags.parseFlagsFromString("-vectortype binary -dimension 2");
+    Flags.parseFlagsFromString("-vectortype complex -dimension 2");
     assertEquals(2, Flags.dimension);
-    assertEquals("binary", Flags.vectortype);
+    assertEquals("complex", Flags.vectortype);
     Flags.vectortype = "real";  // Cleanup!!
   }
 
@@ -104,6 +104,22 @@ public class FlagsTest extends TestCase {
     } catch (IllegalArgumentException e) {
       assertTrue(e.getMessage().contains("Value 'notagoodvalue' not valid"));
     }
+  }
+  
+
+  @Test
+  public void testMakeFlagsCompatible() {
+    String[] args = {"-dimension", "60", "-vectortype", "binary", "-seedlength", "20"};
+    try {
+      Flags.parseCommandLineFlags(args);
+    } catch (IllegalArgumentException e) {
+      fail();
+    }
+    assertEquals(64, Flags.dimension);
+    assertEquals(32, Flags.seedlength);
+    
+    // Reset the vectortype flag!
+    Flags.vectortype = "real";
   }
 
   @org.junit.Test

@@ -45,14 +45,11 @@ public class BinaryVector extends Vector {
   int minimum = 0;
 
   public BinaryVector(int dimension) {
-	  
-	//impose "multiple-of-64" constraint, to facilitate permutation of 64-bit chunks
-      if (dimension % 64 != 0)
-      {
-          dimension = (1+dimension/64)*64;
-          logger.warning("Dimensionality set to: "+dimension+". This is   an implementation detail to facilitate permutation in a manner   consistent with other (non-binary) implementations");
-      }
-	  
+    // Check "multiple-of-64" constraint, to facilitate permutation of 64-bit chunks
+    if (dimension % 64 != 0) {
+      throw new IllegalArgumentException("Dimension should be a multiple of 64: "
+          + dimension + " will lead to trouble!");
+    }
     this.dimension = dimension;
     this.bitSet = new OpenBitSet(dimension);
     this.isSparse = true;
@@ -94,7 +91,7 @@ public class BinaryVector extends Vector {
           if (votingRecord.get(x).fastGet(y)) actualvals[y] += Math.pow(2, x); 
         }
       }
-      
+
       for (int x = 0; x < printLength; x++) {
         debugString.append((int) ((minimum + actualvals[x]) / Math.pow(10, decimalPlaces)) + " ");
       }
@@ -111,14 +108,11 @@ public class BinaryVector extends Vector {
   }
 
   public BinaryVector createZeroVector(int dimension) {
-	  
-	//impose "multiple-of-64" constraint, to facilitate permutation of 64-bit chunks
-      if (dimension % 64 != 0)
-      {
-          dimension = (1+dimension/64)*64;
-          logger.warning("Dimensionality set to: "+dimension+". This is   an implementation detail to facilitate permutation in a manner   consistent with other (non-binary) implementations");
-      }
-	  
+    // Check "multiple-of-64" constraint, to facilitate permutation of 64-bit chunks
+    if (dimension % 64 != 0) {
+      logger.severe("Dimension should be a multiple of 64: "
+          + dimension + " will lead to trouble!");
+    }
     return new BinaryVector(dimension);
   }
 
@@ -138,25 +132,20 @@ public class BinaryVector extends Vector {
    * @return representation of basic binary vector.
    */
   public BinaryVector generateRandomVector(int dimension, int numEntries, Random random) {
-    
-      //impose "multiple-of-64" constraint, to facilitate permutation of 64-bit chunks
-	         if (dimension % 64 != 0)
-	         {
-	             dimension = (1+dimension/64)*64;
-	             logger.warning("Dimensionality set to: "+dimension+". This is   an implementation detail to facilitate permutation in a manner consistent with other (non-binary) implementations");
-	         }
+    // Check "multiple-of-64" constraint, to facilitate permutation of 64-bit chunks
+    if (dimension % 64 != 0) {
+      throw new IllegalArgumentException("Dimension should be a multiple of 64: "
+          + dimension + " will lead to trouble!");
+    }
+    // Check for balance between 1's and 0's
+    if (numEntries != dimension/2) {
+      logger.severe("Attempting to create binary vector with unequal number of zeros and ones."
+          + " Unlikely to produce meaningful results. Therefore, seedlength has been set to "
+          + " dimension/2, as recommended for binary vectors");
+      numEntries = dimension/2;
+    }
 
-
-	         //check for balance between 1's and 0's
-	       if (numEntries != dimension/2)
-	       {
-	            logger.warning("Attempting to create binary vector with unequal number of zeros and ones."
-	                     + " Unlikely to produce meaningful results. Therefore, seedlength has been set to dimension/2, as recommended for binary vectors");
-
-	            numEntries = dimension/2;
-	       }
-  
-	BinaryVector randomVector = new BinaryVector(dimension);
+    BinaryVector randomVector = new BinaryVector(dimension);
     randomVector.bitSet = new OpenBitSet(dimension);
     int testPlace = dimension - 1, entryCount = 0;
 
@@ -217,19 +206,19 @@ public class BinaryVector extends Vector {
     }
 
     if (permutation != null) {
-      
-     //rather than permuting individual dimensions, we permute 64 dimensions at a time
-     //this should be considerably quicker, and dimensions/64 should allow for sufficient
-     //permutations
-     
-    //TODO permute in place and reverse, to avoid creating a new BinaryVector here
+
+      //rather than permuting individual dimensions, we permute 64 dimensions at a time
+      //this should be considerably quicker, and dimensions/64 should allow for sufficient
+      //permutations
+
+      //TODO permute in place and reverse, to avoid creating a new BinaryVector here
       BinaryVector temp = binaryOther.copy();
       permute(temp,permutation);
       superpose(temp.bitSet, weight);
-   
+
     }
     else
-    superpose(binaryOther.bitSet, weight);
+      superpose(binaryOther.bitSet, weight);
   }
 
   /**
@@ -387,9 +376,9 @@ public class BinaryVector extends Vector {
     }
 
     //Voting record insufficient to hold half the votes (unlikely unless unbalanced vectors used), so return zero vector
-   // if (votingRecord.size() < 1+ Math.log(target2)/Math.log(2))
+    // if (votingRecord.size() < 1+ Math.log(target2)/Math.log(2))
     //	return new OpenBitSet(dimension);
-    
+
     boolean even = (target % 2 == 0);
     OpenBitSet result = concludeVote(target2, votingRecord.size() - 1);
 
@@ -409,25 +398,25 @@ public class BinaryVector extends Vector {
   }
 
   protected OpenBitSet concludeVote(int target, int row_ceiling) {
-  
-	  /**
+
+    /**
 	  logger.info("Entering conclude vote, target " + target + " row_ceiling " + row_ceiling + 
     		"voting record " + votingRecord.size() + 
     		" minimum "+ minimum + " index "+  Math.log(target)/Math.log(2) +
          " vector\n" + toString());
-	   **/
-   
+     **/
+
     if (target == 0)
     { 	OpenBitSet atLeastZero = new OpenBitSet(dimension);
-    	atLeastZero.set(0, dimension-1);
-    	return atLeastZero;
+    atLeastZero.set(0, dimension-1);
+    return atLeastZero;
     }
 
-    
+
     double rowfloor = Math.log(target)/Math.log(2);
     int row_floor = (int) Math.floor(rowfloor);  //for 0 index
     int remainder =  target - (int) Math.pow(2,row_floor);
-    
+
     //System.out.println(target+"\t"+rowfloor+"\t"+row_floor+"\t"+remainder);
 
     if (row_ceiling == 0 && target == 1) {
@@ -535,7 +524,7 @@ public class BinaryVector extends Vector {
       elementalToSemantic();
     }
     long[] bitArray = bitSet.getBits();
-   
+
     for (int i = 0; i < bitArray.length; i++) {
       try {
         outputStream.writeLong(bitArray[i]);
@@ -552,7 +541,7 @@ public class BinaryVector extends Vector {
    */
   public void readFromLuceneStream(IndexInput inputStream) {
     long bitArray[] = new long[(dimension / 64)];
-    
+
     for (int i = 0; i < dimension / 64; ++i) {
       try {
         bitArray[i] = inputStream.readLong();
@@ -592,7 +581,7 @@ public class BinaryVector extends Vector {
     }
     return builder.toString();
   }
-  
+
   @Override
   /**
    * Writes vector from a string of the form 01001 etc.
@@ -626,30 +615,29 @@ public class BinaryVector extends Vector {
 
   }
 
-  
+
   /*
    * permute the long[] array underlying the OpenBitSet binary representation
    */
-  
+
   public static long[] permute(BinaryVector toPermute, int[] permutation)
   {
-	  
-	  //TODO permute in place without creating additional long[] (if proves problematic at scale)
-	  
-	  long[] coordinates = toPermute.bitSet.getBits();
-	  long[] new_coordinates = new long[coordinates.length];
-	  
-	  for (int i = 0; i < coordinates.length; ++i) {
-		  
-		  int positionToAdd = i;
-          long temp = coordinates[i];
-          positionToAdd = permutation[positionToAdd];
-          new_coordinates[i] = coordinates[positionToAdd];
-     	  }
-	  
-	  return new_coordinates;
+
+    //TODO permute in place without creating additional long[] (if proves problematic at scale)
+
+    long[] coordinates = toPermute.bitSet.getBits();
+    long[] new_coordinates = new long[coordinates.length];
+
+    for (int i = 0; i < coordinates.length; ++i) {
+
+      int positionToAdd = i;
+      positionToAdd = permutation[positionToAdd];
+      new_coordinates[i] = coordinates[positionToAdd];
+    }
+
+    return new_coordinates;
   }
-  
+
   // Available for testing and copying.
   protected BinaryVector(OpenBitSet inSet) {
     this.dimension = (int) inSet.size();
@@ -658,10 +646,10 @@ public class BinaryVector extends Vector {
 
   // Available for testing
   protected int bitLength() {
-	  return bitSet.getBits().length;
+    return bitSet.getBits().length;
   }
 
-  
+
   // Monitor growth of voting record.
   protected int numRows() {
     return votingRecord.size();

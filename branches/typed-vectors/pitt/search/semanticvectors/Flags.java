@@ -243,10 +243,14 @@ public class Flags {
 
       if (argc >= args.length) {
         logger.fine("Consumed all command line input while parsing flags");
+        makeFlagsCompatible();
         return null;
       }
     }
 
+    // Enforce constraints between flags.
+    makeFlagsCompatible();
+    
     // No more command line flags to parse.
     // Trim args[] list and return.
     String[] trimmedArgs = new String[args.length - argc];
@@ -256,6 +260,33 @@ public class Flags {
     return trimmedArgs;
   }
 
+  /**
+   * Checks some interaction between flags, and fixes them up to make them compatible.
+   * 
+   * <br/>
+   * In practice, this means:
+   * <ul><li>If {@link vectortype} is {@code binary}, {@link dimension} is a multiple of 64,
+   * or is increased to be become a multiple of 64.  {@link seedlength} is set to be half this
+   * number.</li>
+   * </ul>
+   */
+  private static void makeFlagsCompatible() {
+    if (vectortype.equals("binary")) {
+      // Impose "multiple-of-64" constraint, to facilitate permutation of 64-bit chunks.
+      if (dimension % 64 != 0) {
+        dimension = (1 + (dimension / 64)) * 64;
+        logger.warning("For performance reasons, dimensions for binary vectors must be a mutliple "
+            + "of 64. Flags.dimension set to: " + dimension + ".");
+      }
+      // Impose "balanced binary vectors" constraint, to facilitate reasonable voting.
+      if (seedlength != dimension / 2) {
+        seedlength = dimension / 2;
+        logger.warning("Binary vectors must be generated with a balanced number of zeros and ones."
+            + " Flags.seedlength set to: " + seedlength + ".");
+      }
+    }
+  }
+  
   /**
    * String pretty print a String array.
    * @return String representation of input array.
