@@ -19,6 +19,7 @@ public class AllTests {
     suite.addTestSuite(RealVectorTest.class);
     suite.addTestSuite(BinaryVectorTest.class);
     suite.addTestSuite(ComplexVectorTest.class);
+    suite.addTestSuite(PermutationUtilsTest.class);
     //$JUnit-END$
     return suite;
   }
