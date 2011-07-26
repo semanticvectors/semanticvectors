@@ -225,7 +225,7 @@ public class RealVector extends Vector {
         if (permutation != null) {
           positionToAdd = permutation[positionToAdd];
         }
-        coordinates[positionToAdd] +=  entry * weight;
+        coordinates[positionToAdd] += entry * weight;
       }
     } else {
       for (int i = 0; i < dimension; ++i) {

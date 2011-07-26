@@ -110,16 +110,15 @@ public class FlagsTest extends TestCase {
   @Test
   public void testMakeFlagsCompatible() {
     String[] args = {"-dimension", "60", "-vectortype", "binary", "-seedlength", "20"};
-    try {
-      Flags.parseCommandLineFlags(args);
-    } catch (IllegalArgumentException e) {
-      fail();
-    }
+    Flags.parseCommandLineFlags(args);
     assertEquals(64, Flags.dimension);
     assertEquals(32, Flags.seedlength);
     
-    // Reset the vectortype flag!
-    Flags.vectortype = "real";
+    // Reset the vectortype flag to real and you have more options.
+    args = new String[] {"-dimension", "60", "-vectortype", "real", "-seedlength", "20"};
+    Flags.parseCommandLineFlags(args);
+    assertEquals(60, Flags.dimension);
+    assertEquals(20, Flags.seedlength);
   }
 
   @org.junit.Test

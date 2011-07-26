@@ -112,7 +112,7 @@ public class TermTermVectorsFromLucene implements VectorStore {
   public int getNumVectors() {
     return termVectors.getNumVectors();
   }
-  
+
   public int getDimension() {
     return dimension;
   }
@@ -147,7 +147,7 @@ public class TermTermVectorsFromLucene implements VectorStore {
     this.seedLength = seedLength;
     this.windowSize = windowSize;
     this.indexVectors = indexVectors;
-    
+
     trainTermTermVectors();
   }
 
@@ -196,7 +196,8 @@ public class TermTermVectorsFromLucene implements VectorStore {
         ((VectorStoreSparseRAM) this.indexVectors).putVector(term.text(), indexVector);
       }
     }
-    VerbatimLogger.info("There are " + tc + " terms (and " + luceneIndexReader.numDocs() + " docs)");
+    VerbatimLogger.info("There are " + tc + " terms (and "
+        + luceneIndexReader.numDocs() + " docs).\n");
 
     // Iterate through documents.
     int numdocs = this.luceneIndexReader.numDocs();
@@ -217,27 +218,21 @@ public class TermTermVectorsFromLucene implements VectorStore {
       }
     }
 
-    VerbatimLogger.info("Created " + termVectors.getNumVectors() + " term vectors ...");
+    VerbatimLogger.info("Created " + termVectors.getNumVectors() + " term vectors ...\n");
     VerbatimLogger.info("Normalizing term vectors");
     Enumeration<ObjectVector> e = termVectors.getAllVectors();
     while (e.hasMoreElements())	{
-      ObjectVector temp = e.nextElement();
-      Vector next = temp.getVector();
-      next.normalize();
-      temp.setVector(next);
+      e.nextElement().getVector().normalize();
     }
-    
+
     String randFile = "randomvectors.bin";
     // If building a permutation index, these need to be written out to be reused.
     if ((positionalmethod.equals("permutation") || (positionalmethod.equals("permutation_plus_basic"))) 
         && !retraining) {
-      VerbatimLogger.info("\nNormalizing and writing random vectors to " + randFile);
+      VerbatimLogger.info("\nNormalizing and writing random vectors to " + randFile + "\n");
       Enumeration<ObjectVector> f = indexVectors.getAllVectors();
       while (f.hasMoreElements())	{
-        ObjectVector temp = f.nextElement();
-        Vector next = temp.getVector();
-        next.normalize();
-        temp.setVector(next);
+        f.nextElement().getVector().normalize();
       }
       new VectorStoreWriter().writeVectors(randFile, this.indexVectors);
     }
@@ -325,14 +320,13 @@ public class TermTermVectorsFromLucene implements VectorStore {
         if (coterm == NONEXISTENT) continue;
         // calculate permutation required for either Sahlgren (2008) implementation
         // encoding word order, or encoding direction as in Burgess and Lund's HAL
-        Vector localindex = localindexvectors[coterm];
 
         //combine 'content' and 'order' information - first add the unpermuted vector
         if (positionalmethod.equals("permutation_plus_basic")) {
           // docterms[coterm] contains the term in position[w] in this document.
           if (this.indexVectors.getVector(docterms[coterm]) != null
               && localtermvectors[focusterm] != null) {
-            localtermvectors[focusterm].superpose(localindex, 1, null);
+            localtermvectors[focusterm].superpose(localindexvectors[coterm], 1, null);
           }
         }
 
@@ -348,7 +342,7 @@ public class TermTermVectorsFromLucene implements VectorStore {
         // docterms[coterm] contains the term in position[w] in this document.
         if (this.indexVectors.getVector(docterms[coterm]) != null
             && localtermvectors[focusterm] != null) {
-          localtermvectors[focusterm].superpose(localindex, 1, permutation);
+          localtermvectors[focusterm].superpose(localindexvectors[coterm], 1, permutation);
         }
       }
     }

@@ -7,15 +7,15 @@
    modification, are permitted provided that the following conditions are
    met:
 
-   * Redistributions of source code must retain the above copyright
+ * Redistributions of source code must retain the above copyright
    notice, this list of conditions and the following disclaimer.
 
-   * Redistributions in binary form must reproduce the above
+ * Redistributions in binary form must reproduce the above
    copyright notice, this list of conditions and the following
    disclaimer in the documentation and/or other materials provided
    with the distribution.
 
-   * Neither the name of the University of Pittsburgh nor the names
+ * Neither the name of the University of Pittsburgh nor the names
    of its contributors may be used to endorse or promote products
    derived from this software without specific prior written
    permission.
@@ -31,7 +31,7 @@
    LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
    NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
    SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-**/
+ **/
 
 package pitt.search.semanticvectors.vectors;
 
@@ -55,24 +55,16 @@ public class PermutationUtils {
     for (int i = 0; i < dimension; ++i) {
       int entry = (i + shift) % dimension;
       if (entry < 0) entry += dimension;
-      
+      permutation[i] = entry;
     }
-
     return permutation;
   }
-  
-  public static int[] getInversePermutation(int[] permutation)
-  {
-	  int[] inversePermutation = new int[permutation.length];
-	  for (int x=0; x < permutation.length; x++)
-	  {
-		  inversePermutation[permutation[x]] = x;
-	  }
-	  
-	  return inversePermutation;  
+
+  public static int[] getInversePermutation(int[] permutation) {
+    int[] inversePermutation = new int[permutation.length];
+    for (int x=0; x < permutation.length; x++) {
+      inversePermutation[permutation[x]] = x;
+    }
+    return inversePermutation;  
   }
-  
-  
-  
-  
 }
