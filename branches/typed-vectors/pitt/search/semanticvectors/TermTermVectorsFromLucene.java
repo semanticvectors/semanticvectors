@@ -84,7 +84,13 @@ public class TermTermVectorsFromLucene implements VectorStore {
 
   private int dimension;
   private String positionalmethod;
-
+  
+  /**
+   * Used to store permutations we'll use in training.  If positional method is "directional",
+   * this just contains the +1 and -1 shift.  If positional method is one of the permutations,
+   * this contains the shift for all the focus positions.
+   */
+  private int[][] permutationCache;
 
   static final short NONEXISTENT = -1;
 
@@ -148,9 +154,36 @@ public class TermTermVectorsFromLucene implements VectorStore {
     this.windowSize = windowSize;
     this.indexVectors = indexVectors;
 
+    // TODO(widdows): This clearly demonstrates the need for catching flag values and
+    // turning them into enums earlier in the pipeline. This would be a very silly place to
+    // have a programming typo cause an error!
+    if (positionalmethod.equals("permutation")
+        || positionalmethod.equals("permutation_plus_basic")
+        || positionalmethod.equals("directional")) {
+      initializePermutations();
+    }
+     
+    logger.info("windowSize is " + windowSize);
     trainTermTermVectors();
   }
 
+  /**
+   * Initialize all permutations that might be used.
+   */
+  private void initializePermutations() {
+    if (positionalmethod.equals("directional")) {
+      permutationCache = new int[2][dimension];
+      permutationCache[0] = PermutationUtils.getShiftPermutation(dimension, -1);
+      permutationCache[1] = PermutationUtils.getShiftPermutation(dimension, 1);      
+    } else if (positionalmethod.equals("permutation")
+        || positionalmethod.equals("permutation_plus_basic"))  {
+      permutationCache = new int[windowSize][dimension];
+      for (int i = 0; i < windowSize; ++i) {
+        permutationCache[i] = PermutationUtils.getShiftPermutation(dimension, i - windowSize/2);
+      }
+    }
+  }
+  
   private void trainTermTermVectors() throws IOException, RuntimeException {
     // Check that the Lucene index contains Term Positions.
     LuceneUtils.compressIndex(luceneIndexDir);
@@ -207,15 +240,16 @@ public class TermTermVectorsFromLucene implements VectorStore {
         VerbatimLogger.info("Processed " + dc + " documents ... ");
       }
 
-      try {
+      // TODO(widdows): Debug this!
+      //try {
         for (String field: fieldsToIndex) {
           TermPositionVector vex = (TermPositionVector) luceneIndexReader.getTermFreqVector(dc, field);
           if (vex != null) processTermPositionVector(vex);
         }
-      }
-      catch (Exception e) {
-        logger.warning("Failed to process document "+luceneIndexReader.document(dc).get("path")+"\n");
-      }
+      //}
+      //catch (Exception e) {
+      //  logger.warning("Failed to process document "+luceneIndexReader.document(dc).get("path")+"\n");
+      //}
     }
 
     VerbatimLogger.info("Created " + termVectors.getNumVectors() + " term vectors ...\n");
@@ -299,11 +333,10 @@ public class TermTermVectorsFromLucene implements VectorStore {
      *  occurring within window to term vector for focus term
      **/
     int w2 = windowSize / 2;
-    for (int p = 0; p < positions.length; ++p) {
-      int focusposn = p;
+    for (int focusposn = 0; focusposn < positions.length; ++focusposn) {
       int focusterm = positions[focusposn];
       if (focusterm == NONEXISTENT) continue;
-      int windowstart = Math.max(0, p - w2);
+      int windowstart = Math.max(0, focusposn - w2);
       int windowend = Math.min(focusposn + w2, positions.length - 1);
 
       /* add random vector (in condensed (signed index + 1)
@@ -314,9 +347,9 @@ public class TermTermVectorsFromLucene implements VectorStore {
        * zeroth position in the array should be plus or minus 1.)
        * See also generateRandomVector method below.
        */
-      for (int w = windowstart; w <= windowend; w++) {
-        if (w == focusposn) continue;
-        int coterm = positions[w];
+      for (int cursor = windowstart; cursor <= windowend; cursor++) {
+        if (cursor == focusposn) continue;
+        int coterm = positions[cursor];
         if (coterm == NONEXISTENT) continue;
         // calculate permutation required for either Sahlgren (2008) implementation
         // encoding word order, or encoding direction as in Burgess and Lund's HAL
@@ -333,10 +366,10 @@ public class TermTermVectorsFromLucene implements VectorStore {
         int[] permutation = null;
         if ((positionalmethod.equals("permutation"))
             || (positionalmethod.equals("permutation_plus_basic"))) {
-          permutation = PermutationUtils.getShiftPermutation(dimension, w - focusposn);
+          permutation = permutationCache[cursor - focusposn + w2];
         } else if (positionalmethod.equals("directional")) {
-          permutation = PermutationUtils.getShiftPermutation(
-              dimension, (int) Math.signum(w - focusposn));
+          permutation = (Math.signum(cursor - focusposn) == 1)
+              ? permutationCache[1] : permutationCache[0];
         }
 
         // docterms[coterm] contains the term in position[w] in this document.
