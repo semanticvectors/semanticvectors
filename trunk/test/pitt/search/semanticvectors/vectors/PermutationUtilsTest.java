@@ -50,5 +50,4 @@ public class PermutationUtilsTest extends TestCase {
     assertArrayEquals(new int[] {2, 3, 4, 5, 0, 1}, PermutationUtils.getShiftPermutation(6, -4));
     assertArrayEquals(new int[] {2, 3, 4, 5, 0, 1}, PermutationUtils.getShiftPermutation(6, 14));
   }
-  
 }

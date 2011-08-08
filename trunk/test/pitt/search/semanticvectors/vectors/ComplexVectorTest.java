@@ -1,153 +1,196 @@
+/**
+   Copyright (c) 2011, the SemanticVectors AUTHORS.
+
+   All rights reserved.
+
+   Redistribution and use in source and binary forms, with or without
+   modification, are permitted provided that the following conditions are
+   met:
+
+   * Redistributions of source code must retain the above copyright
+   notice, this list of conditions and the following disclaimer.
+
+   * Redistributions in binary form must reproduce the above
+   copyright notice, this list of conditions and the following
+   disclaimer in the documentation and/or other materials provided
+   with the distribution.
+
+   * Neither the name of the University of Pittsburgh nor the names
+   of its contributors may be used to endorse or promote products
+   derived from this software without specific prior written
+   permission.
+
+   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+   "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+   LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+   A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
+   CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+   EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+   PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+   PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+   LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+   NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+   SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+**/
+
 package pitt.search.semanticvectors.vectors;
 
+import java.io.IOException;
 import java.util.Random;
 
+import org.apache.lucene.store.IndexInput;
+import org.apache.lucene.store.IndexOutput;
+import org.apache.lucene.store.RAMDirectory;
 import org.junit.Test;
+
+import static pitt.search.semanticvectors.TestUtils.assertFloatArrayEquals;
+import static pitt.search.semanticvectors.vectors.ComplexVector.Mode;
 
 import junit.framework.TestCase;
 
+import static org.junit.Assert.assertArrayEquals;
+
+/**
+ * Tests for {@code ComplexVector} class.  Many of these tests use {@code ComplexVector#toString}
+ * to check correct results.  This is somewhat ad hoc and any change in the debug string
+ * representation will likely cause breakages.  Be warned!
+ */
 public class ComplexVectorTest extends TestCase {
 
   private static final double TOL = 0.0001;
 
+  @Test 
+  public void testGenerateRandomVector() {
+    // Generate random vector
+    ComplexVector cv1 = (ComplexVector) VectorFactory.generateRandomVector(
+        VectorType.COMPLEX, 5, 2, new Random(0));
+    assertArrayEquals(new short[] {0, 27244, 4, 19868}, cv1.getSparseOffsets());
+    assertEquals(Mode.POLAR_SPARSE, cv1.getOpMode());
+  }
+  
   @Test
-  public void testCreateLookupTable() {
-    float[] realLUT = ComplexVectorUtils.getRealLUT();
-    float[] imagLUT = ComplexVectorUtils.getImagLUT();
-
-    assertEquals(1, realLUT[0], TOL);
-    assertEquals(0, imagLUT[0], TOL);
-    assertEquals(0, realLUT[(int) Math.pow(2, 14)], TOL);
-    assertEquals(1, imagLUT[(int) Math.pow(2, 14)], TOL);
-    assertEquals(-1, realLUT[(int) Math.pow(2, 15)], TOL);
-    assertEquals(0, imagLUT[(int) Math.pow(2, 15)], TOL);
+  public void testDenseToCartesian() {
+    ComplexVector vector = new ComplexVector(new short[] {-1, 0});
+    vector.toCartesian();
+    assertEquals(ComplexVector.Mode.CARTESIAN, vector.getOpMode());
+    assertFloatArrayEquals(new float[] {0.0f, 0.0f, 1.0f, 0.0f}, vector.getCoordinates(), TOL);
   }
 
   @Test
-  public void testComplexVectorCreation() {
+  public void testComplexVectorConversion() {
     ComplexVector vector = (ComplexVector) VectorFactory.createZeroVector(VectorType.COMPLEX, 10);
     assertTrue(vector.isZeroVector());
     assertEquals(10, vector.getDimension());
 
-    Random random = new Random(0);
-    vector = (ComplexVector) VectorFactory.generateRandomVector(VectorType.COMPLEX, 10, 2, random);
-    System.out.println(vector.toString());
+    vector = (ComplexVector) VectorFactory.createZeroVector(VectorType.COMPLEX, 2);
+    vector.setSparseOffsets(new short[] {1, 0});
+    vector.toDensePolar();
+    assertArrayEquals(new short[] {-1, 0}, vector.getPhaseAngles());
     vector.toCartesian();
-    System.out.println("Cartesian: " + vector.toString());
+    assertFloatArrayEquals(new float[] {0, 0, 1, 0}, vector.getCoordinates(), TOL);
   }
 
-  /*
- @Test
- public void testWriteToString() {
-   int dim = 10;
-   int seedLength = 3;
-   ComplexVector complexInstance = new ComplexVector(0);
-   ComplexVector cv = complexInstance.generateRandomVector(dim, seedLength, new Random());
-   System.out.println(cv.writeToString());
- }
+  @Test
+  public void testWriteToString() {
+    float[] coords = { 12.3f, 3.2f, 2.6f, -1.3f, -0.01f, -1000.2f };
+    ComplexVector cv = new ComplexVector(coords);
+    assertTrue(cv.writeToString().contains("12.3|3.2|2.6|-1.3|-0.01|-1000.2"));
+    assertTrue(cv.toString().contains("12.3 3.2 2.6 -1.3 -0.01 -1000.2 "));
+  }
 
- @Test
- public void testDenseVectorCartesianConstructor() {
-   float[] coords = { 12.3f, 3.2f, 2.6f, -1.3f, -0.01f, -1000.2f };
-   ComplexVector cv = new ComplexVector(coords);
-   System.out.println(cv.toString());
- }
+  @Test
+  public void testSuperposeSparseOnZero() {
+    int dim = 4;
+    ComplexVector cv1 = (ComplexVector) VectorFactory.createZeroVector(VectorType.COMPLEX, dim);
+    cv1.setSparseOffsets(new short[] {1, 0, 3, CircleLookupTable.PHASE_RESOLUTION / 4});
+    ComplexVector cv2 = (ComplexVector) VectorFactory.createZeroVector(VectorType.COMPLEX, dim);
+    cv2.superpose(cv1, 5, null);
+    assertEquals(Mode.CARTESIAN, cv2.getOpMode());
+    assertFloatArrayEquals(
+        new float[] {0, 0, 5, 0, 0, 0, 0, 5}, cv2.getCoordinates(), TOL);
+  }
 
- @Test
- public void testGenerateRandomVector() {
-   int dim = 10;
-   int seedLength = 3;
-   ComplexVector complexInstance = new ComplexVector(0);
-   ComplexVector cv = complexInstance.generateRandomVector(dim, seedLength, new Random());
-   System.out.println(cv.toString());
- }
+  @Test
+  public void testSuperposeZeroOnSparse() {
+    int dim = 4;
+    int seedLength = 2;
+    ComplexVector cv1 = (ComplexVector) VectorFactory.generateRandomVector(
+        VectorType.COMPLEX, dim, seedLength, new Random(0));
+    assertArrayEquals(new short[] {2, 27244, 0, 19868}, cv1.getSparseOffsets());
+    ComplexVector cv2 = (ComplexVector) VectorFactory.createZeroVector(VectorType.COMPLEX, dim);
+    cv2.superpose(cv1, 1.0, null);
+    assertFloatArrayEquals(
+        new float[] {-0.78503f, -0.61945f, 0, 0, 0.48955f, -0.872064f, 0, 0},
+        cv2.getCoordinates(), TOL);
+  }
 
- @Test
- public void testGenerateDenseCartesianRandomVector() {
-   int dim = 3;
-   ComplexVector complexInstance = new ComplexVector(0);
-   ComplexVector cv = complexInstance.generateDenseCartesianRandomVector(dim, new Random());
-   System.out.println(cv.toString());
- }
+  @Test
+  public void testVectorCopyCartesian() {
+    float[] coords = { 12.3f, 3.2f, 2.6f, -1.3f };
+    ComplexVector cv1 = new ComplexVector(coords);
+    ComplexVector cv2 = cv1.copy();
+    assertFloatArrayEquals(
+        new float[] { 12.3f, 3.2f, 2.6f, -1.3f }, cv2.getCoordinates(), TOL);
+  }
 
- @Test
- public void testSuperposeSparseOnZero() {
-   int dim = 5;
-   int seedLength = 2;
-   ComplexVector complexInstance = new ComplexVector(0);
+  @Test
+  public void testCartesianToDensePolar() {
+    ComplexVector cv = new ComplexVector( new float[] {1.0f, 1.0f, 0, 1.0f, 1.0f, 0 } );
+    cv.toDensePolar();
+    assertTrue(cv.toString().contains("4096 8192 0"));
+  }
 
-   // Generate random vector
-   ComplexVector cv1 = complexInstance.generateRandomVector(dim, seedLength, new Random());
-   System.out.println(cv1.toString());
+  @Test
+  public void testNormalize() {
+    ComplexVector cv = new ComplexVector(new float[] {3, 4, 4, 3, 4, 3, 0, 5});
+    cv.normalize();
+    ComplexVector.setDominantMode(Mode.CARTESIAN);
+    assertFloatArrayEquals(new float[] {0.3f, 0.4f, 0.4f, 0.3f, 0.4f, 0.3f, 0.0f, 0.5f},
+        cv.getCoordinates(), TOL);
+    ComplexVector.setDominantMode(Mode.POLAR_DENSE);
+    cv.normalize();
+    assertArrayEquals(new short[] {4836, 3355, 3355, 8192}, cv.getPhaseAngles());
+  }
 
-   // Create zero vector
-   ComplexVector cv2 = complexInstance.createZeroVector(dim);
+  @Test
+  public void testMeasureOverlap() {
+    int RES = CircleLookupTable.PHASE_RESOLUTION;
+    short[] angles1 = { 0, 0, 0 };
+    short[] angles2 = { 0, -1, (short) (RES / 4) };  // Remember that -1 angle means complex zero.
+    short[] angles3 = { (short) (3*RES / 4), (short) (RES / 2), 0 };
 
-   // Superpose
-   cv2.superpose(cv1, 1.0, null);
+    ComplexVector cv1 = new ComplexVector(angles1);
+    ComplexVector cv2 = new ComplexVector(angles2);
+    ComplexVector cv3 = new ComplexVector(angles3);
 
-   System.out.println(cv2.toString());
- }
+    assertEquals(1.0/3.0, cv1.measurePolarDenseOverlap(cv2), TOL);
+    assertEquals(0, cv1.measurePolarDenseOverlap(cv3), TOL);
+    assertEquals(0, cv2.measurePolarDenseOverlap(cv3), TOL);
+    assertEquals(1, cv1.measurePolarDenseOverlap(cv1), TOL);
+    assertEquals(2.0/3.0, cv2.measurePolarDenseOverlap(cv2), TOL);  // Zero entry doesn't contribute.
+    assertEquals(1, cv3.measurePolarDenseOverlap(cv3), TOL);
+  }
 
- @Test
- public void testSuperposeZeroOnSparse() {
-   int dim = 5;
-   ComplexVector complexInstance = new ComplexVector(0);
-   System.out.println("....");
+  @Test
+  public void testReadWrite() {
+    Vector v1 = new ComplexVector(new short[] { -1, 16000, 32000 });
 
-   // Generate random vector
-   ComplexVector cv1 = complexInstance.generateDensePolarRandomVector(dim, new Random());
-   System.out.println(cv1.toString());
+    RAMDirectory directory = new RAMDirectory();
 
-   // Create zero vector
-   ComplexVector cv2 = complexInstance.createZeroVector(dim);
+    try {
+      IndexOutput indexOutput = directory.createOutput("complexvectors.bin");
+      v1.writeToLuceneStream(indexOutput);
+      indexOutput.flush();
 
-   // Superpose
-   cv2.superpose(cv1, 1.0, null);
-
-   System.out.println(cv2.toString());
- }
-
- @Test
- public void testVectorCopy() {
-   float[] coords = { 12.3f, 3.2f, 2.6f, -1.3f, -0.01f, -1000.2f};
-   ComplexVector cv1 = new ComplexVector(coords);
-   ComplexVector cv2 = cv1.copy();
-   System.out.println(cv2.toString());
- }
-
- @Test
- public void testNormalize() {
-   float[] coords = { 12.3f, 3.2f, 2.6f, -1.3f, -0.01f, -1000.2f};
-   ComplexVector cv = new ComplexVector(coords);
-   System.out.println(cv.toString());
-   cv.normalize();
-   System.out.println(cv.toString());
- }
-
- @Test
- public void testMeasureOverlap() {
-   double score;
-   char[] angles1 = { 0, 16000, 32000 };
-   char[] angles2 = { 0, 48000, 33000 };
-   char[] angles3 = { 32000, 16000, 37000 };
-
-   ComplexVector cv1 = new ComplexVector(angles1);
-   ComplexVector cv2 = new ComplexVector(angles2);
-   ComplexVector cv3 = new ComplexVector(angles3);
-
-   System.out.println("Vector 1: "+cv1.toString());
-   System.out.println("Vector 2: "+cv2.toString());
-   System.out.println("Vector 3: "+cv3.toString());
-
-   score = cv1.measureOverlap(cv2);
-   System.out.println("Score - v1 with v2 : "+score);
-
-   score = cv1.measureOverlap(cv3);
-   System.out.println("Score - v1 with v3 : "+score);
-
-   score = cv2.measureOverlap(cv3);
-   System.out.println("Score - v2 with v3 : "+score);
- }
-   */
+      IndexInput indexInput = directory.openInput("complexvectors.bin");
+      ComplexVector cv2 = new ComplexVector(3, Mode.POLAR_SPARSE);
+      cv2.readFromLuceneStream(indexInput);
+      assertFloatArrayEquals(
+          new float[] {0, 0, -0.997290f, 0.073564f, 0.989176f, -0.1467304f},
+          cv2.getCoordinates(), TOL);
+    } catch (IOException e) {
+      e.printStackTrace();
+      fail();
+    }
+  }
 }

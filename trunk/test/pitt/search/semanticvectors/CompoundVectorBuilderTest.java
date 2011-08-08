@@ -1,5 +1,5 @@
 /**
-   Copyright 2009, the SemanticVectors authors.
+   Copyright 2011, the SemanticVectors authors.
    All rights reserved.
 
    Redistribution and use in source and binary forms, with or without

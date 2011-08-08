@@ -240,16 +240,10 @@ public class TermTermVectorsFromLucene implements VectorStore {
         VerbatimLogger.info("Processed " + dc + " documents ... ");
       }
 
-      // TODO(widdows): Debug this!
-      //try {
-        for (String field: fieldsToIndex) {
-          TermPositionVector vex = (TermPositionVector) luceneIndexReader.getTermFreqVector(dc, field);
-          if (vex != null) processTermPositionVector(vex);
-        }
-      //}
-      //catch (Exception e) {
-      //  logger.warning("Failed to process document "+luceneIndexReader.document(dc).get("path")+"\n");
-      //}
+      for (String field: fieldsToIndex) {
+        TermPositionVector vex = (TermPositionVector) luceneIndexReader.getTermFreqVector(dc, field);
+        if (vex != null) processTermPositionVector(vex);
+      }
     }
 
     VerbatimLogger.info("Created " + termVectors.getNumVectors() + " term vectors ...\n");
@@ -261,6 +255,9 @@ public class TermTermVectorsFromLucene implements VectorStore {
 
     String randFile = "randomvectors.bin";
     // If building a permutation index, these need to be written out to be reused.
+    //
+    // TODO(widdows): It is odd to do this here while not writing out the semantic
+    // term vectors here.  We should redesign this.
     if ((positionalmethod.equals("permutation") || (positionalmethod.equals("permutation_plus_basic"))) 
         && !retraining) {
       VerbatimLogger.info("\nNormalizing and writing random vectors to " + randFile + "\n");
@@ -273,7 +270,7 @@ public class TermTermVectorsFromLucene implements VectorStore {
   }
 
   /**
-     For each term, add term index vector
+   * For each term, add term index vector
    * for any term occurring within a window of size windowSize such
    * that for example if windowSize = 5 with the window over the
    * phrase "your life is your life" the index vectors for terms
@@ -332,12 +329,12 @@ public class TermTermVectorsFromLucene implements VectorStore {
     /** Iterate through positions adding index vectors of terms
      *  occurring within window to term vector for focus term
      **/
-    int w2 = windowSize / 2;
+    int windowRadius = windowSize / 2;
     for (int focusposn = 0; focusposn < positions.length; ++focusposn) {
       int focusterm = positions[focusposn];
       if (focusterm == NONEXISTENT) continue;
-      int windowstart = Math.max(0, focusposn - w2);
-      int windowend = Math.min(focusposn + w2, positions.length - 1);
+      int windowstart = Math.max(0, focusposn - windowRadius);
+      int windowend = Math.min(focusposn + windowRadius, positions.length - 1);
 
       /* add random vector (in condensed (signed index + 1)
        * representation) to term vector by adding -1 or +1 to the
@@ -366,7 +363,7 @@ public class TermTermVectorsFromLucene implements VectorStore {
         int[] permutation = null;
         if ((positionalmethod.equals("permutation"))
             || (positionalmethod.equals("permutation_plus_basic"))) {
-          permutation = permutationCache[cursor - focusposn + w2];
+          permutation = permutationCache[cursor - focusposn + windowRadius];
         } else if (positionalmethod.equals("directional")) {
           permutation = (Math.signum(cursor - focusposn) == 1)
               ? permutationCache[1] : permutationCache[0];

@@ -37,6 +37,8 @@ package pitt.search.semanticvectors.vectors;
 
 import java.util.Random;
 
+import pitt.search.semanticvectors.vectors.ComplexVector.Mode;
+
 /**
  * Class for building vectors, designed to be used externally.
  * 
@@ -45,7 +47,8 @@ import java.util.Random;
 public class VectorFactory {
   private static final BinaryVector binaryInstance = new BinaryVector(0);
   private static final RealVector realInstance = new RealVector(0);
-  private static final ComplexVector complexInstance = new ComplexVector(0);
+  private static final ComplexVector complexInstance =
+    new ComplexVector(0, ComplexVector.Mode.POLAR_SPARSE);
 
   public static Vector createZeroVector(VectorType type, int dimension) {
     switch (type) {
@@ -54,7 +57,7 @@ public class VectorFactory {
       case REAL:
         return new RealVector(dimension);
       case COMPLEX:
-        return new ComplexVector(dimension);
+        return new ComplexVector(dimension, Mode.POLAR_SPARSE);
       default:
         throw new IllegalArgumentException("Unrecognized VectorType: " + type);
     }
@@ -123,7 +126,7 @@ public class VectorFactory {
       case REAL:
         return 4 * dimension;
       case COMPLEX:
-        return 4 * dimension;
+        return 8 * dimension;
       default:
         throw new IllegalArgumentException("Unrecognized VectorType: " + type);
     }

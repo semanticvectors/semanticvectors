@@ -35,17 +35,20 @@
 
 package pitt.search.semanticvectors.vectors;
 
+import java.util.logging.Logger;
+
 /**
  * Singleton class for caching trig values for optimizing speed of complex vector operations.
  * 
  * @author widdows
  */
 public class CircleLookupTable {
+  public static Logger logger = Logger.getLogger(CircleLookupTable.class.getCanonicalName());
   static CircleLookupTable singletonInstance = null;
   
   private CircleLookupTable() {
-    realLUT = new float[phaseResolution];
-    imagLUT = new float[phaseResolution];
+    realLUT = new float[PHASE_RESOLUTION];
+    imagLUT = new float[PHASE_RESOLUTION];
   };
   
   /**
@@ -53,39 +56,57 @@ public class CircleLookupTable {
    */
   private static void initialize() {
     singletonInstance = new CircleLookupTable();
-    for (int i=0; i<phaseResolution; i++) {
-      float theta = ((float)i) * pi3;
+    singletonInstance.realLUT[0] = 0;
+    singletonInstance.imagLUT[0] = 0;
+    for (int i = 0; i < PHASE_RESOLUTION; i++) {
+      double theta = i * RADIANS_PER_STEP;
       singletonInstance.realLUT[i] = (float)Math.cos(theta);
       singletonInstance.imagLUT[i] = (float)Math.sin(theta);
     } 
   }
 
   /**
-   * Resolution at which we discretise the phase angle. This is fixed at 2^16 since we are
+   * Resolution at which we discretise the phase angle. This is fixed at 2^8 + 1 since we are
    * using 16 bit chars to represent phase angles.
    */
-  public static final int phaseResolution = 65536;
-  public static final float pi = 3.1415926535f;
-  public static final float pi2 = CircleLookupTable.phaseResolution / 2 / pi;
-  public static final float pi3 = pi * 2 / CircleLookupTable.phaseResolution;
-
+  public static final int PHASE_RESOLUTION = 32768;
+  public static final double PI = Math.PI;
+  public static final double HALF_PI = PI / 2;
+  public static final double STEPS_PER_RADIAN = CircleLookupTable.PHASE_RESOLUTION / (2 * PI);
+  public static final double RADIANS_PER_STEP = (2 * PI) / CircleLookupTable.PHASE_RESOLUTION;
+  /** Notional index of complex zero point. */
+  public static final int ZERO_INDEX = -1;
+  
   /**
    * Lookup Table for mapping phase angle to cartesian coordinates.
    */
   private float[] realLUT = null;
   private float[] imagLUT = null;
   
-  public static float[] getRealLUT() {
+  public static float getRealEntry(int i) {
+    if (i == ZERO_INDEX) return 0;
     if (singletonInstance == null) {
       initialize();
     }
-    return singletonInstance.realLUT;
+    return singletonInstance.realLUT[i];
   }
   
-  public static float[] getImagLUT() {
+  public static float getImagEntry(int i) {
+    if (i == ZERO_INDEX) return 0;
     if (singletonInstance == null) {
       initialize();
     }
-    return singletonInstance.imagLUT;
+    return singletonInstance.imagLUT[i];
+  }
+
+  /**
+   * Convert from cartesian coordinates to phase angle using trig function.
+   */
+  public static short phaseAngleFromCartesianTrig(float real, float imag)  {
+    if (real == 0 && imag == 0) return ZERO_INDEX;
+    double theta = HALF_PI - Math.atan2(real, imag);
+    short steps = (short) (theta * STEPS_PER_RADIAN);
+    if (steps < 0) steps += PHASE_RESOLUTION;
+    return steps;
   }
 }
