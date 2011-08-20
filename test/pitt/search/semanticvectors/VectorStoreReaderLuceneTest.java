@@ -31,11 +31,11 @@
    THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  **/
 
-package pitt.search.semanticvectors.integrationtests;
+package pitt.search.semanticvectors;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
-
+import org.apache.lucene.store.IndexInput;
+import org.apache.lucene.store.IndexOutput;
+import org.apache.lucene.store.RAMDirectory;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -43,54 +43,84 @@ import pitt.search.semanticvectors.ObjectVector;
 import pitt.search.semanticvectors.VectorStoreReaderLucene;
 import pitt.search.semanticvectors.vectors.RealVector;
 import pitt.search.semanticvectors.vectors.Vector;
+import pitt.search.semanticvectors.vectors.VectorType;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.NoSuchElementException;
 
-public class VectorStoreReaderLuceneTest {
+import junit.framework.TestCase;
+
+public class VectorStoreReaderLuceneTest extends TestCase {
 
   private static double TOL = 0.0001;
-  
-  @Before
-  public void setUp() { assert(RunTests.prepareTestData()); }
+  private final RAMDirectory directory = new RAMDirectory();
+  private final String TEST_VECTOR_FILE = "realvectors.bin";
+  private IndexOutput indexOutput;
+  private ThreadLocal<IndexInput> threadLocalIndexInput;
 
-  @Test
-  public void TestReadFromTestData() throws IOException {
-    VectorStoreReaderLucene reader = new VectorStoreReaderLucene(RunTests.vectorBinFile);
-    assertEquals(2, reader.getNumVectors());
-    Vector abraham = reader.getVector("abraham");
-    reader.close();
-    assertEquals(1.0f, abraham.measureOverlap(new RealVector(new float[] {1, 0, 0})), TOL);
+  @Before
+  public void setUp() {
+    VectorStoreRAM store = new VectorStoreRAM(VectorType.REAL, 2);
+    store.putVector("isaac", new RealVector(new float[] {1, 0}));
+    store.putVector("abraham", new RealVector(new float[] {0.7f, 0.7f}));
+    try {
+      indexOutput = directory.createOutput(TEST_VECTOR_FILE);
+      VectorStoreWriter writer = new VectorStoreWriter();
+      writer.writeToIndexOutput(store, indexOutput);
+      indexOutput.flush();
+
+      threadLocalIndexInput = new ThreadLocal<IndexInput>() {
+        @Override
+        protected IndexInput initialValue() {
+          try {
+            return directory.openInput(TEST_VECTOR_FILE);
+          } catch (IOException e) {
+            e.printStackTrace();
+          }
+          return null;
+        }
+      };
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
   }
 
   @Test
-  public void TestOpensAndCloses() throws IOException {
+  public void testReadFromTestData() throws IOException {
+    VectorStoreReaderLucene reader = new VectorStoreReaderLucene(threadLocalIndexInput);
+    assertEquals(2, reader.getNumVectors());
+    Vector abraham = reader.getVector("abraham");
+    assertEquals(0.707106f, abraham.measureOverlap(new RealVector(new float[] {1, 0})), TOL);
+  }
+
+  @Test
+  public void testOpensAndCloses() throws IOException {
     VectorStoreReaderLucene reader;
-    reader = new VectorStoreReaderLucene(RunTests.vectorBinFile);
-    reader.close();
+    //reader = new VectorStoreReaderLucene(TEST_VECTOR_FILE);
+    //reader.close();
   }
 
   @Test
   // I'm not sure you *should* be able to open two versions of the
   // same vector store file open at once, even for reads, but it's
   // good to test for this somehow.
-  public void TestMultipleOpensForRead() throws IOException {
-    VectorStoreReaderLucene reader = new VectorStoreReaderLucene(RunTests.vectorBinFile);
-    VectorStoreReaderLucene reader2 = new VectorStoreReaderLucene(RunTests.vectorBinFile);
-    reader.close();
-    reader2.close();
+  public void testMultipleOpensForRead() throws IOException {
+    VectorStoreReaderLucene reader = new VectorStoreReaderLucene(threadLocalIndexInput);
+    VectorStoreReaderLucene reader2 = new VectorStoreReaderLucene(threadLocalIndexInput);
+    //reader.close();
+    //reader2.close();
   }
 
   @Test
-  public void TestEnumerationThreadSafety() throws IOException {
+  public void testVectorEnumerationThreadSafety() throws IOException {
     final int maxThreads = 5;
 
     // It's a bit of a dance to get a VectorStoreReaderLucene that you
     // can use inside different threads.
     VectorStoreReaderLucene vectorStoreInit = null;
-    vectorStoreInit = new VectorStoreReaderLucene(RunTests.vectorBinFile);
+    vectorStoreInit = new VectorStoreReaderLucene(threadLocalIndexInput);
     final VectorStoreReaderLucene vectorStore = vectorStoreInit;
     ArrayList<Thread> threads = new ArrayList<Thread>();
 
@@ -130,6 +160,6 @@ public class VectorStoreReaderLuceneTest {
         fail();
       }
     }
-    vectorStoreInit.close();
+    //vectorStoreInit.close();
   }
 }

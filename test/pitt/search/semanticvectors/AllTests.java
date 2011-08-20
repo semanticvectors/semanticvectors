@@ -47,8 +47,8 @@ public class AllTests {
     suite.addTestSuite(FlagsTest.class);
     suite.addTestSuite(CompoundVectorBuilderTest.class);
     suite.addTestSuite(VectorStoreWriterTest.class);
+    suite.addTestSuite(VectorStoreReaderLuceneTest.class);
     suite.addTestSuite(VectorStoreRAMTest.class);
-    suite.addTestSuite(VectorStoreSparseRAMTest.class);
     suite.addTestSuite(RealVectorTest.class);
     suite.addTestSuite(BinaryVectorTest.class);
     suite.addTestSuite(CircleLookupTableTest.class);

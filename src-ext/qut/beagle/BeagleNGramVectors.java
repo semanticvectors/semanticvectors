@@ -37,9 +37,7 @@ package qut.beagle;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Enumeration;
-import java.util.HashMap;
 import java.util.Random;
 
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
@@ -56,10 +54,9 @@ import pitt.search.semanticvectors.Flags;
 import pitt.search.semanticvectors.ObjectVector;
 import pitt.search.semanticvectors.VectorStore;
 import pitt.search.semanticvectors.VectorStoreRAM;
-import pitt.search.semanticvectors.VectorStoreWriter;
 import pitt.search.semanticvectors.vectors.RealVector;
 import pitt.search.semanticvectors.vectors.Vector;
-import cern.colt.matrix.tfcomplex.impl.DenseFComplexMatrix1D;
+import pitt.search.semanticvectors.vectors.VectorType;
 import cern.colt.matrix.tfloat.impl.DenseFloatMatrix1D;
 
 /**
@@ -174,8 +171,8 @@ public class BeagleNGramVectors implements VectorStore {
       throw new IOException("Lucene indexes not built correctly.");
     }
 
-    this.indexVectors = new VectorStoreRAM();
-    this.termVectors = new VectorStoreRAM();
+    this.indexVectors = new VectorStoreRAM(VectorType.REAL, Flags.dimension);
+    this.termVectors = new VectorStoreRAM(VectorType.REAL, Flags.dimension);
 
     // Iterate through an enumeration of terms and create term vectors.
     System.out.println("Creating term vectors ...");
@@ -397,4 +394,10 @@ public class BeagleNGramVectors implements VectorStore {
   public int getDimension() {
     return Flags.dimension;
   }
+  
+  @Override
+  /**
+   * Returns REAL since this is only implemented for teal vectors so far.
+   */
+  public VectorType getVectorType() { return VectorType.REAL; }
 }

@@ -42,6 +42,7 @@ import org.junit.*;
 
 import pitt.search.semanticvectors.vectors.RealVector;
 import pitt.search.semanticvectors.vectors.Vector;
+import pitt.search.semanticvectors.vectors.VectorType;
 
 import junit.framework.TestCase;
 
@@ -50,7 +51,7 @@ public class VectorStoreWriterTest extends TestCase {
   public static final RAMDirectory directory = new RAMDirectory();
 
   public VectorStoreRAM createTestVectorStore() {
-    VectorStoreRAM store = new VectorStoreRAM();
+    VectorStoreRAM store = new VectorStoreRAM(VectorType.REAL, 2);
     store.putVector("isaac", new RealVector(new float[] {1, 0}));
     store.putVector("abraham", new RealVector(new float[] {0.7f, 0.7f}));
     return store;
@@ -63,9 +64,9 @@ public class VectorStoreWriterTest extends TestCase {
     assertEquals(VectorStoreWriter.generateHeaderString(), "-vectortype binary -dimension 2");
     Flags.vectortype = "real";  // Cleanup!
   }
-  
+
   @Test
-  public void testWriteLuceneVectorStore() throws IOException {
+  public void testWriteLuceneVectorStoreAndRead() throws IOException {
     IndexOutput indexOutput = directory.createOutput("realvectors.bin");
     VectorStore store = createTestVectorStore();
     VectorStoreWriter writer = new VectorStoreWriter();
