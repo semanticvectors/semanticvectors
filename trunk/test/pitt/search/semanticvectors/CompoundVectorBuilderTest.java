@@ -39,14 +39,14 @@ import org.junit.Test;
 
 import pitt.search.semanticvectors.vectors.RealVector;
 import pitt.search.semanticvectors.vectors.Vector;
+import pitt.search.semanticvectors.vectors.VectorType;
 
 public class CompoundVectorBuilderTest extends TestCase {
   
   static double TOL = 0.0001;
 
   private VectorStoreRAM createVectorStore() {
-    Flags.dimension = 2;
-    VectorStoreRAM vectorStore = new VectorStoreRAM();
+    VectorStoreRAM vectorStore = new VectorStoreRAM(VectorType.REAL, 2);
     Vector vector1 = new RealVector(new float[] {1.0f, 0.0f});
     vectorStore.putVector("vector1", vector1);
     Vector vector2 = new RealVector(new float[] {1.0f, -1.0f});
@@ -56,7 +56,7 @@ public class CompoundVectorBuilderTest extends TestCase {
 
   private VectorStoreRAM createNormalizedVectorStore() {
     Flags.dimension = 2;
-    VectorStoreRAM vectorStore = new VectorStoreRAM();
+    VectorStoreRAM vectorStore = new VectorStoreRAM(VectorType.REAL, 2);
     Vector vector1 = new RealVector(new float[] {1.0f, 0.0f});
     vector1.normalize();
     vectorStore.putVector("vector1", vector1);

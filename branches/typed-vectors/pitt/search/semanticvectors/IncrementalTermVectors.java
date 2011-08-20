@@ -44,8 +44,8 @@ import org.apache.lucene.store.FSDirectory;
 
 import pitt.search.semanticvectors.vectors.Vector;
 import pitt.search.semanticvectors.vectors.VectorFactory;
+import pitt.search.semanticvectors.vectors.VectorType;
 
-import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.logging.Logger;
 
@@ -54,8 +54,28 @@ import java.util.logging.Logger;
  * @author Trevor Cohen, Dominic Widdows
  */
 public class IncrementalTermVectors implements VectorStore {
+  /** Usage message printed if {@link main} is called with ill-formed arguments. */
+  public static String usageMessage = "\nIncrementalTermVectors class in package pitt.search.semanticvectors"
+    + "\nUsage: java pitt.search.semanticvectors.IncrementalTermVectors [document vector file] [lucene index]"
+    + "\nIncrementalTermVectors creates termvectors files in local directory from docvectors file."
+    + "\nOther parameters that can be changed include vector type (real, binary, complex), "
+    + "\n    vector length (number of dimensions), seed length (number of non-zero"
+    + "\n    entries in basic vectors), minimum term frequency,"
+    + "\n    and number of iterative training cycles."
+    + "\nTo change these use the command line arguments "
+    + "\n  -vectortype [real|binary|complex]"
+    + "\n  -dimension [number of dimension]"
+    + "\n  -seedlength [seed length]"
+    + "\n  -minfrequency [minimum term frequency]"
+    + "\n  -maxnonalphabetchars [number non-alphabet characters (-1 for any number)]"
+    + "\n  -trainingcycles [training cycles]"
+    + "\n  -docindexing [incremental|inmemory|none] Switch between building doc vectors incrementally"
+    + "\n        (requires positional index), all in memory (default case), or not at all";
+  
   private static final Logger logger = Logger.getLogger(
       IncrementalTermVectors.class.getCanonicalName());
+  private VectorType vectorType;
+  private int dimension;
   
   private VectorStoreRAM termVectorData;
   private IndexReader indexReader;
@@ -64,6 +84,12 @@ public class IncrementalTermVectors implements VectorStore {
   private LuceneUtils lUtils = null;
   private String docVectorFileName;
   
+  @Override
+  public VectorType getVectorType() { return vectorType; }
+  
+  @Override
+  public int getDimension() { return dimension; }
+  
   /**
    * Constructor that gets everything it needs from a
    * TermVectorsFromLucene object and writes to a named file.
@@ -71,9 +97,11 @@ public class IncrementalTermVectors implements VectorStore {
    * @param fieldsToIndex String[] containing fields indexed when generating termVectorData
    * @param docVectorFileName Filename containing the input document vectors
    */
-  public IncrementalTermVectors(String luceneIndexDir, int dimension, 
+  public IncrementalTermVectors(String luceneIndexDir, VectorType vectorType, int dimension,
                                 String[] fieldsToIndex, String docVectorFileName)
       throws IOException {
+    this.vectorType = vectorType;
+    this.dimension = dimension;
     this.indexReader = IndexReader.open(FSDirectory.open(new File(luceneIndexDir)));
     this.fieldsToIndex = fieldsToIndex;
     this.luceneIndexDir = luceneIndexDir;
@@ -101,7 +129,7 @@ public class IncrementalTermVectors implements VectorStore {
     Flags.parseFlagsFromString(header);
 
     logger.info("Opening index at " + luceneIndexDir);
-    termVectorData = new VectorStoreRAM();
+    termVectorData = new VectorStoreRAM(vectorType, dimension);
     TermEnum terms = this.indexReader.terms();
     int tc = 0;
 
@@ -113,7 +141,7 @@ public class IncrementalTermVectors implements VectorStore {
           Flags.minfrequency, Flags.maxfrequency, Flags.maxnonalphabetchars))
         continue;
       tc++;
-      Vector termVector = VectorFactory.createZeroVector(Flags.vectortype, Flags.dimension);
+      Vector termVector = VectorFactory.createZeroVector(vectorType, dimension);
 
       // Place each term vector in the vector store.
       termVectorData.putVector(term.text(), termVector);
@@ -128,7 +156,7 @@ public class IncrementalTermVectors implements VectorStore {
       }
 
       int dcount = dc;
-      Vector docVector = VectorFactory.createZeroVector(Flags.vectortype, Flags.dimension);
+      Vector docVector = VectorFactory.createZeroVector(vectorType, dimension);
 
       try {
     	 /**
@@ -198,71 +226,28 @@ public class IncrementalTermVectors implements VectorStore {
   public int getNumVectors() {
     return termVectorData.getNumVectors();
   }
-  
-  /**
-   * Prints the following usage message:
-   * <code>
-   * <br> IncrementalTermVectors class in package pitt.search.semanticvectors
-   * <br> Usage: java pitt.search.semanticvectors.IncrementalTermVectors [document vector file] [lucene index]
-   * <br> IncrementalTermVectors creates termvectors files in local directory from docvectors file.
-   * <br>
-   * <br> Usage: java pitt.search.semanticvectors.IncrementalTermVectors [document vector file] [lucene index]
-   * <br>
-   * <br> Other parameters that can be changed include vector length,
-   * <br>     (number of dimension), seed length (number of non-zero
-   * <br>     entries in basic vectors), minimum term frequency,
-   * <br>     and number of iterative training cycles.
-   * <br> To change these use the following command line arguments:
-   * <br> -dimension [number of dimension]
-   * <br> -seedlength [seed length]
-   * <br> -minfrequency [minimum term frequency]
-   * <br> -maxnonalphabetchars [number non-alphabet characters (-1 for any number)]
-   * </code>
-   */
-  public static void usage() {
-    String usageMessage = "\nIncrementalTermVectors class in package pitt.search.semanticvectors"
-        + "\nUsage: java pitt.search.semanticvectors.IncrementalTermVectors [document vector file] [lucene index]"
-        + "\nIncrementalTermVectors creates termvectors files in local directory from docvectors file."
-        + "\nOther parameters that can be changed include vector length,"
-        + "\n    (number of dimension), seed length (number of non-zero"
-        + "\n    entries in basic vectors), minimum term frequency,"
-        + "\n    and number of iterative training cycles."
-        + "\nTo change these use the command line arguments "
-        + "\n  -dimension [number of dimension]"
-        + "\n  -seedlength [seed length]"
-        + "\n  -minfrequency [minimum term frequency]"
-        + "\n  -maxnonalphabetchars [number non-alphabet characters (-1 for any number)]"
-        + "\n  -trainingcycles [training cycles]"
-        + "\n  -docindexing [incremental|inmemory|none] Switch between building doc vectors incrementally"
-        + "\n        (requires positional index), all in memory (default case), or not at all";
-    System.out.println(usageMessage);
-  }
 
   public static void main(String[] args) throws IOException {
     try {
       args = Flags.parseCommandLineFlags(args);
     } catch (IllegalArgumentException e) {
-      usage();
+      System.err.println(usageMessage);
       throw e;
     }
 
     // Only one argument should remain, the path to the Lucene index.
     if (args.length != 2) {
-      usage();
+      System.err.println(usageMessage);
       throw (new IllegalArgumentException("After parsing command line flags, there were " + args.length
                                           + " arguments, instead of the expected 2."));
     }
-
-    logger.info("Minimum frequency = " + Flags.minfrequency);
-    logger.info("Maximum frequency = " + Flags.maxfrequency);
-    logger.info("Number non-alphabet characters = " + Flags.maxnonalphabetchars);
-    logger.info("Contents fields are: " + Arrays.toString(Flags.contentsfields));
 
     String vectorFile = args[0];
     String luceneIndex = args[1];
 
     VectorStore termVectors = new IncrementalTermVectors(
-        luceneIndex, Flags.dimension, Flags.contentsfields, vectorFile);
+        luceneIndex, VectorType.valueOf(Flags.vectortype), Flags.dimension,
+        Flags.contentsfields, vectorFile);
     new VectorStoreWriter().writeVectors("incremental_termvectors.bin", termVectors);
   }
 }

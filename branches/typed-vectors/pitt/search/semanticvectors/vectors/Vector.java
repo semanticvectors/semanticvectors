@@ -40,12 +40,6 @@ import java.util.Random;
 import org.apache.lucene.store.IndexInput;
 import org.apache.lucene.store.IndexOutput;
 
-enum VectorType {
-  BINARY,
-  REAL,
-  COMPLEX;
-}
-
 /**
  * Base representation of a vector over a particular ground field and vector operations.
  * Designed to enable real, complex, and binary implementations. 

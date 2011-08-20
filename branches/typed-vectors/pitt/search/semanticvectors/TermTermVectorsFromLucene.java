@@ -52,6 +52,7 @@ import org.apache.lucene.store.FSDirectory;
 import pitt.search.semanticvectors.vectors.PermutationUtils;
 import pitt.search.semanticvectors.vectors.Vector;
 import pitt.search.semanticvectors.vectors.VectorFactory;
+import pitt.search.semanticvectors.vectors.VectorType;
 
 /**
  * Implementation of vector store that creates term by term
@@ -68,6 +69,8 @@ public class TermTermVectorsFromLucene implements VectorStore {
   private static final Logger logger = Logger.getLogger(
       TermTermVectorsFromLucene.class.getCanonicalName());
 
+  private int dimension;
+  private VectorType vectorType;
   private boolean retraining = false;
   private VectorStoreRAM termVectors;
   private VectorStore indexVectors;
@@ -82,7 +85,6 @@ public class TermTermVectorsFromLucene implements VectorStore {
   private LuceneUtils lUtils;
   private int maxNonAlphabet;
 
-  private int dimension;
   private String positionalmethod;
   
   /**
@@ -94,6 +96,13 @@ public class TermTermVectorsFromLucene implements VectorStore {
 
   static final short NONEXISTENT = -1;
 
+
+  @Override
+  public VectorType getVectorType() { return vectorType; }
+  
+  @Override
+  public int getDimension() { return dimension; }
+  
   /**
    * @return The object's indexReader.
    */
@@ -119,13 +128,10 @@ public class TermTermVectorsFromLucene implements VectorStore {
     return termVectors.getNumVectors();
   }
 
-  public int getDimension() {
-    return dimension;
-  }
-
   /**
    * This constructor uses only the values passed, no parameters from Flag.
    * @param luceneIndexDir Directory containing Lucene index.
+   * @param vectorType type of vector
    * @param dimension number of dimension to use for the vectors
    * @param seedLength Number of +1 or -1 entries in basic
    * vectors. Should be even to give same number of each.
@@ -139,11 +145,13 @@ public class TermTermVectorsFromLucene implements VectorStore {
    * @throws IOException
    * @throws RuntimeException
    */
-  public TermTermVectorsFromLucene(String luceneIndexDir, int dimension, int seedLength,
+  public TermTermVectorsFromLucene(
+      String luceneIndexDir, VectorType vectorType, int dimension, int seedLength,
       int minFreq, int maxFreq, int maxNonAlphabet, int windowSize, String positionalmethod,
       VectorStore indexVectors, String[] fieldsToIndex)
   throws IOException, RuntimeException {
     this.luceneIndexDir = luceneIndexDir;
+    this.vectorType = vectorType;
     this.dimension = dimension;
     this.positionalmethod = positionalmethod;
     this.minFreq = minFreq;
@@ -200,12 +208,13 @@ public class TermTermVectorsFromLucene implements VectorStore {
     // If basicTermVectors was passed in, set state accordingly.
     if (indexVectors != null) {
       retraining = true;
-      logger.info("Reusing basic term vectors; number of terms: " + indexVectors.getNumVectors());
+      VerbatimLogger.info("Reusing basic term vectors; number of terms: "
+          + indexVectors.getNumVectors() + "\n");
     } else {
-      this.indexVectors = new VectorStoreSparseRAM();
+      this.indexVectors = new VectorStoreRAM(vectorType, dimension);
     }
     Random random = new Random();
-    this.termVectors = new VectorStoreRAM();
+    this.termVectors = new VectorStoreRAM(vectorType, dimension);
 
     // Iterate through an enumeration of terms and allocate termVector memory.
     // If not retraining, create random elemental vectors as well.
@@ -225,8 +234,8 @@ public class TermTermVectorsFromLucene implements VectorStore {
       // Do the same for random index vectors unless retraining with trained term vectors
       if (!retraining) {
         Vector indexVector =  VectorFactory.generateRandomVector(
-            Flags.vectortype, dimension, seedLength, random);
-        ((VectorStoreSparseRAM) this.indexVectors).putVector(term.text(), indexVector);
+            vectorType, dimension, seedLength, random);
+        ((VectorStoreRAM) this.indexVectors).putVector(term.text(), indexVector);
       }
     }
     VerbatimLogger.info("There are " + tc + " terms (and "
@@ -247,7 +256,7 @@ public class TermTermVectorsFromLucene implements VectorStore {
     }
 
     VerbatimLogger.info("Created " + termVectors.getNumVectors() + " term vectors ...\n");
-    VerbatimLogger.info("Normalizing term vectors");
+    VerbatimLogger.info("Normalizing term vectors.\n");
     Enumeration<ObjectVector> e = termVectors.getAllVectors();
     while (e.hasMoreElements())	{
       e.nextElement().getVector().normalize();
@@ -260,7 +269,7 @@ public class TermTermVectorsFromLucene implements VectorStore {
     // term vectors here.  We should redesign this.
     if ((positionalmethod.equals("permutation") || (positionalmethod.equals("permutation_plus_basic"))) 
         && !retraining) {
-      VerbatimLogger.info("\nNormalizing and writing random vectors to " + randFile + "\n");
+      VerbatimLogger.info("Normalizing and writing random vectors to " + randFile + "\n");
       Enumeration<ObjectVector> f = indexVectors.getAllVectors();
       while (f.hasMoreElements())	{
         f.nextElement().getVector().normalize();

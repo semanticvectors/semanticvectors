@@ -178,21 +178,21 @@ public class Search {
     // Stage ii. Open vector stores, and Lucene utils.
     try {
       // Default VectorStore implementation is (Lucene) VectorStoreReader.
-      logger.info("Opening query vector store from file: " + Flags.queryvectorfile);
+      VerbatimLogger.info("Opening query vector store from file: " + Flags.queryvectorfile + "\n");
       queryVecReader = VectorStoreReader.openVectorStore(Flags.queryvectorfile);
 
       // Open second vector store if search vectors are different from query vectors.
       if (Flags.queryvectorfile.equals(Flags.searchvectorfile)) {
         searchVecReader = queryVecReader;
       } else {
-        logger.info("Opening search vector store from file: " + Flags.searchvectorfile);
+        VerbatimLogger.info("Opening search vector store from file: " + Flags.searchvectorfile + "\n");
         searchVecReader = VectorStoreReader.openVectorStore(Flags.searchvectorfile);
       }
 
       if (Flags.luceneindexpath != "") {
         try { luceneUtils = new LuceneUtils(Flags.luceneindexpath); }
         catch (IOException e) {
-          logger.info("Couldn't open Lucene index at " + Flags.luceneindexpath
+          logger.warning("Couldn't open Lucene index at " + Flags.luceneindexpath
               + ". Will continue without term weighting.");
         }
       }
@@ -212,6 +212,7 @@ public class Search {
     LinkedList<SearchResult> results = new LinkedList<SearchResult>();
     // Stage iii. Perform search according to which searchType was selected.
     // Most options have corresponding dedicated VectorSearcher subclasses.
+    VerbatimLogger.info("Searching term vectors, searchtype " + Flags.searchtype + "\n");
     if (Flags.searchtype.equals("sum")) {
       // Create VectorSearcher and search for nearest neighbors.
       try {
@@ -220,7 +221,6 @@ public class Search {
                                                     searchVecReader,
                                                     luceneUtils,
                                                     args);
-        logger.info("Searching term vectors, searchtype SUM ... ");
         results = vecSearcher.getNearestNeighbors(numResults);
       } catch (ZeroVectorException zve) {
         logger.info(zve.getMessage());
@@ -235,8 +235,6 @@ public class Search {
                                                          searchVecReader,
                                                          luceneUtils,
                                                          args);
-
-        logger.info("Searching term vectors, searchtype SUBSPACE ... ");
         results = vecSearcher.getNearestNeighbors(numResults);
       }	catch (ZeroVectorException zve) {
         logger.info(zve.getMessage());
@@ -251,7 +249,6 @@ public class Search {
                                                     searchVecReader,
                                                     luceneUtils,
                                                     args);
-        logger.info("Searching term vectors, searchtype MAXSIM ... ");
         results = vecSearcher.getNearestNeighbors(numResults);
       }	catch (ZeroVectorException zve) {
         logger.info(zve.getMessage());
@@ -267,7 +264,6 @@ public class Search {
                                                   searchVecReader,
                                                   luceneUtils,
                                                   args);
-        logger.info("Searching term vectors, searchtype PERMUTATION ... ");
         results = vecSearcher.getNearestNeighbors(numResults);
       } catch (ZeroVectorException zve) {
         logger.info(zve.getMessage());
@@ -283,7 +279,6 @@ public class Search {
                                                           searchVecReader,
                                                           luceneUtils,
                                                           args);
-        logger.info("Searching term vectors, searchtype BALANCED_PERMUTATION ... ");
         results = vecSearcher.getNearestNeighbors(numResults);
       } catch (ZeroVectorException zve) {
         logger.info(zve.getMessage());
@@ -297,7 +292,7 @@ public class Search {
       return new LinkedList<SearchResult>();
     } else {
       // This shouldn't happen: unrecognized options shouldn't have got past the Flags parsing.
-      logger.info("Search type unrecognized ...");
+      logger.severe("Search type unrecognized ...");
       results = new LinkedList<SearchResult>();
     }
 
@@ -329,13 +324,13 @@ public class Search {
     LinkedList<SearchResult> results = RunSearch(args, defaultNumResults);
     // Print out results.
     if (results.size() > 0) {
-      logger.info("Search output follows ...");
+      VerbatimLogger.info("Search output follows ...\n");
       for (SearchResult result: results) {
         System.out.println(result.getScore() + ":" +
                            ((ObjectVector)result.getObject()).getObject().toString());
       }
     } else {
-      logger.info("No search output.");
+      VerbatimLogger.info("No search output.\n");
     }
 
     // Release filesystem resources.

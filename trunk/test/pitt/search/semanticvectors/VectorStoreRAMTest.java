@@ -37,6 +37,7 @@ import org.junit.*;
 
 import pitt.search.semanticvectors.vectors.RealVector;
 import pitt.search.semanticvectors.vectors.Vector;
+import pitt.search.semanticvectors.vectors.VectorType;
 
 import junit.framework.TestCase;
 
@@ -46,8 +47,7 @@ public class VectorStoreRAMTest extends TestCase {
 
   @Test
   public void testCreateWriteAndRead() {
-    Flags.dimension = 2;
-    VectorStoreRAM vectorStore = new VectorStoreRAM();
+    VectorStoreRAM vectorStore = new VectorStoreRAM(VectorType.REAL, 2);
     assertEquals(0, vectorStore.getNumVectors());
     Vector vector = new RealVector(new float[] {1.0f, 0.0f});
     vectorStore.putVector("my vector", vector);
@@ -59,8 +59,7 @@ public class VectorStoreRAMTest extends TestCase {
 
   @Test
   public void testRepeatReads() {
-    Flags.dimension = 2;
-    VectorStoreRAM vectorStore = new VectorStoreRAM();
+    VectorStoreRAM vectorStore = new VectorStoreRAM(VectorType.REAL, 2);
     assertEquals(0, vectorStore.getNumVectors());
     Vector vector = new RealVector(new float[] {1.0f, 0.0f});
     vectorStore.putVector("my vector", vector);

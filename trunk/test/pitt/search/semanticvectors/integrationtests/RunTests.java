@@ -40,15 +40,12 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 
-import java.util.ArrayList;
-
 import org.junit.runner.Result;
 import org.junit.runner.notification.Failure;
 
-import pitt.search.semanticvectors.*;
-
 import org.apache.lucene.demo.IndexFiles;
 import pitt.search.lucene.IndexFilePositions;
+import pitt.search.semanticvectors.VectorStoreTranslater;
 
 /**
  * Class for running unit tests and regression tests.
@@ -63,9 +60,8 @@ public class RunTests {
    */
   public static Class<?>[] integrationTestClasses = {
     RegressionTests.class,
-    ThreadSafetyTest.class,
-    VectorStoreReaderLuceneTest.class,
-    VectorStoreWriterTest.class };
+    ThreadSafetyTest.class
+  };
 
   public static boolean testDataPrepared = false;
 
@@ -88,7 +84,7 @@ public class RunTests {
 
   /**
    * Convenience method for running JUnit tests and displaying failure results.
-   * @return int[2] {num_successes, num_failures}.
+   * @return int[2] {numSuccesses, numFailures}.
    */
   private static int[] runJUnitTests(Class<?>[] classes) {
     Result results = org.junit.runner.JUnitCore.runClasses(classes);
@@ -126,8 +122,7 @@ public class RunTests {
     String testDataPath = "../John";
     File testDataDir = new File(testDataPath);
     if (!testDataDir.isDirectory()) return false;
-    ArrayList<String> args = new ArrayList<String>();
-    args.add(testDataPath);
+    String[] args = {testDataPath};
     try {
       Process luceneIndexer = TestUtils.spawnChildProcess(IndexFiles.class, args, null, null, null);
       TestUtils.waitForAndDestroy(luceneIndexer);

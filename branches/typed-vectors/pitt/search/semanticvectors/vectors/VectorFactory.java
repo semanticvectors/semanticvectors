@@ -102,25 +102,9 @@ public class VectorFactory {
       throw new IllegalArgumentException("Unrecognized VectorType: " + type);
     }
   }
-  
-  /**
-   * Can be called by external methods that don't explicitly use VectorType enums.
-   * This design may be flawed, but it's easy to fix if need be.
-   * 
-   * @see {@code generateRandomVector}
-   * 
-   * @param type must be one of "binary", "real", "complex".
-   * @return vector generated with appropriate type, dimension and number of nonzero entries
-   */
-  public static Vector generateRandomVector(
-      String type, int dimension, int numEntries, Random random) {
-    return generateRandomVector(
-        VectorType.valueOf(type.toUpperCase()), dimension, numEntries, random);
-  }
 
-  public static int getLuceneByteSize(String vectorType, int dimension) {
-    VectorType type = VectorType.valueOf(vectorType.toUpperCase());
-    switch (type) {
+  public static int getLuceneByteSize(VectorType vectorType, int dimension) {
+    switch (vectorType) {
       case BINARY:
         return 8 * ((dimension / 64) );
       case REAL:
@@ -128,7 +112,7 @@ public class VectorFactory {
       case COMPLEX:
         return 8 * dimension;
       default:
-        throw new IllegalArgumentException("Unrecognized VectorType: " + type);
+        throw new IllegalArgumentException("Unrecognized VectorType: " + vectorType);
     }
   }
 }

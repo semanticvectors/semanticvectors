@@ -38,6 +38,8 @@ package pitt.search.semanticvectors;
 import java.io.IOException;
 import java.util.logging.Logger;
 
+import pitt.search.semanticvectors.vectors.VectorType;
+
 /**
  * Command line utility for creating semantic vector indexes using the
  * sliding context window approach (see work on HAL, and by Shutze).
@@ -110,7 +112,8 @@ public class BuildPositionalIndex {
     // If initialtermvectors is defined, read these vectors.
     if (!Flags.initialtermvectors.equals("")) {
       try {
-        VectorStoreRAM vsr = new VectorStoreRAM();
+        VectorStoreRAM vsr = new VectorStoreRAM(
+            VectorType.valueOf(Flags.vectortype.toUpperCase()), Flags.dimension);
         vsr.initFromFile(Flags.initialtermvectors);
         newBasicTermVectors = vsr;
         logger.info("Using trained index vectors from vector store " + Flags.initialtermvectors);
@@ -139,8 +142,9 @@ public class BuildPositionalIndex {
 
     try {
       TermTermVectorsFromLucene vecStore = new TermTermVectorsFromLucene(
-          luceneIndex, Flags.dimension, Flags.seedlength, Flags.minfrequency, Flags.maxfrequency,
-            Flags.maxnonalphabetchars, 2 * Flags.windowradius + 1, Flags.positionalmethod,
+          luceneIndex,  VectorType.valueOf(Flags.vectortype.toUpperCase()),
+          Flags.dimension, Flags.seedlength, Flags.minfrequency, Flags.maxfrequency,
+          Flags.maxnonalphabetchars, 2 * Flags.windowradius + 1, Flags.positionalmethod,
             newBasicTermVectors, Flags.contentsfields);
       
       VectorStoreWriter vecWriter = new VectorStoreWriter();
@@ -151,7 +155,8 @@ public class BuildPositionalIndex {
         newBasicTermVectors = vecStore.getBasicTermVectors();
         logger.info("\nRetraining with learned term vectors ...");
         vecStore = new TermTermVectorsFromLucene(
-            luceneIndex, Flags.dimension, Flags.seedlength, Flags.minfrequency, Flags.maxfrequency,
+            luceneIndex,  VectorType.valueOf(Flags.vectortype.toUpperCase()),
+            Flags.dimension, Flags.seedlength, Flags.minfrequency, Flags.maxfrequency,
             Flags.maxnonalphabetchars, 2 * Flags.windowradius + 1, Flags.positionalmethod,
             newBasicTermVectors, Flags.contentsfields);
       }

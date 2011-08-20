@@ -50,6 +50,7 @@ import org.apache.lucene.store.FSDirectory;
 
 import pitt.search.semanticvectors.vectors.Vector;
 import pitt.search.semanticvectors.vectors.VectorFactory;
+import pitt.search.semanticvectors.vectors.VectorType;
 
 /**
  * Implementation of vector store that creates term vectors by
@@ -64,6 +65,8 @@ public class TermVectorsFromLucene implements VectorStore {
       TermVectorsFromLucene.class.getCanonicalName());
 
   private Hashtable<String, ObjectVector> termVectors;
+  private int dimension;
+  private VectorType vectorType;
   private IndexReader indexReader;
   private int seedLength;
   private String[] fieldsToIndex;
@@ -78,6 +81,12 @@ public class TermVectorsFromLucene implements VectorStore {
   private TermVectorsFromLucene() {}
   
   // Basic accessor methods.
+  @Override
+  public VectorType getVectorType() { return vectorType; }
+  
+  @Override
+  public int getDimension() { return dimension; }
+  
   /**
    * @return The object's basicDocVectors.
    */
@@ -110,7 +119,8 @@ public class TermVectorsFromLucene implements VectorStore {
    * Creates term vectors from a Lucene index.
    * 
    * @param indexDir directory containing Lucene index.
-   * @param dimension number of dimension
+   * @param vectorType type of vector
+   * @param dimension number of dimensions
    * @param seedLength number of +1 or -1 entries in basic
    * vectors. Should be even to give same number of each.
    * @param minFreq The minimum term frequency for a term to be indexed.
@@ -122,10 +132,12 @@ public class TermVectorsFromLucene implements VectorStore {
    * @throws IOException if resources on disk cannot be opened.
    */
   public static TermVectorsFromLucene createTermVectorsFromLucene(
-      String indexDir, int dimension, int seedLength, int minFreq,
+      String indexDir, VectorType vectorType, int dimension, int seedLength, int minFreq,
       int maxFreq, int nonAlphabet, VectorStore basicDocVectors, String[] fieldsToIndex)
   throws IOException, RuntimeException {
     TermVectorsFromLucene vectorStore = new TermVectorsFromLucene() {};
+    vectorStore.dimension = dimension;
+    vectorStore.vectorType = vectorType;
     vectorStore.indexDir = indexDir;
     vectorStore.minFreq = minFreq;
     vectorStore.maxFreq = maxFreq;
@@ -136,7 +148,7 @@ public class TermVectorsFromLucene implements VectorStore {
     vectorStore.createTemVectorsFromLuceneImpl();
     return vectorStore;
   }
-
+  
   private void createTemVectorsFromLuceneImpl() throws IOException {
     LuceneUtils.compressIndex(indexDir);
     // Create LuceneUtils Class to filter terms.
@@ -156,8 +168,8 @@ public class TermVectorsFromLucene implements VectorStore {
       // Derived term vectors will be linear combinations of these.
       logger.info("Populating basic sparse doc vector store, number of vectors: "
           + indexReader.numDocs());
-      VectorStoreSparseRAM randomBasicDocVectors = new VectorStoreSparseRAM();
-      randomBasicDocVectors.createRandomVectors(indexReader.numDocs(), this.seedLength);
+      VectorStoreRAM randomBasicDocVectors = new VectorStoreRAM(vectorType, dimension);
+      randomBasicDocVectors.createRandomVectors(indexReader.numDocs(), this.seedLength, null);
       this.basicDocVectors = randomBasicDocVectors;
     }
 
@@ -263,7 +275,7 @@ public class TermVectorsFromLucene implements VectorStore {
         }
         tc++;
         Vector indexVector = VectorFactory.generateRandomVector(
-            Flags.vectortype, Flags.dimension, seedLength, random);
+            vectorType, dimension, seedLength, random);
         // Place each term vector in the vector store.
         this.termVectors.put(term.text(), new ObjectVector(term.text(), indexVector));
       }

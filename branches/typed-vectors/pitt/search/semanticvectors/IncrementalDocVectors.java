@@ -47,6 +47,7 @@ import org.apache.lucene.store.FSDirectory;
 
 import pitt.search.semanticvectors.vectors.Vector;
 import pitt.search.semanticvectors.vectors.VectorFactory;
+import pitt.search.semanticvectors.vectors.VectorType;
 
 /**
  * Generates document vectors incrementally.
@@ -56,7 +57,9 @@ import pitt.search.semanticvectors.vectors.VectorFactory;
 public class IncrementalDocVectors {
   private static final Logger logger = Logger.getLogger(
       IncrementalDocVectors.class.getCanonicalName());
-
+  private VectorType vectorType;
+  private int dimension;
+  
   private VectorStore termVectorData;
   private IndexReader indexReader;
   private String[] fieldsToIndex;
@@ -78,6 +81,8 @@ public class IncrementalDocVectors {
       VectorStore termVectorData, String indexDir,
       String[] fieldsToIndex, String vectorFileName) throws IOException {
     IncrementalDocVectors incrementalDocVectors = new IncrementalDocVectors();
+    incrementalDocVectors.dimension = termVectorData.getDimension();
+    incrementalDocVectors.vectorType = termVectorData.getVectorType();
     incrementalDocVectors.termVectorData = termVectorData;
     incrementalDocVectors.indexReader = IndexReader.open(FSDirectory.open(new File(indexDir)));
     incrementalDocVectors.fieldsToIndex = fieldsToIndex;
@@ -120,7 +125,7 @@ public class IncrementalDocVectors {
         }
       }
 
-      Vector docVector = VectorFactory.createZeroVector(Flags.vectortype, Flags.dimension);
+      Vector docVector = VectorFactory.createZeroVector(vectorType, dimension);
 
       for (String fieldName: fieldsToIndex) {
         TermFreqVector vex =
@@ -185,7 +190,7 @@ public class IncrementalDocVectors {
     }
 
     String vectorFile = args[0].replaceAll("\\.bin","")+"_docvectors.bin";
-    VectorStoreRAM vsr = new VectorStoreRAM();
+    VectorStoreRAM vsr = new VectorStoreRAM(VectorType.valueOf(Flags.vectortype), Flags.dimension);
     vsr.initFromFile(args[0]);
 
     logger.info("Minimum frequency = " + Flags.minfrequency);

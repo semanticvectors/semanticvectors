@@ -25,7 +25,8 @@ public class TestUtils {
     try {
       Runtime runtime = Runtime.getRuntime();
       Process process = runtime.exec(command);
-      Scanner output = new Scanner(process.getInputStream()).useDelimiter(System.getProperty("line.separator"));
+      Scanner output = new Scanner(process.getInputStream()).useDelimiter(
+          System.getProperty("line.separator"));
       process.waitFor();
       return output;
     }
@@ -36,9 +37,9 @@ public class TestUtils {
   /**
    * Utility for taking a main class, executing it as a process,
    * and returning a scanner of that process stdout.
-   * Please close() the scanner when you are done.
+   * Callers takes ownership of returned Scanner and should close() the scanner when done.
    */
-  public static Scanner getCommandOutput(Class<?> childMain, List<String> args) {
+  public static Scanner getCommandOutput(Class<?> childMain, String[] args) {
     OutputScanner outputScanner = new OutputScanner();
     OutputStream outputStream = outputScanner.getOutputStream();
     Scanner scan = outputScanner.getScanner();
@@ -67,12 +68,14 @@ public class TestUtils {
    * empty the output buffers.
    * @return The process, already started. Consider using waitForAndDestroy() to clean up afterwards.
    * @param childMain The Class to spawn, must contain main function
-   * @param args arguments for the main class. Use null to pass no arguments.
+   * @param inputArgs arguments for the main class. Use null to pass no arguments.
    * @param in The child process will read input from this stream. Use null to avoid reading input. Always close() your stream when you are done or you may deadlock.
    * @param out The child process will write output to this stream. Use null to avoid writing output.
    * @param err The child process will write errors to this stream. Use null to avoid writing output.
    */
-  public static Process spawnChildProcess(Class<?> childMain, List<String> args, InputStream in, OutputStream out, OutputStream err) throws IOException {
+  public static Process spawnChildProcess(
+      Class<?> childMain, String[] inputArgs, InputStream in, OutputStream out, OutputStream err)
+      throws IOException {
     //get the same arguments as used to start this JRE
     RuntimeMXBean rmxb = ManagementFactory.getRuntimeMXBean();
     List<String> arglist = rmxb.getInputArguments();
@@ -84,9 +87,7 @@ public class TestUtils {
     arguments.add("-classpath");
     arguments.add(cp);
     arguments.add(childMain.getCanonicalName());
-    if (args != null) {
-      arguments.addAll(args);
-    }
+    for (String arg : inputArgs) arguments.add(arg);
 
     //using ProcessBuilder initializes the child process with parent's env.
     ProcessBuilder pb = new ProcessBuilder(arguments);

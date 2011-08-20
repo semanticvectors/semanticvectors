@@ -6,15 +6,15 @@
    modification, are permitted provided that the following conditions are
    met:
 
-   * Redistributions of source code must retain the above copyright
+ * Redistributions of source code must retain the above copyright
    notice, this list of conditions and the following disclaimer.
 
-   * Redistributions in binary form must reproduce the above
+ * Redistributions in binary form must reproduce the above
    copyright notice, this list of conditions and the following disclaimer
    in the documentation and/or other materials provided with the
    distribution.
 
-   * Neither the name of Google Inc. nor the names of its
+ * Neither the name of Google Inc. nor the names of its
    contributors may be used to endorse or promote products derived from
    this software without specific prior written permission.
 
@@ -29,7 +29,7 @@
    THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
    (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
    THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-**/
+ **/
 
 package pitt.search.semanticvectors;
 
@@ -37,6 +37,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import java.io.IOException;
+
+import pitt.search.semanticvectors.vectors.VectorType;
 
 /**
  * Command line utility for creating bilingual semantic vector indexes.
@@ -55,10 +57,10 @@ public class BuildBilingualIndex{
    */
   public static void usage() {
     String usageMessage = "\nBuildBilingualIndex class in package pitt.search.semanticvectors"
-			+ "\nUsage: java pitt.search.semanticvectors.BuildBilingualIndex "
-			+ "PATH_TO_LUCENE_INDEX LANG1 LANG2"
-			+ "\nBuildBilingualIndex creates files termvectors_LANGn.bin and docvectors_LANGn.bin,"
-			+ "\nin local directory, where LANG1 and LANG2 are obtained from fields in index.";
+      + "\nUsage: java pitt.search.semanticvectors.BuildBilingualIndex "
+      + "PATH_TO_LUCENE_INDEX LANG1 LANG2"
+      + "\nBuildBilingualIndex creates files termvectors_LANGn.bin and docvectors_LANGn.bin,"
+      + "\nin local directory, where LANG1 and LANG2 are obtained from fields in index.";
     System.out.println(usageMessage);
   }
 
@@ -79,14 +81,14 @@ public class BuildBilingualIndex{
 
     if (!Flags.docidfield.equals("filename")) {
       logger.log(Level.WARNING, "Docid field is normally 'filename' for bilingual indexes." + 
-		 " Are you sure you wanted to change this?");
+      " Are you sure you wanted to change this?");
     }
 
     // Only three arguments should remain, the path to Lucene index and the language pair.
     if (args.length != 3) {
       usage();
       throw (new IllegalArgumentException("After parsing command line flags, there were " + args.length
-                                          + " arguments, instead of the expected 3."));
+          + " arguments, instead of the expected 3."));
     }
 
     String luceneIndex = args[args.length - 3];
@@ -105,9 +107,10 @@ public class BuildBilingualIndex{
     logger.info("Minimum frequency = " + Flags.minfrequency);
     try{
       TermVectorsFromLucene vecStore1 =
-          TermVectorsFromLucene.createTermVectorsFromLucene(luceneIndex, Flags.dimension,
-                                    Flags.seedlength, Flags.minfrequency, Flags.maxfrequency,
-                                    Flags.maxnonalphabetchars, null, fields1);
+        TermVectorsFromLucene.createTermVectorsFromLucene(
+            luceneIndex, VectorType.valueOf(Flags.vectortype), Flags.dimension,
+            Flags.seedlength, Flags.minfrequency, Flags.maxfrequency,
+            Flags.maxnonalphabetchars, null, fields1);
       VectorStoreWriter vecWriter = new VectorStoreWriter();
       logger.info("Writing term vectors to " + termFile1);
       vecWriter.writeVectors(termFile1, vecStore1);
@@ -118,9 +121,10 @@ public class BuildBilingualIndex{
       VectorStore basicDocVectors = vecStore1.getBasicDocVectors();
       System.out.println("Keeping basic doc vectors, number: " + basicDocVectors.getNumVectors());
       TermVectorsFromLucene vecStore2 =
-          TermVectorsFromLucene.createTermVectorsFromLucene(luceneIndex, Flags.dimension,
-                                    Flags.seedlength, Flags.minfrequency, Flags.maxfrequency,
-                                    Flags.maxnonalphabetchars, basicDocVectors, fields2);
+        TermVectorsFromLucene.createTermVectorsFromLucene(
+            luceneIndex, VectorType.valueOf(Flags.vectortype), Flags.dimension,
+            Flags.seedlength, Flags.minfrequency, Flags.maxfrequency,
+            Flags.maxnonalphabetchars, basicDocVectors, fields2);
       logger.info("Writing term vectors to " + termFile2);
       vecWriter.writeVectors(termFile2, vecStore2);
       docVectors = new DocVectors(vecStore2);

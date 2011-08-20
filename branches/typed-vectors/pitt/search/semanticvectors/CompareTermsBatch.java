@@ -41,6 +41,7 @@ import java.io.InputStreamReader;
 import java.util.logging.Logger;
 
 import pitt.search.semanticvectors.vectors.Vector;
+import pitt.search.semanticvectors.vectors.VectorType;
 
 /**
  * Command line term vector comparison utility designed to be run in
@@ -71,55 +72,34 @@ import pitt.search.semanticvectors.vectors.Vector;
  @author Andrew MacKinlay
 */
 
-public class CompareTermsBatch{
+public class CompareTermsBatch {
+  public static String usageMessage = "CompareTermsBatch class in package pitt.search.semanticvectors"
+    + "\nUsage: java pitt.search.semanticvectors.CompareTermsBatch "
+    + "\n   [-queryvectorfile vecfile] [-luceneindexpath path]"
+    + "\n   [-batchcompareseparator sep] [-vectorstorelocation loc]"
+    + "\n-luceneindexpath argument may be used to get term weights from"
+    + "\n   term frequency, doc frequency, etc. in lucene index."
+    + "\n-batchcompareseparator separator which is used to split each input line into "
+    + "\n   strings of terms (default '|')"
+    + "\n-vectorstorelocation: 'ram' or 'disk', for where to store vectors"
+    + "\nFor each line of input from STDIN, this will split the input into two strings"
+    + "\n   of terms at the separator, and output a similarity score to STDOUT."
+    + "\nIf the term NOT is used in one of the lists, subsequent terms in "
+    + "\nthat list will be negated (as in Search class).";
+  
   private static final Logger logger = Logger.getLogger(
       CompareTermsBatch.class.getCanonicalName());
-  /**
-   * Prints the following usage message:
-   * <code>
-    * <br>Usage: java pitt.search.semanticvectors.CompareTermsBatch [-queryvectorfile vectorfile]
-    * <br>                                         [-luceneindexpath path_to_lucene_index]
-    * <br>                                         [-batchcompareseparator separator]
-    * <br>                                         [-vectorstorelocation loc]
-    * <br>-luceneindexpath argument may be used to get term weights from
-    * <br>     term frequency, doc frequency, etc. in lucene index.
-    * <br>-batchcompareseparator separator which is used to split each input line into strings of terms
-    * <br>  (default '|')
-    * <br>-vectorstorelocation: 'ram' or 'disk', for where to store vectors
-    * <br>For each line of input from STDIN, this will split the input into two strings
-    * <br>   of terms at the separator, and output a similarity score to STDOUT.
-    * <br>If the term NOT is used in one of the lists, subsequent terms in
-    * <br>that list will be negated (as in Search class).
-    * </code>
-   * @see Search
-   */
-  public static void usage(){
-    String usageMessage = "CompareTermsBatch class in package pitt.search.semanticvectors"
-      + "\nUsage: java pitt.search.semanticvectors.CompareTermsBatch "
-      + "\n   [-queryvectorfile vecfile] [-luceneindexpath path]"
-      + "\n   [-batchcompareseparator sep] [-vectorstorelocation loc]"
-      + "\n-luceneindexpath argument may be used to get term weights from"
-      + "\n   term frequency, doc frequency, etc. in lucene index."
-      + "\n-batchcompareseparator separator which is used to split each input line into "
-      + "\n   strings of terms (default '|')"
-      + "\n-vectorstorelocation: 'ram' or 'disk', for where to store vectors"
-      + "\nFor each line of input from STDIN, this will split the input into two strings"
-      + "\n   of terms at the separator, and output a similarity score to STDOUT."
-      + "\nIf the term NOT is used in one of the lists, subsequent terms in "
-      + "\nthat list will be negated (as in Search class).";
-    logger.info(usageMessage);
-  }
 
   /**
    * Main function for command line use.
-   * @param args See usage();
+   * @param args See {@link usageMessage}.
    */
   public static void main (String[] args) throws IllegalArgumentException {
     try {
       args = Flags.parseCommandLineFlags(args);
     }
     catch (java.lang.IllegalArgumentException e) {
-      usage();
+      System.err.println(usageMessage);
       throw e;
     }
 
@@ -131,7 +111,8 @@ public class CompareTermsBatch{
     try {
       VectorStore vecReader;
       if (ramCache) {
-        VectorStoreRAM ramReader = new VectorStoreRAM();
+        VectorStoreRAM ramReader = new VectorStoreRAM(
+            VectorType.valueOf(Flags.vectortype), Flags.dimension);
         ramReader.initFromFile(Flags.queryvectorfile);
         vecReader = ramReader;
         logger.info("Using RAM cache of vectors");

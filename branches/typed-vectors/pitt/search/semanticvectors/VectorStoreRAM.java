@@ -38,10 +38,14 @@ package pitt.search.semanticvectors;
 import java.io.IOException;
 import java.util.Enumeration;
 import java.util.Hashtable;
+import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import pitt.search.semanticvectors.vectors.IncompatibleVectorsException;
 import pitt.search.semanticvectors.vectors.Vector;
+import pitt.search.semanticvectors.vectors.VectorFactory;
+import pitt.search.semanticvectors.vectors.VectorType;
 
 /**
    This class provides methods for reading a VectorStore into memory
@@ -59,10 +63,22 @@ public class VectorStoreRAM implements VectorStore {
   private static final Logger logger =
     Logger.getLogger(VectorStoreRAM.class.getCanonicalName());
   private Hashtable<Object, ObjectVector> objectVectors;
+  private VectorType vectorType;
+  private int dimension;
+  /** Used for checking compatibility of new vectors. */
+  private Vector zeroVector;
   
-  // Default constructor.
-  public VectorStoreRAM() {
+  @Override
+  public VectorType getVectorType() { return vectorType; }
+  
+  @Override
+  public int getDimension() { return dimension; }
+  
+  public VectorStoreRAM(VectorType vectorType, int dimension) {
     this.objectVectors = new Hashtable<Object, ObjectVector>();
+    this.vectorType = vectorType;
+    this.dimension = dimension;
+    zeroVector = VectorFactory.createZeroVector(vectorType, dimension);
   }
   
   // Initialization routine.
@@ -79,12 +95,21 @@ public class VectorStoreRAM implements VectorStore {
     logger.log(Level.FINE, "Cached {0} vectors.", objectVectors.size());
   }
 
+  // Initialization routine.
+  public void createRandomVectors (int numVectors, int seedLength, Random random) {
+    if (random == null) { random = new Random(); }
+    VerbatimLogger.info("Creating store of " + numVectors + " elemental vectors  ...");
+    for (int i = 0; i < numVectors; ++i) {
+      this.objectVectors.put(Integer.toString(i),
+                             new ObjectVector(Integer.toString(i),
+                                 VectorFactory.generateRandomVector(vectorType, dimension,
+                                                                    seedLength, random)));
+    }
+  }
+  
   // Add a single vector.
   public void putVector(Object key, Vector vector) {
-	if (vector.getDimension() != Flags.dimension) {
-	  throw new IllegalArgumentException("Trying to add vector of dimension "
-	      + vector.getDimension() + " to VectorStore of dimension " + Flags.dimension);
-	}
+    IncompatibleVectorsException.checkVectorsCompatible(zeroVector, vector);
     ObjectVector objectVector = new ObjectVector(key, vector);
     this.objectVectors.put(key, objectVector);
   }

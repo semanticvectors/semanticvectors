@@ -39,6 +39,8 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.logging.Logger;
 
+import pitt.search.semanticvectors.vectors.VectorType;
+
 /**
  * Command line utility for creating semantic vector indexes.
  */
@@ -129,7 +131,8 @@ public class BuildIndex {
       } else {
         logger.info("Creating elemental document vectors ...");
         vecStore = TermVectorsFromLucene.createTermVectorsFromLucene(
-            luceneIndex, Flags.dimension, Flags.seedlength, Flags.minfrequency, Flags.maxfrequency,
+            luceneIndex, VectorType.valueOf(Flags.vectortype.toUpperCase()),
+            Flags.dimension, Flags.seedlength, Flags.minfrequency, Flags.maxfrequency,
             Flags.maxnonalphabetchars, null, Flags.contentsfields);
       }
 
@@ -143,8 +146,9 @@ public class BuildIndex {
         IncrementalTermVectors itermVectors = null;
 
         for (int i = 1; i < Flags.trainingcycles; ++i) {
-          itermVectors = new IncrementalTermVectors(luceneIndex,  Flags.dimension,
-                                                    Flags.contentsfields, "incremental_"+docFile);
+          itermVectors = new IncrementalTermVectors(
+              luceneIndex, VectorType.valueOf(Flags.vectortype.toUpperCase()),
+              Flags.dimension, Flags.contentsfields, "incremental_"+docFile);
 
           new VectorStoreWriter().writeVectors(
               "incremental_termvectors"+Flags.trainingcycles+".bin", itermVectors);
@@ -162,8 +166,10 @@ public class BuildIndex {
         for (int i = 1; i < Flags.trainingcycles; ++i) {
           logger.info("\nRetraining with learned document vectors ...");
           vecStore = TermVectorsFromLucene.createTermVectorsFromLucene(
-              luceneIndex, Flags.dimension, Flags.seedlength, Flags.minfrequency,
-              Flags.maxfrequency, Flags.maxnonalphabetchars, docVectors, Flags.contentsfields);
+              luceneIndex, VectorType.valueOf(Flags.vectortype.toUpperCase()),
+              Flags.dimension, Flags.seedlength,
+              Flags.minfrequency, Flags.maxfrequency, Flags.maxnonalphabetchars,
+              docVectors, Flags.contentsfields);
           docVectors = new DocVectors(vecStore);
         }
         // At end of training, convert document vectors from ID keys to pathname keys.

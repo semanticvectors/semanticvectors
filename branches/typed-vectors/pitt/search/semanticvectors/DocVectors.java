@@ -42,6 +42,7 @@ import org.apache.lucene.index.TermDocs;
 
 import pitt.search.semanticvectors.vectors.Vector;
 import pitt.search.semanticvectors.vectors.VectorFactory;
+import pitt.search.semanticvectors.vectors.VectorType;
 
 import java.io.IOException;
 import java.util.Enumeration;
@@ -55,20 +56,29 @@ import java.util.logging.Logger;
  */
 public class DocVectors implements VectorStore {
   private static final Logger logger = Logger.getLogger(DocVectors.class.getCanonicalName());
-
+  private VectorType vectorType;
+  private int dimension;  
   private VectorStoreRAM docVectors;
   private TermVectorsFromLucene termVectorData;
   private IndexReader indexReader;
   private LuceneUtils lUtils;
 
+  @Override
+  public VectorType getVectorType() { return vectorType; }
+  
+  @Override
+  public int getDimension() { return dimension; }
+  
   /**
    * Constructor that gets everything it needs from a
    * TermVectorsFromLucene object.
    */
   public DocVectors (TermVectorsFromLucene termVectorData) throws IOException {
     this.termVectorData = termVectorData;
+    this.vectorType = termVectorData.getVectorType();
+    this.dimension = termVectorData.getDimension();
     this.indexReader = termVectorData.getIndexReader();
-    this.docVectors = new VectorStoreRAM();
+    this.docVectors = new VectorStoreRAM(vectorType, dimension);
     
     if (this.lUtils == null) {
       String indexReaderDir = termVectorData.getIndexReader().directory().toString();
@@ -133,7 +143,7 @@ public class DocVectors implements VectorStore {
       e.printStackTrace();
     }
 
-    VerbatimLogger.info("\nNormalizing doc vectors ...");
+    VerbatimLogger.info("\nNormalizing doc vectors ...\n");
     for (int i = 0; i < indexReader.numDocs(); ++i) {
       docVectors.getVector(Integer.toString(i)).normalize();
     }
@@ -154,7 +164,7 @@ public class DocVectors implements VectorStore {
    * Create a version of the vector store indexes by path / filename rather than Lucene ID.
    */
   public VectorStore makeWriteableVectorStore() {
-    VectorStoreRAM outputVectors = new VectorStoreRAM();
+    VectorStoreRAM outputVectors = new VectorStoreRAM(vectorType, dimension);
 
     for (int i = 0; i < this.indexReader.numDocs(); ++i) {
       String docName = "";

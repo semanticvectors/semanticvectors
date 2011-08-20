@@ -89,7 +89,7 @@ public class ThreadSafetyTest {
     }
   }
 
-  // synchronized /*** Comment out and it will break. ***/
+  synchronized /*** Comment out and it will break. ***/
   private static void outputSuggestions(String query) throws Exception  {
     int maxResults = 10;
     String[] args = new String[] { "-searchvectorfile", RunTests.vectorBinFile,

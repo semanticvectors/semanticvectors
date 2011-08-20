@@ -45,6 +45,7 @@ import java.util.logging.Logger;
 
 import pitt.search.semanticvectors.vectors.Vector;
 import pitt.search.semanticvectors.vectors.VectorFactory;
+import pitt.search.semanticvectors.vectors.VectorType;
 
 /**
    This class provides methods for reading a VectorStore from a textfile.<p>
@@ -60,6 +61,8 @@ import pitt.search.semanticvectors.vectors.VectorFactory;
    This class is mainly for interoperability with plain text file
    formats: normal (fast) implementations should use the internal
    VectorStoreReader class that uses Lucene's I/O functions.
+   
+   Not thread-safe.
 
    @see VectorStoreReaderLucene
    @see ObjectVector
@@ -68,16 +71,32 @@ public class VectorStoreReaderText implements CloseableVectorStore {
   private static final Logger logger = Logger.getLogger(
       VectorStoreReaderText.class.getCanonicalName());
 
+  private VectorType vectorType;
+  private int dimension;
   private String vectorFileText;
   private BufferedReader inBuf;
 
-  public VectorStoreReaderText (String vectorFileText) throws IOException {
+  @Override
+  public VectorType getVectorType() { return vectorType; }
+  
+  @Override
+  public int getDimension() { return dimension; }
+  
+  /**
+   * Initializes a VectorStoreReaderText from a file.
+   * Sets internal dimension and vector type, and public flags to match.
+   * 
+   * @throws IOException
+   */
+  public VectorStoreReaderText(String vectorFileText) throws IOException {
     this.vectorFileText = vectorFileText;
     this.inBuf = new BufferedReader(new FileReader(vectorFileText));
     try {
       // Read number of dimension from header information.
       String firstLine = inBuf.readLine();
       Flags.parseFlagsFromString(firstLine);
+      this.dimension = Flags.dimension;
+      this.vectorType = VectorType.valueOf(Flags.vectortype.toUpperCase());
     } catch (IOException e) {
       System.out.println("Cannot read file: " + vectorFileText + "\n" + e.getMessage());
     }

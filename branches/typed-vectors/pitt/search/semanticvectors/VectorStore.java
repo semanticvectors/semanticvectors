@@ -38,6 +38,7 @@ package pitt.search.semanticvectors;
 import java.util.Enumeration;
 
 import pitt.search.semanticvectors.vectors.Vector;
+import pitt.search.semanticvectors.vectors.VectorType;
 
 /**
    Classes implementing this interface are used to represent a collection
@@ -48,6 +49,16 @@ import pitt.search.semanticvectors.vectors.Vector;
 */
 
 public interface VectorStore {
+  /**
+   * The type of all vectors in the vector store.  (Implementations should enforce homogeneity.)
+   */
+  public VectorType getVectorType();
+  
+  /**
+   * The dimension of all vectors in the vector store.  (Implementations should enforce homogeneity.)
+   */
+  public int getDimension();
+  
   /**
    * @param object the object whose vector you want to look up
    * @return a vector (of floats)

@@ -35,28 +35,15 @@ package pitt.search.semanticvectors;
 
 import java.io.IOException;
 import java.lang.IllegalArgumentException;
-import java.util.logging.Logger;
 
 /**
  * Class providing command-line interface for transforming vector
  * store between the optimized Lucene format and plain text.
  */
 public class VectorStoreTranslater {
-  private static final Logger logger = Logger.getLogger(
-      VectorStoreTranslater.class.getCanonicalName());
-
-  /**
-   * Prints the following usage message:
-   * <br> VectorStoreTranslater class in pitt.search.semanticvectors
-   * <br> Usage: java pitt.search.semanticvector.VectorStoreTranslater -option INFILE OUTFILE"
-   * <br> -option can be: -lucenetotext or -texttolucene"
-   */
-  public static void usage() {
-    String usageMessage = "VectorStoreTranslater class in pitt.search.semanticvectors"
+  public static String usageMessage = "VectorStoreTranslater class in pitt.search.semanticvectors"
       + "\nUsage: java pitt.search.semanticvector.VectorStoreTranslater -option INFILE OUTFILE"
       + "\n -option can be: -lucenetotext or -texttolucene";
-    System.out.println(usageMessage);
-  }
 
   private enum Options { LUCENE_TO_TEXT, TEXT_TO_LUCENE }
 
@@ -68,15 +55,15 @@ public class VectorStoreTranslater {
   public static void main(String[] args) throws IOException {
     // Parse command line args.
     if (args.length != 3) {
-      logger.info("You gave " + args.length + " arguments ...");
-      usage();
+      VerbatimLogger.info("You gave " + args.length + " arguments, there must be exactly 3.\n");
+      System.err.println(usageMessage);
       throw new IllegalArgumentException();
     }
     Options option = null;
     if (args[0].equalsIgnoreCase("-lucenetotext")) { option = Options.LUCENE_TO_TEXT; }
     else if (args[0].equalsIgnoreCase("-texttolucene")) { option = Options.TEXT_TO_LUCENE; }
     else {
-      usage();
+      System.err.println(usageMessage);
       throw new IllegalArgumentException();
     }
 
@@ -92,7 +79,7 @@ public class VectorStoreTranslater {
         throw e;
       }
       VectorStoreWriter vecWriter = new VectorStoreWriter();
-      logger.info("Writing term vectors to " + outfile);
+      VerbatimLogger.info("Writing term vectors to " + outfile + "\n");
       vecWriter.writeVectorsInTextFormat(outfile, vecReader);
       vecReader.close();
     }
@@ -106,7 +93,7 @@ public class VectorStoreTranslater {
         throw e;
       }
       VectorStoreWriter vecWriter = new VectorStoreWriter();
-      logger.info("Writing term vectors to " + outfile);
+      VerbatimLogger.info("Writing term vectors to " + outfile + "\n");
       vecWriter.writeVectorsInLuceneFormat(outfile, vecReader);
       vecReader.close();
     }

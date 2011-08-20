@@ -82,8 +82,8 @@ public class Flags {
 
   public static String searchtype = "sum";
   public static final String searchtypeDescription = "Method used for combining and searching vectors.";
-  public static final String[] searchtypeValues = {"sum", "sparsesum", "subspace", "maxsim", "tensor",
-                                                   "convolution","balanced_permutation", "permutation", "printquery"};
+  public static final String[] searchtypeValues =
+    {"sum", "sparsesum", "subspace", "maxsim", "balanced_permutation", "permutation", "printquery"};
 
   public static String termweight = "none";
   public static final String termweightDescription = "Term weighting used when constructing document vectors.";
@@ -119,7 +119,8 @@ public class Flags {
 
   public static String positionalmethod = "basic";
   public static String positionalmethodDescription = "Method used for positional indexing.";
-  public static String positionalmethodValues[] = {"basic", "directional", "permutation","permutation_plus_basic"};
+  public static String positionalmethodValues[] =
+    {"basic", "directional", "permutation","permutation_plus_basic"};
 
   public static String vectorlookupsyntax = "exactmatch";
   public static final String vectorlookupsyntaxDescription =

@@ -41,10 +41,12 @@ import java.io.IOException;
 import java.util.Enumeration;
 import java.util.logging.Logger;
 
+import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.store.IndexInput;
 
 import pitt.search.semanticvectors.vectors.Vector;
+import pitt.search.semanticvectors.vectors.VectorType;
 import pitt.search.semanticvectors.vectors.VectorFactory;
 
 /**
@@ -54,7 +56,10 @@ import pitt.search.semanticvectors.vectors.VectorFactory;
    should be serialized as a String. <p>
 
    The implementation uses Lucene's I/O package, which proved much faster
-   than the native java.io.DataOutputStream
+   than the native java.io.DataOutputStream.
+   
+   Attempts to be thread-safe but this is not fully tested.
+   
    @see ObjectVector
  **/
 public class VectorStoreReaderLucene implements CloseableVectorStore {
@@ -63,13 +68,17 @@ public class VectorStoreReaderLucene implements CloseableVectorStore {
 
   private String vectorFileName;
   private File vectorFile;
-  private FSDirectory fsDirectory;
+  private Directory directory;
+  private int dimension;
+  private VectorType vectorType;
 
+  @Override
+  public VectorType getVectorType() { return vectorType; }
+  
+  @Override
+  public int getDimension() { return dimension; }
+  
   private ThreadLocal<IndexInput> threadLocalIndexInput;
-
-  public FSDirectory fsDirectory() {
-    return this.fsDirectory;
-  }
 
   public IndexInput getIndexInput() {
     return threadLocalIndexInput.get();
@@ -81,13 +90,13 @@ public class VectorStoreReaderLucene implements CloseableVectorStore {
     try {
       String parentPath = this.vectorFile.getParent();
       if (parentPath == null) parentPath = "";
-      this.fsDirectory = FSDirectory.open(new File(parentPath));
+      this.directory = FSDirectory.open(new File(parentPath));  // Old from FSDirectory impl.
       // Read number of dimension from header information.
       this.threadLocalIndexInput = new ThreadLocal<IndexInput>() {
         @Override
         protected IndexInput initialValue() {
           try {
-            return fsDirectory.openInput(vectorFile.getName());
+            return directory.openInput(vectorFile.getName());
           } catch (IOException e) {
             throw new RuntimeException(e.getMessage(), e);
           }
@@ -100,19 +109,36 @@ public class VectorStoreReaderLucene implements CloseableVectorStore {
     }
   }
   
-  public VectorStoreReaderLucene(ThreadLocal<IndexInput> threadLocalIndexInput) throws IOException {
+  /**
+   * Only for testing!  This does not create an FSDirectory so calling "close()" gives NPE.
+   * TODO(widdows): Fix this, and ownership of FSDirectory or RAMDirectory!
+   */
+  protected VectorStoreReaderLucene(ThreadLocal<IndexInput> threadLocalIndexInput)
+      throws IOException {
     this.threadLocalIndexInput = threadLocalIndexInput;
     readHeadersFromIndexInput();
   }
 
+  /**
+   * Sets internal dimension and vector type, and public flags to match.
+   * 
+   * @throws IOException
+   */
   public void readHeadersFromIndexInput() throws IOException {
     String header = threadLocalIndexInput.get().readString();
     Flags.parseFlagsFromString(header);
+    this.dimension = Flags.dimension;
+    this.vectorType = VectorType.valueOf(Flags.vectortype.toUpperCase());
   }
 
   public void close() {
     this.closeIndexInput();
-    this.fsDirectory.close();
+    try {
+      this.directory.close();
+    } catch (IOException e) {
+      logger.severe("Failed to close() directory resources: have they already been destroyed?");
+      e.printStackTrace();
+    }
   }
 
   public void closeIndexInput() {
@@ -159,7 +185,7 @@ public class VectorStoreReaderLucene implements CloseableVectorStore {
         }
         else{
           getIndexInput().seek(getIndexInput().getFilePointer()
-              + VectorFactory.getLuceneByteSize(Flags.vectortype, Flags.dimension));
+              + VectorFactory.getLuceneByteSize(vectorType, dimension));
         }
       }
     }
@@ -200,7 +226,7 @@ public class VectorStoreReaderLucene implements CloseableVectorStore {
 
     public ObjectVector nextElement() {
       String object = null;
-      Vector vector = VectorFactory.createZeroVector(Flags.vectortype, Flags.dimension);
+      Vector vector = VectorFactory.createZeroVector(vectorType, dimension);
       try {
         object = indexInput.readString();
         vector.readFromLuceneStream(indexInput);
