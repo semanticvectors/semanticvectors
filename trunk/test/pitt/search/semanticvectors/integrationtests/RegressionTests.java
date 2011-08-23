@@ -99,74 +99,60 @@ public class RegressionTests {
   public void testBuildAndSearchBasicBinaryIndex() {
     assertEquals(2, buildSearchGetRank(
         new String[] {"-dimension", "200", "-vectortype", "binary", "index"},
-        new String[] {"peter" }, "simon"));
+        new String[] {"peter"}, "simon"));
   }
 
-  @Test
-  public void testBuildAndSearchPositionalIndex() {
-    assert(!(new File(RunTests.testVectors)).isFile());
-    assert(!(new File("incremental_docvectors.bin")).isFile());
-
-    String[] args2 = {"-dimension", "200", "-vectortype", "real", "-seedlength", "10", "positional_index"};
-    BuildPositionalIndex.main(args2);
-
-    assert((new File("termtermvectors.bin")).isFile());
-    assert((new File("incremental_docvectors.bin")).isFile());
-
-    String[] arguments = {"-queryvectorfile", "termtermvectors.bin", "simon"};
+  private int positionalBuildSearchGetRank(
+      String[] buildArgs, String[] searchArgs, String[] filesToBuild, String targetResult) {
+    for (String fn : filesToBuild) assertFalse(new File(fn).isFile());
+    BuildPositionalIndex.main(buildArgs);
+    for (String fn : filesToBuild) assertTrue(new File(fn).isFile());
     Scanner results = TestUtils.getCommandOutput(
-        pitt.search.semanticvectors.Search.class, arguments);
-    int i = 0;
-    boolean foundPeter = false;
-
-    logger.info("About to search.");
-    while (i < 5) {
+        pitt.search.semanticvectors.Search.class, searchArgs);
+    int rank = 1;
+    while (results.hasNext()) {
       String nextTerm = TestUtils.termFromResult(results.next());
-      logger.finer("\tResult term is: '" + nextTerm + "'");
-      if (nextTerm.equals("peter")) {
-        foundPeter = true;
-        logger.fine("Found peter in line: " + i);
-        break;
-      }
-      ++i;
-    }
-    assertTrue(foundPeter);    
+      if (nextTerm.equals(targetResult)) break;
+      ++rank;
+    }  
     results.close();
-
-    // Test that incremental_docvectors.bin exists and is searchable.
-    arguments = new String[] {"-queryvectorfile", "termtermvectors.bin", "-searchvectorfile",
-                              "incremental_docvectors.bin", "simon"};
-    results = TestUtils.getCommandOutput(pitt.search.semanticvectors.Search.class, arguments);
-    String nextTerm = TestUtils.termFromResult(results.next());
-    assertFalse(nextTerm == null);
-    results.close();
+    for (String fn : filesToBuild) assertTrue(new File(fn).delete());
+    return rank;
   }
   
   @Test
-  public void testBuildAndSearchPermutationIndex() {
-    String[] args3 = {"-dimension", "200", "-vectortype", "real", "-seedlength", "10",
-        "-positionalmethod", "permutation", "positional_index"};
-    BuildPositionalIndex.main(args3);
-
-    String[] arguments = {"-searchtype", "permutation", "-queryvectorfile", "randomvectors.bin",
-                          "-searchvectorfile", "permtermvectors.bin", "simon", "?"};
-    Scanner results = TestUtils.getCommandOutput(
-        pitt.search.semanticvectors.Search.class, arguments);
-    // First result should be "peter".
-    String firstLine = results.next();
-    String firstTerm = TestUtils.termFromResult(firstLine);
-    assertEquals("peter", firstTerm);
-    results.close();
-
-    arguments = new String[] {"-searchtype", "balanced_permutation", "-queryvectorfile",
-      "randomvectors.bin", "-searchvectorfile", "permtermvectors.bin", "simon", "?"};
-    Scanner results2 = TestUtils.getCommandOutput(
-        pitt.search.semanticvectors.Search.class, arguments);
-    // First result should be "peter".
-    String firstLine2 = results2.next();
-    String firstTerm2 = TestUtils.termFromResult(firstLine2);
-    // logger.info("\tResult term is: '" + firstTerm2 + "'");
-    assertEquals("peter", firstTerm2);
-    results2.close();
+  public void testBuildAndSearchRealPositionalIndex() {
+    int peterRank = positionalBuildSearchGetRank(
+        new String[] {"-dimension", "200", "-vectortype", "real",
+                      "-seedlength", "10", "positional_index"},
+        new String[] {"-queryvectorfile", "termtermvectors.bin", "simon"},
+        new String[] {"termtermvectors.bin", "incremental_docvectors.bin"},
+        "peter");
+    assertTrue(peterRank < 5);
+  }
+  
+  @Test
+  public void testBuildAndSearchRealPermutationIndex() {
+    int peterRank = positionalBuildSearchGetRank(
+        new String[] {"-dimension", "200", "-vectortype", "real", "-seedlength", "10",
+                      "-positionalmethod", "permutation", "positional_index"},
+        new String[] {"-searchtype", "permutation", "-queryvectorfile", "randomvectors.bin",
+                      "-searchvectorfile", "permtermvectors.bin", "simon", "?"},
+        new String[] {"randomvectors.bin", "permtermvectors.bin", "incremental_docvectors.bin"},
+        "peter");
+    assertEquals(1, peterRank);
+  }
+  
+  @Test
+  public void testBuildAndSearchRealBalancedPermutationIndex() {
+    int peterRank = positionalBuildSearchGetRank(
+        new String[] {"-dimension", "200", "-vectortype", "real", "-seedlength", "10",
+                      "-positionalmethod", "permutation", "positional_index"},
+        new String[] {"-searchtype", "permutation", "-queryvectorfile", "randomvectors.bin",
+                      "-searchvectorfile", "permtermvectors.bin",
+                      "-searchtype", "balanced_permutation", "simon", "?"},
+        new String[] {"randomvectors.bin", "permtermvectors.bin", "incremental_docvectors.bin"},
+        "peter");
+    assertEquals(1, peterRank);
   }
 }
