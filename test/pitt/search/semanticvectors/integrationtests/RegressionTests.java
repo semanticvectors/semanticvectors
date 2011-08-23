@@ -132,9 +132,56 @@ public class RegressionTests {
   }
   
   @Test
+  public void testBuildAndSearchBinaryPositionalIndex() {
+    int peterRank = positionalBuildSearchGetRank(
+        new String[] {"-dimension", "256", "-vectortype", "binary",
+                      "-seedlength", "128", "positional_index"},
+        new String[] {"-queryvectorfile", "termtermvectors.bin", "simon"},
+        new String[] {"termtermvectors.bin", "incremental_docvectors.bin"},
+        "peter");
+    // Binary positional index builds and runs but doesn't seem to give great results.
+    assertTrue(peterRank < 10);
+  }
+  
+  @Test
+  public void testBuildAndSearchComplexPositionalIndex() {
+    int peterRank = positionalBuildSearchGetRank(
+        new String[] {"-dimension", "200", "-vectortype", "complex",
+                      "-seedlength", "10", "positional_index"},
+        new String[] {"-queryvectorfile", "termtermvectors.bin", "simon"},
+        new String[] {"termtermvectors.bin", "incremental_docvectors.bin"},
+        "peter");
+    assertTrue(peterRank < 5);
+  }
+  
+  @Test
   public void testBuildAndSearchRealPermutationIndex() {
     int peterRank = positionalBuildSearchGetRank(
         new String[] {"-dimension", "200", "-vectortype", "real", "-seedlength", "10",
+                      "-positionalmethod", "permutation", "positional_index"},
+        new String[] {"-searchtype", "permutation", "-queryvectorfile", "randomvectors.bin",
+                      "-searchvectorfile", "permtermvectors.bin", "simon", "?"},
+        new String[] {"randomvectors.bin", "permtermvectors.bin", "incremental_docvectors.bin"},
+        "peter");
+    assertEquals(1, peterRank);
+  }
+  
+  @Test
+  public void testBuildAndSearchComplexPermutationIndex() {
+    int peterRank = positionalBuildSearchGetRank(
+        new String[] {"-dimension", "200", "-vectortype", "complex", "-seedlength", "10",
+                      "-positionalmethod", "permutation", "positional_index"},
+        new String[] {"-searchtype", "permutation", "-queryvectorfile", "randomvectors.bin",
+                      "-searchvectorfile", "permtermvectors.bin", "simon", "?"},
+        new String[] {"randomvectors.bin", "permtermvectors.bin", "incremental_docvectors.bin"},
+        "peter");
+    assertEquals(1, peterRank);
+  }
+  
+  @Test
+  public void testBuildAndSearchBinaryPermutationIndex() {
+    int peterRank = positionalBuildSearchGetRank(
+        new String[] {"-dimension", "512", "-vectortype", "binary", "-seedlength", "256",
                       "-positionalmethod", "permutation", "positional_index"},
         new String[] {"-searchtype", "permutation", "-queryvectorfile", "randomvectors.bin",
                       "-searchvectorfile", "permtermvectors.bin", "simon", "?"},
