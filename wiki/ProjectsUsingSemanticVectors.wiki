@@ -1,5 +1,7 @@
 #summary A list of projects we know about that have used SemanticVectors.
 
+See also RelatedResearch. (These pages should eventually be amalgamated but so far it seems fine to let them grow somewhat chaotically.)
+
 _If you know of a project that has used SemanticVectors, please leave a comment on this page and we'll incorporate it._
 
 Project Torngat: Building Large-Scale Semantic 'Maps of Science' with LuSql, Lucene, Semantic Vectors, R and Processing from Full-Text. 
