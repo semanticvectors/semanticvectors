@@ -65,10 +65,38 @@ public class IndexBilingualFiles {
     LANGUAGE2 = lang2;
   }
 
-  private void runIndexer() {
-    final File docDir1 = new File(LANGUAGE1);
-    final File docDir2 = new File(LANGUAGE2);
+	private void runIndexer() {
+    INDEX_DIR = new File("bilingual_index");
+    if (INDEX_DIR.exists()) {
+      System.out.println("Cannot save index to '" + INDEX_DIR +
+                         "' directory, please delete it first");
+      System.exit(1);
+    }
 
+    Date start = new Date();
+    try {
+			final File docDir1 = new File(LANGUAGE1);
+			final File docDir2 = new File(LANGUAGE2);
+      IndexWriter writer = new IndexWriter(FSDirectory.open(INDEX_DIR),
+                                           new StandardAnalyzer(Version.LUCENE_30),
+                                           true, MaxFieldLength.UNLIMITED);
+      System.out.println("Indexing to directory '" + INDEX_DIR + "'...");
+			runDeepIndexer(docDir1, docDir2, writer);
+
+      System.out.println("Optimizing...");
+      writer.optimize();
+      writer.close();
+
+      Date end = new Date();
+      System.out.println(end.getTime() - start.getTime() + " total milliseconds");
+
+    } catch (IOException e) {
+      System.out.println(" caught a " + e.getClass() +
+                         "\n with message: " + e.getMessage());
+    }
+  }
+
+  private void runDeepIndexer(File docDir1, File docDir2, IndexWriter writer) {
     // Run several tests to see if corpus is well formed.
     if (!docDir1.exists()) {
       System.out.println("Test directory exists failed: " + docDir1);
@@ -106,48 +134,26 @@ public class IndexBilingualFiles {
                          "not creating bilingual index.\n" +
                          "Please check corpora contents, clean up your data, " +
                          "and try again.");
-      System.exit(1);
+      //System.exit(1);
     }
 
+		for (int i = 0; i < files1.length; ++i) {
+			System.out.println("adding " + files1[i]);
+			File newFile1 = new File(docDir1 + "/" + files1[i]);
+			File newFile2 = new File(docDir2 + "/" + files1[i]);
+			if (newFile1.isDirectory() && newFile2.isDirectory()) {
+				runDeepIndexer(newFile1, newFile2, writer);
+			}
 
-    INDEX_DIR = new File("bilingual_index");
-    if (INDEX_DIR.exists()) {
-      System.out.println("Cannot save index to '" + INDEX_DIR +
-                         "' directory, please delete it first");
-      System.exit(1);
-    }
-
-    Date start = new Date();
-    try {
-      IndexWriter writer = new IndexWriter(FSDirectory.open(INDEX_DIR),
-                                           new StandardAnalyzer(Version.LUCENE_30),
-                                           true, MaxFieldLength.UNLIMITED);
-      System.out.println("Indexing to directory '" + INDEX_DIR + "'...");
-      for (int i = 0; i < files1.length; ++i) {
-        System.out.println("adding " + files1[i]);
-        try {
-          writer.addDocument(
-              fileBilingualDocument(new File(LANGUAGE1 + "/" + files1[i]),
-                                    new File(LANGUAGE2 + "/" + files2[i])));
-        }
-        catch (IOException e) {
-          System.err.println("Got exception with filepair: " + files1[i]);
-          e.printStackTrace();
-        }
-      }
-
-      System.out.println("Optimizing...");
-      writer.optimize();
-      writer.close();
-
-      Date end = new Date();
-      System.out.println(end.getTime() - start.getTime() + " total milliseconds");
-
-    } catch (IOException e) {
-      System.out.println(" caught a " + e.getClass() +
-                         "\n with message: " + e.getMessage());
-    }
-  }
+			try {
+				writer.addDocument(fileBilingualDocument(newFile1, newFile2));
+			}
+			catch (IOException e) {
+				System.err.println("Got exception with filepair: " + files1[i]);
+				e.printStackTrace();
+			}
+		}
+	}
 
   // A method for making Lucene Documents from a bilingual file pair.
   protected Document fileBilingualDocument(File file1, File file2)
@@ -171,7 +177,7 @@ public class IndexBilingualFiles {
     // Add the path of the file as a field named "filename".  Use a field that is
     // indexed (i.e. searchable), but don't tokenize the field into words.
     doc.add(new Field("filename",
-                      file1.getName(),
+                      file1.getPath(),
                       Field.Store.YES,
                       Field.Index.NOT_ANALYZED));
 
