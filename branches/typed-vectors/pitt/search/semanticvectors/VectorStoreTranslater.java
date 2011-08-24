@@ -50,7 +50,7 @@ public class VectorStoreTranslater {
   /**
    * Command line method for performing index translation.
    * @throws IOException if any of the vector stores on disk cannot be opened.
-   * @see #usage
+   * @see #usageMessage
    */
   public static void main(String[] args) throws IOException {
     // Parse command line args.

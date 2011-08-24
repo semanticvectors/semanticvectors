@@ -54,7 +54,7 @@ import java.util.logging.Logger;
  * @author Trevor Cohen, Dominic Widdows
  */
 public class IncrementalTermVectors implements VectorStore {
-  /** Usage message printed if {@link main} is called with ill-formed arguments. */
+  /** Usage message printed if {@link #main} is called with ill-formed arguments. */
   public static String usageMessage = "\nIncrementalTermVectors class in package pitt.search.semanticvectors"
     + "\nUsage: java pitt.search.semanticvectors.IncrementalTermVectors [document vector file] [lucene index]"
     + "\nIncrementalTermVectors creates termvectors files in local directory from docvectors file."

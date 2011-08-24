@@ -608,33 +608,30 @@ public class BinaryVector extends Vector {
           + "This may be a programming error.");
       return;
     }
-
     this.votingRecord = new ArrayList<OpenBitSet>();
     this.tempSet = new OpenBitSet(dimension);
     this.isSparse = false;
-
   }
 
 
-  /*
-   * permute the long[] array underlying the OpenBitSet binary representation
+  /**
+   * Permute the long[] array underlying the OpenBitSet binary representation
    */
-
-  public static long[] permute(BinaryVector toPermute, int[] permutation)
-  {
-
+  public static long[] permute(BinaryVector toPermute, int[] permutation) {
+    /* TODO(widdows): Still debugging this.
+    System.err.print("Permutation is: ");
+    for (int i : permutation) {
+      System.err.print(i + " ");
+    }
+    */
     //TODO permute in place without creating additional long[] (if proves problematic at scale)
-
     long[] coordinates = toPermute.bitSet.getBits();
     long[] new_coordinates = new long[coordinates.length];
-
     for (int i = 0; i < coordinates.length; ++i) {
-
       int positionToAdd = i;
       positionToAdd = permutation[positionToAdd];
       new_coordinates[i] = coordinates[positionToAdd];
     }
-
     return new_coordinates;
   }
 

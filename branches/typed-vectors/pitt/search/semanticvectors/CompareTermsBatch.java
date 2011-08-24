@@ -92,7 +92,7 @@ public class CompareTermsBatch {
 
   /**
    * Main function for command line use.
-   * @param args See {@link usageMessage}.
+   * @param args See {@link #usageMessage}.
    */
   public static void main (String[] args) throws IllegalArgumentException {
     try {
