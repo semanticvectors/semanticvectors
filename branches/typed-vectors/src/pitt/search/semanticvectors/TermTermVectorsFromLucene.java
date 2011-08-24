@@ -179,15 +179,20 @@ public class TermTermVectorsFromLucene implements VectorStore {
    * Initialize all permutations that might be used.
    */
   private void initializePermutations() {
+    // Only support binary permutations at the level of each 64-bit long.  This is the one
+    // violation of encapsulation we currently need to support reasonable performance for binary
+    // permutations.
+    int permutationLength = (vectorType != VectorType.BINARY) ? dimension : dimension / 64;
     if (positionalmethod.equals("directional")) {
-      permutationCache = new int[2][dimension];
-      permutationCache[0] = PermutationUtils.getShiftPermutation(dimension, -1);
-      permutationCache[1] = PermutationUtils.getShiftPermutation(dimension, 1);      
+      permutationCache = new int[2][permutationLength];
+      permutationCache[0] = PermutationUtils.getShiftPermutation(permutationLength, -1);
+      permutationCache[1] = PermutationUtils.getShiftPermutation(permutationLength, 1);      
     } else if (positionalmethod.equals("permutation")
         || positionalmethod.equals("permutation_plus_basic"))  {
-      permutationCache = new int[windowSize][dimension];
+      permutationCache = new int[windowSize][permutationLength];
       for (int i = 0; i < windowSize; ++i) {
-        permutationCache[i] = PermutationUtils.getShiftPermutation(dimension, i - windowSize/2);
+        permutationCache[i] = PermutationUtils.getShiftPermutation(
+            permutationLength, i - windowSize/2);
       }
     }
   }
