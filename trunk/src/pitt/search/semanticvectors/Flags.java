@@ -89,6 +89,10 @@ public class Flags {
   public static final String termweightDescription = "Term weighting used when constructing document vectors.";
   public static final String[] termweightValues = {"logentropy","none"};
 
+	public static boolean porterstemmer = false;
+  public static final String porterstemmerDescription =
+      "Set to true when using IndexFilePositions if you would like to stem terms";
+
   public static boolean usetermweightsinsearch = false;
   public static final String usetermweightsinsearchDescription =
       "Set to true only if you want to scale each comparison score by a term weight during search.";
