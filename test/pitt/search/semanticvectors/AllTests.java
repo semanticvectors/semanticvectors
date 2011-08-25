@@ -51,7 +51,7 @@ public class AllTests {
     suite.addTestSuite(VectorStoreRAMTest.class);
     suite.addTestSuite(RealVectorTest.class);
     suite.addTestSuite(BinaryVectorTest.class);
-    suite.addTestSuite(CircleLookupTableTest.class);
+    // suite.addTestSuite(CircleLookupTableTest.class);   Accidentally never checked in - TODO(widdows) redo! 
     suite.addTestSuite(ComplexVectorTest.class);
     suite.addTestSuite(PermutationUtilsTest.class);
     //$JUnit-END$
