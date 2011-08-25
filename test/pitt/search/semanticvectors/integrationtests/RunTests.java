@@ -60,7 +60,7 @@ public class RunTests {
    */
   public static Class<?>[] integrationTestClasses = {
     RegressionTests.class,
-    ThreadSafetyTest.class
+    //ThreadSafetyTest.class
   };
 
   public static boolean testDataPrepared = false;
@@ -89,9 +89,12 @@ public class RunTests {
   private static int[] runJUnitTests(Class<?>[] classes) {
     Result results = org.junit.runner.JUnitCore.runClasses(classes);
     for (Failure failure: results.getFailures()) {
-      System.out.println("FAILURE!!!");
-      System.out.println("FAILURE!!!   " + failure.toString());
-      System.out.println("FAILURE!!!");
+      System.err.println("FAILURE!!!");
+      System.err.println("FAILURE!!! Test: " + failure.toString());
+      System.err.println("FAILURE!!! Message: " + failure.getMessage());
+      System.err.println("FAILURE!!! Exception: ");
+      failure.getException().printStackTrace();
+      System.err.println("FAILURE!!!");
     }
     int[] resultCounts = { results.getRunCount() - results.getFailureCount(),
         results.getFailureCount() };

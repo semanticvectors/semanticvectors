@@ -49,12 +49,28 @@ public class PermutationUtils {
 
   private PermutationUtils() {}
 
-  public static int[] getShiftPermutation(int dimension, int shift) {
-    int[] permutation = new int[dimension];
+  /**
+   * Returns dimension for real and complex vectors, or dimension / 64 for binary vectors.
+   */
+  public static int getPermutationLength(VectorType vectorType, int dimension) {
+    return (vectorType != VectorType.BINARY) ? dimension : dimension / 64; 
+  }
+  
+  /**
+   * Creates a shift permutation that can be applied to vectors of this type and dimension.
+   * 
+   * @param vectorType necessary argument because binary vectors are only permuted in 64-bit chunks
+   * @param dimension dimension of vectors to be permuted
+   * @param shift number of places to shift the vector
+   * @return array of length given by {@link #getPermutationLength}.
+   */
+  public static int[] getShiftPermutation(VectorType vectorType, int dimension, int shift) {
+    int permutationLength = getPermutationLength(vectorType, dimension);
+    int[] permutation = new int[permutationLength];
 
-    for (int i = 0; i < dimension; ++i) {
-      int entry = (i + shift) % dimension;
-      if (entry < 0) entry += dimension;
+    for (int i = 0; i < permutationLength; ++i) {
+      int entry = (i + shift) % permutationLength;
+      if (entry < 0) entry += permutationLength;
       permutation[i] = entry;
     }
     return permutation;

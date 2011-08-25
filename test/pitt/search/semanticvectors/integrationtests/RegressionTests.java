@@ -62,7 +62,9 @@ public class RegressionTests {
     assert(RunTests.prepareTestData());
   }
 
-  private int buildSearchGetRank(String[] buildArgs, String[] searchArgs, String targetResult) {
+  private int buildSearchGetRank(String buildCmd, String searchCmd, String targetResult) {
+    String[] buildArgs = buildCmd.split("\\s+");
+    String[] searchArgs = searchCmd.split("\\s+");
     assert(!(new File("termvectors.bin")).isFile());
     assert(!(new File("docvectors.bin")).isFile());
     BuildIndex.main(buildArgs);
@@ -84,34 +86,36 @@ public class RegressionTests {
   
   @Test
   public void testBuildAndSearchBasicRealIndex() {
-    assertEquals(2, buildSearchGetRank(new String[] {"-dimension", "200", "index"},
-                                       new String[] {"peter" }, "simon"));
+    assertEquals(2, buildSearchGetRank("-dimension 200 index", "peter", "simon"));
   }
 
   @Test
   public void testBuildAndSearchBasicComplexIndex() {
     assertEquals(2, buildSearchGetRank(
-        new String[] {"-dimension", "200", "-vectortype", "complex", "index"},
-        new String[] {"peter" }, "simon"));
+        "-dimension 200 -vectortype complex index", "peter", "simon"));
   }
 
   @Test
   public void testBuildAndSearchBasicBinaryIndex() {
     assertEquals(2, buildSearchGetRank(
-        new String[] {"-dimension", "200", "-vectortype", "binary", "index"},
-        new String[] {"peter"}, "simon"));
+        "-dimension 256 -seedlength 128 -vectortype binary index", "peter", "simon"));
   }
 
   private int positionalBuildSearchGetRank(
-      String[] buildArgs, String[] searchArgs, String[] filesToBuild, String targetResult) {
+      String buildCmd, String searchCmd, String[] filesToBuild, String targetResult) {
+    String[] buildArgs = buildCmd.split("\\s+");
+    String[] searchArgs = searchCmd.split("\\s+");
     for (String fn : filesToBuild) assertFalse(new File(fn).isFile());
+
     BuildPositionalIndex.main(buildArgs);
     for (String fn : filesToBuild) assertTrue(new File(fn).isFile());
+
     Scanner results = TestUtils.getCommandOutput(
         pitt.search.semanticvectors.Search.class, searchArgs);
     int rank = 1;
     while (results.hasNext()) {
-      String nextTerm = TestUtils.termFromResult(results.next());
+      String result = results.next();
+      String nextTerm = TestUtils.termFromResult(result);
       if (nextTerm.equals(targetResult)) break;
       ++rank;
     }  
@@ -119,24 +123,22 @@ public class RegressionTests {
     for (String fn : filesToBuild) assertTrue(new File(fn).delete());
     return rank;
   }
-  
+
   @Test
   public void testBuildAndSearchRealPositionalIndex() {
     int peterRank = positionalBuildSearchGetRank(
-        new String[] {"-dimension", "200", "-vectortype", "real",
-                      "-seedlength", "10", "positional_index"},
-        new String[] {"-queryvectorfile", "termtermvectors.bin", "simon"},
+        "-dimension 200 -vectortype real -seedlength 10 positional_index",
+        "-queryvectorfile termtermvectors.bin simon",
         new String[] {"termtermvectors.bin", "incremental_docvectors.bin"},
         "peter");
     assertTrue(peterRank < 5);
   }
-  
+
   @Test
   public void testBuildAndSearchBinaryPositionalIndex() {
     int peterRank = positionalBuildSearchGetRank(
-        new String[] {"-dimension", "256", "-vectortype", "binary",
-                      "-seedlength", "128", "positional_index"},
-        new String[] {"-queryvectorfile", "termtermvectors.bin", "simon"},
+        "-dimension 256 -vectortype binary -seedlength 128 positional_index",
+        "-queryvectorfile termtermvectors.bin simon",
         new String[] {"termtermvectors.bin", "incremental_docvectors.bin"},
         "peter");
     // Binary positional index builds and runs but doesn't seem to give great results.
@@ -146,9 +148,8 @@ public class RegressionTests {
   @Test
   public void testBuildAndSearchComplexPositionalIndex() {
     int peterRank = positionalBuildSearchGetRank(
-        new String[] {"-dimension", "200", "-vectortype", "complex",
-                      "-seedlength", "10", "positional_index"},
-        new String[] {"-queryvectorfile", "termtermvectors.bin", "simon"},
+        "-dimension 200 -vectortype complex -seedlength 10 positional_index",
+        "-queryvectorfile termtermvectors.bin simon",
         new String[] {"termtermvectors.bin", "incremental_docvectors.bin"},
         "peter");
     assertTrue(peterRank < 5);
@@ -157,10 +158,8 @@ public class RegressionTests {
   @Test
   public void testBuildAndSearchRealPermutationIndex() {
     int peterRank = positionalBuildSearchGetRank(
-        new String[] {"-dimension", "200", "-vectortype", "real", "-seedlength", "10",
-                      "-positionalmethod", "permutation", "positional_index"},
-        new String[] {"-searchtype", "permutation", "-queryvectorfile", "randomvectors.bin",
-                      "-searchvectorfile", "permtermvectors.bin", "simon", "?"},
+        "-dimension 200 -vectortype real -seedlength 10 -positionalmethod permutation positional_index",
+        "-searchtype permutation -queryvectorfile randomvectors.bin -searchvectorfile permtermvectors.bin simon ?",
         new String[] {"randomvectors.bin", "permtermvectors.bin", "incremental_docvectors.bin"},
         "peter");
     assertEquals(1, peterRank);
@@ -169,37 +168,30 @@ public class RegressionTests {
   @Test
   public void testBuildAndSearchComplexPermutationIndex() {
     int peterRank = positionalBuildSearchGetRank(
-        new String[] {"-dimension", "200", "-vectortype", "complex", "-seedlength", "10",
-                      "-positionalmethod", "permutation", "positional_index"},
-        new String[] {"-searchtype", "permutation", "-queryvectorfile", "randomvectors.bin",
-                      "-searchvectorfile", "permtermvectors.bin", "simon", "?"},
+        "-dimension 200 -vectortype complex -seedlength 10 -positionalmethod permutation positional_index",
+        "-searchtype permutation -queryvectorfile randomvectors.bin -searchvectorfile permtermvectors.bin simon ?",
         new String[] {"randomvectors.bin", "permtermvectors.bin", "incremental_docvectors.bin"},
         "peter");
     assertEquals(1, peterRank);
   }
 
-	/** Broken pending dimension fix!
+  /* Test currently broken / hanging.
   @Test
   public void testBuildAndSearchBinaryPermutationIndex() {
     int peterRank = positionalBuildSearchGetRank(
-        new String[] {"-dimension", "512", "-vectortype", "binary", "-seedlength", "256",
-                      "-positionalmethod", "permutation", "positional_index"},
-        new String[] {"-searchtype", "permutation", "-queryvectorfile", "randomvectors.bin",
-                      "-searchvectorfile", "permtermvectors.bin", "simon", "?"},
+        "-dimension 512 -vectortype binary -seedlength 256 -positionalmethod permutation positional_index",
+        "-searchtype permutation -queryvectorfile randomvectors.bin -searchvectorfile permtermvectors.bin simon ?",
         new String[] {"randomvectors.bin", "permtermvectors.bin", "incremental_docvectors.bin"},
         "peter");
-    assertEquals(1, peterRank);
+    assertEquals(2, peterRank);
   }
-	*/
-  
+  */
+
   @Test
   public void testBuildAndSearchRealBalancedPermutationIndex() {
     int peterRank = positionalBuildSearchGetRank(
-        new String[] {"-dimension", "200", "-vectortype", "real", "-seedlength", "10",
-                      "-positionalmethod", "permutation", "positional_index"},
-        new String[] {"-searchtype", "permutation", "-queryvectorfile", "randomvectors.bin",
-                      "-searchvectorfile", "permtermvectors.bin",
-                      "-searchtype", "balanced_permutation", "simon", "?"},
+        "-dimension 200 -vectortype real -seedlength 10 -positionalmethod permutation positional_index",
+        "-searchtype permutation -queryvectorfile randomvectors.bin -searchvectorfile permtermvectors.bin -searchtype balanced_permutation simon ?",
         new String[] {"randomvectors.bin", "permtermvectors.bin", "incremental_docvectors.bin"},
         "peter");
     assertEquals(1, peterRank);
