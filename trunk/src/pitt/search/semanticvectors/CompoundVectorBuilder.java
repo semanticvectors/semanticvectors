@@ -107,15 +107,16 @@ public class CompoundVectorBuilder {
     }
 
     // Initialize other arguments.
-    Vector queryVec = VectorFactory.createZeroVector(Flags.vectortype, Flags.dimension);
-
-    Vector tmpVec = VectorFactory.createZeroVector(Flags.vectortype, Flags.dimension);
+    Vector queryVec = VectorFactory.createZeroVector(
+        vecReader.getVectorType(), vecReader.getDimension());
+    Vector tmpVec = VectorFactory.createZeroVector(
+        vecReader.getVectorType(), vecReader.getDimension());
     float weight = 1;
 
     for (int j = 0; j < queryTerms.length; ++j) {
       if (j != queryTermPosition)	{
         tmpVec = vecReader.getVector(queryTerms[j]);
-        int permutation = j - queryTermPosition;
+        int shift = j - queryTermPosition;
 
         if (lUtils != null) {
           weight = lUtils.getGlobalTermWeightFromString(queryTerms[j]);
@@ -126,7 +127,8 @@ public class CompoundVectorBuilder {
 
         if (tmpVec != null) {
           queryVec.superpose(tmpVec, weight,
-              PermutationUtils.getShiftPermutation(Flags.dimension, permutation));
+              PermutationUtils.getShiftPermutation(
+                  vecReader.getVectorType(), vecReader.getDimension(), shift));
         } else {
           VerbatimLogger.warning("No vector for '" + queryTerms[j] + "'\n");
         }

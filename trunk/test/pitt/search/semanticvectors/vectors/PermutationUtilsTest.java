@@ -44,10 +44,17 @@ public class PermutationUtilsTest extends TestCase {
   
   @Test
   public void testGetShiftPermutation() {
-    assertArrayEquals(new int[] {1, 0}, PermutationUtils.getShiftPermutation(2, 1));
-    assertArrayEquals(new int[] {1, 2, 0}, PermutationUtils.getShiftPermutation(3, 1));
-    assertArrayEquals(new int[] {2, 3, 4, 5, 0, 1}, PermutationUtils.getShiftPermutation(6, 2));
-    assertArrayEquals(new int[] {2, 3, 4, 5, 0, 1}, PermutationUtils.getShiftPermutation(6, -4));
-    assertArrayEquals(new int[] {2, 3, 4, 5, 0, 1}, PermutationUtils.getShiftPermutation(6, 14));
+    assertArrayEquals(new int[] {1, 0}, PermutationUtils.getShiftPermutation(VectorType.REAL, 2, 1));
+    assertArrayEquals(new int[] {1, 2, 0}, PermutationUtils.getShiftPermutation(VectorType.REAL, 3, 1));
+    assertArrayEquals(new int[] {2, 3, 4, 5, 0, 1}, PermutationUtils.getShiftPermutation(VectorType.REAL, 6, 2));
+    assertArrayEquals(new int[] {2, 3, 4, 5, 0, 1}, PermutationUtils.getShiftPermutation(VectorType.REAL, 6, -4));
+    assertArrayEquals(new int[] {2, 3, 4, 5, 0, 1}, PermutationUtils.getShiftPermutation(VectorType.REAL, 6, 14));
+  }
+  
+  @Test
+  public void testGetShiftPermutationForBinary() {
+    assertArrayEquals(new int[] {1, 0}, PermutationUtils.getShiftPermutation(VectorType.BINARY, 128, 1));
+    assertArrayEquals(new int[] {1, 2, 0}, PermutationUtils.getShiftPermutation(VectorType.BINARY, 192, 1));
+    assertArrayEquals(new int[] {2, 3, 4, 5, 0, 1}, PermutationUtils.getShiftPermutation(VectorType.BINARY, 384, 2));
   }
 }

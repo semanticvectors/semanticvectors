@@ -7,15 +7,15 @@
    modification, are permitted provided that the following conditions are
    met:
 
-   * Redistributions of source code must retain the above copyright
+ * Redistributions of source code must retain the above copyright
    notice, this list of conditions and the following disclaimer.
 
-   * Redistributions in binary form must reproduce the above
+ * Redistributions in binary form must reproduce the above
    copyright notice, this list of conditions and the following
    disclaimer in the documentation and/or other materials provided
    with the distribution.
 
-   * Neither the name of the University of Pittsburgh nor the names
+ * Neither the name of the University of Pittsburgh nor the names
    of its contributors may be used to endorse or promote products
    derived from this software without specific prior written
    permission.
@@ -31,7 +31,7 @@
    LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
    NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
    SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-**/
+ **/
 package pitt.search.semanticvectors.vectors;
 
 import java.io.IOException;
@@ -47,7 +47,7 @@ import org.junit.Test;
 public class BinaryVectorTest extends TestCase {
 
 
-  
+
   @Test
   public void testDimensionMustMatchWhenReading() {
     BinaryVector vector = (BinaryVector) VectorFactory.createZeroVector(VectorType.BINARY, 128);
@@ -58,7 +58,7 @@ public class BinaryVectorTest extends TestCase {
       assertTrue(e.getMessage().contains("expected 128"));
     }
   }
-  
+
   @Test
   public void testSuperposeAndNormalize() {
     BinaryVector vector = (BinaryVector) VectorFactory.createZeroVector(VectorType.BINARY, 64);
@@ -79,75 +79,78 @@ public class BinaryVectorTest extends TestCase {
     vector3.superpose(vector4, 2, null);
     vector3.normalize();
   }
-  
- 
-  @Test
-	  public void testCreateZeroVectorAndOverlap() {
-	    Vector zero = VectorFactory.createZeroVector(VectorType.BINARY, 64);
-	    assertEquals("0|", ((BinaryVector) zero).writeLongToString());
-	  }
+
 
   @Test
-	  public void testPermutation() {
-		  
-		int dim = 512;
-		Random random = new Random();
-	    BinaryVector elementalVector = (BinaryVector) VectorFactory.generateRandomVector(
-	        VectorType.BINARY, dim, dim/2, random);
-	    Vector semanticVector = VectorFactory.createZeroVector(VectorType.BINARY, dim);
-	    
-	    int longDim = (int) dim/64;
-	    if (dim % 64 > 0) longDim++;
-	    
-	    //check that number of long in array meets expectation 
-	    assertEquals(elementalVector.bitLength(),longDim);
-	        
-	    int[] shiftRight = PermutationUtils.getShiftPermutation(longDim, 1);
-	    int[] shiftLeft = PermutationUtils.getInversePermutation(shiftRight);
-	     
-	    BinaryVector elementalClone = elementalVector.copy();
-	   
-	    //check superposition + permutation
-	    semanticVector.superpose(elementalVector, 1, shiftRight);
-	    semanticVector.normalize();
-	      
-	    //check that vector not altered during permutation
-	    assertEquals(((BinaryVector) elementalVector).writeLongToString(), ((BinaryVector) elementalClone).writeLongToString());
-	    
-	    //check that permuted elemental vector matches added elemental vector
-	    BinaryVector.permute(elementalVector, shiftRight);
-	    assertEquals(((BinaryVector) elementalVector).writeLongToString(), ((BinaryVector) semanticVector).writeLongToString());
-	    
-	     //check that permutation is invertible
-	    BinaryVector.permute(elementalVector, shiftLeft);
-	    assertEquals(((BinaryVector) elementalVector).writeLongToString(), ((BinaryVector) elementalClone).writeLongToString());
-	      
-	  }
-	  
-	  
-	  @Test
-	  public void testGenerateRandomVectorWriteAndRead() {
-	    Random random = new Random(0);
-	    
-	    Vector vector = VectorFactory.generateRandomVector(VectorType.BINARY, 64, 2, random);
-	    assertEquals("1100001111010001111111011010000000111011100001100010010010001111", vector.writeToString());
-	    
-	    RAMDirectory directory = new RAMDirectory();
-	    try {
-	      IndexOutput indexOutput = directory.createOutput("binaryvectors.bin");
-	      vector.writeToLuceneStream(indexOutput);
-	      indexOutput.flush();
-	      IndexInput indexInput = directory.openInput("binaryvectors.bin");
-	      Vector vector2 = VectorFactory.createZeroVector(VectorType.BINARY, 64);
-	      assertEquals("0000000000000000000000000000000000000000000000000000000000000000", vector2.writeToString());
-	      vector2.readFromLuceneStream(indexInput);
-	      assertEquals("1100001111010001111111011010000000111011100001100010010010001111", vector2.writeToString());
-	    } catch (IOException e) {
-	      e.printStackTrace();
-	      fail();
-	    }
-	  }  
-  
+  public void testCreateZeroVectorAndOverlap() {
+    Vector zero = VectorFactory.createZeroVector(VectorType.BINARY, 64);
+    assertEquals("0|", ((BinaryVector) zero).writeLongToString());
+  }
+
+  @Test
+  public void testPermutation() {
+    int dim = 512;
+    Random random = new Random();
+    BinaryVector elementalVector = (BinaryVector) VectorFactory.generateRandomVector(
+        VectorType.BINARY, dim, dim/2, random);
+    Vector semanticVector = VectorFactory.createZeroVector(VectorType.BINARY, dim);
+
+    int longDim = (int) dim/64;
+    if (dim % 64 > 0) longDim++;
+
+    //check that number of long in array meets expectation 
+    assertEquals(elementalVector.bitLength(),longDim);
+
+    int[] shiftRight = PermutationUtils.getShiftPermutation(VectorType.BINARY, dim, 1);
+    int[] shiftLeft = PermutationUtils.getInversePermutation(shiftRight);
+
+    BinaryVector elementalClone = elementalVector.copy();
+
+    // Check superposition + permutation
+    semanticVector.superpose(elementalVector, 1, shiftRight);
+    semanticVector.normalize();
+
+    // Check that elemental vector not altered during permutation
+    assertEquals(((BinaryVector) elementalVector).writeLongToString(), ((BinaryVector) elementalClone).writeLongToString());
+
+    // Check that permuted elemental vector matches added elemental vector
+    elementalVector.permute(shiftRight);
+    assertEquals(((BinaryVector) elementalVector).writeLongToString(), ((BinaryVector) semanticVector).writeLongToString());
+
+    // Check that it has in face changed.
+    assertFalse(((BinaryVector) elementalVector).writeLongToString().equals(
+        ((BinaryVector) elementalClone).writeLongToString()));
+    
+    // Check that permutation is invertible
+    elementalVector.permute(shiftLeft);
+    assertEquals(((BinaryVector) elementalVector).writeLongToString(), ((BinaryVector) elementalClone).writeLongToString());
+
+  }
+
+
+  @Test
+  public void testGenerateRandomVectorWriteAndRead() {
+    Random random = new Random(0);
+
+    Vector vector = VectorFactory.generateRandomVector(VectorType.BINARY, 64, 2, random);
+    assertEquals("1100001111010001111111011010000000111011100001100010010010001111", vector.writeToString());
+
+    RAMDirectory directory = new RAMDirectory();
+    try {
+      IndexOutput indexOutput = directory.createOutput("binaryvectors.bin");
+      vector.writeToLuceneStream(indexOutput);
+      indexOutput.flush();
+      IndexInput indexInput = directory.openInput("binaryvectors.bin");
+      Vector vector2 = VectorFactory.createZeroVector(VectorType.BINARY, 64);
+      assertEquals("0000000000000000000000000000000000000000000000000000000000000000", vector2.writeToString());
+      vector2.readFromLuceneStream(indexInput);
+      assertEquals("1100001111010001111111011010000000111011100001100010010010001111", vector2.writeToString());
+    } catch (IOException e) {
+      e.printStackTrace();
+      fail();
+    }
+  }  
+
 
   /*
   {
@@ -179,6 +182,6 @@ public class BinaryVectorTest extends TestCase {
 
 
     randV = testV.generateRandomVector(10000,5000, random);
-*/
+   */
 
 }

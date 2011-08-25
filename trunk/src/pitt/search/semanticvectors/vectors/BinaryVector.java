@@ -206,16 +206,18 @@ public class BinaryVector extends Vector {
     }
 
     if (permutation != null) {
-
-      //rather than permuting individual dimensions, we permute 64 dimensions at a time
-      //this should be considerably quicker, and dimensions/64 should allow for sufficient
-      //permutations
-
+      // rather than permuting individual dimensions, we permute 64 dimensions at a time
+      // this should be considerably quicker, and dimensions/64 should allow for sufficient
+      // permutations
+      if (permutation.length != dimension / 64) {
+        throw new IllegalArgumentException("Binary vector of dimension " + dimension
+            + " must have permutation of length " + dimension / 64
+            + " not " + permutation.length);
+      }
       //TODO permute in place and reverse, to avoid creating a new BinaryVector here
       BinaryVector temp = binaryOther.copy();
-      permute(temp,permutation);
+      temp.permute(permutation);
       superpose(temp.bitSet, weight);
-
     }
     else
       superpose(binaryOther.bitSet, weight);
@@ -268,7 +270,7 @@ public class BinaryVector extends Vector {
    * binary number represented in this column.
    * 
    * @param incomingBitSet the bitset to be added
-   * @param rowfloor the of the voting record to start the sweep at
+   * @param rowfloor the index of the place in the voting record to start the sweep at
    */
   private void superpose(OpenBitSet incomingBitSet, int rowfloor) {
     // Attempt to save space when minimum value across all columns > 0
@@ -617,22 +619,21 @@ public class BinaryVector extends Vector {
   /**
    * Permute the long[] array underlying the OpenBitSet binary representation
    */
-  public static long[] permute(BinaryVector toPermute, int[] permutation) {
-    /* TODO(widdows): Still debugging this.
-    System.err.print("Permutation is: ");
-    for (int i : permutation) {
-      System.err.print(i + " ");
+  public void permute(int[] permutation) {
+    if (permutation.length != getDimension() / 64) {
+      throw new IllegalArgumentException("Binary vector of dimension " + getDimension()
+          + " must have permutation of length " + getDimension() / 64
+          + " not " + permutation.length);
     }
-    */
     //TODO permute in place without creating additional long[] (if proves problematic at scale)
-    long[] coordinates = toPermute.bitSet.getBits();
+    long[] coordinates = bitSet.getBits();
     long[] new_coordinates = new long[coordinates.length];
     for (int i = 0; i < coordinates.length; ++i) {
       int positionToAdd = i;
       positionToAdd = permutation[positionToAdd];
       new_coordinates[i] = coordinates[positionToAdd];
     }
-    return new_coordinates;
+    bitSet.setBits(new_coordinates);
   }
 
   // Available for testing and copying.
