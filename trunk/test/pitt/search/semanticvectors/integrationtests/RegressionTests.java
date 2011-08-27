@@ -98,7 +98,7 @@ public class RegressionTests {
   @Test
   public void testBuildAndSearchBasicBinaryIndex() {
     assertEquals(2, buildSearchGetRank(
-        "-dimension 256 -seedlength 128 -vectortype binary index", "peter", "simon"));
+        "-dimension 8192 -seedlength 128 -vectortype binary index", "peter", "simon"));
   }
 
   private int positionalBuildSearchGetRank(
@@ -137,12 +137,11 @@ public class RegressionTests {
   @Test
   public void testBuildAndSearchBinaryPositionalIndex() {
     int peterRank = positionalBuildSearchGetRank(
-        "-dimension 256 -vectortype binary -seedlength 128 positional_index",
+        "-dimension 8192 -vectortype binary -seedlength 128 positional_index",
         "-queryvectorfile termtermvectors.bin simon",
         new String[] {"termtermvectors.bin", "incremental_docvectors.bin"},
         "peter");
-    // Binary positional index builds and runs but doesn't seem to give great results.
-    assertTrue(peterRank < 10);
+       assertTrue(peterRank < 5);
   }
   
   @Test
@@ -175,17 +174,17 @@ public class RegressionTests {
     assertEquals(1, peterRank);
   }
 
-  /* Test currently broken / hanging.
+  
   @Test
   public void testBuildAndSearchBinaryPermutationIndex() {
     int peterRank = positionalBuildSearchGetRank(
-        "-dimension 512 -vectortype binary -seedlength 256 -positionalmethod permutation positional_index",
+        "-dimension 16834 -vectortype binary -seedlength 8192 -positionalmethod permutation positional_index",
         "-searchtype permutation -queryvectorfile randomvectors.bin -searchvectorfile permtermvectors.bin simon ?",
         new String[] {"randomvectors.bin", "permtermvectors.bin", "incremental_docvectors.bin"},
         "peter");
     assertEquals(2, peterRank);
   }
-  */
+  
 
   @Test
   public void testBuildAndSearchRealBalancedPermutationIndex() {
