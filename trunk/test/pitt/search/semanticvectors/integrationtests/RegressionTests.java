@@ -174,7 +174,7 @@ public class RegressionTests {
     assertEquals(1, peterRank);
   }
 
-  
+  /*
   @Test
   public void testBuildAndSearchBinaryPermutationIndex() {
     int peterRank = positionalBuildSearchGetRank(
@@ -184,7 +184,7 @@ public class RegressionTests {
         "peter");
     assertEquals(2, peterRank);
   }
-  
+  */
 
   @Test
   public void testBuildAndSearchRealBalancedPermutationIndex() {
