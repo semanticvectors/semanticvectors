@@ -165,5 +165,6 @@ public class RunTests {
     failures += scores[1];
 
     System.err.println("Ran all tests. Successes: " + successes + "\tFailures: " + failures);
+    System.exit(0);
   }
 }
