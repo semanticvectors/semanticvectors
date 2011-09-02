@@ -16,6 +16,7 @@ import org.apache.lucene.util.OpenBitSet;
  */
 public class BinaryVector extends Vector {
   public static final Logger logger = Logger.getLogger(BinaryVector.class.getCanonicalName());
+  private static final int DEBUG_PRINT_LENGTH = 64;
 
   private final int dimension;
 
@@ -30,20 +31,21 @@ public class BinaryVector extends Vector {
    * of the count for the vote in each dimension. The count for any given dimension is derived from
    * all of the bits in that dimension across the OpenBitSets in the voting record.
    * 
-   * The precision of the voting record (in decimal places) is defined upon initialization.
-   * By default, if the first weight added is an integer, rounding occurs to the nearest integer
-   * Otherwise, rounding occurs to the second decimal place.
+   * The precision of the voting record (in number of decimal places) is defined upon initialization.
+   * By default, if the first weight added is an integer, rounding occurs to the nearest integer.
+   * Otherwise, rounding occurs to the second binary place.
    */ 
   private ArrayList<OpenBitSet> votingRecord;
-  // TODO(widdows) Understand and comment this.
-  private OpenBitSet tempSet;
+  
   int decimalPlaces = 0;
-  // TODO(widdows) Comment this. Understand why it's an int rather than a list of weights
-  // for each element of the voting record.
-  int actualVotes = 0;
+  /** Accumulated sum of the weights with which vectors have been added into the voting record */
+  int totalNumberOfVotes = 0;
   // TODO(widdows) Understand and comment this.
   int minimum = 0;
 
+  // Used only for temporary internal storage.
+  private OpenBitSet tempSet;
+  
   public BinaryVector(int dimension) {
     // Check "multiple-of-64" constraint, to facilitate permutation of 64-bit chunks
     if (dimension % 64 != 0) {
@@ -69,35 +71,34 @@ public class BinaryVector extends Vector {
 
   public String toString() {
     StringBuilder debugString = new StringBuilder("BinaryVector.");
-    int printLength = Math.min(dimension, 20);
     if (isSparse) {
-      debugString.append("  Elemental.  First " + printLength + " values are:\n");
-      for (int x = 0; x < printLength; x++) debugString.append(bitSet.getBit(x) + " ");
+      debugString.append("  Elemental.  First " + DEBUG_PRINT_LENGTH + " values are:\n");
+      for (int x = 0; x < DEBUG_PRINT_LENGTH; x++) debugString.append(bitSet.getBit(x) + " ");
       debugString.append("\nCardinality " + bitSet.cardinality()+"\n");
     }
     else {
-      debugString.append("  Semantic.  First " + printLength + " values are:\n");
-      // TODO - output count from first 20 dimension
+      debugString.append("  Semantic.  First " + DEBUG_PRINT_LENGTH + " values are:\n");
+      // TODO - output count from first DEBUG_PRINT_LENGTH dimension
       debugString.append("NORMALIZED: ");
-      for (int x = 0; x < printLength; x++) debugString.append(bitSet.getBit(x) + " ");
+      for (int x = 0; x < DEBUG_PRINT_LENGTH; x++) debugString.append(bitSet.getBit(x) + " ");
       debugString.append("\n");
 
       // Calculate actual values for first 20 dimension
-      double[] actualvals = new double[20];
+      double[] actualvals = new double[DEBUG_PRINT_LENGTH];
       debugString.append("COUNTS    : ");
 
       for (int x =0; x < votingRecord.size(); x++) {
-        for (int y = 0; y < printLength; y++) {
+        for (int y = 0; y < DEBUG_PRINT_LENGTH; y++) {
           if (votingRecord.get(x).fastGet(y)) actualvals[y] += Math.pow(2, x); 
         }
       }
 
-      for (int x = 0; x < printLength; x++) {
+      for (int x = 0; x < DEBUG_PRINT_LENGTH; x++) {
         debugString.append((int) ((minimum + actualvals[x]) / Math.pow(10, decimalPlaces)) + " ");
       }
       debugString.append("\nCardinality " + bitSet.cardinality()+"\n");
-      debugString.append("Votes " + actualVotes+"\n");
-      debugString.append("Minimum "+minimum+"\n");
+      debugString.append("Votes " + totalNumberOfVotes+"\n");
+      debugString.append("Minimum " + minimum + "\n");
     }
     return debugString.toString();
   }
@@ -128,6 +129,7 @@ public class BinaryVector extends Vector {
   @Override
   /**
    * Generates a basic elemental vector with a given number of 1's and otherwise 0's.
+   * For binary vectors, the numnber of 1's and 0's must be the same, half the dimension.
    *
    * @return representation of basic binary vector.
    */
@@ -138,11 +140,11 @@ public class BinaryVector extends Vector {
           + dimension + " will lead to trouble!");
     }
     // Check for balance between 1's and 0's
-    if (numEntries != dimension/2) {
+    if (numEntries != dimension / 2) {
       logger.severe("Attempting to create binary vector with unequal number of zeros and ones."
           + " Unlikely to produce meaningful results. Therefore, seedlength has been set to "
           + " dimension/2, as recommended for binary vectors");
-      numEntries = dimension/2;
+      numEntries = dimension / 2;
     }
 
     BinaryVector randomVector = new BinaryVector(dimension);
@@ -185,11 +187,10 @@ public class BinaryVector extends Vector {
   /**
    * Adds the other vector to this one. If this vector was an elemental vector, the 
    * "semantic vector" components (i.e. the voting record and temporary bitset) will be
-   * initialized
+   * initialized.
    * 
    * Note that the precision of the voting record (in decimal places) is decided at this point:
-   * if the initialization weight is an integer, rounding will occur to the nearest integer
-   * 
+   * if the initialization weight is an integer, rounding will occur to the nearest integer.
    * If not, rounding will occur to the second decimal place.
    * 
    * This is an attempt to save space, as voting records can be prohibitively expansive
@@ -201,13 +202,13 @@ public class BinaryVector extends Vector {
     if (isSparse) {
       if (Math.round(weight) != weight) {
         decimalPlaces = 2; 
-      } 
+      }
       elementalToSemantic();
     }
 
     if (permutation != null) {
-      // rather than permuting individual dimensions, we permute 64 dimensions at a time
-      // this should be considerably quicker, and dimensions/64 should allow for sufficient
+      // Rather than permuting individual dimensions, we permute 64 bit groups at a time.
+      // This should be considerably quicker, and dimension/64 should allow for sufficient
       // permutations
       if (permutation.length != dimension / 64) {
         throw new IllegalArgumentException("Binary vector of dimension " + dimension
@@ -217,10 +218,11 @@ public class BinaryVector extends Vector {
       //TODO permute in place and reverse, to avoid creating a new BinaryVector here
       BinaryVector temp = binaryOther.copy();
       temp.permute(permutation);
-      superpose(temp.bitSet, weight);
+      superposeBitSet(temp.bitSet, weight);
     }
-    else
-      superpose(binaryOther.bitSet, weight);
+    else {
+      superposeBitSet(binaryOther.bitSet, weight);
+    }
   }
 
   /**
@@ -229,53 +231,53 @@ public class BinaryVector extends Vector {
    * be thought of as an expanding 2D array of bits. Each column keeps count (in binary) for the respective
    * dimension, and columns are incremented in parallel by sweeping a bitset across the rows. In any dimension
    * in which the BitSet to be added contains a "1", the effect will be that 1's are changed to 0's until a
-   * new 1 is added (e.g. the column '110' would become '001' and so forth)
+   * new 1 is added (e.g. the column '110' would become '001' and so forth).
    * 
    * The first method deals with floating point issues, and accelerates superposition by decomposing
-   * the task into segments
+   * the task into segments.
    * 
    * @param incomingBitSet
    * @param weight
    */
-  public void superpose(OpenBitSet incomingBitSet, double weight) {
+  protected void superposeBitSet(OpenBitSet incomingBitSet, double weight) {
     // If fractional weights are used, encode all weights as integers (1000 x double value).
     weight = (int) Math.round(weight * Math.pow(10, decimalPlaces));
     if (weight == 0) return;
 
     // Keep track of number (or cumulative weight) of votes.
-    actualVotes += weight;
+    totalNumberOfVotes += weight;
 
     // Decompose superposition task such that addition of some power of 2 (e.g. 64) is accomplished
     // by beginning the process at the relevant row (e.g. 7) instead of starting multiple (e.g. 64)
     // superposition processes at the first row.
-    int logfloor = (int) (Math.floor(Math.log(weight)/Math.log(2)));
+    int logFloorOfWeight = (int) (Math.floor(Math.log(weight)/Math.log(2)));
 
-    if (logfloor < votingRecord.size() - 1) {
-      while (logfloor > 0) {
-        superpose(incomingBitSet, logfloor);	
-        weight = weight - (int) Math.pow(2,logfloor);
-        logfloor = (int) (Math.floor(Math.log(weight)/Math.log(2)));	
+    if (logFloorOfWeight < votingRecord.size() - 1) {
+      while (logFloorOfWeight > 0) {
+        superposeBitSetFromRowFloor(incomingBitSet, logFloorOfWeight);	
+        weight = weight - (int) Math.pow(2,logFloorOfWeight);
+        logFloorOfWeight = (int) (Math.floor(Math.log(weight)/Math.log(2)));	
       }
     }
 
     // Add remaining component of weight incrementally.
-    for (int x =0; x < weight; x++)
-      superpose(incomingBitSet, 0);
+    for (int x = 0; x < weight; x++)
+      superposeBitSetFromRowFloor(incomingBitSet, 0);
   }
 
   /**
-   * Performs superposition by sweeping a bitset across the voting record such that
-   * for any column in which the incoming bitset contains a '1', 1's are changed
+   * Performs superposition from a particular row by sweeping a bitset across the voting record
+   * such that for any column in which the incoming bitset contains a '1', 1's are changed
    * to 0's until a new 1 can be added, facilitating incrementation of the
    * binary number represented in this column.
    * 
    * @param incomingBitSet the bitset to be added
    * @param rowfloor the index of the place in the voting record to start the sweep at
    */
-  private void superpose(OpenBitSet incomingBitSet, int rowfloor) {
+  protected void superposeBitSetFromRowFloor(OpenBitSet incomingBitSet, int rowfloor) {
     // Attempt to save space when minimum value across all columns > 0
     // by decrementing across the board and raising the minimum where possible.
-    int max = getMaximum();	
+    int max = getMaximumSharedWeight();	
 
     if (max > 0) {	
       decrement(max);
@@ -330,7 +332,7 @@ public class BinaryVector extends Vector {
     if (target == 0) {
       tempSet.set(0, dimension-1);
       tempSet.xor(votingRecord.get(0));
-      for (int x=1; x < votingRecord.size(); x++)
+      for (int x = 1; x < votingRecord.size(); x++)
         tempSet.andNot(votingRecord.get(x));
       return tempSet;
     }
@@ -363,7 +365,7 @@ public class BinaryVector extends Vector {
   protected OpenBitSet concludeVote() {
     if (votingRecord.size() == 0) return new OpenBitSet(dimension);
     else
-      return concludeVote(actualVotes);
+      return concludeVote(totalNumberOfVotes);
   }
 
   protected OpenBitSet concludeVote(int target) {
@@ -493,12 +495,12 @@ public class BinaryVector extends Vector {
   }
 
   /**
-   * Returns the highest value shared by all dimension.
+   * Returns the highest value shared by all dimensions.
    */
-  public int getMaximum() {
+  public int getMaximumSharedWeight() {
     int thismaximum = 0;
-    tempSet.xor(tempSet);
-    for (int x = votingRecord.size()-1; x >= 0; x--) {
+    tempSet.xor(tempSet);  // Reset tempset to zeros.
+    for (int x = votingRecord.size() - 1; x >= 0; x--) {
       tempSet.or(votingRecord.get(x));
       if (tempSet.cardinality() == dimension) {
         thismaximum += (int) Math.pow(2, x);

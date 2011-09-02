@@ -186,18 +186,18 @@ public class RegressionTests {
     */
     // This code copied from positionalBuildSearchGetRank to isolate breakage.
     String buildCmd = "-dimension 16834 -vectortype binary -seedlength 8192 -positionalmethod permutation positional_index";
-    //String searchCmd = "-searchtype permutation -queryvectorfile randomvectors.bin -searchvectorfile permtermvectors.bin simon ?";
-    String[] filesToBuild = new String[] {"randomvectors.bin", "permtermvectors.bin", "incremental_docvectors.bin"};
+    String searchCmd = "-searchtype permutation -queryvectorfile randomvectors.bin -searchvectorfile permtermvectors.bin simon ?";
     String[] buildArgs = buildCmd.split("\\s+");
-    //String[] searchArgs = searchCmd.split("\\s+");
-    //String targetResult = "peter";
-    
-    for (String fn : filesToBuild) assertFalse(new File(fn).isFile());
 
+    
+    String[] filesToBuild = new String[] {"randomvectors.bin", "permtermvectors.bin", "incremental_docvectors.bin"};
+    for (String fn : filesToBuild) assertFalse(new File(fn).isFile());
     BuildPositionalIndex.main(buildArgs);
     for (String fn : filesToBuild) assertTrue(new File(fn).isFile());
 
-    /* It's the searching that fails.
+    /* It's the searching that fails. */
+    String[] searchArgs = searchCmd.split("\\s+");
+    String targetResult = "peter";
     Scanner results = TestUtils.getCommandOutput(
         pitt.search.semanticvectors.Search.class, searchArgs);
     int rank = 1;
@@ -208,7 +208,6 @@ public class RegressionTests {
       ++rank;
     }  
     results.close();
-    */
     for (String fn : filesToBuild) assertTrue(new File(fn).delete());
   }
 
