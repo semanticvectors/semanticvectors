@@ -80,6 +80,24 @@ public class BinaryVectorTest extends TestCase {
     vector3.normalize();
   }
 
+  @Test
+  public void testGetMaximumSharedWeight() {
+    BinaryVector vector1 = (BinaryVector) VectorFactory.createZeroVector(VectorType.BINARY, 64);
+    vector1.readFromString("0000000000000000000000000000000000000000000000000000000000000000");
+    BinaryVector vector2 = (BinaryVector) VectorFactory.createZeroVector(VectorType.BINARY, 64);
+    vector2.readFromString("0000111100001111000011110000111100001111000011110000111100001111");
+    BinaryVector vector3 = (BinaryVector) VectorFactory.createZeroVector(VectorType.BINARY, 64);
+    vector3.readFromString("1111000011110000111100001111000011110000111100001111000011110000");
+    vector1.superpose(vector2, 4, null);
+    System.err.println("vector1 + 4*vector2:\n" + vector1.toString());
+    vector1.superpose(vector3, 8, null);
+    System.err.println("vector1 + 4*vector2 + 8*vector3:\n" + vector1.toString());
+    assertEquals(0, vector1.getMaximumSharedWeight());
+    vector1.normalize();
+    System.err.println("vector1 normalized:\n" + vector1.toString());
+    assertEquals("1111000011110000111100001111000011110000111100001111000011110000",
+                 vector1.writeToString());
+  }
 
   @Test
   public void testCreateZeroVectorAndOverlap() {
