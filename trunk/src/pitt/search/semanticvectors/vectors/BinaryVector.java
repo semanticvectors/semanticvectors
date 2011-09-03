@@ -80,6 +80,7 @@ public class BinaryVector extends Vector {
       debugString.append("  Semantic.  First " + DEBUG_PRINT_LENGTH + " values are:\n");
       // TODO - output count from first DEBUG_PRINT_LENGTH dimension
       debugString.append("NORMALIZED: ");
+      this.normalize();
       for (int x = 0; x < DEBUG_PRINT_LENGTH; x++) debugString.append(bitSet.getBit(x) + " ");
       debugString.append("\n");
 
