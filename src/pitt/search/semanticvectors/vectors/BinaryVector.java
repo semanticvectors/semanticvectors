@@ -331,7 +331,7 @@ public class BinaryVector extends Vector {
    */
   private OpenBitSet exact(int target) {
     if (target == 0) {
-      tempSet.set(0, dimension-1);
+      tempSet.set(0, dimension);
       tempSet.xor(votingRecord.get(0));
       for (int x = 1; x < votingRecord.size(); x++)
         tempSet.andNot(votingRecord.get(x));
@@ -376,7 +376,7 @@ public class BinaryVector extends Vector {
     // Unlikely other than in testing: minimum more than half the votes
     if (target2 < 0) {
       OpenBitSet ans = new OpenBitSet(dimension);
-      ans.set(0, dimension-1);
+      ans.set(0, dimension);
       return ans;
     }
 
@@ -413,7 +413,7 @@ public class BinaryVector extends Vector {
 
     if (target == 0)
     { 	OpenBitSet atLeastZero = new OpenBitSet(dimension);
-    atLeastZero.set(0, dimension-1);
+    atLeastZero.set(0, dimension);
     return atLeastZero;
     }
 
@@ -457,7 +457,7 @@ public class BinaryVector extends Vector {
    * i.e: no underflow check currently - will wreak havoc with zero counts
    */
   public void decrement() {	
-    tempSet.set(0, dimension-1);
+    tempSet.set(0, dimension);
     for (int q = 0; q < votingRecord.size(); q++) {
       votingRecord.get(q).xor(tempSet);
       tempSet.and(votingRecord.get(q));
@@ -488,7 +488,7 @@ public class BinaryVector extends Vector {
   }
 
   public void selected_decrement(int floor) {
-    tempSet.set(0, dimension-1);
+    tempSet.set(0, dimension);
     for (int q = floor; q < votingRecord.size(); q++) {
       votingRecord.get(q).xor(tempSet);
       tempSet.and(votingRecord.get(q));
