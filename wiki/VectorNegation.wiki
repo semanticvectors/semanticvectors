@@ -2,7 +2,9 @@
 
 = Vector Negation =
 
-SemanticVectors now has a vector negation feature. This enables the user to remove as well as adding terms from a query statement. To try queries with vector negation, put the capitalized string NOT in the middle of your query terms, e.g., `java pitt.search.semanticvectors.Search pharaoh NOT joseph`.
+SemanticVectors now has a vector negation feature. This enables the user to remove as well as adding terms from a query statement. To try queries with vector negation, put the capitalized string NOT in the middle of your query terms, e.g., 
+
+{{{java pitt.search.semanticvectors.Search pharaoh NOT joseph}}}
 
 Vector negation works by projecting the positive query vector onto the subspace orthogonal to all the negative query vectors. It turns out that the same negation operator is used in Quantum Logic, as described in the 1930's by Garrett Birkhoff and John von Neumann.
 
