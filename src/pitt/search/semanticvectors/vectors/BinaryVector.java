@@ -252,6 +252,8 @@ public class BinaryVector extends Vector {
    * @param incomingBitSet
    * @param weight
    */
+  
+  
   protected void superposeBitSet(OpenBitSet incomingBitSet, double weight) {
     // If fractional weights are used, encode all weights as integers (1000 x double value).
     weight = (int) Math.round(weight * Math.pow(10, decimalPlaces));
@@ -277,6 +279,8 @@ public class BinaryVector extends Vector {
     for (int x = 0; x < weight; x++)
       superposeBitSetFromRowFloor(incomingBitSet, 0);
   }
+  
+  
 
   /**
    * Performs superposition from a particular row by sweeping a bitset across the voting record
@@ -528,7 +532,7 @@ public class BinaryVector extends Vector {
    * Normalizes the vector, converting sparse to dense representations in the process.
    */
   public void normalize() {
-    if (isSparse) elementalToSemantic();
+    if (!isSparse)
     this.bitSet = concludeVote();
   }
 
