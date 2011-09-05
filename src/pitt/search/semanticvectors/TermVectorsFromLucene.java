@@ -237,7 +237,7 @@ public class TermVectorsFromLucene implements VectorStore {
    * @throws RuntimeException
    */
   public static TermVectorsFromLucene createTermBasedRRIVectors(
-      String indexDir, int dimension, int seedLength, int minFreq, int maxFreq,
+      String indexDir, VectorType vectorType, int dimension, int seedLength, int minFreq, int maxFreq,
       int nonAlphabet, String initialTermVectorsFile, String[] fieldsToIndex)
   throws IOException, RuntimeException {
     TermVectorsFromLucene trainedTermvectors = new TermVectorsFromLucene() {};
@@ -248,6 +248,8 @@ public class TermVectorsFromLucene implements VectorStore {
     trainedTermvectors.maxNonAlphabet = nonAlphabet;
     trainedTermvectors.fieldsToIndex = fieldsToIndex;
     trainedTermvectors.seedLength = seedLength;
+    trainedTermvectors.dimension = dimension;
+    trainedTermvectors.vectorType = vectorType;
     trainedTermvectors.createTermBasedRRIVectorsImpl();
     return trainedTermvectors;
   }
