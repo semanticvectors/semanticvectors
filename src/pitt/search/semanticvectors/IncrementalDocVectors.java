@@ -103,7 +103,7 @@ public class IncrementalDocVectors {
     FSDirectory fsDirectory = FSDirectory.open(new File(parentPath));
     IndexOutput outputStream = fsDirectory.createOutput(vectorFile.getName());
 
-    logger.info("Write vectors incrementally to file " + vectorFile);
+    VerbatimLogger.info("Writing vectors incrementally to file " + vectorFile + " ... ");
 
     // Write header giving number of dimension for all vectors.
     outputStream.writeString(VectorStoreWriter.generateHeaderString());
@@ -170,7 +170,7 @@ public class IncrementalDocVectors {
       }
     } // Finish iterating through documents.
 
-    logger.info("Finished writing vectors.");
+    VerbatimLogger.info("Finished writing vectors.\n");
     outputStream.flush();
     outputStream.close();
     fsDirectory.close();

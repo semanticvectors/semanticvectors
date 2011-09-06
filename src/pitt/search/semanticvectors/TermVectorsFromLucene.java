@@ -166,8 +166,8 @@ public class TermVectorsFromLucene implements VectorStore {
     } else {
       // Create basic doc vectors in vector store.
       // Derived term vectors will be linear combinations of these.
-      logger.info("Populating basic sparse doc vector store, number of vectors: "
-          + indexReader.numDocs());
+      VerbatimLogger.info("Populating basic sparse doc vector store, number of vectors: "
+          + indexReader.numDocs() + "\n");
       VectorStoreRAM randomBasicDocVectors = new VectorStoreRAM(vectorType, dimension);
       randomBasicDocVectors.createRandomVectors(indexReader.numDocs(), this.seedLength, null);
       this.basicDocVectors = randomBasicDocVectors;

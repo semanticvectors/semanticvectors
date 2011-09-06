@@ -98,7 +98,7 @@ public class VectorStoreRAM implements VectorStore {
   // Initialization routine.
   public void createRandomVectors (int numVectors, int seedLength, Random random) {
     if (random == null) { random = new Random(); }
-    VerbatimLogger.info("Creating store of " + numVectors + " elemental vectors  ...");
+    VerbatimLogger.fine("Creating store of " + numVectors + " elemental vectors  ...\n");
     for (int i = 0; i < numVectors; ++i) {
       this.objectVectors.put(Integer.toString(i),
                              new ObjectVector(Integer.toString(i),

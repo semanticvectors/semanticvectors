@@ -47,72 +47,48 @@ import pitt.search.semanticvectors.vectors.VectorType;
 public class BuildIndex {
   public static Logger logger = Logger.getLogger("pitt.search.semanticvectors");
   
-  /**
-   * Prints the following usage message:
-   * <code>
-   * <br> BuildIndex class in package pitt.search.semanticvectors
-   * <br> Usage: java pitt.search.semanticvectors.BuildIndex PATH_TO_LUCENE_INDEX
-   * <br> BuildIndex creates termvectors and docvectors files in local directory.
-   * <br> Other parameters that can be changed include vector length,
-   * <br>     (number of dimension), seed length (number of non-zero
-   * <br>     entries in basic vectors), minimum term frequency,
-   * <br>     and number of iterative training cycles.
-   * <br> To change these use the following command line arguments:
-   * <br> -dimension [number of dimension]
-   * <br> -seedlength [seed length]
-   * <br> -minfrequency [minimum term frequency]
-   * <br> -maxnonalphabetchars [number non-alphabet characters (-1 for any number)]
-   * <br> -trainingcycles [training cycles]
-   * <br> -docindexing [incremental|inmemory] Switch between building doc vectors incrementally"
-   * <br>       (requires positional index) or all in memory (default case).
-   * </code>
-   */
-  public static void usage() {
-    String usageMessage = "\nBuildIndex class in package pitt.search.semanticvectors"
-        + "\nUsage: java pitt.search.semanticvectors.BuildIndex PATH_TO_LUCENE_INDEX"
-        + "\nBuildIndex creates termvectors and docvectors files in local directory."
-        + "\nOther parameters that can be changed include vector length,"
-        + "\n    (number of dimension), seed length (number of non-zero"
-        + "\n    entries in basic vectors), minimum term frequency,"
-        + "\n    and number of iterative training cycles."
-        + "\nTo change these use the command line arguments "
-        + "\n  -dimension [number of dimension]"
-        + "\n  -seedlength [seed length]"
-        + "\n  -minfrequency [minimum term frequency]"
-        + "\n  -maxnonalphabetchars [number non-alphabet characters (-1 for any number)]"
-        + "\n  -trainingcycles [training cycles]"
-        + "\n  -docindexing [incremental|inmemory|none] Switch between building doc vectors incrementally"
-        + "\n        (requires positional index), all in memory (default case), or not at all";
-    System.out.println(usageMessage);
-  }
+  public static String usageMessage = "\nBuildIndex class in package pitt.search.semanticvectors"
+    + "\nUsage: java pitt.search.semanticvectors.BuildIndex PATH_TO_LUCENE_INDEX"
+    + "\nBuildIndex creates termvectors and docvectors files in local directory."
+    + "\nOther parameters that can be changed include number of dimensions, "
+    + "vector type (real, binary or complex), seed length (number of non-zero entries in"
+    + "basic vectors), minimum term frequency, and number of iterative training cycles."
+    + "\nTo change these use the command line arguments "
+    + "\n  -vectortpe [real, complex or binary]"
+    + "\n  -dimension [number of dimension]"
+    + "\n  -seedlength [seed length]"
+    + "\n  -minfrequency [minimum term frequency]"
+    + "\n  -maxnonalphabetchars [number non-alphabet characters (-1 for any number)]"
+    + "\n  -trainingcycles [training cycles]"
+    + "\n  -docindexing [incremental|inmemory|none] Switch between building doc vectors incrementally"
+    + "\n        (requires positional index), all in memory (default case), or not at all";
 
   /**
    * Builds term vector and document vector stores from a Lucene index.
-   * @param args
-   * @see BuildIndex#usage
+   * @param args [command line options to be parsed] then path to Lucene index 
    */
   public static void main (String[] args) throws IllegalArgumentException {
     try {
       args = Flags.parseCommandLineFlags(args);
     } catch (IllegalArgumentException e) {
-      usage();
+      System.out.println(usageMessage);
       throw e;
     }
 
     // Only one argument should remain, the path to the Lucene index.
     if (args.length != 1) {
-      usage();
+      System.out.println(usageMessage);
       throw (new IllegalArgumentException("After parsing command line flags, there were " + args.length
                                           + " arguments, instead of the expected 1."));
     }
 
     String luceneIndex = args[0];
-    logger.info("Seedlength = " + Flags.seedlength 
+    VerbatimLogger.info("Seedlength = " + Flags.seedlength 
         + "\nDimension = " + Flags.dimension
         + "\nMinimum frequency = " + Flags.minfrequency
         + "\nMaximum frequency = " + Flags.maxfrequency
         + "\nNumber non-alphabet characters = " + Flags.maxnonalphabetchars
-        + "\nContents fields are: " + Arrays.toString(Flags.contentsfields));
+        + "\nContents fields are: " + Arrays.toString(Flags.contentsfields) + "\n");
 
     String termFile = "termvectors.bin";
     String docFile = "docvectors.bin";
@@ -124,12 +100,12 @@ public class BuildIndex {
         // term vectors. Recommended to iterate at least once (i.e. -trainingcycles = 2) to
         // obtain semantic term vectors.
         // Otherwise attempt to load pre-existing semantic term vectors.
-        logger.info("Creating term vectors ...");
+        VerbatimLogger.info("Creating term vectors ... \n");
         vecStore = TermVectorsFromLucene.createTermBasedRRIVectors(
             luceneIndex, VectorType.valueOf(Flags.vectortype.toUpperCase()), Flags.dimension, Flags.seedlength, Flags.minfrequency, Flags.maxfrequency,
             Flags.maxnonalphabetchars, Flags.initialtermvectors, Flags.contentsfields);
       } else {
-        logger.info("Creating elemental document vectors ...");
+        VerbatimLogger.info("Creating elemental document vectors ... \n");
         vecStore = TermVectorsFromLucene.createTermVectorsFromLucene(
             luceneIndex, VectorType.valueOf(Flags.vectortype.toUpperCase()),
             Flags.dimension, Flags.seedlength, Flags.minfrequency, Flags.maxfrequency,
@@ -139,7 +115,6 @@ public class BuildIndex {
       // Create doc vectors and write vectors to disk.
       VectorStoreWriter vecWriter = new VectorStoreWriter();
       if (Flags.docindexing.equals("incremental")) {
-        logger.info("Writing term vectors to " + termFile);
         vecWriter.writeVectors(termFile, vecStore);
         IncrementalDocVectors.createIncrementalDocVectors(
             vecStore, luceneIndex, Flags.contentsfields, "incremental_"+docFile);
@@ -164,7 +139,7 @@ public class BuildIndex {
       } else if (Flags.docindexing.equals("inmemory")) {
         DocVectors docVectors = new DocVectors(vecStore);
         for (int i = 1; i < Flags.trainingcycles; ++i) {
-          logger.info("\nRetraining with learned document vectors ...");
+          VerbatimLogger.info("\nRetraining with learned document vectors ...");
           vecStore = TermVectorsFromLucene.createTermVectorsFromLucene(
               luceneIndex, VectorType.valueOf(Flags.vectortype.toUpperCase()),
               Flags.dimension, Flags.seedlength,
@@ -179,13 +154,13 @@ public class BuildIndex {
           termFile = "termvectors" + Flags.trainingcycles + ".bin";
           docFile = "docvectors" + Flags.trainingcycles + ".bin";
         }
-        logger.info("Writing term vectors to " + termFile);
+        VerbatimLogger.info("Writing term vectors to " + termFile + "\n");
         vecWriter.writeVectors(termFile, vecStore);
-        logger.info("Writing doc vectors to " + docFile);
+        VerbatimLogger.info("Writing doc vectors to " + docFile + "\n");
         vecWriter.writeVectors(docFile, writeableDocVectors);
       } else {
         // Write term vectors to disk even if there are no docvectors to output.
-        logger.info("Writing term vectors to " + termFile);
+        VerbatimLogger.info("Writing term vectors to " + termFile + "\n");
         vecWriter.writeVectors(termFile, vecStore);
       }
     }
