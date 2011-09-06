@@ -171,7 +171,6 @@ public class TermTermVectorsFromLucene implements VectorStore {
       initializePermutations();
     }
      
-    logger.info("windowSize is " + windowSize);
     trainTermTermVectors();
   }
 
@@ -219,7 +218,6 @@ public class TermTermVectorsFromLucene implements VectorStore {
 
     // Iterate through an enumeration of terms and allocate termVector memory.
     // If not retraining, create random elemental vectors as well.
-    logger.info("Creating basic term vectors ...");
     TermEnum terms = this.luceneIndexReader.terms();
     int tc = 0;
     while(terms.next()) {
@@ -239,7 +237,7 @@ public class TermTermVectorsFromLucene implements VectorStore {
         ((VectorStoreRAM) this.indexVectors).putVector(term.text(), indexVector);
       }
     }
-    VerbatimLogger.info("There are " + tc + " terms (and "
+    VerbatimLogger.info("Created basic term vectors for " + tc + " terms (and "
         + luceneIndexReader.numDocs() + " docs).\n");
 
     // Iterate through documents.

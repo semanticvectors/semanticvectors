@@ -95,7 +95,7 @@ public class DocVectors implements VectorStore {
    * Creates doc vectors, iterating over terms.
    */
   private void trainDocVectors() {
-    logger.info("Building document vectors ...");
+    VerbatimLogger.info("Building document vectors ... ");
     Enumeration<ObjectVector> termEnum = termVectorData.getAllVectors();
     try {
       int tc = 0;
@@ -153,9 +153,9 @@ public class DocVectors implements VectorStore {
    * Allocate doc vectors to zero vectors.
    */
   private void initializeDocVectors() {
-    logger.info("Initializing document vector store ...");
+    VerbatimLogger.info("Initializing document vector store ... \n");
     for (int i = 0; i < indexReader.numDocs(); ++i) {
-      Vector docVector = VectorFactory.createZeroVector(Flags.vectortype, Flags.dimension);
+      Vector docVector = VectorFactory.createZeroVector(vectorType, dimension);
       this.docVectors.putVector(Integer.toString(i), docVector);
     }
   }
@@ -176,8 +176,8 @@ public class DocVectors implements VectorStore {
         if (this.indexReader.document(i).getField(Flags.docidfield) != null) {
           docName = this.indexReader.document(i).getField(Flags.docidfield).stringValue();
           if (docName.length() == 0) {
-            logger.info("Empty document name!!! This will cause problems ...");
-            logger.info("Please set -docidfield to a nonempty field in your Lucene index.");
+            logger.warning("Empty document name!!! This will cause problems ...");
+            logger.warning("Please set -docidfield to a nonempty field in your Lucene index.");
           }
         }
         Vector docVector = this.docVectors.getVector(Integer.toString(i));

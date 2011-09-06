@@ -299,9 +299,9 @@ public class Flags {
   public static String joinStringArray(String[] values) {
     String result = "";
     for (int i = 0; i < values.length - 1; ++i) {
-      result += values[i] + ", ";
+      result += "'" + values[i] + "', ";
     }
-    result += values[values.length - 1];
+    result += "'" + values[values.length - 1] + "'";
     return result;
   }
 }

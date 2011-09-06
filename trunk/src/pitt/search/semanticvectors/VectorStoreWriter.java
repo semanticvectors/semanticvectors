@@ -95,8 +95,8 @@ public class VectorStoreWriter {
    * @param objectVectors The vector store to be written to disk
    */
   public boolean writeVectorsInLuceneFormat(String vectorFileName, VectorStore objectVectors) {
-	logger.info("About to write " + objectVectors.getNumVectors() + " vectors of dimension "
-			+ Flags.dimension + " to Lucene format file: " + vectorFileName);
+	VerbatimLogger.info("About to write " + objectVectors.getNumVectors() + " vectors of dimension "
+			+ Flags.dimension + " to Lucene format file: " + vectorFileName + " ... ");
 	try {
       File vectorFile = new File(vectorFileName);
       String parentPath = vectorFile.getParent();
@@ -128,7 +128,7 @@ public class VectorStoreWriter {
       outputStream.writeString(objectVector.getObject().toString());
       objectVector.getVector().writeToLuceneStream(outputStream);
     }
-    logger.info("Finished writing vectors.");
+    VerbatimLogger.info("finished writing vectors.\n");
   }
 
   /**
@@ -138,13 +138,13 @@ public class VectorStoreWriter {
    * @param objectVectors The vector store to be written to disk
    */
   public boolean writeVectorsInTextFormat(String vectorFileName, VectorStore objectVectors) {
-    logger.info("About to write " + objectVectors.getNumVectors() + " vectors of dimension "
-    		+ Flags.dimension + " to text file: " + vectorFileName);
+    VerbatimLogger.info("About to write " + objectVectors.getNumVectors() + " vectors of dimension "
+    		+ Flags.dimension + " to text file: " + vectorFileName + " ... ");
     try {
       BufferedWriter outBuf = new BufferedWriter(new FileWriter(vectorFileName));
       writeToTextBuffer(objectVectors, outBuf);
       outBuf.close();
-      logger.info("Finished writing vectors.");
+      VerbatimLogger.info("finished writing vectors.\n");
       return true;
     }
     catch (Exception e) {
