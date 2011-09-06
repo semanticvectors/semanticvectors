@@ -169,7 +169,6 @@ public class BinaryVectorTest extends TestCase {
     }
   }  
 
-
   /*
   {
   Random random = new Random();
