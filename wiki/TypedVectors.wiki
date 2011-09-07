@@ -1,0 +1,9 @@
+#summary Typed vectors - Real, Complex, Binary. Vectors with coordinates over different ground fields.
+
+= Typed Vectors =
+
+As of version 2.5, SemanticVectors supports vectors with binary, real, and complex values. This is a very important development for us. Real vectors are used in machine learning, complex vectors in physics, binary values are really the core of modern computing. Now we can explore their properties in comparative experiments, perhaps for the first time.
+
+To experiment, simply use `-vectortype binary` or `-vectortype complex` as an argument to your index building command. Index searching will automatically parse the vector type from the header row.
+
+Each vector type has required a sophisticated implementation, because of physical contraints: we need sparse representations for elemental vectors and dense representations for their superpositions / linear combinations. This is abstracted into a single Vector interface that should take care of the various important transformations for you. But be careful using this, because different operations have different costs in time and space for the different vector types. We've done our very best so far to make sure that these are natural and sensible, but if something blows up on your heap, please let us know!
