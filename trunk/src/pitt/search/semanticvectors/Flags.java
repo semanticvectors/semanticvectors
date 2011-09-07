@@ -7,15 +7,15 @@
    modification, are permitted provided that the following conditions are
    met:
 
-   * Redistributions of source code must retain the above copyright
+ * Redistributions of source code must retain the above copyright
    notice, this list of conditions and the following disclaimer.
 
-   * Redistributions in binary form must reproduce the above
+ * Redistributions in binary form must reproduce the above
    copyright notice, this list of conditions and the following
    disclaimer in the documentation and/or other materials provided
    with the distribution.
 
-   * Neither the name of the University of Pittsburgh nor the names
+ * Neither the name of the University of Pittsburgh nor the names
    of its contributors may be used to endorse or promote products
    derived from this software without specific prior written
    permission.
@@ -31,7 +31,7 @@
    LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
    NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
    SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-**/
+ **/
 
 package pitt.search.semanticvectors;
 
@@ -62,20 +62,24 @@ public class Flags {
   // DO NOT DUPLICATE NAMES HERE! YOU WILL OVERWRITE OTHER PEOPLE's FLAGS!
   public static int dimension = 200;
   public static final String dimensionDescription = "Dimension of semantic vector space";
-  
+
   public static String vectortype = "real";
   public static final String vectortypeDescription = "Ground field for vectors: real, binary or complex.";
   public static final String[] vectortypeValues = {"binary", "real", "complex"};
 
   public static int seedlength = 10;
   public static final String seedlengthDescription =
-  "Number of +1 and number of -1 entries in a sparse random vector";
+    "Number of +1 and number of -1 entries in a sparse random vector";
 
   public static int minfrequency;
   public static int maxfrequency = Integer.MAX_VALUE;
   public static int maxnonalphabetchars;
 
   public static int numsearchresults = 20;
+  public static double searchresultsminscore = -1.0;
+  public static final String searchresultsminscoreDescription = "Search results with similarity scores below "
+    + "this value will not be included in search results.";
+
   public static int numclusters = 5;
 
   public static int trainingcycles;
@@ -84,26 +88,30 @@ public class Flags {
   public static String searchtype = "sum";
   public static final String searchtypeDescription = "Method used for combining and searching vectors.";
   public static final String[] searchtypeValues =
-    {"sum", "sparsesum", "subspace", "maxsim", "balanced_permutation", "permutation", "printquery"};
+  {"sum", "sparsesum", "subspace", "maxsim", "balanced_permutation", "permutation", "printquery"};
 
   public static String termweight = "none";
   public static final String termweightDescription = "Term weighting used when constructing document vectors.";
   public static final String[] termweightValues = {"logentropy","none"};
 
-	public static boolean porterstemmer = false;
+  public static boolean porterstemmer = false;
   public static final String porterstemmerDescription =
-      "Set to true when using IndexFilePositions if you would like to stem terms";
+    "Set to true when using IndexFilePositions if you would like to stem terms";
 
   public static boolean usetermweightsinsearch = false;
   public static final String usetermweightsinsearchDescription =
-      "Set to true only if you want to scale each comparison score by a term weight during search.";
+    "Set to true only if you want to scale each comparison score by a term weight during search.";
+
+  public static boolean stdev = false;
+  public static final String stdevDescription =
+    "Set to true when you would prefer results scored as SD above the mean across all search vectors";
 
   public static String indexfileformat = "lucene";
   public static final String indexfileformatDescription =
-      "Format used for serializing / deserializing vectors from disk";
+    "Format used for serializing / deserializing vectors from disk";
   public static final String[] indexfileformatValues = {"lucene", "text"};
 
-	public static final String randomvectorsfile = "randomvectors.bin";
+  public static final String randomvectorsfile = "randomvectors.bin";
 
   public static String queryvectorfile = "termvectors.bin";
   public static String stoplistfile = "";
@@ -112,11 +120,11 @@ public class Flags {
   public static String luceneindexpath = "";
   public static String initialtermvectors = "";
   public static String initialtermvectorsDescription =
-      "Use the vectors in this file for initialization instead of new random vectors.";
+    "Use the vectors in this file for initialization instead of new random vectors.";
 
   public static String initialdocumentvectors = "";
   public static String initialdocumentvectorsDescription =
-      "Use the vectors in this file for initialization instead of new random vectors.";
+    "Use the vectors in this file for initialization instead of new random vectors.";
 
   public static String docindexing = "inmemory";
   public static String docindexingDescription = "Memory management method used for indexing documents.";
@@ -125,11 +133,11 @@ public class Flags {
   public static String positionalmethod = "basic";
   public static String positionalmethodDescription = "Method used for positional indexing.";
   public static String positionalmethodValues[] =
-    {"basic", "directional", "permutation","permutation_plus_basic"};
+  {"basic", "directional", "permutation","permutation_plus_basic"};
 
   public static String vectorlookupsyntax = "exactmatch";
   public static final String vectorlookupsyntaxDescription =
-  "Method used for looking up vectors in a vector store";
+    "Method used for looking up vectors in a vector store";
   public static String[] vectorlookupsyntaxValues = {"exactmatch", "regex"};
 
   public static boolean matchcase = false;
@@ -154,7 +162,7 @@ public class Flags {
     String[] args = header.split("\\s");
     parseCommandLineFlags(args);
   }
-  
+
   /**
    * Parse command line flags and create public data structures for accessing them.
    * @param args
@@ -165,7 +173,7 @@ public class Flags {
   // and so inefficient, but in practice we only have to do it once
   // per command so it's probably negligible.
   public static String[] parseCommandLineFlags(String[] args)
-      throws IllegalArgumentException {
+  throws IllegalArgumentException {
     if (args.length == 0) {
       return new String[0];
     }
@@ -206,16 +214,16 @@ public class Flags {
             }
             if (!found) {
               String errString = "Value '" + flagValue + "' not valid value for option -" + flagName
-                  + "\nValid values are: " + Arrays.toString(valuesList);
+              + "\nValid values are: " + Arrays.toString(valuesList);
               throw new IllegalArgumentException(errString);
             }
           } catch (NoSuchFieldException e) {
             // This just means there isn't a list of allowed values.
             argc += 2;
           }
-	  // Parse String[] arguments, presuming they are comma-separated.
-	  // String[] arguments do not currently support fixed Value lists.
-	} else if (field.getType().getName().equals("[Ljava.lang.String;")) {
+          // Parse String[] arguments, presuming they are comma-separated.
+          // String[] arguments do not currently support fixed Value lists.
+        } else if (field.getType().getName().equals("[Ljava.lang.String;")) {
           // All string values are lowercased.
           String flagValue;
           try {
@@ -223,23 +231,32 @@ public class Flags {
           } catch (ArrayIndexOutOfBoundsException e) {
             throw new IllegalArgumentException("option -" + flagName + " requires an argument");
           }
-	  field.set(field, flagValue.split(","));
-	  argc += 2;
-          // Parse int arguments.
+          field.set(field, flagValue.split(","));
+          argc += 2;
         } else if (field.getType().getName().equals("int")) {
+          // Parse int arguments.
           try {
             field.setInt(field, Integer.parseInt(args[argc + 1]));
           } catch (ArrayIndexOutOfBoundsException e) {
             throw new IllegalArgumentException("option -" + flagName + " requires an argument");
           }
           argc += 2;
-          // Parse boolean arguments.
+        } else if (field.getType().getName().equals("double")) {
+          // Parse double arguments.
+          try {
+            field.setDouble(field, Double.parseDouble(args[argc + 1]));
+          } catch (ArrayIndexOutOfBoundsException e) {
+            throw new IllegalArgumentException("option -" + flagName + " requires an argument");
+          }
+          argc += 2;
         } else if (field.getType().getName().equals("boolean")) {
+          // Parse boolean arguments.
           field.setBoolean(field, true);
           ++argc;
         } else {
-	  logger.warning("No support for fields of type: "  + field.getType().getName());
-	}
+          logger.warning("No support for fields of type: "  + field.getType().getName());
+          argc += 2;
+        }
       } catch (NoSuchFieldException e) {
         throw new IllegalArgumentException("Command line flag not defined: " + flagName);
       } catch (IllegalAccessException e) {
@@ -256,7 +273,7 @@ public class Flags {
 
     // Enforce constraints between flags.
     makeFlagsCompatible();
-    
+
     // No more command line flags to parse.
     // Trim args[] list and return.
     String[] trimmedArgs = new String[args.length - argc];
