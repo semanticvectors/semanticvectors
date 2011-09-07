@@ -37,6 +37,7 @@ package pitt.search.semanticvectors;
 
 import java.lang.IllegalArgumentException;
 import java.lang.reflect.Field;
+import java.util.Arrays;
 import java.util.logging.Logger;
 
 /**
@@ -205,7 +206,7 @@ public class Flags {
             }
             if (!found) {
               String errString = "Value '" + flagValue + "' not valid value for option -" + flagName
-                  + "\nValid values are: " + joinStringArray(valuesList);
+                  + "\nValid values are: " + Arrays.toString(valuesList);
               throw new IllegalArgumentException(errString);
             }
           } catch (NoSuchFieldException e) {
@@ -290,18 +291,5 @@ public class Flags {
             + " Flags.seedlength set to: " + seedlength + ".");
       }
     }
-  }
-  
-  /**
-   * String pretty print a String array.
-   * @return String representation of input array.
-   */
-  public static String joinStringArray(String[] values) {
-    String result = "";
-    for (int i = 0; i < values.length - 1; ++i) {
-      result += "'" + values[i] + "', ";
-    }
-    result += "'" + values[values.length - 1] + "'";
-    return result;
   }
 }
