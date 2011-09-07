@@ -42,7 +42,7 @@ import java.util.logging.Logger;
  * 
  * @author widdows
  */
-public class CircleLookupTable {
+public final class CircleLookupTable {
   public static Logger logger = Logger.getLogger(CircleLookupTable.class.getCanonicalName());
   static CircleLookupTable singletonInstance = null;
   
@@ -58,7 +58,7 @@ public class CircleLookupTable {
     singletonInstance = new CircleLookupTable();
     singletonInstance.realLUT[0] = 0;
     singletonInstance.imagLUT[0] = 0;
-    for (int i = 0; i < PHASE_RESOLUTION; i++) {
+    for (short i = 0; i < PHASE_RESOLUTION; i++) {
       double theta = i * RADIANS_PER_STEP;
       singletonInstance.realLUT[i] = (float)Math.cos(theta);
       singletonInstance.imagLUT[i] = (float)Math.sin(theta);
@@ -66,16 +66,17 @@ public class CircleLookupTable {
   }
 
   /**
-   * Resolution at which we discretise the phase angle. This is fixed at 2^8 + 1 since we are
-   * using 16 bit chars to represent phase angles.
+   * Resolution at which we discretise the phase angle. This is fixed at 2^14 since we are
+   * using 32 bit short ints to represent phase angles. Do not ever set above 2^14 without careful
+   * testing, since this is more than half of the max short value so arithmetic could break.
    */
-  public static final int PHASE_RESOLUTION = 32768;
+  public static final short PHASE_RESOLUTION = (short) 16384;
   public static final double PI = Math.PI;
   public static final double HALF_PI = PI / 2;
   public static final double STEPS_PER_RADIAN = CircleLookupTable.PHASE_RESOLUTION / (2 * PI);
   public static final double RADIANS_PER_STEP = (2 * PI) / CircleLookupTable.PHASE_RESOLUTION;
   /** Notional index of complex zero point. */
-  public static final int ZERO_INDEX = -1;
+  public static final short ZERO_INDEX = -1;
   
   /**
    * Lookup Table for mapping phase angle to cartesian coordinates.
@@ -83,7 +84,7 @@ public class CircleLookupTable {
   private float[] realLUT = null;
   private float[] imagLUT = null;
   
-  public static float getRealEntry(int i) {
+  public static float getRealEntry(short i) {
     if (i == ZERO_INDEX) return 0;
     if (singletonInstance == null) {
       initialize();
@@ -91,7 +92,7 @@ public class CircleLookupTable {
     return singletonInstance.realLUT[i];
   }
   
-  public static float getImagEntry(int i) {
+  public static float getImagEntry(short i) {
     if (i == ZERO_INDEX) return 0;
     if (singletonInstance == null) {
       initialize();

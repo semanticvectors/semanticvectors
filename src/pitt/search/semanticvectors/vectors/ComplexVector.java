@@ -267,12 +267,10 @@ public class ComplexVector extends Vector {
     other.toDensePolar();
 	short[] phaseAnglesOther = other.getPhaseAngles();
 	float sum = 0.0f;
-	int dif;
-	for (int i=0; i < dimension; i++) {
+	for (short i=0; i < dimension; i++) {
 	  if (phaseAngles[i] == CircleLookupTable.ZERO_INDEX
 	      || phaseAnglesOther[i] == CircleLookupTable.ZERO_INDEX) continue;
-	  dif = Math.abs(phaseAngles[i] - phaseAnglesOther[i]);
-	  sum += CircleLookupTable.getRealEntry(dif);
+	  sum += CircleLookupTable.getRealEntry((short) Math.abs(phaseAngles[i] - phaseAnglesOther[i]));
 	}
 	return sum / dimension;
   }
@@ -396,7 +394,8 @@ public class ComplexVector extends Vector {
   private void sparsePolarToDensePolar() {
     assert(opMode == Mode.POLAR_SPARSE);
     phaseAngles = new short[dimension];
-    for (int i = 0; i < dimension; ++i) phaseAngles[i] = -1;  // Initialize to complex zero vector.
+    // Initialize to complex zero vector.
+    for (int i = 0; i < dimension; ++i) phaseAngles[i] = CircleLookupTable.ZERO_INDEX;
     if (sparseOffsets == null) return;
     for (int i = 0; i < sparseOffsets.length; i += 2) {
       int positionToAdd = sparseOffsets[i];
@@ -408,17 +407,27 @@ public class ComplexVector extends Vector {
   }
   
   /**
-   * Convolves this vector with the other. If the value of direction <=0
+   * Convolves this vector with the other. If the value of direction <= 0
    * then the correlation operation is performed, ie. convolution inverse
    */
   public void convolve(ComplexVector other, int direction) {
     IncompatibleVectorsException.checkVectorsCompatible(this, other);
     if (opMode != Mode.POLAR_DENSE) normalize();
-    if (other.getOpMode()!=Mode.POLAR_DENSE) other.normalize();
+    if (other.getOpMode() != Mode.POLAR_DENSE) other.normalize();
 	short[] otherAngles = other.getPhaseAngles();
 
-	if (direction>0) for (int i=0; i < dimension; i++) phaseAngles[i] += otherAngles[i];
-	else for (int i=0; i < dimension; i++) phaseAngles[i] -= otherAngles[i];
+	for (int i=0; i < dimension; i++) {
+	  if ((phaseAngles[i] == CircleLookupTable.ZERO_INDEX)
+	      || (otherAngles[i] == CircleLookupTable.ZERO_INDEX)) {
+	    phaseAngles[i] = CircleLookupTable.ZERO_INDEX;
+	    continue;
+	  }
+	  short angleToAdd = otherAngles[i];
+	  if (direction <= 0) {
+	    angleToAdd = (short) (CircleLookupTable.PHASE_RESOLUTION - angleToAdd);
+	  }
+	  phaseAngles[i] = (short) ((phaseAngles[i] + angleToAdd) % CircleLookupTable.PHASE_RESOLUTION);
+	}
   }
 
   /**

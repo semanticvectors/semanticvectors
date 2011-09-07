@@ -36,6 +36,7 @@
 package pitt.search.semanticvectors;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.logging.Logger;
 
 import pitt.search.semanticvectors.vectors.VectorType;
@@ -119,7 +120,7 @@ public class BuildPositionalIndex {
         + ", Maximum term frequency: " + Flags.maxfrequency
         + ", Number non-alphabet characters: " + Flags.maxnonalphabetchars
         + ", Window radius: " + Flags.windowradius
-        + ", Fields to index: " + Flags.joinStringArray(Flags.contentsfields)
+        + ", Fields to index: " + Arrays.toString(Flags.contentsfields)
         + "\n");
 
     try {

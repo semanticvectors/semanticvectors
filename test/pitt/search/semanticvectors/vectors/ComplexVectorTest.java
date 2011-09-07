@@ -64,7 +64,7 @@ public class ComplexVectorTest extends TestCase {
     // Generate random vector
     ComplexVector cv1 = (ComplexVector) VectorFactory.generateRandomVector(
         VectorType.COMPLEX, 5, 2, new Random(0));
-    assertArrayEquals(new short[] {0, 27244, 4, 19868}, cv1.getSparseOffsets());
+    assertArrayEquals(new short[] {0, 13622, 4, 9934}, cv1.getSparseOffsets());
     assertEquals(Mode.POLAR_SPARSE, cv1.getOpMode());
   }
   
@@ -116,7 +116,7 @@ public class ComplexVectorTest extends TestCase {
     int seedLength = 2;
     ComplexVector cv1 = (ComplexVector) VectorFactory.generateRandomVector(
         VectorType.COMPLEX, dim, seedLength, new Random(0));
-    assertArrayEquals(new short[] {2, 27244, 0, 19868}, cv1.getSparseOffsets());
+    assertArrayEquals(new short[] {2, 13622, 0, 9934}, cv1.getSparseOffsets());
     ComplexVector cv2 = (ComplexVector) VectorFactory.createZeroVector(VectorType.COMPLEX, dim);
     cv2.superpose(cv1, 1.0, null);
     assertFloatArrayEquals(
@@ -137,7 +137,7 @@ public class ComplexVectorTest extends TestCase {
   public void testCartesianToDensePolar() {
     ComplexVector cv = new ComplexVector( new float[] {1.0f, 1.0f, 0, 1.0f, 1.0f, 0 } );
     cv.toDensePolar();
-    assertTrue(cv.toString().contains("4096 8192 0"));
+    assertArrayEquals(new short[] {2048, 4096, 0}, cv.getPhaseAngles());
   }
 
   @Test
@@ -149,7 +149,7 @@ public class ComplexVectorTest extends TestCase {
         cv.getCoordinates(), TOL);
     ComplexVector.setDominantMode(Mode.POLAR_DENSE);
     cv.normalize();
-    assertArrayEquals(new short[] {4836, 3355, 3355, 8192}, cv.getPhaseAngles());
+    assertArrayEquals(new short[] {2418, 1677, 1677, 4096}, cv.getPhaseAngles());
   }
 
   @Test
@@ -170,10 +170,30 @@ public class ComplexVectorTest extends TestCase {
     assertEquals(2.0/3.0, cv2.measurePolarDenseOverlap(cv2), TOL);  // Zero entry doesn't contribute.
     assertEquals(1, cv3.measurePolarDenseOverlap(cv3), TOL);
   }
+  
+  @Test
+  public void testConvolve() {
+    short RES = CircleLookupTable.PHASE_RESOLUTION;
+    short ZERO_INDEX = CircleLookupTable.ZERO_INDEX;
+    ComplexVector cv = new ComplexVector(new short[] {ZERO_INDEX, 0, (short) (RES/2)});
+    ComplexVector cv2 = new ComplexVector(new short[] {0, (short) (RES/4), (short) (RES/4)});
+    cv.convolve(cv2, 1);
+    for (short i : cv.getPhaseAngles()) {
+      System.err.print(i +  " ");
+    }
+    assertArrayEquals(new short[] {ZERO_INDEX, (short) (RES/4), (short) (3*RES/4)},
+        cv.getPhaseAngles());
+    // Should have what we started with.
+    cv.convolve(cv2, -1);
+    assertArrayEquals(new short[] {ZERO_INDEX, 0, (short) (RES/2)}, cv.getPhaseAngles());
+    // Convolving with inverse of itself gives all ones (or zeros).
+    cv.convolve(cv, -1);
+    assertArrayEquals(new short[] {ZERO_INDEX, 0, 0}, cv.getPhaseAngles());
+  }
 
   @Test
   public void testReadWrite() {
-    Vector v1 = new ComplexVector(new short[] { -1, 16000, 32000 });
+    Vector v1 = new ComplexVector(new short[] { -1, 8000, 16000 });
 
     RAMDirectory directory = new RAMDirectory();
 
