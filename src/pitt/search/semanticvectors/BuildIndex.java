@@ -83,12 +83,13 @@ public class BuildIndex {
     }
 
     String luceneIndex = args[0];
-    VerbatimLogger.info("Seedlength = " + Flags.seedlength 
-        + "\nDimension = " + Flags.dimension
-        + "\nMinimum frequency = " + Flags.minfrequency
-        + "\nMaximum frequency = " + Flags.maxfrequency
-        + "\nNumber non-alphabet characters = " + Flags.maxnonalphabetchars
-        + "\nContents fields are: " + Arrays.toString(Flags.contentsfields) + "\n");
+    VerbatimLogger.info("Seedlength: " + Flags.seedlength 
+        + ", Dimension: " + Flags.dimension
+        + ", Vector type: " + Flags.vectortype
+        + ", Minimum frequency: " + Flags.minfrequency
+        + ", Maximum frequency: " + Flags.maxfrequency
+        + ", Number non-alphabet characters: " + Flags.maxnonalphabetchars
+        + ", Contents fields are: " + Arrays.toString(Flags.contentsfields) + "\n");
 
     String termFile = "termvectors.bin";
     String docFile = "docvectors.bin";
