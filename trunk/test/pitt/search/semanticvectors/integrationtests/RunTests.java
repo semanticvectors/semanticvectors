@@ -60,7 +60,7 @@ public class RunTests {
    */
   public static Class<?>[] integrationTestClasses = {
     RegressionTests.class,
-    //ThreadSafetyTest.class
+    ThreadSafetyTest.class
   };
 
   public static boolean testDataPrepared = false;
