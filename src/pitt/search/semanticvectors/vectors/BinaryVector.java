@@ -11,6 +11,14 @@ import org.apache.lucene.util.OpenBitSet;
 
 /**
  * Binary implementation of Vector.
+ * 
+ * Uses an "elemental" representation which is a single bit string (Lucene OpenBitSet).
+ * 
+ * Superposes on this a "semantic" representation which contains the weights with which different
+ * vectors have been added (superposed) onto this one.  Calling {@link #superpose} causes the
+ * voting record to be updated, but for performance the votes are not tallied back into the 
+ * elemental bit set representation until {@link #normalize} or one of the writing functions 
+ * is called.  
  *
  * @author cohen
  */
