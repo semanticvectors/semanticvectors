@@ -44,6 +44,12 @@ import org.apache.lucene.store.IndexOutput;
 
 /**
  * Complex number implementation of Vector.
+ * 
+ * Vectors come in three representations, sparse polar, dense polar, and Cartesian.
+ * 
+ * Superposition and similarity measurement are different for Cartesian and dense polar vectors.
+ * The preferred operators and measures is currently chosen by setting the {@link #DOMINANT_MODE}
+ * at compile time.
  *
  * @author devinel
  */
@@ -52,7 +58,7 @@ public class ComplexVector extends Vector {
   
   /**
    * We use the 'MODE' enumeration to keep track of which mode the complex vector is in. By 'MODE'
-   * we mean whether the vector is using POLAR_SPARSE, POALR_DENSE or CARTESIAN coordinates.
+   * we mean whether the vector is using POLAR_SPARSE, POLAR_DENSE or CARTESIAN coordinates.
    * 
    * CARTESIAN uses two 32 bit floats for each element, one for the real coordinate
    * and one for the imaginary.
@@ -66,10 +72,10 @@ public class ComplexVector extends Vector {
     /** Uses a pair of 32 bit floats for each (real, imaginary) complex coordinate. */
     CARTESIAN };
 
-  /** The dominant mode used for normalizing and comparing vectors.
+  /** 
+   * The dominant mode used for normalizing and comparing vectors.
    * 
-   * TODO(widdows): Document properly what difference this makes and figure out how to set it
-   * properly.
+   * TODO(widdows): Figure out how clients should be able to set this properly.
    */
   private static Mode DOMINANT_MODE = Mode.CARTESIAN;
   public static void setDominantMode(Mode mode) {
