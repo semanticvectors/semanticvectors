@@ -35,15 +35,18 @@
 
 package pitt.search.semanticvectors.integrationtests;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Scanner;
 import java.util.logging.Logger;
 
 import org.junit.Before;
 import org.junit.Test;
 
+import pitt.search.semanticvectors.BuildIndex;
 import pitt.search.semanticvectors.Flags;
 import pitt.search.semanticvectors.ObjectVector;
 import pitt.search.semanticvectors.Search;
@@ -60,6 +63,15 @@ public class ThreadSafetyTest {
 
   @Test
   public void TestSearchThreadSafety() throws Exception {
+    // Build termvectors and docvectors
+    Flags.dimension = 200;
+    String[] buildArgs = new String[] {"-dimension", "200", "index"};    
+    assert(!(new File("termvectors.bin")).isFile());
+    assert(!(new File("docvectors.bin")).isFile());
+    BuildIndex.main(buildArgs);
+    assert((new File("termvectors.bin")).isFile());
+    assert((new File("docvectors.bin")).isFile());
+    
     List<Thread> threads = new ArrayList<Thread>();
     final String queries[] = new String[]{"jesus", "mary", "peter", "light", "word"};
     final boolean[] done = new boolean[queries.length];
@@ -87,13 +99,16 @@ public class ThreadSafetyTest {
     for(Thread t : threads) {
       t.join();
     }
+    
+    // Clean up files.
+    new File("termvectors.bin").delete();
+    new File("docvectors.bin").delete();
   }
 
-  synchronized /*** Comment out and it will break. ***/
   private static void outputSuggestions(String query) throws Exception  {
     int maxResults = 10;
-    String[] args = new String[] { "-searchvectorfile", RunTests.vectorBinFile,
-        "-queryvectorfile", RunTests.vectorBinFile,
+    String[] args = new String[] {
+        "-queryvectorfile", "termvectors.bin",
         "-luceneindexpath", RunTests.lucenePositionalIndexDir,
         query };
     LinkedList<SearchResult> results = Search.RunSearch(args, maxResults);
@@ -101,7 +116,7 @@ public class ThreadSafetyTest {
     if (results.size() > 0) {
       for (SearchResult result: results) {
         String suggestion = ((ObjectVector)result.getObject()).getObject().toString();
-        logger.finer("query:"+query + " suggestion:" + suggestion + " score:" + result.getScore());
+        logger.finest("query:"+query + " suggestion:" + suggestion + " score:" + result.getScore());
       }
     }
   }
