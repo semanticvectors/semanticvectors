@@ -60,6 +60,15 @@ public class BinaryVectorTest extends TestCase {
   }
 
   @Test
+  public void testElementalToSemantic() {
+    BinaryVector vector = (BinaryVector) VectorFactory.createZeroVector(VectorType.BINARY, 64);
+    vector.readFromString("0000000000000000000000000000000000000000000000000000000000000000");
+    assertEquals(0, vector.numRows());
+    vector.elementalToSemantic();
+    assertEquals(1, vector.numRows());
+  }
+  
+  @Test
   public void testSuperposeAndNormalize() {
     BinaryVector vector = (BinaryVector) VectorFactory.createZeroVector(VectorType.BINARY, 64);
     vector.readFromString("0101010111000011110100011111110110100000001110111000011000100100");
@@ -168,37 +177,4 @@ public class BinaryVectorTest extends TestCase {
       fail();
     }
   }  
-
-  /*
-  {
-  Random random = new Random();
-  Vector testV = new BinaryVector(10000);
-
-  Vector randV = testV.generateRandomVector(10000,5000, random);
-
-  for (int q = 0; q < 10000; q++)
-    ((BinaryVector) randV).bitSet.set(q);
-  Vector origin = randV.copy();
-
-  for (int x =1; x < 10000; x++)
-  {
-
-    System.out.println("--------Number of votes "+x);
-    testV.superpose(randV, 1, null);
-    testV.normalize();
-
-
-    System.out.println(testV.measureOverlap(origin)+"\t"+ ((BinaryVector) testV).numRows()+"\t"+Math.pow(2,((BinaryVector) testV).numRows()));
-
-    System.out.println("Vector added:");
-    System.out.println(randV);
-
-    System.out.println("Superposition:");
-
-    System.out.println(testV);
-
-
-    randV = testV.generateRandomVector(10000,5000, random);
-   */
-
 }

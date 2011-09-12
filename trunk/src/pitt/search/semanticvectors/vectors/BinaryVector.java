@@ -114,9 +114,6 @@ public class BinaryVector extends Vector {
         debugString.append((int) ((minimum + actualvals[x]) / Math.pow(10, decimalPlaces)) + " ");
       }
 
-
-  
-
       debugString.append("\nCardinality " + bitSet.cardinality()+"\n");
       debugString.append("Votes " + totalNumberOfVotes+"\n");
       debugString.append("Minimum " + minimum + "\n");
@@ -350,16 +347,15 @@ public class BinaryVector extends Vector {
   }
 
   /**
-   * Returns a bitset with a "1" in the position of every dimension
-   * that exactly matches the target number.
+   * Sets {@link #tempSet} to be a bitset with a "1" in the position of every dimension
+   * in the {@link #votingRecord} that exactly matches the target number.
    */
-  private OpenBitSet exact(int target) {
+  private void setTempSetToExactMatches(int target) {
     if (target == 0) {
       tempSet.set(0, dimension);
       tempSet.xor(votingRecord.get(0));
       for (int x = 1; x < votingRecord.size(); x++)
         tempSet.andNot(votingRecord.get(x));
-      return tempSet;
     }
     String inbinary = reverse(Integer.toBinaryString(target));
 
@@ -372,10 +368,7 @@ public class BinaryVector extends Vector {
           tempSet.and(votingRecord.get(q));	
         else 
           tempSet.andNot(votingRecord.get(q));	
-    }
-    // TODO(widdows): Figure out if there's a good reason for returning a member variable.
-    // Seems redundant to do this.
-    return tempSet;		
+    }	
   }
 
   /**
@@ -404,15 +397,11 @@ public class BinaryVector extends Vector {
       return ans;
     }
 
-    //Voting record insufficient to hold half the votes (unlikely unless unbalanced vectors used), so return zero vector
-    // if (votingRecord.size() < 1+ Math.log(target2)/Math.log(2))
-    //	return new OpenBitSet(dimension);
-
     boolean even = (target % 2 == 0);
     OpenBitSet result = concludeVote(target2, votingRecord.size() - 1);
 
     if (even) {
-      tempSet = exact(target2);
+      setTempSetToExactMatches(target2);
       boolean switcher = true;
       // 50% chance of being true with split vote.
       for (int q = 0; q < dimension; q++) {
@@ -427,20 +416,17 @@ public class BinaryVector extends Vector {
   }
 
   protected OpenBitSet concludeVote(int target, int row_ceiling) {
-
     /**
 	  logger.info("Entering conclude vote, target " + target + " row_ceiling " + row_ceiling + 
     		"voting record " + votingRecord.size() + 
     		" minimum "+ minimum + " index "+  Math.log(target)/Math.log(2) +
          " vector\n" + toString());
      **/
-
     if (target == 0)
     { 	OpenBitSet atLeastZero = new OpenBitSet(dimension);
     atLeastZero.set(0, dimension);
     return atLeastZero;
     }
-
 
     double rowfloor = Math.log(target)/Math.log(2);
     int row_floor = (int) Math.floor(rowfloor);  //for 0 index
@@ -475,7 +461,6 @@ public class BinaryVector extends Vector {
     }
   }
 
-
   /**
    * Decrement every dimension. Assumes at least one count in each dimension
    * i.e: no underflow check currently - will wreak havoc with zero counts
@@ -500,7 +485,7 @@ public class BinaryVector extends Vector {
 
     if (logfloor < votingRecord.size() - 1) {
       while (logfloor > 0) {
-        selected_decrement(logfloor);	
+        selectedDecrement(logfloor);	
         weight = weight - (int) Math.pow(2,logfloor);
         logfloor = (int) (Math.floor(Math.log(weight)/Math.log(2)));
       }
@@ -511,7 +496,7 @@ public class BinaryVector extends Vector {
     }
   }
 
-  public void selected_decrement(int floor) {
+  public void selectedDecrement(int floor) {
     tempSet.set(0, dimension);
     for (int q = floor; q < votingRecord.size(); q++) {
       votingRecord.get(q).xor(tempSet);
@@ -597,7 +582,6 @@ public class BinaryVector extends Vector {
     return builder.toString();
   }
 
-
   /**
    * Writes vector to a string of the form 010 etc. (no delimiters). 
    * 
@@ -633,15 +617,15 @@ public class BinaryVector extends Vector {
    */
   protected void elementalToSemantic() {
     if (!isSparse) {
-      logger.warning("Tryied to transform an elemental vector which is not in fact elemental."
+      logger.warning("Tried to transform an elemental vector which is not in fact elemental."
           + "This may be a programming error.");
       return;
     }
-    this.votingRecord = new ArrayList<OpenBitSet>();
-    this.tempSet = new OpenBitSet(dimension);
-    this.isSparse = false;
+    votingRecord = new ArrayList<OpenBitSet>();
+    votingRecord.add((OpenBitSet) bitSet.clone());
+    tempSet = new OpenBitSet(dimension);
+    isSparse = false;
   }
-
 
   /**
    * Permute the long[] array underlying the OpenBitSet binary representation
@@ -654,13 +638,13 @@ public class BinaryVector extends Vector {
     }
     //TODO permute in place without creating additional long[] (if proves problematic at scale)
     long[] coordinates = bitSet.getBits();
-    long[] new_coordinates = new long[coordinates.length];
+    long[] newCoordinates = new long[coordinates.length];
     for (int i = 0; i < coordinates.length; ++i) {
       int positionToAdd = i;
       positionToAdd = permutation[positionToAdd];
-      new_coordinates[i] = coordinates[positionToAdd];
+      newCoordinates[i] = coordinates[positionToAdd];
     }
-    bitSet.setBits(new_coordinates);
+    bitSet.setBits(newCoordinates);
   }
 
   // Available for testing and copying.
@@ -674,12 +658,10 @@ public class BinaryVector extends Vector {
     return bitSet.getBits().length;
   }
 
-
   // Monitor growth of voting record.
   protected int numRows() {
+    if (isSparse) return 0;
     return votingRecord.size();
   }
-
-
 }
 
