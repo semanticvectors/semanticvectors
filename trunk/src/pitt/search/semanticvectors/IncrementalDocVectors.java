@@ -162,12 +162,13 @@ public class IncrementalDocVectors {
             }
           }
         }
+      }
         // All fields in document have been processed.
         // Write out documentID and normalized vector.
         outputStream.writeString(docID);
         docVector.normalize();
         docVector.writeToLuceneStream(outputStream);
-      }
+      
     } // Finish iterating through documents.
 
     VerbatimLogger.info("Finished writing vectors.\n");
