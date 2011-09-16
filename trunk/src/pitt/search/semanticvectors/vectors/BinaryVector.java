@@ -257,9 +257,7 @@ public class BinaryVector extends Vector {
    * @param incomingBitSet
    * @param weight
    */
-  
-  
-  protected void superposeBitSet(OpenBitSet incomingBitSet, double weight) {
+    protected void superposeBitSet(OpenBitSet incomingBitSet, double weight) {
     // If fractional weights are used, encode all weights as integers (1000 x double value).
     weight = (int) Math.round(weight * Math.pow(10, decimalPlaces));
     if (weight == 0) return;
@@ -284,8 +282,6 @@ public class BinaryVector extends Vector {
     for (int x = 0; x < weight; x++)
       superposeBitSetFromRowFloor(incomingBitSet, 0);
   }
-  
-  
 
   /**
    * Performs superposition from a particular row by sweeping a bitset across the voting record
@@ -382,8 +378,7 @@ public class BinaryVector extends Vector {
    */
   protected OpenBitSet concludeVote() {
     if (votingRecord.size() == 0) return new OpenBitSet(dimension);
-    else
-      return concludeVote(totalNumberOfVotes);
+    else return concludeVote(totalNumberOfVotes);
   }
 
   protected OpenBitSet concludeVote(int target) {
@@ -422,10 +417,10 @@ public class BinaryVector extends Vector {
     		" minimum "+ minimum + " index "+  Math.log(target)/Math.log(2) +
          " vector\n" + toString());
      **/
-    if (target == 0)
-    { 	OpenBitSet atLeastZero = new OpenBitSet(dimension);
-    atLeastZero.set(0, dimension);
-    return atLeastZero;
+    if (target == 0) {
+      OpenBitSet atLeastZero = new OpenBitSet(dimension);
+      atLeastZero.set(0, dimension);
+      return atLeastZero;
     }
 
     double rowfloor = Math.log(target)/Math.log(2);

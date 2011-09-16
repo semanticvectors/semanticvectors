@@ -40,7 +40,7 @@ import java.util.logging.Logger;
 /**
  * Singleton class for caching trig values for optimizing speed of complex vector operations.
  * 
- * @author widdows
+ * @author Lance De Vine, Dominic Widdows
  */
 public final class CircleLookupTable {
   public static Logger logger = Logger.getLogger(CircleLookupTable.class.getCanonicalName());
