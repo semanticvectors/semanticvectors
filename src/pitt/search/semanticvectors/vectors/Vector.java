@@ -101,22 +101,22 @@ public abstract class Vector {
   public abstract void normalize();
   
   /**
-   * Writes vector to Lucene output stream.  Writes exactly {@link dimension} coordinates.
+   * Writes vector to Lucene output stream.  Writes exactly {@link #getDimension} coordinates.
    */
   public abstract void writeToLuceneStream(IndexOutput outputStream);
 
   /**
-   * Reads vector from Lucene input stream.  Reads exactly {@link dimension} coordinates.
+   * Reads vector from Lucene input stream.  Reads exactly {@link #getDimension} coordinates.
    */
   public abstract void readFromLuceneStream(IndexInput inputStream);
   
   /**
-   * Writes vector to text representation.  Writes exactly {@link dimension} coordinates.
+   * Writes vector to text representation.  Writes exactly {@link #getDimension} coordinates.
    */
   public abstract String writeToString();
 
   /**
-   * Reads vector from text representation.  Reads exactly {@link dimension} coordinates.
+   * Reads vector from text representation.  Reads exactly {@link #getDimension} coordinates.
    */
   public abstract void readFromString(String input);
  
