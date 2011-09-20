@@ -20,7 +20,7 @@
 			 make the release, and then increment again to next_odd_number and check
 			 in. This way when people check out from svn, they always get the
 			 most recent development version. -->
-  <property name="version" value="2.5"/>
+  <property name="version" value="3.1"/>
   <property file="build.properties" />
 
   <property environment="env"/>
@@ -85,7 +85,7 @@
 
   <target name="doc" depends="init,compile">
     <javadoc sourcepath="${srcdir}"
-             packagenames="pitt.search.semanticvectors,pitt.search.lucene"
+             packagenames="pitt.search.semanticvectors,pitt.search.semanticvectors.vectors,pitt.search.lucene"
              destdir="${docdir}"
              classpathref="compile.classpath"
              author="true"

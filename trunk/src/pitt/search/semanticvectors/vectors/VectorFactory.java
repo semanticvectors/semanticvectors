@@ -67,8 +67,6 @@ public class VectorFactory {
    * Can be called by external methods that don't explicitly use VectorType enums.
    * This design may be flawed, but it's easy to fix if need be.
    * 
-   * @see {@code createZeroVector}.
-   * 
    * @param type must be one of "binary", "real", "complex".
    * @return new vector of the appropriate type and dimension.
    */
@@ -80,8 +78,8 @@ public class VectorFactory {
    * Generates an appropriate random vector.
    * 
    * @param type one of the recognized vector types
-   * @param dimension number of dimension in the generated vector
-   * @param numEntries total number of non-sero entries; must be less than half of dimension
+   * @param dimension number of dimensions in the generated vector
+   * @param numEntries total number of non-zero entries; must be no greater than half of dimension
    * @param random random number generator; passed in to enable deterministic testing
    * @return vector generated with appropriate type, dimension and number of nonzero entries
    */
