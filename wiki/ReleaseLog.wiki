@@ -3,9 +3,9 @@
 
 Even-numbered versions are releases. Odd-numbered versions are in development. It follows that the most recent code and the `build.xml` file in the SVN repository is always odd-numbered.
 
-=== Version 2.5 - Release Candidate for Version 3.0 ===
+=== Version 3.0 ===
 
-The main work checked in at the moment is TypedVectors. Set `-vectortype` to real, complex, or binary to build vector stores with vectors taking values over different ground fields. Search processes automatically parse the vector type and dimension from the header line in the vector store file. Vector store files without header will no longer be supported.
+The major version update is TypedVectors. Set `-vectortype` to real, complex, or binary to build vector stores with vectors taking values over different ground fields. Search processes automatically parse the vector type and dimension from the header line in the vector store file. Vector store files without header will no longer be supported.
 
 Introduced flags `-stdev` to report result scores as standard deviations from mean result, and `-searchresultsminscore` to reduce results to only those with scores above a certain threshold.
 
