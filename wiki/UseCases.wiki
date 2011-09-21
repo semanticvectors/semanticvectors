@@ -1,0 +1,5 @@
+#summary Description of some of the tasks SemanticVectors can be used for.
+
+= Use Cases and Applications =
+
+... coming soon ...
