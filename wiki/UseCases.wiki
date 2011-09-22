@@ -30,3 +30,5 @@ There are many ways of configuring SemanticVectors to use different [SearchOptio
 == Finding Related Documents ==
 
 See DocumentSearch.
+
+=== More to come ... ===
