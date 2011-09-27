@@ -246,7 +246,7 @@ public class IncrementalTermVectors implements VectorStore {
     String luceneIndex = args[1];
 
     VectorStore termVectors = new IncrementalTermVectors(
-        luceneIndex, VectorType.valueOf(Flags.vectortype), Flags.dimension,
+        luceneIndex, VectorType.valueOf(Flags.vectortype.toUpperCase()), Flags.dimension,
         Flags.contentsfields, vectorFile);
     new VectorStoreWriter().writeVectors("incremental_termvectors.bin", termVectors);
   }
