@@ -191,7 +191,7 @@ public class IncrementalDocVectors {
     }
 
     String vectorFile = args[0].replaceAll("\\.bin","")+"_docvectors.bin";
-    VectorStoreRAM vsr = new VectorStoreRAM(VectorType.valueOf(Flags.vectortype), Flags.dimension);
+    VectorStoreRAM vsr = new VectorStoreRAM(VectorType.valueOf(Flags.vectortype.toUpperCase()), Flags.dimension);
     vsr.initFromFile(args[0]);
 
     logger.info("Minimum frequency = " + Flags.minfrequency);
