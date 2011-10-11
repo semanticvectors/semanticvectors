@@ -181,14 +181,38 @@ public class ComplexVectorTest extends TestCase {
     for (short i : cv.getPhaseAngles()) {
       System.err.print(i +  " ");
     }
-    assertArrayEquals(new short[] {ZERO_INDEX, (short) (RES/4), (short) (3*RES/4)},
-        cv.getPhaseAngles());
+    assertArrayEquals(new short[] {0, (short) (RES/4), (short) (3*RES/4)}, cv.getPhaseAngles());
     // Should have what we started with.
     cv.convolve(cv2, -1);
-    assertArrayEquals(new short[] {ZERO_INDEX, 0, (short) (RES/2)}, cv.getPhaseAngles());
+    assertArrayEquals(new short[] {0, 0, (short) (RES/2)}, cv.getPhaseAngles());
     // Convolving with inverse of itself gives all ones (or zeros).
     cv.convolve(cv, -1);
-    assertArrayEquals(new short[] {ZERO_INDEX, 0, 0}, cv.getPhaseAngles());
+    assertArrayEquals(new short[] {0, 0, 0}, cv.getPhaseAngles());
+  }
+  
+  @Test
+  public void testBindFromRandom() {
+    short ZERO_INDEX = CircleLookupTable.ZERO_INDEX;
+    Random random = new Random(0);
+    ComplexVector cv1 = (ComplexVector) VectorFactory.generateRandomVector(
+        VectorType.COMPLEX, 5, 2, random);
+    ComplexVector cv2 = (ComplexVector) VectorFactory.generateRandomVector(
+        VectorType.COMPLEX, 5, 2, random);
+    cv1.bind(cv2);
+    assertArrayEquals(new short[] {2301, 1917, ZERO_INDEX, ZERO_INDEX, 9934}, cv1.getPhaseAngles());
+  }
+  
+  @Test
+  public void testBindFromZero() {
+    short ZERO_INDEX = CircleLookupTable.ZERO_INDEX;
+    Random random = new Random(0);
+    ComplexVector cv1 = (ComplexVector) VectorFactory.createZeroVector(VectorType.COMPLEX, 5);
+    cv1.toDensePolar();
+    ComplexVector cv2 = (ComplexVector) VectorFactory.generateRandomVector(
+        VectorType.COMPLEX, 5, 2, random);
+    cv1.bind(cv2);
+    assertArrayEquals(
+        new short[] {13622, ZERO_INDEX, ZERO_INDEX, ZERO_INDEX, 9934}, cv1.getPhaseAngles());
   }
 
   @Test

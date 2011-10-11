@@ -71,7 +71,7 @@ public class BuildIndex {
     try {
       args = Flags.parseCommandLineFlags(args);
     } catch (IllegalArgumentException e) {
-      System.out.println(usageMessage);
+      System.err.println(usageMessage);
       throw e;
     }
 

@@ -56,7 +56,7 @@ public class BeagleTest
 			System.err.println("Search output follows ...\n");
 			for (SearchResult result: results) {
 				System.out.println(result.getScore() + ":" +
-                                                   ((ObjectVector)result.getObject()).getObject().toString());
+                                                   ((ObjectVector)result.getObjectVector()).getObject().toString());
 			}
 		} else {
 			System.err.println("No search output.");

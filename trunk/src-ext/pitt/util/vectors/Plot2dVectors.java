@@ -69,6 +69,7 @@ public class Plot2dVectors extends JPanel {
     this.setSize(new Dimension(scale + 2*pad, scale + 2*pad));
   }
 
+  @Override
   public void paintComponent(Graphics g) {
     int c1, c2;
     float min1, max1, min2, max2;

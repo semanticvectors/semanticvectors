@@ -118,6 +118,7 @@ public class ComplexVector extends Vector {
     this.dimension = dimension;
     switch(opMode) {
     case POLAR_SPARSE:
+      this.sparseOffsets = new short[0];
       return;
     case POLAR_DENSE:
       this.phaseAngles = new short[dimension];
@@ -322,7 +323,6 @@ public class ComplexVector extends Vector {
    * Superposes other vector with this one, putting this vector into cartesian mode.
    */
   public void superpose(Vector other, double weight, int[] permutation) {
-    IncompatibleVectorsException.checkVectorsCompatible(this, other);    
     IncompatibleVectorsException.checkVectorsCompatible(this, other);
     ComplexVector complexOther = (ComplexVector) other;
     if (opMode != Mode.CARTESIAN) { toCartesian(); }
@@ -337,6 +337,16 @@ public class ComplexVector extends Vector {
     case POLAR_DENSE :
       ComplexVectorUtils.superposeWithAngle(this, complexOther, (float)weight, permutation);
     }
+  }
+  
+  @Override
+  /**
+   * Implements binding using the {#link #convolve} method.
+   */
+  public void bind(Vector other) {
+    IncompatibleVectorsException.checkVectorsCompatible(this, other);
+    ComplexVector complexOther = (ComplexVector) other;
+    this.convolve(complexOther, 1);
   }
 
   /**
@@ -418,14 +428,17 @@ public class ComplexVector extends Vector {
    */
   public void convolve(ComplexVector other, int direction) {
     IncompatibleVectorsException.checkVectorsCompatible(this, other);
-    if (opMode != Mode.POLAR_DENSE) normalize();
-    if (other.getOpMode() != Mode.POLAR_DENSE) other.normalize();
-	short[] otherAngles = other.getPhaseAngles();
+    toDensePolar();
+    ComplexVector otherCopy = other.copy();
+    otherCopy.toDensePolar();
+	short[] otherAngles = otherCopy.getPhaseAngles();
 
 	for (int i=0; i < dimension; i++) {
-	  if ((phaseAngles[i] == CircleLookupTable.ZERO_INDEX)
-	      || (otherAngles[i] == CircleLookupTable.ZERO_INDEX)) {
-	    phaseAngles[i] = CircleLookupTable.ZERO_INDEX;
+	  if (otherAngles[i] == CircleLookupTable.ZERO_INDEX) {
+	    continue;
+	  }
+	  if (phaseAngles[i] == CircleLookupTable.ZERO_INDEX) {
+	    phaseAngles[i] = otherAngles[i];
 	    continue;
 	  }
 	  short angleToAdd = otherAngles[i];
@@ -512,9 +525,6 @@ public class ComplexVector extends Vector {
    * Writes vector as cartesian form to a string of the form x1|x2|x3| ... where the x's are the coordinates.
    *
    * No terminating newline or | symbol.
-   *
-   * Writes cartesian vector as floats.
-   * Writes polar vector as 16 bit integers.
    */
   public String writeToString() {
     // TODO(widdows): Discuss whether cartesian should be the main serialization representation.
