@@ -88,7 +88,7 @@ public class Flags {
   public static String searchtype = "sum";
   public static final String searchtypeDescription = "Method used for combining and searching vectors.";
   public static final String[] searchtypeValues =
-  {"sum", "sparsesum", "subspace", "maxsim", "balanced_permutation", "permutation", "printquery"};
+    {"sum", "sparsesum", "subspace", "maxsim", "balanced_permutation", "permutation", "printquery"};
 
   public static String termweight = "none";
   public static final String termweightDescription = "Term weighting used when constructing document vectors.";

@@ -467,7 +467,7 @@ abstract public class VectorSearcher {
       double score = temp.getScore();
       score = new Double((score-mean)/stdev).floatValue();
       if (score > Flags.searchresultsminscore)
-        transformedResults.add(new SearchResult(score, temp.getObject()));
+        transformedResults.add(new SearchResult(score, temp.getObjectVector()));
     }
     return transformedResults;
   }

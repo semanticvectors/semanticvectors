@@ -38,9 +38,7 @@ package pitt.search.semanticvectors.integrationtests;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Scanner;
 import java.util.logging.Logger;
 
 import org.junit.Before;
@@ -111,11 +109,11 @@ public class ThreadSafetyTest {
         "-queryvectorfile", "termvectors.bin",
         "-luceneindexpath", RunTests.lucenePositionalIndexDir,
         query };
-    LinkedList<SearchResult> results = Search.RunSearch(args, maxResults);
+    List<SearchResult> results = Search.RunSearch(args, maxResults);
 
     if (results.size() > 0) {
       for (SearchResult result: results) {
-        String suggestion = ((ObjectVector)result.getObject()).getObject().toString();
+        String suggestion = ((ObjectVector)result.getObjectVector()).getObject().toString();
         logger.finest("query:"+query + " suggestion:" + suggestion + " score:" + result.getScore());
       }
     }

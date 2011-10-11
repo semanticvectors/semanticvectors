@@ -51,7 +51,7 @@ import pitt.search.semanticvectors.VectorStoreTranslater;
  * Class for running unit tests and regression tests.
  *
  * Should be run in the test/testdata/tmp working directory. Running
- * from the build.xml script with "ant run-tests" ensures this.
+ * from the build.xml script with "ant run-integration-tests" ensures this.
  */
 public class RunTests {
   /**
@@ -59,8 +59,8 @@ public class RunTests {
    * be run by runUnitTests().
    */
   public static Class<?>[] integrationTestClasses = {
-    RegressionTests.class,
-    ThreadSafetyTest.class
+    ThreadSafetyTest.class,
+    RegressionTests.class
   };
 
   public static boolean testDataPrepared = false;
@@ -86,8 +86,8 @@ public class RunTests {
    * Convenience method for running JUnit tests and displaying failure results.
    * @return int[2] {numSuccesses, numFailures}.
    */
-  private static int[] runJUnitTests(Class<?>[] classes) {
-    Result results = org.junit.runner.JUnitCore.runClasses(classes);
+  private static int[] runJUnitTests(Class<?> testClass) {
+    Result results = org.junit.runner.JUnitCore.runClasses(testClass);
     for (Failure failure: results.getFailures()) {
       System.err.println("FAILURE!!!");
       System.err.println("FAILURE!!! Test: " + failure.toString());
@@ -129,7 +129,6 @@ public class RunTests {
     try {
       Process luceneIndexer = TestUtils.spawnChildProcess(IndexFiles.class, args, null, null, null);
       TestUtils.waitForAndDestroy(luceneIndexer);
-
       Process lucenePositionsIndexer = TestUtils.spawnChildProcess(
           IndexFilePositions.class, args, null, null, null);
       TestUtils.waitForAndDestroy(lucenePositionsIndexer);
@@ -160,9 +159,11 @@ public class RunTests {
 
     // Run regression tests.
     System.err.println("Running regression tests ...");
-    scores = runJUnitTests(integrationTestClasses);
-    successes += scores[0];
-    failures += scores[1];
+    for (Class<?> testClass : integrationTestClasses) {
+      scores = runJUnitTests(testClass);
+      successes += scores[0];
+      failures += scores[1];
+    }
 
     System.err.println("Ran all tests. Successes: " + successes + "\tFailures: " + failures);
     System.exit(0);

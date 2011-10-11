@@ -502,7 +502,7 @@ public class BinaryVector extends Vector {
   /**
    * Returns the highest value shared by all dimensions.
    */
-  public int getMaximumSharedWeight() {
+  protected int getMaximumSharedWeight() {
     int thismaximum = 0;
     tempSet.xor(tempSet);  // Reset tempset to zeros.
     for (int x = votingRecord.size() - 1; x >= 0; x--) {
@@ -513,6 +513,17 @@ public class BinaryVector extends Vector {
       }
     }
     return thismaximum;	
+  }
+
+  /**
+   * Implements binding as a single-shift permutation.  Currently wasteful; allocates
+   * the permutation array each time.
+   */
+  public void bind(Vector other) {
+    IncompatibleVectorsException.checkVectorsCompatible(this, other);
+    BinaryVector binaryOther = (BinaryVector) other;
+    other.superpose(
+        binaryOther, 1, PermutationUtils.getShiftPermutation(VectorType.BINARY, dimension, 1));
   }
 
   @Override

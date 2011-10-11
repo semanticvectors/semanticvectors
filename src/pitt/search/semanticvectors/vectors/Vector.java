@@ -86,12 +86,17 @@ public abstract class Vector {
    * Kanerva 2008.
    * 
    * @param other vector to be added
-   * @param weight multiple of {@code other} vector added (TODO dwiddows support complex weights)
-   * @param permutation represents the purmutation to be applied while adding, so that the ith
+   * @param weight multiple of {@code other} vector added (TODO widdows support complex weights)
+   * @param permutation represents the permutation to be applied while adding, so that the ith
    *        coordinate of {@code other} is added to the coordinate given by the ith entry in this
    *        list. Can be NULL in which case no permutation is applied. 
    */
   public abstract void superpose(Vector other, double weight, int[] permutation);
+  
+  /**
+   * Binds the other vector into this one, taking direction into account.
+   */
+  public abstract void bind(Vector other);
   
   /**
    * Transforms vector to a normalized representation.  A normalized representation should
@@ -122,7 +127,7 @@ public abstract class Vector {
  
   @Override
  /**
-  * Subclasses must implement a string representation for debugging.  This may be different and
+  * Subclasses must implement a string representation for debugging. This may be different and
   * more explicit than the {@code writeToString} method.
   */
   public abstract String toString();

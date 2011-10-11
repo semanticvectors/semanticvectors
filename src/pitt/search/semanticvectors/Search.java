@@ -37,6 +37,7 @@ package pitt.search.semanticvectors;
 
 import java.io.IOException;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.logging.Logger;
 
 import pitt.search.semanticvectors.vectors.Vector;
@@ -109,27 +110,7 @@ public class Search {
   private static CloseableVectorStore searchVecReader;
   private static LuceneUtils luceneUtils;
 
-  /**
-   * Prints the following usage message:
-   * <code>
-   * <br> Search class in package pitt.search.semanticvectors
-   * <br> Usage: java pitt.search.semanticvectors.Search [-queryfile query_vector_file]
-   * <br>                                                [-searchfile search_vector_file]
-   * <br>                                                [-luceneindexpath path_to_lucene_index]
-   * <br>                                                [-searchtype TYPE]
-   * <br>                                                [-numsearchresults num_results]
-   * <br>                                                [-lowercasequery]
-   * <br>                                                &lt;QUERYTERMS&gt;
-   * <br> -luceneindexpath argument my be used to get term weights from
-   * <br>     term frequency, doc frequency, etc. in lucene index.
-   * <br> -searchtype can be one of SUM, SPARSESUM, SUBSPACE, MAXSIM,
-   * <br> TENSOR, CONVOLUTION, PERMUTATION, BALANCED_PERMUTATION, PRINTQUERY
-   * <br> &lt;QUERYTERMS&gt; should be a list of words, separated by spaces.
-   * <br> If the term NOT is used, terms after that will be negated.
-   * </code>
-   */
-  public static void usage() {
-    String usageMessage = "\nSearch class in package pitt.search.semanticvectors"
+  public static String usageMessage = "\nSearch class in package pitt.search.semanticvectors"
         + "\nUsage: java pitt.search.semanticvectors.Search [-queryvectorfile query_vector_file]"
         + "\n                                               [-searchvectorfile search_vector_file]"
         + "\n                                               [-luceneindexpath path_to_lucene_index]"
@@ -145,21 +126,19 @@ public class Search {
         + "\n     TENSOR, CONVOLUTION, BALANCED_PERMUTATION, PERMUTATION, PRINTQUERY"
         + "\n<QUERYTERMS> should be a list of words, separated by spaces."
         + "\n    If the term NOT is used, terms after that will be negated.";
-    System.out.println(usageMessage);
-  }
-
 
   /**
    * Takes a user's query, creates a query vector, and searches a vector store.
    * @param args See usage();
    * @param numResults Number of search results to be returned in a ranked list.
-   * @return Linked list containing <code>numResults</code> search results.
+   * @return List containing <code>numResults</code> search results.
    */
-  public static LinkedList<SearchResult> RunSearch (String[] args, int numResults)
+  public static List<SearchResult> RunSearch (String[] args, int numResults)
       throws IllegalArgumentException {
     /**
      * The RunSearch function has four main stages:
      * i. Parse command line arguments, with a tiny bit of extra logic for vector stores.
+     *    (Ideally this would be done outside this method to make programmatic interfaces clearer.)
      * ii. Open corresponding vector and lucene indexes.
      * iii. Based on search type, build query vector and perform search.
      * iv. Return LinkedList of results, usually for main() to print out.
@@ -296,43 +275,6 @@ public class Search {
       results = new LinkedList<SearchResult>();
     }
 
-    return results;
-  }
-
-  /**
-   * Search wrapper that returns the list of ObjectVectors.
-   */
-  public static ObjectVector[] getSearchResultVectors(String[] args, int numResults)
-      throws IllegalArgumentException {
-    LinkedList<SearchResult> results = Search.RunSearch(args, numResults);
-    ObjectVector[] resultsList = new ObjectVector[results.size()];
-    for (int i = 0; i < results.size(); ++i) {
-      String term = ((ObjectVector)results.get(i).getObject()).getObject().toString();
-      Vector tmpVector = searchVecReader.getVector(term);
-      resultsList[i] = new ObjectVector(term, tmpVector);
-    }
-    return resultsList;
-  }
-
-  /**
-   * Takes a user's query, creates a query vector, and searches a vector store.
-   * @param args See usage();
-   */
-  public static void main (String[] args)
-      throws IllegalArgumentException {
-    int defaultNumResults = 20;
-    LinkedList<SearchResult> results = RunSearch(args, defaultNumResults);
-    // Print out results.
-    if (results.size() > 0) {
-      VerbatimLogger.info("Search output follows ...\n");
-      for (SearchResult result: results) {
-        System.out.println(result.getScore() + ":" +
-                           ((ObjectVector)result.getObject()).getObject().toString());
-      }
-    } else {
-      VerbatimLogger.info("No search output.\n");
-    }
-
     // Release filesystem resources.
     //
     // TODO(widdows): This is not the cleanest control flow, since these are
@@ -342,6 +284,49 @@ public class Search {
     queryVecReader.close();
     if (!Flags.queryvectorfile.equals(Flags.searchvectorfile)) {
       searchVecReader.close();
+    }
+    
+    return results;
+  }
+
+  /**
+   * Search wrapper that returns the list of ObjectVectors.
+   */
+  public static ObjectVector[] getSearchResultVectors(String[] args, int numResults)
+      throws IllegalArgumentException {
+    List<SearchResult> results = Search.RunSearch(args, numResults);
+    
+    try {
+      searchVecReader = VectorStoreReader.openVectorStore(Flags.searchvectorfile);
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+    ObjectVector[] resultsList = new ObjectVector[results.size()];
+    for (int i = 0; i < results.size(); ++i) {
+      String term = ((ObjectVector)results.get(i).getObjectVector()).getObject().toString();
+      Vector tmpVector = searchVecReader.getVector(term);
+      resultsList[i] = new ObjectVector(term, tmpVector);
+    }
+    searchVecReader.close();
+    return resultsList;
+  }
+
+  /**
+   * Takes a user's query, creates a query vector, and searches a vector store.
+   * @param args See {@link #usageMessage}
+   */
+  public static void main (String[] args) throws IllegalArgumentException {
+    int defaultNumResults = 20;
+    List<SearchResult> results = RunSearch(args, defaultNumResults);
+    // Print out results.
+    if (results.size() > 0) {
+      VerbatimLogger.info("Search output follows ...\n");
+      for (SearchResult result: results) {
+        System.out.println(result.getScore() + ":" +
+                           ((ObjectVector)result.getObjectVector()).getObject().toString());
+      }
+    } else {
+      VerbatimLogger.info("No search output.\n");
     }
   }
 }

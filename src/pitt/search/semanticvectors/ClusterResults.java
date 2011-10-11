@@ -118,7 +118,7 @@ public class ClusterResults {
    * <br> &lt;SEARCH ARGS&gt;
    * where SEARCH ARGS is an expression passed to Search class.
    * </code>
-   * @see Search#usage
+   * @see Search#usageMessage
    */
   public static void usage() {
     String usageMessage = "\nClusterResults class in package pitt.search.semanticvectors"
