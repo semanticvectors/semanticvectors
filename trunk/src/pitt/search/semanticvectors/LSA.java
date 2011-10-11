@@ -26,7 +26,7 @@ import ch.akuhn.edu.mit.tedlab.*;
  */
 public class LSA {
   private static final Logger logger = Logger.getLogger(LSA.class.getCanonicalName());
-  
+
   static boolean le = false;
   static String[] theTerms;
 
@@ -64,13 +64,13 @@ public class LSA {
   /* Converts a dense matrix to a sparse one (without affecting the dense one) */
   static SMat smatFromIndex(String fileName) throws Exception {
     SMat S;
-    
+
     //initiate IndexReader and LuceneUtils
     File file = new File(fileName);
     IndexReader indexReader = IndexReader.open(FSDirectory.open(file));
     LuceneUtils.compressIndex(fileName);
     LuceneUtils lUtils = new LuceneUtils(fileName);
-    
+
     //calculate norm of each doc vector so as to normalize these before SVD
     int[][] index;
     String[] desiredFields = Flags.contentsfields;
@@ -78,7 +78,7 @@ public class LSA {
     TermEnum terms = indexReader.terms();
     int tc = 0;
     while(terms.next()){
-      if (lUtils.termFilter(terms.term(), desiredFields, 
+      if (lUtils.termFilter(terms.term(), desiredFields,
           Flags.minfrequency, Flags.maxfrequency, Flags.maxnonalphabetchars))
         tc++;
     }
@@ -96,56 +96,41 @@ public class LSA {
       if (lUtils.termFilter(term, desiredFields,
           Flags.minfrequency, Flags.maxfrequency, Flags.maxnonalphabetchars)) {
         theTerms[tc] = term.text();
-        
-        /**
-         * create matrix of nonzero indices
-         */
 
+        // Create matrix of nonzero indices.
         TermDocs td = indexReader.termDocs(term);
         int count =0;
-        while (td.next())
-        { count ++;
+        while (td.next()) {
+          count++;
           nonzerovals++;
         }
         index[tc] = new int[count];
 
-        /**
-         * fill in matrix of nonzero indices
-         */
-
+        // Fill in matrix of nonzero indices.
         td = indexReader.termDocs(term);
         count = 0;
-        while (td.next())
-        {index[tc][count++] = td.doc();
-         }
-
-        tc++;	//next term
+        while (td.next()) {
+          index[tc][count++] = td.doc();
+        }
+        tc++;	// Next term.
       }
     }
-    
 
-
-    /**
-     * initialize "SVDLIBJ" sparse data structure
-     */
-
+    // Initialize "SVDLIBJ" sparse data structure.
     S = new SMat(indexReader.numDocs(),tc, nonzerovals);
 
-    /**
-     * populate "SVDLIBJ" sparse data structure
-     */
-
+    // Populate "SVDLIBJ" sparse data structure.
     terms = indexReader.terms();
     tc = 0;
     int nn= 0;
 
-    while(terms.next()){
-
+    while (terms.next()) {
       org.apache.lucene.index.Term term = terms.term();
       if (lUtils.termFilter(term, desiredFields,
-          Flags.minfrequency, Flags.maxfrequency, Flags.maxnonalphabetchars)) {
+                            Flags.minfrequency, Flags.maxfrequency,
+                            Flags.maxnonalphabetchars)) {
         TermDocs td = indexReader.termDocs(term);
-        S.pointr[tc] = nn;  // index of first non-zero entry (document) of each column (term)
+        S.pointr[tc] = nn;  // Index of first non-zero entry (document) of each column (term).
 
         while (td.next()) {
           /** public int[] pointr; For each col (plus 1), index of
@@ -157,11 +142,8 @@ public class LSA {
 
           float value = td.freq();
 
-          /**
-           * if log-entropy weighting is to be used
-           */
-
-          if (le) { 
+          // Use log-entropy weighting if directed.
+          if (le) {
             float entropy = lUtils.getEntropy(term);
             float log1plus = (float) Math.log10(1+value);
             value = entropy*log1plus;
@@ -201,7 +183,7 @@ public class LSA {
 
     if (Flags.termweight.equals("logentropy")) le = true;
     else le = false;
-    
+
     if (le)
       logger.info("Term weighting: log-entropy");
 
@@ -223,8 +205,7 @@ public class LSA {
     logger.info("Write vectors incrementally to file " + termFile);
 
     // Write header giving number of dimension for all vectors.
-    outputStream.writeString("-dimension");
-    outputStream.writeInt(Flags.dimension);
+    outputStream.writeString("-dimension " + Flags.dimension + " -vectortype real");
 
     int cnt;
     // Write out term vectors
@@ -238,7 +219,7 @@ public class LSA {
         tmp[i] = (float) vT.value[i][cnt];
       termVector = new RealVector(tmp);
       termVector.normalize();
-      
+
       termVector.writeToLuceneStream(outputStream);
     }
 
@@ -246,9 +227,7 @@ public class LSA {
     outputStream.flush();
     outputStream.close();
 
-    /*
-     * Write document vectors
-     */
+    // Write document vectors.
     // Open file and write headers.
     String docFile = "svd_docvectors.bin";
     outputStream = fsDirectory.createOutput(docFile);
