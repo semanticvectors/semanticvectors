@@ -94,9 +94,12 @@ public abstract class Vector {
   public abstract void superpose(Vector other, double weight, int[] permutation);
   
   /**
-   * Binds the other vector into this one, taking direction into account.
+   * Binds the other vector into this one. Does not necessarily guarantee that this.bind(other, 1)
+   * is equal to other.bind(this, -1).
+   * 
+   * @param direction if direction > 0, binding is on the right, otherwise it is on the left
    */
-  public abstract void bind(Vector other);
+  public abstract void bind(Vector other, int direction);
   
   /**
    * Transforms vector to a normalized representation.  A normalized representation should

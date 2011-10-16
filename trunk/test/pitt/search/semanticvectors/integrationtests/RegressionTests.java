@@ -181,7 +181,9 @@ public class RegressionTests {
     assertEquals(2, peterRank);
   }
   
-  /* Neither of the next two tests works yet. 
+  /* Convolution for direction doesn't appear to be giving decent results yet.
+   * TODO(dwiddows): Check this and check with Lance to see if this is my fault for dorking it up
+   * with the zeros.
   @Test
   public void testBuildAndSearchComplexDirectionalIndex() {
     int peterRank = positionalBuildSearchGetRank(
@@ -189,20 +191,18 @@ public class RegressionTests {
         "-queryvectorfile drxntermvectors.bin simon",
         new String[] {"drxntermvectors.bin", "incremental_docvectors.bin"},
         "peter");
-    assertEquals(2, peterRank);
-  }
+  }    
+  */
 
   @Test
   public void testBuildAndSearchBinaryDirectionalIndex() {
-    // What we'd like to run is ...
     int peterRank = positionalBuildSearchGetRank(
-        "-dimension 1024 -vectortype binary -seedlength 512 -positionalmethod directional positional_index",
+        "-dimension 2048 -vectortype binary -seedlength 1024 -positionalmethod directional positional_index",
         "-queryvectorfile drxntermvectors.bin simon",
         new String[] {"drxntermvectors.bin", "incremental_docvectors.bin"},
         "peter");
     assertEquals(2, peterRank);
   }
-  */
   
   @Test
   public void testBuildAndSearchRealPermutationIndex() {

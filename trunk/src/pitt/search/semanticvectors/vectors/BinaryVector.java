@@ -519,11 +519,16 @@ public class BinaryVector extends Vector {
    * Implements binding as a single-shift permutation.  Currently wasteful; allocates
    * the permutation array each time.
    */
-  public void bind(Vector other) {
+  public void bind(Vector other, int direction) {
     IncompatibleVectorsException.checkVectorsCompatible(this, other);
     BinaryVector binaryOther = (BinaryVector) other;
-    other.superpose(
-        binaryOther, 1, PermutationUtils.getShiftPermutation(VectorType.BINARY, dimension, 1));
+    if (direction > 0) {
+      this.superpose(
+          binaryOther, 1, PermutationUtils.getShiftPermutation(VectorType.BINARY, dimension, 1));
+    } else {
+      this.superpose(
+          binaryOther, 1, PermutationUtils.getShiftPermutation(VectorType.BINARY, dimension, -1));      
+    }
   }
 
   @Override

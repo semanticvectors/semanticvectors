@@ -243,11 +243,16 @@ public class RealVector extends Vector {
    * Implements binding as a single-shift permutation.  Currently wasteful; allocates
    * the permutation array each time.
    */
-  public void bind(Vector other) {
+  public void bind(Vector other, int direction) {
     IncompatibleVectorsException.checkVectorsCompatible(this, other);
     RealVector realOther = (RealVector) other;
-    this.superpose(
-        realOther, 1, PermutationUtils.getShiftPermutation(VectorType.REAL, dimension, 1));
+    if (direction > 0) {
+      this.superpose(
+          realOther, 1, PermutationUtils.getShiftPermutation(VectorType.REAL, dimension, 1));
+    } else {
+      this.superpose(
+          realOther, 1, PermutationUtils.getShiftPermutation(VectorType.REAL, dimension, -1));
+    }
   }
 
   @Override

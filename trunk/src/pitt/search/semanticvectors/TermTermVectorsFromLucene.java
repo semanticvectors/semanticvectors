@@ -354,7 +354,7 @@ public class TermTermVectorsFromLucene implements VectorStore {
           int[] permutation = permutationCache[cursor - focusposn + windowRadius];
           localtermvectors[focusterm].superpose(localindexvectors[coterm], 1, permutation);
         } else if (positionalmethod.equals("directional")) {
-          localtermvectors[focusterm].bind(localindexvectors[coterm]);
+          localtermvectors[focusterm].bind(localindexvectors[coterm], cursor - focusposn);
         }
       }
     }
