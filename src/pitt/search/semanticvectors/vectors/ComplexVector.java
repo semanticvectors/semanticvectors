@@ -338,16 +338,6 @@ public class ComplexVector extends Vector {
       ComplexVectorUtils.superposeWithAngle(this, complexOther, (float)weight, permutation);
     }
   }
-  
-  @Override
-  /**
-   * Implements binding using the {#link #convolve} method.
-   */
-  public void bind(Vector other) {
-    IncompatibleVectorsException.checkVectorsCompatible(this, other);
-    ComplexVector complexOther = (ComplexVector) other;
-    this.convolve(complexOther, 1);
-  }
 
   /**
    * Transform from any mode to cartesian coordinates.
@@ -420,6 +410,16 @@ public class ComplexVector extends Vector {
     }
     opMode = Mode.POLAR_DENSE;
     sparseOffsets = null;  // Reclaim memory.
+  }
+
+  @Override
+  /**
+   * Implements binding using the {#link #convolve} method.
+   */
+  public void bind(Vector other, int direction) {
+    IncompatibleVectorsException.checkVectorsCompatible(this, other);
+    ComplexVector complexOther = (ComplexVector) other;
+    this.convolve(complexOther, direction);
   }
   
   /**
@@ -522,7 +522,8 @@ public class ComplexVector extends Vector {
 
   @Override
   /**
-   * Writes vector as cartesian form to a string of the form x1|x2|x3| ... where the x's are the coordinates.
+   * Writes vector as cartesian form to a string of the form x1|x2|x3| ... where the x's are the 
+   * (real) coordinates.
    *
    * No terminating newline or | symbol.
    */
