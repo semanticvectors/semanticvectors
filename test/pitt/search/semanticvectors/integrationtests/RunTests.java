@@ -60,7 +60,8 @@ public class RunTests {
    */
   public static Class<?>[] integrationTestClasses = {
     ThreadSafetyTest.class,
-    RegressionTests.class
+    RegressionTests.class,
+    LSATest.class,
   };
 
   public static boolean testDataPrepared = false;
@@ -69,7 +70,7 @@ public class RunTests {
   public static String vectorBinFile = "testtermvectors.bin";
   public static String luceneIndexDir = "index";
   public static String lucenePositionalIndexDir = "positional_index";
-  
+
   public static String testVectors = "-dimension 3 -vectortype real\n"
     + "abraham|1.0|0.0|0.0\n"
     + "isaac|0.8|0.2|0.2\n";
@@ -104,7 +105,7 @@ public class RunTests {
   public static boolean prepareTestData() {
     if (testDataPrepared) return true;
 
-    // Create basic vector store files. No Lucene / corpus dependencies here. 
+    // Create basic vector store files. No Lucene / corpus dependencies here.
     try {
       BufferedWriter outBuf = new BufferedWriter(new FileWriter(vectorTextFile));
       outBuf.write(testVectors);
@@ -151,7 +152,7 @@ public class RunTests {
     int failures = 0;
     int[] scores = {0, 0};
 
-    System.err.println("Preparing test data ...");    
+    System.err.println("Preparing test data ...");
     if (!prepareTestData()) {
       System.err.println("Failed.");
       System.exit(-1);

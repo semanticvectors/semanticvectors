@@ -49,7 +49,7 @@ import static org.junit.Assert.*;
  * A collection of regression tests, to make sure that new options and
  * features don't break existing usage patterns.
  *
- * Should be run using "ant run-tests", which will run unit tests and
+ * Should be run using "ant run-integration-tests", which will run
  * regression using the RunTests class working in the
  * test/testdata/tmp directory. Depends on there being appropriate
  * Lucene indexes in this directory, which are prepared by the
@@ -85,11 +85,11 @@ public class RegressionTests {
         ++rank;
       }
     }
-    
+
     for (String fn: filesToBuild) assertTrue((new File(fn)).delete());
     return rank;
   }
-  
+
   @Test
   public void testBuildAndSearchBasicRealIndex() {
     assertEquals(2, buildSearchGetRank("-dimension 200 index", "peter", "simon"));
@@ -111,7 +111,7 @@ public class RegressionTests {
       String buildCmd, String searchCmd, String[] filesToBuild, String targetResult) {
     String[] buildArgs = buildCmd.split("\\s+");
     String[] searchArgs = searchCmd.split("\\s+");
-    
+
     for (String fn : filesToBuild) {
       if (new File(fn).isFile()) {
         new File(fn).delete();
@@ -158,7 +158,7 @@ public class RegressionTests {
         "peter");
        assertTrue(peterRank < 5);
   }
-  
+
   @Test
   public void testBuildAndSearchComplexPositionalIndex() {
     int peterRank = positionalBuildSearchGetRank(
@@ -168,7 +168,7 @@ public class RegressionTests {
         "peter");
     assertTrue(peterRank < 5);
   }
-   
+
   @Test
   public void testBuildAndSearchRealDirectionalIndex() {
     int peterRank = positionalBuildSearchGetRank(
@@ -180,7 +180,7 @@ public class RegressionTests {
         "peter");
     assertEquals(2, peterRank);
   }
-  
+
   /* Convolution for direction doesn't appear to be giving decent results yet.
    * TODO(dwiddows): Check this and check with Lance to see if this is my fault for dorking it up
    * with the zeros.
@@ -191,7 +191,7 @@ public class RegressionTests {
         "-queryvectorfile drxntermvectors.bin simon",
         new String[] {"drxntermvectors.bin", "incremental_docvectors.bin"},
         "peter");
-  }    
+  }
   */
 
   @Test
@@ -203,7 +203,7 @@ public class RegressionTests {
         "peter");
     assertEquals(2, peterRank);
   }
-  
+
   @Test
   public void testBuildAndSearchRealPermutationIndex() {
     int peterRank = positionalBuildSearchGetRank(
@@ -213,7 +213,7 @@ public class RegressionTests {
         "peter");
     assertEquals(1, peterRank);
   }
-  
+
   @Test
   public void testBuildAndSearchComplexPermutationIndex() {
     int peterRank = positionalBuildSearchGetRank(

@@ -12,6 +12,7 @@ import pitt.search.semanticvectors.vectors.VectorFactory;
 import pitt.search.semanticvectors.vectors.VectorUtils;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.logging.Logger;
 
 import ch.akuhn.edu.mit.tedlab.*;
@@ -30,24 +31,7 @@ public class LSA {
   static boolean le = false;
   static String[] theTerms;
 
-  /**
-   * Prints the following usage message:
-   * <code>
-   * <br> LSA class in package pitt.search.semanticvectors
-   * <br> Usage: java pitt.search.semanticvectors.LSA PATH_TO_LUCENE_INDEX
-   * <br> LSA creates svd_termvectors and svd_docvectors files in local directory.
-   * <br> Other parameters that can be changed include vector length,
-   * <br>     (number of dimension), seed length (number of non-zero
-   * <br>     entries in basic vectors) and minimum term frequency.
-   * <br>
-   * <br> To change these use the following command line arguments:
-   * <br> -dimension [number of dimension]
-   * <br> -minfrequency [minimum term frequency]
-   * <br> -maxnonalphabetchars [number non-alphabet characters (-1 for any number)]
-   * </code>
-   */
-  public static void usage() {
-    String usageMessage = "\nLSA class in package pitt.search.semanticvectors"
+  public static String usageMessage = "\nLSA class in package pitt.search.semanticvectors"
         + "\nUsage: java pitt.search.semanticvectors.LSA PATH_TO_LUCENE_INDEX"
         + "\nBuildIndex creates svd_termvectors and svd_docvectors files in local directory."
         + "\nOther parameters that can be changed include vector length,"
@@ -58,11 +42,8 @@ public class LSA {
         + "\n  -minfrequency [minimum term frequency]"
         + "\n  -maxnonalphabetchars [number non-alphabet characters (-1 for any number)]";
 
-    System.out.println(usageMessage);
-  }
-
   /* Converts a dense matrix to a sparse one (without affecting the dense one) */
-  static SMat smatFromIndex(String fileName) throws Exception {
+  static SMat smatFromIndex(String fileName) throws IOException {
     SMat S;
 
     //initiate IndexReader and LuceneUtils
@@ -83,7 +64,7 @@ public class LSA {
         tc++;
     }
 
-    logger.info("There are " + tc + " terms (and " + indexReader.numDocs() + " docs)");
+    VerbatimLogger.info("There are " + tc + " terms (and " + indexReader.numDocs() + " docs).\n");
     theTerms = new String[tc];
     index = new int[tc][];
 
@@ -161,36 +142,35 @@ public class LSA {
     return S;
   }
 
-  public static void main(String[] args) throws Exception {
+  public static void main(String[] args) throws IllegalArgumentException, IOException {
     try {
       args = Flags.parseCommandLineFlags(args);
     } catch (IllegalArgumentException e) {
-      usage();
+      System.out.println(usageMessage);
       throw e;
     }
 
     // Only one argument should remain, the path to the Lucene index.
     if (args.length != 1) {
-      usage();
+      System.out.println(usageMessage);
       throw (new IllegalArgumentException("After parsing command line flags, there were " + args.length
                                           + " arguments, instead of the expected 1."));
     }
 
-    logger.info("Dimension = " + Flags.dimension);
-    logger.info("Minimum frequency = " + Flags.minfrequency);
-    logger.info("Maximum frequency = " + Flags.maxfrequency);
-    logger.info("Number non-alphabet characters = " + Flags.maxnonalphabetchars);
+    VerbatimLogger.info("Dimension: " + Flags.dimension + " Minimum frequency = " + Flags.minfrequency
+                        + " Maximum frequency = " + Flags.maxfrequency
+                        + " Number non-alphabet characters = " + Flags.maxnonalphabetchars +  "\n");
 
     if (Flags.termweight.equals("logentropy")) le = true;
     else le = false;
 
     if (le)
-      logger.info("Term weighting: log-entropy");
+      VerbatimLogger.info("Term weighting: log-entropy.\n");
 
     SMat A = smatFromIndex(args[0]);
     Svdlib svd = new Svdlib();
 
-    logger.info("Starting SVD using algorithm LAS2");
+    VerbatimLogger.info("Starting SVD using algorithm LAS2 ...\n");
 
     SVDRec svdR = svd.svdLAS2A(A, Flags.dimension);
     DMat vT = svdR.Vt;
@@ -202,11 +182,8 @@ public class LSA {
     IndexOutput outputStream = fsDirectory.createOutput(termFile);
     float[] tmpVector = new float[Flags.dimension];
 
-    logger.info("Write vectors incrementally to file " + termFile);
-
-    // Write header giving number of dimension for all vectors.
+    // Write header giving number of dimensions for all vectors and make sure type is real.
     outputStream.writeString("-dimension " + Flags.dimension + " -vectortype real");
-
     int cnt;
     // Write out term vectors
     for (cnt = 0; cnt < vT.cols; cnt++) {
@@ -222,23 +199,18 @@ public class LSA {
 
       termVector.writeToLuceneStream(outputStream);
     }
-
-    logger.info("Wrote "+cnt+" term vectors to "+termFile);
     outputStream.flush();
     outputStream.close();
+    VerbatimLogger.info("Wrote " + cnt + " term vectors incrementally to file " + termFile + ".\n");
 
     // Write document vectors.
     // Open file and write headers.
     String docFile = "svd_docvectors.bin";
     outputStream = fsDirectory.createOutput(docFile);
     tmpVector = new float[Flags.dimension];
-    logger.info("Write vectors incrementally to file " + docFile);
 
-    // Write header giving number of dimension for all vectors.
-    outputStream.writeString("-dimension");
-    outputStream.writeInt(Flags.dimension);
-
-    // initilize IndexReader and LuceneUtils
+    // Write header giving number of dimensions for all vectors and make sure type is real.
+    outputStream.writeString("-dimension " + Flags.dimension + " -vectortype real");
     File file = new File(args[0]);
     IndexReader indexReader = IndexReader.open(FSDirectory.open(file));
 
@@ -254,9 +226,8 @@ public class LSA {
 
       docVector.writeToLuceneStream(outputStream);
     }
-
-    logger.info("Wrote "+cnt+" document vectors to "+docFile);
     outputStream.flush();
     outputStream.close();
+    VerbatimLogger.info("Wrote " + cnt + " document vectors incrementally to file " + docFile + ". Done.\n");
   }
 }
