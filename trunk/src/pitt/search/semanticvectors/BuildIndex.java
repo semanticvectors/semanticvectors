@@ -46,7 +46,7 @@ import pitt.search.semanticvectors.vectors.VectorType;
  */
 public class BuildIndex {
   public static Logger logger = Logger.getLogger("pitt.search.semanticvectors");
-  
+
   public static String usageMessage = "\nBuildIndex class in package pitt.search.semanticvectors"
     + "\nUsage: java pitt.search.semanticvectors.BuildIndex PATH_TO_LUCENE_INDEX"
     + "\nBuildIndex creates termvectors and docvectors files in local directory."
@@ -65,7 +65,7 @@ public class BuildIndex {
 
   /**
    * Builds term vector and document vector stores from a Lucene index.
-   * @param args [command line options to be parsed] then path to Lucene index 
+   * @param args [command line options to be parsed] then path to Lucene index
    */
   public static void main (String[] args) throws IllegalArgumentException {
     try {
@@ -83,7 +83,7 @@ public class BuildIndex {
     }
 
     String luceneIndex = args[0];
-    VerbatimLogger.info("Seedlength: " + Flags.seedlength 
+    VerbatimLogger.info("Seedlength: " + Flags.seedlength
         + ", Dimension: " + Flags.dimension
         + ", Vector type: " + Flags.vectortype
         + ", Minimum frequency: " + Flags.minfrequency
@@ -103,7 +103,8 @@ public class BuildIndex {
         // Otherwise attempt to load pre-existing semantic term vectors.
         VerbatimLogger.info("Creating term vectors ... \n");
         vecStore = TermVectorsFromLucene.createTermBasedRRIVectors(
-            luceneIndex, VectorType.valueOf(Flags.vectortype.toUpperCase()), Flags.dimension, Flags.seedlength, Flags.minfrequency, Flags.maxfrequency,
+            luceneIndex, VectorType.valueOf(Flags.vectortype.toUpperCase()), Flags.dimension,
+            Flags.seedlength, Flags.minfrequency, Flags.maxfrequency,
             Flags.maxnonalphabetchars, Flags.initialtermvectors, Flags.contentsfields);
       } else {
         VerbatimLogger.info("Creating elemental document vectors ... \n");
