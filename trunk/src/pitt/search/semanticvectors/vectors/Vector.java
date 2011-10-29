@@ -101,6 +101,30 @@ public abstract class Vector {
    */
   public abstract void bind(Vector other, int direction);
   
+  
+  /**
+   * Releases the other vector from this one. 
+   * 
+   * @param direction if direction > 0, binding is on the right, otherwise it is on the left
+   */
+  public abstract void release(Vector other, int direction);
+
+  
+  
+  /**
+   * Binds the other vector to this one.
+   * 
+   */
+  public abstract void bind(Vector other);
+ 
+  /**
+   * Inverse of the binding operator
+   * 
+   */
+  public abstract void release(Vector other);
+ 
+  
+  
   /**
    * Transforms vector to a normalized representation.  A normalized representation should
    * satisfy the property that {@code measureOverlap} with itself is equal to 1.0, to within

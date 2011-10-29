@@ -515,21 +515,53 @@ public class BinaryVector extends Vector {
     return thismaximum;	
   }
 
+  @Override
   /**
-   * Implements binding as a single-shift permutation.  Currently wasteful; allocates
-   * the permutation array each time.
+   * Implements binding using permutations and XOR. 
    */
   public void bind(Vector other, int direction) {
     IncompatibleVectorsException.checkVectorsCompatible(this, other);
     BinaryVector binaryOther = (BinaryVector) other;
     if (direction > 0) {
-      this.superpose(
-          binaryOther, 1, PermutationUtils.getShiftPermutation(VectorType.BINARY, dimension, 1));
+    	binaryOther.permute(PermutationUtils.getShiftPermutation(VectorType.BINARY, dimension, 1));
+    	this.bitSet.xor(binaryOther.bitSet);
+    	binaryOther.permute(PermutationUtils.getShiftPermutation(VectorType.BINARY, dimension, -1));
+      
     } else {
-      this.superpose(
-          binaryOther, 1, PermutationUtils.getShiftPermutation(VectorType.BINARY, dimension, -1));      
-    }
+    	binaryOther.permute(PermutationUtils.getShiftPermutation(VectorType.BINARY, dimension, -1));
+    	this.bitSet.xor(binaryOther.bitSet);
+    	binaryOther.permute(PermutationUtils.getShiftPermutation(VectorType.BINARY, dimension, 1));
+ }
   }
+  
+  
+  @Override
+  /**
+   * Implements inverse of binding using permutations and XOR. 
+   */
+  public void release(Vector other, int direction) {
+	  bind (other, direction);
+  }
+  
+  @Override
+  /**
+   * Implements binding using exclusive OR. 
+   */
+  public void bind(Vector other) {
+    IncompatibleVectorsException.checkVectorsCompatible(this, other);
+    BinaryVector binaryOther = (BinaryVector) other;
+    	this.bitSet.xor(binaryOther.bitSet);
+    	
+  }
+  
+  @Override
+  /**
+   * Implements inverse binding using exclusive OR. 
+   */
+  public void release(Vector other) {
+	 bind(other);
+  }
+  
 
   @Override
   /**

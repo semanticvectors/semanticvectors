@@ -69,6 +69,35 @@ public class BinaryVectorTest extends TestCase {
   }
   
   @Test
+  public void testBind() {
+    
+	    BinaryVector vector = (BinaryVector) VectorFactory.createZeroVector(VectorType.BINARY, 64);
+	    vector.readFromString("0101010111000011110100011111110110100000001110111000011000100100");
+	    
+	    //two identical vectors
+	    BinaryVector vector2 = (BinaryVector) VectorFactory.createZeroVector(VectorType.BINARY, 64);
+	    vector2.readFromString("0000111111000011110100011111110110100000001110111000011000100100");
+	    BinaryVector vector3 = (BinaryVector) VectorFactory.createZeroVector(VectorType.BINARY, 64);
+	    vector3.readFromString("0000111111000011110100011111110110100000001110111000011000100100");
+	  
+	    //bind
+	    vector2.bind(vector);
+	     //release
+	    vector2.release(vector);
+	    assertEquals(vector2.writeToString(), vector3.writeToString());
+
+	    
+	    
+	     //bind + permute
+	    vector2.bind(vector, 1);
+	     //release + permute
+	    vector2.release(vector, -1);
+	    assertEquals(vector2.writeToString(), vector3.writeToString());
+
+  }
+  
+  
+  @Test
   public void testSuperposeAndNormalize() {
     BinaryVector vector = (BinaryVector) VectorFactory.createZeroVector(VectorType.BINARY, 64);
     vector.readFromString("0101010111000011110100011111110110100000001110111000011000100100");
