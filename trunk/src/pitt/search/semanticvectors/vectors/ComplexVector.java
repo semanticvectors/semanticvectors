@@ -422,6 +422,31 @@ public class ComplexVector extends Vector {
     this.convolve(complexOther, direction);
   }
   
+  @Override
+  /**
+   * Implements release using the {#link #convolve} method - not yet implemented.
+   */
+  public void release(Vector other, int direction) {
+  }
+  
+  @Override
+  /**
+   * Implements release using the {#link #convolve} method - not yet implemented.
+   */
+  public void bind(Vector other) {
+
+  }
+  @Override
+  /**
+   * Implements release using the {#link #convolve} method - not yet implemented.
+   */
+  public void release(Vector other) {
+
+  }
+  
+  
+  
+  
   /**
    * Convolves this vector with the other. If the value of direction <= 0
    * then the correlation operation is performed, ie. convolution inverse

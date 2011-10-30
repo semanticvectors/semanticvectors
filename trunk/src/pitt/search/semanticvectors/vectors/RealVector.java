@@ -254,6 +254,29 @@ public class RealVector extends Vector {
           realOther, 1, PermutationUtils.getShiftPermutation(VectorType.REAL, dimension, -1));
     }
   }
+  
+  @Override
+  /**
+   * Implements release using the {#link #convolve} method - not yet implemented.
+   */
+  public void release(Vector other, int direction) {
+  }
+  
+  @Override
+  /**
+   * Implements release using the {#link #convolve} method - not yet implemented.
+   */
+  public void bind(Vector other) {
+
+  }
+  @Override
+  /**
+   * Implements release using the {#link #convolve} method - not yet implemented.
+   */
+  public void release(Vector other) {
+
+  }
+  
 
   @Override
   /**
