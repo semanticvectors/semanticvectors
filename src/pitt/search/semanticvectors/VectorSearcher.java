@@ -45,6 +45,7 @@ import java.util.logging.Logger;
 import pitt.search.semanticvectors.LuceneUtils;
 import pitt.search.semanticvectors.VectorSearcher;
 import pitt.search.semanticvectors.VectorStore;
+import pitt.search.semanticvectors.vectors.IncompatibleVectorsException;
 import pitt.search.semanticvectors.vectors.Vector;
 import pitt.search.semanticvectors.vectors.VectorUtils;
 
@@ -169,6 +170,29 @@ abstract public class VectorSearcher {
         throw new ZeroVectorException("Query vector is zero ... no results.");
       }
     }
+    
+    /**
+     * @param queryVecStore Vector store to use for query generation.
+     * @param searchVecStore The vector store to search.
+     * @param luceneUtils LuceneUtils object to use for query weighting. (May be null.)
+     * @param queryVector Vector representing query
+     * expression. If the string "NOT" appears, terms after this will be negated.
+     */
+    public VectorSearcherCosine(VectorStore queryVecStore,
+        VectorStore searchVecStore,
+        LuceneUtils luceneUtils,
+        Vector queryVector)
+    throws ZeroVectorException {
+      super(queryVecStore, searchVecStore, luceneUtils);
+      this.queryVector = queryVector;
+      Vector testVector = searchVecStore.getAllVectors().nextElement().getVector();
+      IncompatibleVectorsException.checkVectorsCompatible(queryVector, testVector);
+      if (this.queryVector.isZeroVector()) {
+        throw new ZeroVectorException("Query vector is zero ... no results.");
+      }
+    }
+    
+    
 
     @Override
     public double getScore(Vector testVector) {
