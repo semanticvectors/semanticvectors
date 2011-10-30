@@ -164,7 +164,9 @@ public class TermTermVectorsFromLucene implements VectorStore {
     // have a programming typo cause an error!
     if (positionalmethod.equals("permutation")
         || positionalmethod.equals("permutation_plus_basic")) {
-      initializePermutations();
+      initializePermutations();}
+      else if (positionalmethod.equals("directional")) {
+      initializeDirectionalPermutations();	  
     }
     trainTermTermVectors();
   }
@@ -179,6 +181,21 @@ public class TermTermVectorsFromLucene implements VectorStore {
       permutationCache[i] = PermutationUtils.getShiftPermutation(
           vectorType, dimension, i - windowSize/2);
     }
+  }
+  
+  /**
+   * Initialize all permutations that might be used (i.e +1 and -1).
+   */
+  private void initializeDirectionalPermutations() {    
+    permutationCache =
+      new int[2][PermutationUtils.getPermutationLength(vectorType, dimension)];
+      
+    permutationCache[0] = PermutationUtils.getShiftPermutation(
+          vectorType, dimension, -1);
+    
+    permutationCache[1] = PermutationUtils.getShiftPermutation(
+            vectorType, dimension, 1);
+    
   }
   
   private void trainTermTermVectors() throws IOException, RuntimeException {
@@ -354,7 +371,9 @@ public class TermTermVectorsFromLucene implements VectorStore {
           int[] permutation = permutationCache[cursor - focusposn + windowRadius];
           localtermvectors[focusterm].superpose(localindexvectors[coterm], 1, permutation);
         } else if (positionalmethod.equals("directional")) {
-          localtermvectors[focusterm].bind(localindexvectors[coterm], cursor - focusposn);
+        	 int[] permutation = permutationCache[(int) Math.max(0,Math.signum(cursor - focusposn))];
+             localtermvectors[focusterm].superpose(localindexvectors[coterm], 1, permutation);
+        		
         }
       }
     }
