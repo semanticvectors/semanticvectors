@@ -137,10 +137,11 @@ public class BinaryVector extends Vector {
 
   @Override
   public boolean isZeroVector() {
-    if (isSparse) {
+    if (isSparse) 
+    	{
       return bitSet.cardinality() == 0;
     } else {
-      return (votingRecord == null) || (votingRecord.size() == 0);
+      return (bitSet.cardinality() == 0 && ((votingRecord == null) || (votingRecord.size() == 0)));
     }
   }
 
