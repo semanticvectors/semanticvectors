@@ -141,7 +141,7 @@ public class BinaryVector extends Vector {
     	{
       return bitSet.cardinality() == 0;
     } else {
-      return (bitSet.cardinality() == 0 && ((votingRecord == null) || (votingRecord.size() == 0)));
+      return (votingRecord == null) || (votingRecord.size() == 0);
     }
   }
 
