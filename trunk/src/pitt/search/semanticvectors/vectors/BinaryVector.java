@@ -217,6 +217,7 @@ public class BinaryVector extends Vector {
    */
   public void superpose(Vector other, double weight, int[] permutation) {
     IncompatibleVectorsException.checkVectorsCompatible(this, other);
+    if (weight == 0d) return;
     BinaryVector binaryOther = (BinaryVector) other;
     if (isSparse) {
       if (Math.round(weight) != weight) {
