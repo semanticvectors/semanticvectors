@@ -3,6 +3,10 @@
 
 Even-numbered versions are releases. Odd-numbered versions are in development. It follows that the most recent code and the `build.xml` file in the SVN repository is always odd-numbered.
 
+=== Version 3.2 ===
+
+Fixed support for LSA with real typed vectors. (LSA is still not supported with complex and binary vectors.)
+
 === Version 3.0 ===
 
 The major version update is TypedVectors. Set `-vectortype` to real, complex, or binary to build vector stores with vectors taking values over different ground fields. Search processes automatically parse the vector type and dimension from the header line in the vector store file. Vector store files without header will no longer be supported.
