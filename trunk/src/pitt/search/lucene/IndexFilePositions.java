@@ -44,10 +44,7 @@ public class IndexFilePositions {
       System.exit(1);
     }
     try {
-    	
     	IndexWriter writer;
-    	
-    	
     	if (Flags.porterstemmer)
     	{	/** create IndexWriter using porter stemmer without any stopword list**/
     		writer = new IndexWriter(FSDirectory.open(INDEX_DIR),
@@ -60,10 +57,7 @@ public class IndexFilePositions {
                                            new StandardAnalyzer(Version.LUCENE_30, new TreeSet()),
                                            true, MaxFieldLength.UNLIMITED);
     	}
-   
-    	
 
-    	
     	final File docDir = new File(args[0]);
       if (!docDir.exists() || !docDir.canRead()) {
         System.err.println("Document directory '" + docDir.getAbsolutePath() +
@@ -97,7 +91,10 @@ public class IndexFilePositions {
         // An IO error could occur.
         if (files != null) {
           for (int i = 0; i < files.length; i++) {
-            indexDocs(writer, new File(file, files[i]));
+            // Skip dot files.
+            if (!files[i].startsWith(".")) {
+              indexDocs(writer, new File(file, files[i]));
+            }
           }
         }
       } else {

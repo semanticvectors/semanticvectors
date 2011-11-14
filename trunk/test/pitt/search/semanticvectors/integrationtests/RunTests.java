@@ -55,7 +55,7 @@ import pitt.search.semanticvectors.VectorStoreTranslater;
  */
 public class RunTests {
   /**
-   * Important: you need to add your test class to this list for it to
+   * Important: for integration tests you need to add your test class to this list for it to
    * be run by runUnitTests().
    */
   public static Class<?>[] integrationTestClasses = {
@@ -68,7 +68,6 @@ public class RunTests {
 
   public static String vectorTextFile = "testtermvectors.txt";
   public static String vectorBinFile = "testtermvectors.bin";
-  public static String luceneIndexDir = "index";
   public static String lucenePositionalIndexDir = "positional_index";
 
   public static String testVectors = "-dimension 3 -vectortype real\n"
@@ -128,8 +127,6 @@ public class RunTests {
     if (!testDataDir.isDirectory()) return false;
     String[] args = {testDataPath};
     try {
-      Process luceneIndexer = TestUtils.spawnChildProcess(IndexFiles.class, args, null, null, null);
-      TestUtils.waitForAndDestroy(luceneIndexer);
       Process lucenePositionsIndexer = TestUtils.spawnChildProcess(
           IndexFilePositions.class, args, null, null, null);
       TestUtils.waitForAndDestroy(lucenePositionsIndexer);

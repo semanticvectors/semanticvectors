@@ -63,7 +63,7 @@ public class ThreadSafetyTest {
   public void TestSearchThreadSafety() throws Exception {
     // Build termvectors and docvectors
     Flags.dimension = 200;
-    String[] buildArgs = new String[] {"-dimension", "200", "index"};    
+    String[] buildArgs = new String[] {"-dimension", "200", "positional_index"};    
     assert(!(new File("termvectors.bin")).isFile());
     assert(!(new File("docvectors.bin")).isFile());
     BuildIndex.main(buildArgs);

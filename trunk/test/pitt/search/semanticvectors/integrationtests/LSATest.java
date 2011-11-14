@@ -52,14 +52,14 @@ import static org.junit.Assert.*;
 public class LSATest {
   @Before
   public void setUp() {
-    assert(RunTests.prepareTestData());
+    assertTrue(RunTests.prepareTestData());
   }
 
   @Test
   public void testBuildAndSearchLSAIndex() throws IOException {
     // Cut dimension to 20; only 22 docs in test data and using more dimensions than this
     // causes ArrayIndexOutOfBoundsException for SVD library.
-    String buildCmd = "-dimension 20 index";
+    String buildCmd = "-dimension 20 positional_index";
     String[] filesToBuild = new String[] {"svd_termvectors.bin", "svd_docvectors.bin"};
     String[] buildArgs = buildCmd.split("\\s+");
     for (String fn : filesToBuild) {
@@ -96,7 +96,7 @@ public class LSATest {
     } else {
       for (SearchResult result : results) {
         String term = (String) result.getObjectVector().getObject();
-        if (term.contains("../John/Chapter_19")) break;
+        if (term.contains("Chapter_19")) break;
         ++rank;
       }
     }
