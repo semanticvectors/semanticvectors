@@ -216,7 +216,7 @@ public class LSA {
 
     // Write out document vectors
     for (cnt = 0; cnt < uT.cols; cnt++) {
-      String thePath = indexReader.document(cnt).get("path");
+      String thePath = indexReader.document(cnt).get(Flags.docidfield);
       outputStream.writeString(thePath);
       float[] tmp = new float[Flags.dimension];
 
