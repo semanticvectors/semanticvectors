@@ -46,7 +46,7 @@ import org.apache.lucene.store.IndexOutput;
  * 
  * @author Dominic Widdows
  */
-public abstract class Vector {
+public interface Vector {
 
   /**
    * Returns a copy of this vector.
@@ -65,7 +65,7 @@ public abstract class Vector {
    *        as determined by implementation
    * @param random random seed for generation
    */
-  protected abstract Vector generateRandomVector(int dimension, int numEntries, Random random);
+  public abstract Vector generateRandomVector(int dimension, int numEntries, Random random);
   
   /** Returns the dimension of the vector. */
   public abstract int getDimension();

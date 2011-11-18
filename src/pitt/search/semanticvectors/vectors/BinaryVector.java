@@ -22,7 +22,7 @@ import org.apache.lucene.util.OpenBitSet;
  *
  * @author cohen
  */
-public class BinaryVector extends Vector {
+public class BinaryVector implements Vector {
   public static final Logger logger = Logger.getLogger(BinaryVector.class.getCanonicalName());
   private static final int DEBUG_PRINT_LENGTH = 64;
 
