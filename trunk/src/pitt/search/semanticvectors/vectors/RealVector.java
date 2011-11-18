@@ -51,7 +51,7 @@ import org.apache.lucene.store.IndexOutput;
  * 
  * @author widdows
  */
-public class RealVector extends Vector {
+public class RealVector implements Vector {
   public static final Logger logger = Logger.getLogger(RealVector.class.getCanonicalName());
 
   private final int dimension;

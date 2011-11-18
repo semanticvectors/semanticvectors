@@ -53,7 +53,7 @@ import org.apache.lucene.store.IndexOutput;
  *
  * @author devinel
  */
-public class ComplexVector extends Vector {
+public class ComplexVector implements Vector {
   public static final Logger logger = Logger.getLogger(ComplexVector.class.getCanonicalName());
   
   /**
