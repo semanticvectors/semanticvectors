@@ -141,7 +141,14 @@ public class IncrementalDocVectors {
             int freq = freqs[b];
             float localweight = freq;
             float globalweight = 1;
-
+            float fieldweight = 1;
+            
+            
+            if (Flags.fieldweight) {
+            //field weight: 1/sqrt(number of terms in field)
+            fieldweight = (float) (1/Math.sqrt(terms.length));
+            }
+            
             if (Flags.termweight.equals("logentropy")) {
               //local weighting: 1+ log (local frequency)
               localweight = new Double(1 + Math.log(localweight)).floatValue();
@@ -154,7 +161,7 @@ public class IncrementalDocVectors {
             try {
               Vector termVector = termVectorData.getVector(termString);
               if (termVector != null && termVector.getDimension() > 0) {
-                docVector.superpose(termVector, localweight * globalweight, null);
+                docVector.superpose(termVector, localweight * globalweight * fieldweight, null);
               }
             } catch (NullPointerException npe) {
               // Don't normally print anything - too much data!
