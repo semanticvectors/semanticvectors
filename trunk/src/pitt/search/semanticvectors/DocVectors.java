@@ -115,6 +115,10 @@ public class DocVectors implements VectorStore {
         for (String fieldName: termVectorData.getFieldsToIndex()) {
           Term term = new Term(fieldName, word);
           float globalweight = 1;
+          float fieldweight = 1;
+          
+       
+          
           if (Flags.termweight.equals("logentropy")) { 
             //global entropy weighting
             globalweight = globalweight * lUtils.getEntropy(term);
@@ -122,19 +126,26 @@ public class DocVectors implements VectorStore {
 
           // Get any docs for this term.
           TermDocs td = this.indexReader.termDocs(term);
+          
           while (td.next()) {
             String docID = Integer.toString(td.doc());
             // Add vector from this term, taking freq into account.
             Vector docVector = this.docVectors.getVector(docID);
             float localweight = td.freq();
 
+            if (Flags.fieldweight) {
+            	//field weight: 1/sqrt(number of terms in field)
+            	  String[] terms = indexReader.getTermFreqVector(td.doc(), fieldName).getTerms();
+                  fieldweight = (float) (1/Math.sqrt(terms.length));
+              }
+            
             if (Flags.termweight.equals("logentropy"))
             {
               //local weighting: 1+ log (local frequency)
               localweight = new Double(1 + Math.log(localweight)).floatValue();    	
             }
 
-            docVector.superpose(termVector, localweight * globalweight, null);
+            docVector.superpose(termVector, localweight * globalweight * fieldweight, null);
           }
         }
       }

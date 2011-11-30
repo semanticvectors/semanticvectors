@@ -90,6 +90,10 @@ public class Flags {
   public static final String[] searchtypeValues =
     {"sum", "sparsesum", "subspace", "maxsim", "balanced_permutation", "permutation", "printquery"};
 
+  public static boolean fieldweight = false;
+  public static final String fieldweightDescription =
+	  "Set to true if you want document vectors built from multiple fields to emphasize terms from shorter fields";
+  
   public static String termweight = "none";
   public static final String termweightDescription = "Term weighting used when constructing document vectors.";
   public static final String[] termweightValues = {"logentropy","none"};
