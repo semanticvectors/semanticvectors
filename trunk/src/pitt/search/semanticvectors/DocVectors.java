@@ -123,6 +123,9 @@ public class DocVectors implements VectorStore {
             //global entropy weighting
             globalweight = globalweight * lUtils.getEntropy(term);
           }
+          else if (Flags.termweight.equals("idf")) {
+              globalweight =  globalweight * (float) Math.log10(indexReader.numDocs()/indexReader.docFreq(term));
+            }	
 
           // Get any docs for this term.
           TermDocs td = this.indexReader.termDocs(term);
@@ -144,6 +147,7 @@ public class DocVectors implements VectorStore {
               //local weighting: 1+ log (local frequency)
               localweight = new Double(1 + Math.log(localweight)).floatValue();    	
             }
+          
 
             docVector.superpose(termVector, localweight * globalweight * fieldweight, null);
           }

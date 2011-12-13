@@ -96,7 +96,7 @@ public class Flags {
   
   public static String termweight = "none";
   public static final String termweightDescription = "Term weighting used when constructing document vectors.";
-  public static final String[] termweightValues = {"logentropy","none"};
+  public static final String[] termweightValues = {"logentropy","idf", "none"};
 
   public static boolean porterstemmer = false;
   public static final String porterstemmerDescription =
