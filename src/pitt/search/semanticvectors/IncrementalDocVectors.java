@@ -155,6 +155,11 @@ public class IncrementalDocVectors {
               Term term = new Term(fieldName, termString);
               globalweight = globalweight * lUtils.getEntropy(term);
             }
+            else 
+            if (Flags.termweight.equals("idf")) {
+            		Term term = new Term(fieldName, termString);
+                    globalweight =  globalweight * (float) Math.log10(indexReader.numDocs()/indexReader.docFreq(term));
+                  }	
 
             // Add contribution from this term, excluding terms that
             // are not represented in termVectorData.
