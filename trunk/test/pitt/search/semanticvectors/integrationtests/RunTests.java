@@ -43,7 +43,6 @@ import java.io.IOException;
 import org.junit.runner.Result;
 import org.junit.runner.notification.Failure;
 
-import org.apache.lucene.demo.IndexFiles;
 import pitt.search.lucene.IndexFilePositions;
 import pitt.search.semanticvectors.VectorStoreTranslater;
 
