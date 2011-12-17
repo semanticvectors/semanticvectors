@@ -71,6 +71,11 @@ public class Flags {
   public static final String seedlengthDescription =
     "Number of +1 and number of -1 entries in a sparse random vector";
 
+  public static int binaryvectordecimalplaces = 2;
+  public static final String binaryvectordecimalplacesDescription =
+    "Number of decimal places to consider in weighted superpositions of binary vectors. Higher precision requires additional memory during training.";
+  
+  
   public static int minfrequency;
   public static int maxfrequency = Integer.MAX_VALUE;
   public static int maxnonalphabetchars;
