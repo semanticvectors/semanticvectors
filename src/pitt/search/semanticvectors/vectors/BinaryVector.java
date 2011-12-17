@@ -9,6 +9,8 @@ import org.apache.lucene.store.IndexInput;
 import org.apache.lucene.store.IndexOutput;
 import org.apache.lucene.util.OpenBitSet;
 
+import pitt.search.semanticvectors.Flags;
+
 /**
  * Binary implementation of Vector.
  * 
@@ -221,7 +223,7 @@ public class BinaryVector implements Vector {
     BinaryVector binaryOther = (BinaryVector) other;
     if (isSparse) {
       if (Math.round(weight) != weight) {
-        decimalPlaces = 2; 
+        decimalPlaces = Flags.binaryvectordecimalplaces; 
       }
       elementalToSemantic();
     }
