@@ -117,6 +117,7 @@ public class DocVectors implements VectorStore {
           float globalweight = 1;
           float fieldweight = 1;
           
+          
        
           
           if (Flags.termweight.equals("logentropy")) { 
@@ -124,9 +125,12 @@ public class DocVectors implements VectorStore {
             globalweight = globalweight * lUtils.getEntropy(term);
           }
           else if (Flags.termweight.equals("idf")) {
-              globalweight =  globalweight * (float) Math.log10(indexReader.numDocs()/indexReader.docFreq(term));
-            }	
-
+        	  
+        	  int docFreq = indexReader.docFreq(term);
+        	  if (docFreq > 0)
+              globalweight =  globalweight * (float) Math.log10(indexReader.numDocs()/docFreq);
+        	  }	
+        
           // Get any docs for this term.
           TermDocs td = this.indexReader.termDocs(term);
           
