@@ -40,15 +40,31 @@ import java.util.logging.Logger;
 
 import pitt.search.semanticvectors.vectors.Vector;
 import pitt.search.semanticvectors.vectors.VectorFactory;
+import pitt.search.semanticvectors.vectors.VectorType;
 import pitt.search.semanticvectors.vectors.VectorUtils;
 
 /**
  * Clusters search results using a simple k-means algorithm.
  * 
- * @author widdows@google.com (Your Name Here)
+ * @author Dominic Widdows
  */
 public class ClusterResults {
   private static final Logger logger = Logger.getLogger(ClusterResults.class.getCanonicalName());
+  
+  /**
+   * Thin struct for storing cluster information.
+   * 
+   * Initialized to null with public members: use at your own risk!
+   */
+  public static class Clusters {
+	public int[] clusterMappings;
+	public Vector[] centroids;
+	
+	public Clusters() {
+	  clusterMappings = null;
+	  centroids = null;
+	}
+  }
   
   /** 
    * Simple k-means clustering algorithm.
@@ -57,10 +73,11 @@ public class ClusterResults {
    * @return Integer array parallel to objectVectors saying which
    * cluster each vector belongs to.
    */
-  public static int[] kMeansCluster (ObjectVector[] objectVectors, int numClusters) {
-    int[] clusterMappings = new int[objectVectors.length];
+  public static Clusters kMeansCluster (ObjectVector[] objectVectors, int numClusters) {
+	Clusters clusters = new Clusters();
+    clusters.clusterMappings = new int[objectVectors.length];
+    clusters.centroids = new Vector[numClusters];
     Random rand = new Random();
-    Vector[] centroids = new Vector[numClusters];
 
     logger.info("Initializing clusters ...");
 
@@ -71,7 +88,7 @@ public class ClusterResults {
         //fix strange result where abs(MIN_VALUE) returns a negative number
         randInt = rand.nextInt();
       }
-      clusterMappings[i] = Math.abs(randInt) % numClusters;
+      clusters.clusterMappings[i] = Math.abs(randInt) % numClusters;
     }
 
     logger.info("Iterating k-means assignment ...");
@@ -79,24 +96,24 @@ public class ClusterResults {
     // Loop that computes centroids and reassigns members.
     while (true) {
       // Clear centroid register.
-      for (int i = 0; i < centroids.length; ++i) {
-        centroids[i] = VectorFactory.createZeroVector(Flags.vectortype, Flags.dimension); 
+      for (int i = 0; i < clusters.centroids.length; ++i) {
+        clusters.centroids[i] = VectorFactory.createZeroVector(Flags.vectortype, Flags.dimension); 
       }
       // Generate new cluster centroids.
       for (int i = 0; i < objectVectors.length; ++i) {
-        centroids[clusterMappings[i]].superpose(objectVectors[i].getVector(), 1, null);
+        clusters.centroids[clusters.clusterMappings[i]].superpose(objectVectors[i].getVector(), 1, null);
       }
       for (int i = 0; i < numClusters; ++i) {
-        centroids[i].normalize();
+        clusters.centroids[i].normalize();
       }
 
       boolean changeFlag = false;
       // Map items to clusters.
       for (int i = 0; i < objectVectors.length; i++) {
-        int j = VectorUtils.getNearestVector(objectVectors[i].getVector(), centroids);
-        if (j != clusterMappings[i]) {
+        int j = VectorUtils.getNearestVector(objectVectors[i].getVector(), clusters.centroids);
+        if (j != clusters.clusterMappings[i]) {
           changeFlag = true;
-          clusterMappings[i] = j;
+          clusters.clusterMappings[i] = j;
         }
       }
       if (changeFlag == false) {
@@ -105,7 +122,7 @@ public class ClusterResults {
     }
 
     logger.info("Got to stable clusters ...");
-    return clusterMappings;
+    return clusters;
   }
 
   /**
@@ -129,6 +146,19 @@ public class ClusterResults {
       + "\nwhere SEARCH ARGS is an expression passed to Search class.";
     System.err.println(usageMessage);
   }
+  
+  /**
+   * Utility method that writes cluster centroids to a file called "cluster_centroids.bin".
+   */
+  public static void writeCentroidsToFile(Clusters clusters) {
+	VectorStoreRAM centroidsOutput = new VectorStoreRAM(
+    		VectorType.valueOf(Flags.vectortype.toUpperCase()), Flags.dimension);
+    for (int i = 0; i < clusters.centroids.length; ++i) {
+      centroidsOutput.putVector(Integer.toString(i), clusters.centroids[i]);
+    }
+    VectorStoreWriter vecWriter = new VectorStoreWriter();
+    vecWriter.writeVectors("cluster_centroids.bin", centroidsOutput);
+  }
 
   /**
    * Main function gathers search results for a particular query,
@@ -141,15 +171,17 @@ public class ClusterResults {
 
     // Get search results, perform clustering, and print out results.		
     ObjectVector[] resultsVectors = Search.getSearchResultVectors(args, Flags.numsearchresults);
-    int[] clusterMappings = kMeansCluster(resultsVectors, Flags.numclusters);
+    Clusters clusters = kMeansCluster(resultsVectors, Flags.numclusters);
     for (int i = 0; i < Flags.numclusters; ++i) {
       System.out.println("Cluster " + i);
-      for (int j = 0; j < clusterMappings.length; ++j) {
-        if (clusterMappings[j] == i) {
+      for (int j = 0; j < clusters.clusterMappings.length; ++j) {
+        if (clusters.clusterMappings[j] == i) {
           System.out.print(resultsVectors[j].getObject() + " ");
         }
       }
       System.out.println();
     }
+    
+    writeCentroidsToFile(clusters);
   }
 }
