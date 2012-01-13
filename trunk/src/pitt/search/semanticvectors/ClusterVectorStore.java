@@ -175,17 +175,19 @@ public class ClusterVectorStore {
 
     // Perform clustering and print out results.
     logger.info("Clustering vectors ...");
-    int[] clusterMappings = ClusterResults.kMeansCluster(resultsVectors, Flags.numclusters);
+    ClusterResults.Clusters clusters = ClusterResults.kMeansCluster(resultsVectors, Flags.numclusters);
     for (int i = 0; i < Flags.numclusters; ++i) {
       System.out.println("Cluster " + i);
-      for (int j = 0; j < clusterMappings.length; ++j) {
-	if (clusterMappings[j] == i) {
+      for (int j = 0; j < clusters.clusterMappings.length; ++j) {
+	if (clusters.clusterMappings[j] == i) {
 	  System.out.println(resultsVectors[j].getObject());
 	}
       }
       System.out.println("\n*********\n");
     }
-		
+	
+    ClusterResults.writeCentroidsToFile(clusters);
+    
     // clusterOverlapMeasure(clusterMappings, resultsVectors);
   }
 }
