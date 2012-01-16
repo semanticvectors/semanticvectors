@@ -26,7 +26,7 @@ This is the simplest approach for just getting SemanticVectors working.
 
 You won't be able to alter the programs beyond the configuration that's possible with command line flags. If you want to do that, you need to build from source.
 
-==Source Package Installation==
+==Compiling from Source - Package Installation==
 
 ===Prerequisites===
 
@@ -45,9 +45,15 @@ As well as the Lucene and Java prerequisites, you will also need to install [htt
  * Compile just by typing `ant` at the command line. This should create `build` and `doc` directories. The compiles classes are in the `build` directory. 
  * Make sure that either the resulting `build/classes` directory or `build/*.jar` file is in your `CLASSPATH`.
 
-==Source Development Installation==
+==Compiling from Source - Most Recent Development Installation==
 
-If you might be making changes to the code, please consider checking out the most recent version from the svn repository. If you make changes that turn out to be useful, please write to us and tell us about them, and we'll probably urge you to submit them to the repository.
+If you might be making changes to the code, or want to try out new features that are checked in but not yet in the numbered releases, please consider checking out the most recent version from the svn repository. If you make changes that turn out to be useful, please write to us and tell us about them, and we'll probably urge you to submit them to the repository.
+
+To checkout from source, see the  [http://code.google.com/p/semanticvectors/source/checkout checkout instructions]. You will need to use [http://subversion.apache.org/ SVN] to checkout the code (for Eclipse users, try [http://subclipse.tigris.org/ Subclipse]).
+
+To build the project, use `ant` as described above, and make sure that either the resulting `build/classes` directory or `build/*.jar` file is in your `CLASSPATH`.
+
+If this fails or is too daunting (which it may be, there's a lot going on and getting everything to work together eventually becomes cumbersome), please don't hesitate to contact the project developers and we'll try to help out or make a new numbered release with the development features you need.
 
 == To Build and Search a Model ==
 
