@@ -42,7 +42,7 @@ import pitt.search.semanticvectors.vectors.ComplexVector.Mode;
 /**
  * Class for building vectors, designed to be used externally.
  * 
- * @author dwiddows
+ * @author Dominic Widdows
  */
 public class VectorFactory {
   private static final BinaryVector binaryInstance = new BinaryVector(0);

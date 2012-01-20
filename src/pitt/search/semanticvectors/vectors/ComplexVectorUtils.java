@@ -10,7 +10,7 @@ import pitt.search.semanticvectors.vectors.ComplexVector.Mode;
  *
  * Contains static methods for various operation on complex vectors.
  *
- * @author devinel
+ * @author Lance De Vine
  */
 public class ComplexVectorUtils {
   public static final Logger logger = Logger.getLogger(RealVector.class.getCanonicalName());

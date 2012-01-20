@@ -50,7 +50,7 @@ import java.util.logging.Logger;
  * which will log the verbatim string "my message" to the console.  No frills - if you want a
  * time stamp, code location or even a newline, add it explicitly or use a different logger.
  * 
- * @author dwiddows
+ * @author Dominic Widdows
  */
 public class VerbatimLogger {
   private static VerbatimLogger singletonLogger = null;

@@ -43,7 +43,7 @@ package pitt.search.semanticvectors.vectors;
  * array.  This invariant could be enforced by making a Permutation class but this has not been
  * considered necessary to date.
  * 
- * @author widdows
+ * @author Dominic Widdows
  */
 public class PermutationUtils {
 
