@@ -38,7 +38,7 @@ package pitt.search.semanticvectors.vectors;
 /**
  * Exception indicating an attempt to combine vectors of different types or dimension.
  * 
- * @author widdows
+ * @author Dominic Widdows
  */
 public class IncompatibleVectorsException extends RuntimeException {
   public IncompatibleVectorsException() {

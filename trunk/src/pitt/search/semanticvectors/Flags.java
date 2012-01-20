@@ -52,7 +52,7 @@ import java.util.logging.Logger;
  * All semantics (i.e., in this case, behaviour affected by the flags) is up to the
  * developer to implement.
  *
- * @author dwiddows
+ * @author Dominic Widdows
  */
 public class Flags {
   private static final Logger logger = Logger.getLogger(Flags.class.getCanonicalName());

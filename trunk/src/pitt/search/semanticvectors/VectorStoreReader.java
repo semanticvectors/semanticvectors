@@ -39,7 +39,7 @@ import java.io.IOException;
 
 /**
  * Wrapper class used to get access to underlying VectorStore implementations.
- * @author dwiddows
+ * @author Dominic Widdows
  */
 public class VectorStoreReader {
 

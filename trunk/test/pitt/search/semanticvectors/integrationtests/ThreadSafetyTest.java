@@ -43,6 +43,7 @@ import java.util.logging.Logger;
 
 import org.junit.Before;
 import org.junit.Test;
+import static org.junit.Assert.*;
 
 import pitt.search.semanticvectors.BuildIndex;
 import pitt.search.semanticvectors.Flags;
@@ -63,12 +64,15 @@ public class ThreadSafetyTest {
   public void TestSearchThreadSafety() throws Exception {
     // Build termvectors and docvectors
     Flags.dimension = 200;
-    String[] buildArgs = new String[] {"-dimension", "200", "positional_index"};    
-    assert(!(new File("termvectors.bin")).isFile());
-    assert(!(new File("docvectors.bin")).isFile());
+    String[] buildArgs = new String[] {"-dimension", "200", "positional_index"};
+    
+    File termFile = new File("termvectors.bin");
+    assertFalse(termFile.isFile());
+    File docFile = new File("docvectors.bin");
+    assertFalse(docFile.isFile());
     BuildIndex.main(buildArgs);
-    assert((new File("termvectors.bin")).isFile());
-    assert((new File("docvectors.bin")).isFile());
+    assertTrue(termFile.isFile());
+    assertTrue(docFile.isFile());
     
     List<Thread> threads = new ArrayList<Thread>();
     final String queries[] = new String[]{"jesus", "mary", "peter", "light", "word"};
@@ -98,9 +102,15 @@ public class ThreadSafetyTest {
       t.join();
     }
     
-    // Clean up files.
-    new File("termvectors.bin").delete();
-    new File("docvectors.bin").delete();
+    // Clean up files and force garbage collection of file handles.
+    termFile.delete();
+    docFile.delete();
+    termFile = null;
+    docFile = null;
+    // This is a weird step: without forcing garbage collection, subsequent tests
+    // fail on Windows filesystems, I think because the JVM thinks the files are
+    // not released so other methods are not allowed to delete them.
+    System.gc();
   }
 
   private static void outputSuggestions(String query) throws Exception  {

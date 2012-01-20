@@ -49,7 +49,7 @@ import org.apache.lucene.store.IndexOutput;
  * dense format.  Callers should be made aware through documentation of when this is done, since
  * there may be performance consequences.
  * 
- * @author widdows
+ * @author Dominic Widdows
  */
 public class RealVector implements Vector {
   public static final Logger logger = Logger.getLogger(RealVector.class.getCanonicalName());

@@ -22,7 +22,7 @@ import pitt.search.semanticvectors.Flags;
  * elemental bit set representation until {@link #normalize} or one of the writing functions 
  * is called.  
  *
- * @author cohen
+ * @author Trevor Cohen
  */
 public class BinaryVector implements Vector {
   public static final Logger logger = Logger.getLogger(BinaryVector.class.getCanonicalName());

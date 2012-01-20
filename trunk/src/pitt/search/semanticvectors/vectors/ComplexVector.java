@@ -51,7 +51,7 @@ import org.apache.lucene.store.IndexOutput;
  * The preferred operators and measures is currently chosen by setting the {@link #DOMINANT_MODE}
  * at compile time.
  *
- * @author devinel
+ * @author Lance De Vine, Dominic Widdows
  */
 public class ComplexVector implements Vector {
   public static final Logger logger = Logger.getLogger(ComplexVector.class.getCanonicalName());
