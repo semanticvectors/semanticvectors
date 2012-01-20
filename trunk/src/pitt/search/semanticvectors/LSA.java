@@ -9,7 +9,6 @@ import org.apache.lucene.store.FSDirectory;
 import pitt.search.semanticvectors.vectors.RealVector;
 import pitt.search.semanticvectors.vectors.Vector;
 import pitt.search.semanticvectors.vectors.VectorFactory;
-import pitt.search.semanticvectors.vectors.VectorUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -28,9 +27,6 @@ import ch.akuhn.edu.mit.tedlab.*;
 public class LSA {
   private static final Logger logger = Logger.getLogger(LSA.class.getCanonicalName());
 
-  static boolean le = false;
-  static String[] theTerms;
-
   public static String usageMessage = "\nLSA class in package pitt.search.semanticvectors"
         + "\nUsage: java pitt.search.semanticvectors.LSA PATH_TO_LUCENE_INDEX"
         + "\nBuildIndex creates svd_termvectors and svd_docvectors files in local directory."
@@ -42,30 +38,72 @@ public class LSA {
         + "\n  -minfrequency [minimum term frequency]"
         + "\n  -maxnonalphabetchars [number non-alphabet characters (-1 for any number)]";
 
-  /* Converts a dense matrix to a sparse one (without affecting the dense one) */
-  static SMat smatFromIndex(String fileName) throws IOException {
+  private boolean le = false;
+  private String[] termList;
+  private IndexReader indexReader;
+  private LuceneUtils lUtils;
+  private int numDocs;
+  
+  /**
+   * Basic constructor that tries to check up front that resources are available and
+   * configurations are consistent.
+   * 
+   * @param luceneIndexDir Relative path to directory containing Lucene index.
+   */
+  private LSA(String luceneIndexDir) {
+    LuceneUtils.compressIndex(luceneIndexDir);
+    
+    try {
+      this.indexReader = IndexReader.open(FSDirectory.open(new File(luceneIndexDir)));
+      this.lUtils = new LuceneUtils(luceneIndexDir);
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+    
+    // Find the number of docs, and if greater than dimension, set the dimension
+    // to be this number.
+    this.numDocs = indexReader.numDocs();
+    if (Flags.dimension > numDocs) {
+      logger.warning("Dimension for SVD cannot be greater than number of documents ... "
+          + "Setting dimension to " + numDocs);
+      Flags.dimension = numDocs;
+    }
+    
+    if (Flags.termweight.equals("logentropy")) {
+      le = true;
+      VerbatimLogger.info("Term weighting: log-entropy.\n");
+    }
+    
+    // Log some of the basic properties. This could be altered to be more informative if
+    // our users ever ask for different properties.
+    VerbatimLogger.info("Set up LSA indexer.\n" +
+    		"Dimension: " + Flags.dimension + " Minimum frequency = " + Flags.minfrequency
+        + " Maximum frequency = " + Flags.maxfrequency
+        + " Number non-alphabet characters = " + Flags.maxnonalphabetchars +  "\n");
+  }
+
+  /**
+   * Converts the Lucene index into a sparse matrix.
+   * Also populates termList as a side-effect.
+   * 
+   * @returns sparse term-document matrix in the format expected by SVD library
+   */
+  private SMat smatFromIndex() throws IOException {
     SMat S;
-
-    //initiate IndexReader and LuceneUtils
-    File file = new File(fileName);
-    IndexReader indexReader = IndexReader.open(FSDirectory.open(file));
-    LuceneUtils.compressIndex(fileName);
-    LuceneUtils lUtils = new LuceneUtils(fileName);
-
-    //calculate norm of each doc vector so as to normalize these before SVD
+    
+    // Calculate norm of each doc vector so as to normalize these before SVD.
     int[][] index;
-    String[] desiredFields = Flags.contentsfields;
 
     TermEnum terms = indexReader.terms();
     int tc = 0;
     while(terms.next()){
-      if (lUtils.termFilter(terms.term(), desiredFields,
+      if (lUtils.termFilter(terms.term(), Flags.contentsfields,
           Flags.minfrequency, Flags.maxfrequency, Flags.maxnonalphabetchars))
         tc++;
     }
 
     VerbatimLogger.info("There are " + tc + " terms (and " + indexReader.numDocs() + " docs).\n");
-    theTerms = new String[tc];
+    termList = new String[tc];
     index = new int[tc][];
 
     terms = indexReader.terms();
@@ -74,9 +112,9 @@ public class LSA {
 
     while(terms.next()){
       org.apache.lucene.index.Term term = terms.term();
-      if (lUtils.termFilter(term, desiredFields,
+      if (lUtils.termFilter(term, Flags.contentsfields,
           Flags.minfrequency, Flags.maxfrequency, Flags.maxnonalphabetchars)) {
-        theTerms[tc] = term.text();
+        termList[tc] = term.text();
 
         // Create matrix of nonzero indices.
         TermDocs td = indexReader.termDocs(term);
@@ -107,7 +145,7 @@ public class LSA {
 
     while (terms.next()) {
       org.apache.lucene.index.Term term = terms.term();
-      if (lUtils.termFilter(term, desiredFields,
+      if (lUtils.termFilter(term, Flags.contentsfields,
                             Flags.minfrequency, Flags.maxfrequency,
                             Flags.maxnonalphabetchars)) {
         TermDocs td = indexReader.termDocs(term);
@@ -149,25 +187,22 @@ public class LSA {
       System.out.println(usageMessage);
       throw e;
     }
-
+    if (!Flags.vectortype.equalsIgnoreCase("real")) {
+      logger.warning("LSA is only supported for real vectors ... setting vectortype to 'real'.");
+      
+    }
+    
     // Only one argument should remain, the path to the Lucene index.
     if (args.length != 1) {
       System.out.println(usageMessage);
       throw (new IllegalArgumentException("After parsing command line flags, there were " + args.length
                                           + " arguments, instead of the expected 1."));
     }
-
-    VerbatimLogger.info("Dimension: " + Flags.dimension + " Minimum frequency = " + Flags.minfrequency
-                        + " Maximum frequency = " + Flags.maxfrequency
-                        + " Number non-alphabet characters = " + Flags.maxnonalphabetchars +  "\n");
-
-    if (Flags.termweight.equals("logentropy")) le = true;
-    else le = false;
-
-    if (le)
-      VerbatimLogger.info("Term weighting: log-entropy.\n");
-
-    SMat A = smatFromIndex(args[0]);
+    
+    // Create an instance of the LSA class.
+    // TODO: given the more object oriented instantiation pattern, consider calling this class LSAIndexer.
+    LSA lsaIndexer = new LSA(args[0]);
+    SMat A = lsaIndexer.smatFromIndex();
     Svdlib svd = new Svdlib();
 
     VerbatimLogger.info("Starting SVD using algorithm LAS2 ...\n");
@@ -180,15 +215,13 @@ public class LSA {
     String termFile = "svd_termvectors.bin";
     FSDirectory fsDirectory = FSDirectory.open(new File("."));
     IndexOutput outputStream = fsDirectory.createOutput(termFile);
-    float[] tmpVector = new float[Flags.dimension];
 
     // Write header giving number of dimensions for all vectors and make sure type is real.
     outputStream.writeString("-dimension " + Flags.dimension + " -vectortype real");
     int cnt;
     // Write out term vectors
     for (cnt = 0; cnt < vT.cols; cnt++) {
-      outputStream.writeString(theTerms[cnt]);
-
+      outputStream.writeString(lsaIndexer.termList[cnt]);
       Vector termVector = VectorFactory.createZeroVector(Flags.vectortype, Flags.dimension);
 
       float[] tmp = new float[Flags.dimension];
@@ -207,7 +240,6 @@ public class LSA {
     // Open file and write headers.
     String docFile = "svd_docvectors.bin";
     outputStream = fsDirectory.createOutput(docFile);
-    tmpVector = new float[Flags.dimension];
 
     // Write header giving number of dimensions for all vectors and make sure type is real.
     outputStream.writeString("-dimension " + Flags.dimension + " -vectortype real");
