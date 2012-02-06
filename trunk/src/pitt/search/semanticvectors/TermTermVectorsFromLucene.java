@@ -359,20 +359,35 @@ public class TermTermVectorsFromLucene implements VectorStore {
             || localtermvectors[focusterm] == null) {
           continue;
         }
+        
+        float globalweight = 1;
+        if (Flags.termweight.equals("logentropy")) {
+            //local weighting: 1+ log (local frequency)
+            Term term = new Term(vex.getField(), docterms[coterm]);
+            globalweight = globalweight * lUtils.getEntropy(term);
+          }
+          else 
+          if (Flags.termweight.equals("idf")) {
+        	  
+        	  	Term term = new Term(vex.getField(), docterms[coterm]);
+                globalweight =  globalweight * lUtils.getIDF(term);
+        	  	
+        	  	}	
+        
         // calculate permutation required for either Sahlgren (2008) implementation
         // encoding word order, or encoding direction as in Burgess and Lund's HAL
         if (positionalmethod.equals("permutation_plus_basic")
             || positionalmethod.equals("basic")) {
           // docterms[coterm] contains the term in position[w] in this document.
-          localtermvectors[focusterm].superpose(localindexvectors[coterm], 1, null);
+          localtermvectors[focusterm].superpose(localindexvectors[coterm], globalweight, null);
         }
         if ((positionalmethod.equals("permutation"))
             || (positionalmethod.equals("permutation_plus_basic"))) {
           int[] permutation = permutationCache[cursor - focusposn + windowRadius];
-          localtermvectors[focusterm].superpose(localindexvectors[coterm], 1, permutation);
+          localtermvectors[focusterm].superpose(localindexvectors[coterm], globalweight, permutation);
         } else if (positionalmethod.equals("directional")) {
         	 int[] permutation = permutationCache[(int) Math.max(0,Math.signum(cursor - focusposn))];
-             localtermvectors[focusterm].superpose(localindexvectors[coterm], 1, permutation);
+             localtermvectors[focusterm].superpose(localindexvectors[coterm], globalweight, permutation);
         		
         }
       }
