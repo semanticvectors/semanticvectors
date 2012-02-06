@@ -65,6 +65,7 @@ public class LuceneUtils{
   
   private IndexReader indexReader;
   private Hashtable<Term, Float> termEntropy = new Hashtable<Term, Float>();
+  private Hashtable<Term, Float> termIDF = new Hashtable<Term, Float>();
   private TreeSet<String> stopwords = null;
   //added by sid
   private TreeSet<String> startwords = null;
@@ -197,6 +198,25 @@ public class LuceneUtils{
   public int getNumDocs()
   {return indexReader.numDocs();}
 
+  
+  /**
+   * Gets the IDF (i.e. log10(numdocs/doc frequency)) of a term
+   *	@param term the term whose IDF you would like
+   */
+  
+  public float getIDF(Term term) {
+	  if (termIDF.containsKey(term))
+		  return termIDF.get(term);
+	  else 
+		  try
+	  		{ 	float idf = (float) Math.log10(indexReader.numDocs()/indexReader.docFreq(term));
+	  			termIDF.put(term, idf);
+	  			return idf; 
+	  		} 
+	  	catch (Exception e)
+	  		{e.printStackTrace(); return 1;}
+	  }
+  
   /**
    * Gets the 1 - entropy (i.e. 1+ plogp) of a term,
    * a function that favors terms that are focally distributed
