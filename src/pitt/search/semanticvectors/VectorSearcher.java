@@ -199,6 +199,65 @@ abstract public class VectorSearcher {
       return this.queryVector.measureOverlap(testVector);
     }
   }
+  
+  /**
+   * Class for searching a vector store using the bound product of a series two vectors
+   *
+   */
+  static public class VectorSearcherBoundProduct extends VectorSearcher {
+    Vector queryVector;
+    /**
+     * @param queryVecStore Vector store to use for query generation.
+     * @param searchVecStore The vector store to search.
+     * @param luceneUtils LuceneUtils object to use for query weighting. (May be null.)
+     * @param queryTerms Terms that will be parsed into a query
+     * expression. If the string "NOT" appears, terms after this will be negated.
+     */
+    public VectorSearcherBoundProduct(VectorStore queryVecStore, VectorStore queryVecStore2,
+        VectorStore searchVecStore,
+        LuceneUtils luceneUtils,
+        String term1, String term2)
+    throws ZeroVectorException {
+      super(queryVecStore, searchVecStore, luceneUtils);
+      
+      this.queryVector = queryVecStore.getVector(term1).copy();
+      queryVector.bind(queryVecStore2.getVector(term2));
+      queryVector.normalize();
+      
+      if (this.queryVector.isZeroVector()) {
+        throw new ZeroVectorException("Query vector is zero ... no results.");
+      }
+    }
+    
+    /**
+     * @param queryVecStore Vector store to use for query generation.
+     * @param searchVecStore The vector store to search.
+     * @param luceneUtils LuceneUtils object to use for query weighting. (May be null.)
+     * @param queryVector Vector representing query
+     * expression. If the string "NOT" appears, terms after this will be negated.
+     */
+    public VectorSearcherBoundProduct(VectorStore queryVecStore,
+        VectorStore searchVecStore,
+        LuceneUtils luceneUtils,
+        Vector queryVector)
+    throws ZeroVectorException {
+      super(queryVecStore, searchVecStore, luceneUtils);
+      this.queryVector = queryVector;
+      Vector testVector = searchVecStore.getAllVectors().nextElement().getVector();
+      IncompatibleVectorsException.checkVectorsCompatible(queryVector, testVector);
+      if (this.queryVector.isZeroVector()) {
+        throw new ZeroVectorException("Query vector is zero ... no results.");
+      }
+    }
+    
+    
+
+    @Override
+    public double getScore(Vector testVector) {
+      return this.queryVector.measureOverlap(testVector);
+    }
+  }
+  
 
   /**
    * Class for searching a vector store using quantum disjunction similarity.

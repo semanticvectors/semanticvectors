@@ -106,7 +106,7 @@ import pitt.search.semanticvectors.vectors.Vector;
 public class Search {
   private static final Logger logger = Logger.getLogger(Search.class.getCanonicalName());
 
-  private static CloseableVectorStore queryVecReader;
+  private static CloseableVectorStore queryVecReader, queryVecReader2;
   private static CloseableVectorStore searchVecReader;
   private static LuceneUtils luceneUtils;
 
@@ -160,6 +160,10 @@ public class Search {
       VerbatimLogger.info("Opening query vector store from file: " + Flags.queryvectorfile + "\n");
       queryVecReader = VectorStoreReader.openVectorStore(Flags.queryvectorfile);
 
+      if (Flags.queryvectorfile2.length() > 0)
+      VerbatimLogger.info("Opening second query vector store from file: " + Flags.queryvectorfile2 + "\n");
+      queryVecReader2 = VectorStoreReader.openVectorStore(Flags.queryvectorfile2);
+      
       // Open second vector store if search vectors are different from query vectors.
       if (Flags.queryvectorfile.equals(Flags.searchvectorfile)) {
         searchVecReader = queryVecReader;
@@ -233,7 +237,25 @@ public class Search {
         logger.info(zve.getMessage());
         results = new LinkedList<SearchResult>();
       }
-    } else if (Flags.searchtype.equals("permutation")) {
+    } 
+    else if (Flags.searchtype.equals("boundproduct")) {
+        // Permutes query vectors such that the most likely term in the position
+        // of the "?" is retrieved
+        try {
+          // Create VectorSearcher and search for nearest neighbors.
+          vecSearcher =
+              new VectorSearcher.VectorSearcherBoundProduct(queryVecReader, queryVecReader2,
+                                                    searchVecReader,
+                                                    luceneUtils,
+                                                    args[0],args[1]);
+          results = vecSearcher.getNearestNeighbors(numResults);
+        } catch (ZeroVectorException zve) {
+          logger.info(zve.getMessage());
+          results = new LinkedList<SearchResult>();
+        }
+      }
+    
+    else if (Flags.searchtype.equals("permutation")) {
       // Permutes query vectors such that the most likely term in the position
       // of the "?" is retrieved
       try {
