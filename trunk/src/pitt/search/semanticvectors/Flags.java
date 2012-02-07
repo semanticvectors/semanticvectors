@@ -93,7 +93,7 @@ public class Flags {
   public static String searchtype = "sum";
   public static final String searchtypeDescription = "Method used for combining and searching vectors.";
   public static final String[] searchtypeValues =
-    {"sum", "sparsesum", "subspace", "maxsim", "balanced_permutation", "permutation", "printquery"};
+    {"sum", "sparsesum", "subspace", "maxsim", "balanced_permutation", "permutation","boundproduct", "printquery"};
 
   public static boolean fieldweight = false;
   public static final String fieldweightDescription =
@@ -123,6 +123,8 @@ public class Flags {
   public static final String randomvectorsfile = "randomvectors.bin";
 
   public static String queryvectorfile = "termvectors.bin";
+  public static String queryvectorfile2 = "";
+  
   public static String stoplistfile = "";
   public static String startlistfile = "";
   public static String searchvectorfile = "";
