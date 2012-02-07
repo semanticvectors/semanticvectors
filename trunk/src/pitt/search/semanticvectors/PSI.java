@@ -142,7 +142,7 @@ public class PSI {
 			 Vector inverseElementalVector = VectorFactory.generateRandomVector(vectorType, dimension, seedlength, random);
 			 
 			 predicateVectors.putVector(term.text(), elementalVector);
-			 predicateVectors.putVector(term.text()+"-INV", elementalVector);
+			 predicateVectors.putVector(term.text()+"-INV", inverseElementalVector);
 				
 			}
 			
@@ -180,14 +180,15 @@ public class PSI {
       Vector subject_elementalvector = elementalVectors.getVector(subject);
       Vector object_elementalvector = elementalVectors.getVector(object);
       Vector predicate_vector = predicateVectors.getVector(predicate);
-    
+      Vector predicate_vector_inv = predicateVectors.getVector(predicate+"-INV");
+      
        object_elementalvector.bind(predicate_vector);
        subject_semanticvector.superpose(object_elementalvector, oWeight, null);
        object_elementalvector.release(predicate_vector);
        
-       subject_elementalvector.bind(predicate_vector);
+       subject_elementalvector.bind(predicate_vector_inv);
         object_semanticvector.superpose(subject_elementalvector, sWeight, null);
-        subject_elementalvector.release(predicate_vector);
+        subject_elementalvector.release(predicate_vector_inv);
         
 
       
