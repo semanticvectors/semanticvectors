@@ -434,14 +434,19 @@ public class ComplexVector implements Vector {
    * Implements release using the {#link #convolve} method - not yet implemented.
    */
   public void bind(Vector other) {
-
+	 IncompatibleVectorsException.checkVectorsCompatible(this, other);
+	 ComplexVector complexOther = (ComplexVector) other;
+	 this.convolve(complexOther, 1);
   }
   @Override
   /**
    * Implements release using the {#link #convolve} method - not yet implemented.
    */
   public void release(Vector other) {
-
+		 IncompatibleVectorsException.checkVectorsCompatible(this, other);
+		 ComplexVector complexOther = (ComplexVector) other;
+		 this.convolve(complexOther, -1);
+	
   }
   
   

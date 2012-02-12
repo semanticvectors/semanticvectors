@@ -165,7 +165,7 @@ public class PSI {
       
       float sWeight =1;
       float oWeight =1;
-      float pWeight =0;
+    
       
       if (Flags.termweight.equalsIgnoreCase("idf"))
       {

@@ -221,7 +221,7 @@ abstract public class VectorSearcher {
       super(queryVecStore, searchVecStore, luceneUtils);
       
       this.queryVector = queryVecStore.getVector(term1).copy();
-      queryVector.bind(queryVecStore2.getVector(term2));
+      queryVector.release(queryVecStore2.getVector(term2));
       queryVector.normalize();
       
       if (this.queryVector.isZeroVector()) {
