@@ -44,6 +44,7 @@ import org.junit.runner.Result;
 import org.junit.runner.notification.Failure;
 
 import pitt.search.lucene.IndexFilePositions;
+import pitt.search.lucene.LuceneIndexFromTriples;
 import pitt.search.semanticvectors.VectorStoreTranslater;
 
 /**
@@ -134,6 +135,19 @@ public class RunTests {
       e.printStackTrace();
     }
 
+    
+    testDataPath = "../nationalfacts/nationalfacts.txt";
+    testDataDir = new File(testDataPath);
+    args[0] = testDataPath;
+    try {
+      Process lucenePositionsIndexer = TestUtils.spawnChildProcess(
+          LuceneIndexFromTriples.class, args, null, null, null);
+      TestUtils.waitForAndDestroy(lucenePositionsIndexer);
+    } catch (Exception e) {
+      System.err.println("Failed to prepare test predication-based Lucene index ... abandoning tests.");
+      e.printStackTrace();
+    }
+    
     testDataPrepared = true;
     return true;
   }
