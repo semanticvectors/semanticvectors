@@ -45,8 +45,10 @@ import java.util.logging.Logger;
 import pitt.search.semanticvectors.LuceneUtils;
 import pitt.search.semanticvectors.VectorSearcher;
 import pitt.search.semanticvectors.VectorStore;
+import pitt.search.semanticvectors.vectors.BinaryVectorUtils;
 import pitt.search.semanticvectors.vectors.IncompatibleVectorsException;
 import pitt.search.semanticvectors.vectors.Vector;
+import pitt.search.semanticvectors.vectors.VectorType;
 import pitt.search.semanticvectors.vectors.VectorUtils;
 
 /**
@@ -264,6 +266,8 @@ abstract public class VectorSearcher {
    */
   static public class VectorSearcherSubspaceSim extends VectorSearcher {
     private ArrayList<Vector> disjunctSpace;
+    private VectorType vectorType;
+    
     /**
      * @param queryVecStore Vector store to use for query generation.
      * @param searchVecStore The vector store to search.
@@ -277,7 +281,8 @@ abstract public class VectorSearcher {
     throws ZeroVectorException {
       super(queryVecStore, searchVecStore, luceneUtils);
       this.disjunctSpace = new ArrayList<Vector>();
-
+      this.vectorType = queryVecStore.getVectorType();
+      
       for (int i = 0; i < queryTerms.length; ++i) {
         System.out.println("\t" + queryTerms[i]);
         // There may be compound disjuncts, e.g., "A NOT B" as a single argument.
@@ -291,7 +296,7 @@ abstract public class VectorSearcher {
       if (this.disjunctSpace.size() == 0) {
         throw new ZeroVectorException("No nonzero input vectors ... no results.");
       }
-
+      if (!vectorType.equals(VectorType.BINARY))
       VectorUtils.orthogonalizeVectors(this.disjunctSpace);
     }
 
@@ -302,7 +307,7 @@ abstract public class VectorSearcher {
      */
     @Override
     public double getScore(Vector testVector) {
-      return VectorUtils.compareWithProjection(testVector, disjunctSpace);
+    return VectorUtils.compareWithProjection(testVector, disjunctSpace);
     }
   }
 
