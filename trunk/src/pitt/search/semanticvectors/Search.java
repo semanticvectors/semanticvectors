@@ -161,8 +161,10 @@ public class Search {
       queryVecReader = VectorStoreReader.openVectorStore(Flags.queryvectorfile);
 
       if (Flags.queryvectorfile2.length() > 0)
-      VerbatimLogger.info("Opening second query vector store from file: " + Flags.queryvectorfile2 + "\n");
-      queryVecReader2 = VectorStoreReader.openVectorStore(Flags.queryvectorfile2);
+      {
+    	VerbatimLogger.info("Opening second query vector store from file: " + Flags.queryvectorfile2 + "\n");
+    	queryVecReader2 = VectorStoreReader.openVectorStore(Flags.queryvectorfile2);
+      }
       
       // Open second vector store if search vectors are different from query vectors.
       if (Flags.queryvectorfile.equals(Flags.searchvectorfile)) {
