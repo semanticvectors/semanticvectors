@@ -201,7 +201,7 @@ public class BinaryVector implements Vector {
     this.bitSet.xor(binaryOther.bitSet);
     double hammingDistance = this.bitSet.cardinality();
     this.bitSet.xor(binaryOther.bitSet);
-    return 1 - (hammingDistance / (double) dimension);
+    return 2*(0.5 - (hammingDistance / (double) dimension));
   }
 
   @Override
