@@ -282,7 +282,6 @@ public class CompoundVectorBuilder {
       positiveTerms[i] = queryTerms[i];
     }
     vectorList.add(getAdditiveQueryVector(positiveTerms));
-    VectorUtils.orthogonalizeVectors(vectorList);
     if (!vecReader.getVectorType().equals(VectorType.BINARY))
     	VectorUtils.orthogonalizeVectors(vectorList);
         else BinaryVectorUtils.orthogonalizeVectors(vectorList);
