@@ -33,7 +33,7 @@ public class BinaryVector implements Vector {
   /**
    * Elemental representation for binary vectors. 
    */
-  private OpenBitSet bitSet;
+  protected OpenBitSet bitSet;
   private boolean isSparse;
 
   /** 
