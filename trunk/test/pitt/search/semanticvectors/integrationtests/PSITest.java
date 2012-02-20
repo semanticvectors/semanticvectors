@@ -57,7 +57,7 @@ public class PSITest {
   }
 
   @Test
-  public void testBuildAndSearchPSIIndex() throws IOException, IllegalArgumentException {
+  public void testBuildAndSearchPSIIndex() throws IOException, IllegalArgumentException, Exception {
     // binary edition
     String buildCmd = "-dimension 1000 -maxnonalphabetchars 20 -vectortype binary predication_index";
     String[] filesToBuild = new String[] {"elementalvectors.bin", "predicatevectors.bin", "semanticvectors.bin"};

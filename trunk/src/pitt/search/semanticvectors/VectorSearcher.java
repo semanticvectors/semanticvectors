@@ -298,6 +298,7 @@ abstract public class VectorSearcher {
       }
       if (!vectorType.equals(VectorType.BINARY))
       VectorUtils.orthogonalizeVectors(this.disjunctSpace);
+      else BinaryVectorUtils.orthogonalizeVectors(this.disjunctSpace);
     }
 
     /**
@@ -307,7 +308,9 @@ abstract public class VectorSearcher {
      */
     @Override
     public double getScore(Vector testVector) {
-    return VectorUtils.compareWithProjection(testVector, disjunctSpace);
+    	if (!vectorType.equals(VectorType.BINARY))
+    	return VectorUtils.compareWithProjection(testVector, disjunctSpace);
+    	else return BinaryVectorUtils.compareWithProjection(testVector, disjunctSpace);
     }
   }
 

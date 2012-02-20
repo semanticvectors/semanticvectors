@@ -44,9 +44,11 @@ import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 
+import pitt.search.semanticvectors.vectors.BinaryVectorUtils;
 import pitt.search.semanticvectors.vectors.PermutationUtils;
 import pitt.search.semanticvectors.vectors.Vector;
 import pitt.search.semanticvectors.vectors.VectorFactory;
+import pitt.search.semanticvectors.vectors.VectorType;
 import pitt.search.semanticvectors.vectors.VectorUtils;
 
 /**
@@ -281,6 +283,10 @@ public class CompoundVectorBuilder {
     }
     vectorList.add(getAdditiveQueryVector(positiveTerms));
     VectorUtils.orthogonalizeVectors(vectorList);
+    if (!vecReader.getVectorType().equals(VectorType.BINARY))
+    	VectorUtils.orthogonalizeVectors(vectorList);
+        else BinaryVectorUtils.orthogonalizeVectors(vectorList);
+    
     return vectorList.get(vectorList.size() - 1);
   }
 }
