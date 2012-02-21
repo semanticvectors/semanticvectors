@@ -123,11 +123,19 @@ public class Flags {
   public static final String randomvectorsfile = "randomvectors.bin";
 
   public static String queryvectorfile = "termvectors.bin";
-  public static String queryvectorfile2 = "";
+  public static String queryvectorfileDescription = "Principal vector store for finding query vectors.";
   
+  public static String boundvectorfile = "";
+  public static String boundvectorfileDescription =
+      "Auxiliary vector store used when searching for boundproducts. Used only in some searchtypes.";
+
+  public static String searchvectorfile = "";
+  public static String searchvectorfileDescription =
+      "Vector store for searching. Defaults to being the same as {@link #queryVecReader}. "
+      + "May be different from queryvectorfile e.g., when using terms to search for documents.";
+
   public static String stoplistfile = "";
   public static String startlistfile = "";
-  public static String searchvectorfile = "";
   public static String luceneindexpath = "";
   public static String initialtermvectors = "";
   public static String initialtermvectorsDescription =

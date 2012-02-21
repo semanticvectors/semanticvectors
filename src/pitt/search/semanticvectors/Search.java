@@ -106,8 +106,15 @@ import pitt.search.semanticvectors.vectors.Vector;
 public class Search {
   private static final Logger logger = Logger.getLogger(Search.class.getCanonicalName());
 
-  private static CloseableVectorStore queryVecReader, queryVecReader2;
-  private static CloseableVectorStore searchVecReader;
+  /** Principal vector store for finding query vectors. */
+  private static CloseableVectorStore queryVecReader = null;
+  /** Auxiliary vector store used when searching for boundproducts. Used only in some searchtypes. */
+  private static CloseableVectorStore boundVecReader = null;
+  /** 
+   * Vector store for searching. Defaults to being the same as queryVecReader.
+   * May be different from queryVecReader, e.g., when using terms to search for documents.
+   */
+  private static CloseableVectorStore searchVecReader = null;
   private static LuceneUtils luceneUtils;
 
   public static String usageMessage = "\nSearch class in package pitt.search.semanticvectors"
@@ -160,10 +167,9 @@ public class Search {
       VerbatimLogger.info("Opening query vector store from file: " + Flags.queryvectorfile + "\n");
       queryVecReader = VectorStoreReader.openVectorStore(Flags.queryvectorfile);
 
-      if (Flags.queryvectorfile2.length() > 0)
-      {
-    	VerbatimLogger.info("Opening second query vector store from file: " + Flags.queryvectorfile2 + "\n");
-    	queryVecReader2 = VectorStoreReader.openVectorStore(Flags.queryvectorfile2);
+      if (Flags.boundvectorfile.length() > 0) {
+        VerbatimLogger.info("Opening second query vector store from file: " + Flags.boundvectorfile + "\n");
+        boundVecReader = VectorStoreReader.openVectorStore(Flags.boundvectorfile);
       }
       
       // Open second vector store if search vectors are different from query vectors.
@@ -246,7 +252,7 @@ public class Search {
         try {
           // Create VectorSearcher and search for nearest neighbors.
           vecSearcher =
-              new VectorSearcher.VectorSearcherBoundProduct(queryVecReader, queryVecReader2,
+              new VectorSearcher.VectorSearcherBoundProduct(queryVecReader, boundVecReader,
                                                     searchVecReader,
                                                     luceneUtils,
                                                     args[0],args[1]);
@@ -308,6 +314,9 @@ public class Search {
     queryVecReader.close();
     if (!Flags.queryvectorfile.equals(Flags.searchvectorfile)) {
       searchVecReader.close();
+    }
+    if (boundVecReader != null) {
+      boundVecReader.close();
     }
     
     return results;
