@@ -93,7 +93,7 @@ public class Flags {
   public static String searchtype = "sum";
   public static final String searchtypeDescription = "Method used for combining and searching vectors.";
   public static final String[] searchtypeValues =
-    {"sum", "sparsesum", "subspace", "maxsim", "balanced_permutation", "permutation","boundproduct", "printquery"};
+    {"sum", "sparsesum", "subspace", "maxsim", "balanced_permutation", "permutation","boundproduct", "boundproductsubspace","printquery"};
 
   public static boolean fieldweight = false;
   public static final String fieldweightDescription =

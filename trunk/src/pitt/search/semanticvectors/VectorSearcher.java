@@ -222,10 +222,9 @@ abstract public class VectorSearcher {
     throws ZeroVectorException {
       super(queryVecStore, searchVecStore, luceneUtils);
       
-      this.queryVector = queryVecStore.getVector(term1).copy();
-      queryVector.release(queryVecStore2.getVector(term2));
-      queryVector.normalize();
-      
+      this.queryVector = CompoundVectorBuilder.getBoundProductQueryVectorFromString(queryVecStore, term1);
+      queryVector.release(CompoundVectorBuilder.getBoundProductQueryVectorFromString(queryVecStore2, term2));
+       
       if (this.queryVector.isZeroVector()) {
         throw new ZeroVectorException("Query vector is zero ... no results.");
       }
@@ -260,6 +259,54 @@ abstract public class VectorSearcher {
     }
   }
   
+  /**
+   * Class for searching a vector store using the bound product of a series two vectors
+   *
+   */
+  static public class VectorSearcherBoundProductSubSpace extends VectorSearcher {
+    
+	ArrayList<Vector> disjunctSpace;
+    VectorType vectorType;
+    
+    /**
+     * @param queryVecStore Vector store to use for query generation.
+     * @param searchVecStore The vector store to search.
+     * @param luceneUtils LuceneUtils object to use for query weighting. (May be null.)
+     * @param queryTerms Terms that will be parsed into a query
+     * expression. If the string "NOT" appears, terms after this will be negated.
+     */
+    public VectorSearcherBoundProductSubSpace(VectorStore queryVecStore, VectorStore queryVecStore2,
+        VectorStore searchVecStore,
+        LuceneUtils luceneUtils,
+        String term1, String term2)
+    throws ZeroVectorException {
+      super(queryVecStore, searchVecStore, luceneUtils);
+      
+      disjunctSpace = new ArrayList<Vector>();
+      vectorType = queryVecStore.getVectorType();
+      
+      Vector queryVector = queryVecStore.getVector(term1).copy();
+      
+      if (queryVector.isZeroVector()) {
+          throw new ZeroVectorException("Query vector is zero ... no results.");
+        }
+      
+      this.disjunctSpace = CompoundVectorBuilder.getBoundProductQuerySubSpaceFromString(queryVecStore2, queryVector, term2);
+    
+    }
+    
+  
+    
+    
+ 
+  @Override
+  public double getScore(Vector testVector) {
+  	if (!vectorType.equals(VectorType.BINARY))
+  	return 			  VectorUtils.compareWithProjection(testVector, disjunctSpace);
+  	else return BinaryVectorUtils.compareWithProjection(testVector, disjunctSpace);
+  }
+
+  }
 
   /**
    * Class for searching a vector store using quantum disjunction similarity.
