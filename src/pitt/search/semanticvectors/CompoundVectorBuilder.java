@@ -39,6 +39,7 @@ package pitt.search.semanticvectors;
 
 import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.StringTokenizer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
@@ -141,6 +142,89 @@ public class CompoundVectorBuilder {
     return queryVec;
   }
 
+  /**
+   * Method gets a query vector from a query string of the form:
+   * concept1*relation2+concept3*relation4 
+   * 
+   * the resulting vector will be the bundle of the bound product of concept1 and relation 1, and the
+   * bound product of concept 2 and relation 2
+   * 
+   * @param vecReader
+   * @param queryString
+   * @return the resulting query vector
+   */
+  
+  
+ public static Vector getBoundProductQueryVectorFromString(VectorStore vecReader, String queryString)
+ {
+     //allow for bundling of multiple concepts/relations - split initially at "+" to construct vectors to be superposed
+     StringTokenizer bundlingTokenizer = new StringTokenizer(queryString,"+");
+     Vector bundled_queryvector = VectorFactory.createZeroVector(vecReader.getVectorType(), vecReader.getDimension());
+     while (bundlingTokenizer.hasMoreTokens())
+     { 
+     //allow for binding of multiple concepts/relations
+     StringTokenizer bindingTokenizer = new StringTokenizer(bundlingTokenizer.nextToken(),"*");
+     Vector bound_queryvector = vecReader.getVector(bindingTokenizer.nextToken()).copy();
+     
+     while (bindingTokenizer.hasMoreTokens())
+   	  bound_queryvector.bind(vecReader.getVector(bindingTokenizer.nextToken()));
+    
+     bundled_queryvector.superpose(bound_queryvector, 1, null);
+     
+     }
+     
+     
+     bundled_queryvector.normalize();
+     return bundled_queryvector;
+ }
+ 
+ 
+ /**
+  * Method gets a query subspace from a query string of the form:
+  * relation1*relation2+relation3*relation4 
+  * 
+  * the resulting subspace (or binary approximation) will be derived from the bound product of concept1 and r1*r2, and the
+  * bound product of the concept vector  and relation r3*r4.
+  * 
+  * this method facilitates the combination of single or dual predicate paths using the quantum OR operator, or a binary approximation thereof
+  * 
+  * @param vecReader
+  * @param queryString
+  * @return
+  */
+ 
+ 
+public static ArrayList<Vector> getBoundProductQuerySubSpaceFromString(VectorStore vecReader, Vector conceptVector, String queryString)
+{
+	ArrayList<Vector> disjunctSpace = new ArrayList<Vector>();
+    //split initially at "+" to construct derive components
+    StringTokenizer subspaceTokenizer = new StringTokenizer(queryString,"+");
+   
+    while (subspaceTokenizer.hasMoreTokens())
+    { 
+    //allow for binding of multiple concepts/relations
+    StringTokenizer bindingTokenizer = new StringTokenizer(subspaceTokenizer.nextToken(),"*");
+    Vector bound_queryvector = vecReader.getVector(bindingTokenizer.nextToken()).copy();
+    
+    while (bindingTokenizer.hasMoreTokens())
+  	  bound_queryvector.bind(vecReader.getVector(bindingTokenizer.nextToken()));
+   
+    bound_queryvector.release(conceptVector);
+    disjunctSpace.add(bound_queryvector);
+    }
+    
+   
+    if (disjunctSpace.size() > 1)
+    {
+  	  if (vecReader.getVectorType().equals(VectorType.BINARY))
+  		  BinaryVectorUtils.orthogonalizeVectors(disjunctSpace);
+  	      else  VectorUtils.orthogonalizeVectors(disjunctSpace);
+    }
+   
+    return disjunctSpace;
+}
+  
+  
   /**
    * Method gets a query vector from a query string, i.e., a
    * space-separated list of queryterms.

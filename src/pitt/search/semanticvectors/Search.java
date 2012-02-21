@@ -247,8 +247,7 @@ public class Search {
       }
     } 
     else if (Flags.searchtype.equals("boundproduct")) {
-        // Permutes query vectors such that the most likely term in the position
-        // of the "?" is retrieved
+        // Binds vectors to faciliate search across specific relations
         try {
           // Create VectorSearcher and search for nearest neighbors.
           vecSearcher =
@@ -262,7 +261,21 @@ public class Search {
           results = new LinkedList<SearchResult>();
         }
       }
-    
+    else if (Flags.searchtype.equals("boundproductsubspace")) {
+        // Binds vectors to faciliate search across multiple relationship paths
+        try {
+          // Create VectorSearcher and search for nearest neighbors.
+          vecSearcher =
+              new VectorSearcher.VectorSearcherBoundProductSubSpace(queryVecReader, boundVecReader,
+                                                    searchVecReader,
+                                                    luceneUtils,
+                                                    args[0],args[1]);
+          results = vecSearcher.getNearestNeighbors(numResults);
+        } catch (ZeroVectorException zve) {
+          logger.info(zve.getMessage());
+          results = new LinkedList<SearchResult>();
+        }
+      }
     else if (Flags.searchtype.equals("permutation")) {
       // Permutes query vectors such that the most likely term in the position
       // of the "?" is retrieved
