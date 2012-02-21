@@ -39,7 +39,6 @@ import java.util.*;
 
 import org.junit.*;
 
-import pitt.search.semanticvectors.LSA;
 import pitt.search.semanticvectors.PSI;
 import pitt.search.semanticvectors.Search;
 import pitt.search.semanticvectors.SearchResult;
@@ -71,9 +70,7 @@ public class PSITest {
     PSI.main(buildArgs);
     for (String fn: filesToBuild) assertTrue((new File(fn)).isFile());
 
-
-
-    String searchCmd = "-searchtype boundproduct -queryvectorfile semanticvectors.bin -queryvectorfile2 predicatevectors.bin -searchvectorfile elementalvectors.bin -matchcase mexico HAS_CURRENCY";
+    String searchCmd = "-searchtype boundproduct -queryvectorfile semanticvectors.bin -boundvectorfile predicatevectors.bin -searchvectorfile elementalvectors.bin -matchcase mexico HAS_CURRENCY";
     String[] searchArgs = searchCmd.split("\\s+");
     List<SearchResult> results = Search.RunSearch(searchArgs, 10);
     int rank = 1;
@@ -88,8 +85,10 @@ public class PSITest {
     }
     assertTrue(rank < 2);
 
-    for (String fn: filesToBuild) assertTrue((new File(fn)).delete());
-    
+    for (String fn: filesToBuild) {
+      System.err.println("Deleting file: " + fn);
+      assertTrue("Failed to delete file: " + fn, (new File(fn)).delete());
+    }
     
     // complex edition
     buildCmd = "-dimension 1000 -maxnonalphabetchars 20 -vectortype complex -seedlength 1000 predication_index";
