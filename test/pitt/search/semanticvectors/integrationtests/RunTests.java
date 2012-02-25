@@ -39,6 +39,8 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.junit.runner.Result;
 import org.junit.runner.notification.Failure;
@@ -87,7 +89,7 @@ public class RunTests {
    * Convenience method for running JUnit tests and displaying failure results.
    * @return int[2] {numSuccesses, numFailures}.
    */
-  private static int[] runJUnitTests(Class<?> testClass) {
+  private static Result runJUnitTests(Class<?> testClass) {
     Result results = org.junit.runner.JUnitCore.runClasses(testClass);
     for (Failure failure: results.getFailures()) {
       System.err.println("FAILURE!!!");
@@ -97,9 +99,7 @@ public class RunTests {
       failure.getException().printStackTrace();
       System.err.println("FAILURE!!!");
     }
-    int[] resultCounts = { results.getRunCount() - results.getFailureCount(),
-        results.getFailureCount() };
-    return resultCounts;
+    return results;
   }
 
   public static boolean prepareTestData() {
@@ -171,13 +171,22 @@ public class RunTests {
 
     // Run regression tests.
     System.err.println("Running regression tests ...");
+    List<Result> allResults = new ArrayList<Result>(); 
+        
     for (Class<?> testClass : integrationTestClasses) {
-      scores = runJUnitTests(testClass);
-      successes += scores[0];
-      failures += scores[1];
+      Result result = runJUnitTests(testClass);
+      successes += result.getRunCount() - result.getFailureCount();
+      failures += result.getFailureCount();
+      allResults.add(result);
     }
 
     System.err.println("Ran all tests. Successes: " + successes + "\tFailures: " + failures);
+    System.err.println("Failing tests were:");
+    for (Result result : allResults) {
+      for (Failure failure : result.getFailures()) {
+        System.err.println("\t" + failure.toString());
+      }
+    }
     System.exit(0);
   }
 }

@@ -186,23 +186,22 @@ public class RegressionTests {
     assertTrue(peterRank <= 3);
   }
 
-  /* Convolution for direction doesn't appear to be giving decent results yet.
-   * TODO(dwiddows): Check this and check with Lance to see if this is my fault for dorking it up
-   * with the zeros.
+  /* Convolution for complex directional indexing seems to really need some termweighting to work well. 
+   */
   @Test
   public void testBuildAndSearchComplexDirectionalIndex() {
     int peterRank = positionalBuildSearchGetRank(
-        "-dimension 200 -vectortype complex -seedlength 10 -positionalmethod directional positional_index",
+        "-dimension 200 -vectortype complex -seedlength 10 -positionalmethod directional -termweight idf positional_index",
         "-queryvectorfile drxntermvectors.bin simon",
         new String[] {"drxntermvectors.bin", "incremental_docvectors.bin"},
         "peter");
+    assertEquals(2, peterRank);
   }
-  */
 
   @Test
   public void testBuildAndSearchBinaryDirectionalIndex() {
     int peterRank = positionalBuildSearchGetRank(
-        "-dimension 2048 -vectortype binary -seedlength 1024 -positionalmethod directional positional_index",
+        "-dimension 2048 -vectortype binary -seedlength 1024 -positionalmethod directional -termweight none positional_index",
         "-queryvectorfile drxntermvectors.bin simon",
         new String[] {"drxntermvectors.bin", "incremental_docvectors.bin"},
         "peter");
@@ -247,7 +246,7 @@ public class RegressionTests {
   public void testBuildAndSearchRealBalancedPermutationIndex() {
     int peterRank = positionalBuildSearchGetRank(
         "-dimension 200 -vectortype real -seedlength 10 -positionalmethod permutation positional_index",
-        "-searchtype permutation -queryvectorfile randomvectors.bin -searchvectorfile permtermvectors.bin -searchtype balanced_permutation simon ?",
+        "-queryvectorfile randomvectors.bin -searchvectorfile permtermvectors.bin -searchtype balanced_permutation simon ?",
         new String[] {"randomvectors.bin", "permtermvectors.bin", "incremental_docvectors.bin"},
         "peter");
     assertTrue(peterRank < 5);
