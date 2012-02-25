@@ -47,7 +47,6 @@ import pitt.search.semanticvectors.vectors.VectorType;
    @author Dominic Widdows
    @see ObjectVector
 */
-
 public interface VectorStore {
   /**
    * The type of all vectors in the vector store.  (Implementations should enforce homogeneity.)

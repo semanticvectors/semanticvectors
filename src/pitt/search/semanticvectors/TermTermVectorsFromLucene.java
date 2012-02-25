@@ -267,19 +267,18 @@ public class TermTermVectorsFromLucene implements VectorStore {
       e.nextElement().getVector().normalize();
     }
 
-    String randFile = "randomvectors.bin";
     // If building a permutation index, these need to be written out to be reused.
     //
     // TODO(widdows): It is odd to do this here while not writing out the semantic
     // term vectors here.  We should redesign this.
     if ((positionalmethod.equals("permutation") || (positionalmethod.equals("permutation_plus_basic"))) 
         && !retraining) {
-      VerbatimLogger.info("Normalizing and writing random vectors to " + randFile + "\n");
+      VerbatimLogger.info("Normalizing and writing random vectors to " + Flags.elementalvectorfile + "\n");
       Enumeration<ObjectVector> f = indexVectors.getAllVectors();
       while (f.hasMoreElements())	{
         f.nextElement().getVector().normalize();
       }
-      new VectorStoreWriter().writeVectors(randFile, this.indexVectors);
+      VectorStoreWriter.writeVectors(Flags.elementalvectorfile, this.indexVectors);
     }
   }
 

@@ -60,7 +60,7 @@ import java.util.logging.Logger;
  */
 public class VectorStoreWriter {
   private static final Logger logger = Logger.getLogger(VectorStoreWriter.class.getCanonicalName());
-  
+
   /**
    * Generates a single string containing global header information for a vector store.
    * This includes the vector type and the dimension.
@@ -78,45 +78,40 @@ public class VectorStoreWriter {
    * @param vectorFileName The name of the file to write to
    * @param objectVectors The vector store to be written to disk
    */
-  public boolean writeVectors(String vectorFileName, VectorStore objectVectors) {
-	if (Flags.indexfileformat.equals("lucene")) {
-	  return writeVectorsInLuceneFormat(vectorFileName, objectVectors);
-	} else if (Flags.indexfileformat.equals("text")) {
-	  return writeVectorsInTextFormat(vectorFileName, objectVectors);
-	} else {
-	  throw new RuntimeException("Unrecognized indexfileformat: '" + Flags.indexfileformat + "'");
-	}
+  public static void writeVectors(String vectorFileName, VectorStore objectVectors) throws IOException {
+    if (Flags.indexfileformat.equals("lucene")) {
+      writeVectorsInLuceneFormat(vectorFileName, objectVectors);
+    } else if (Flags.indexfileformat.equals("text")) {
+      writeVectorsInTextFormat(vectorFileName, objectVectors);
+    } else {
+      throw new IllegalStateException("Unrecognized indexfileformat: '" + Flags.indexfileformat + "'");
+    }
   }
-	 
+
   /**
    * Outputs a vector store in Lucene binary format.
    * 
    * @param vectorFileName The name of the file to write to
    * @param objectVectors The vector store to be written to disk
    */
-  public boolean writeVectorsInLuceneFormat(String vectorFileName, VectorStore objectVectors) {
-	VerbatimLogger.info("About to write " + objectVectors.getNumVectors() + " vectors of dimension "
-			+ Flags.dimension + " to Lucene format file: " + vectorFileName + " ... ");
-	try {
-      File vectorFile = new File(vectorFileName);
-      String parentPath = vectorFile.getParent();
-      if (parentPath == null) parentPath = "";
-      FSDirectory fsDirectory = FSDirectory.open(new File(parentPath));
-      IndexOutput outputStream = fsDirectory.createOutput(vectorFile.getName());
-      writeToIndexOutput(objectVectors, outputStream);
-      outputStream.close();
-      fsDirectory.close();
-      return true;
-	} catch (Exception e) {
-      e.printStackTrace();
-      return false;
-    }
+  public static void writeVectorsInLuceneFormat(String vectorFileName, VectorStore objectVectors)
+      throws IOException {
+    VerbatimLogger.info("About to write " + objectVectors.getNumVectors() + " vectors of dimension "
+        + Flags.dimension + " to Lucene format file: " + vectorFileName + " ... ");
+    File vectorFile = new File(vectorFileName);
+    String parentPath = vectorFile.getParent();
+    if (parentPath == null) parentPath = "";
+    FSDirectory fsDirectory = FSDirectory.open(new File(parentPath));
+    IndexOutput outputStream = fsDirectory.createOutput(vectorFile.getName());
+    writeToIndexOutput(objectVectors, outputStream);
+    outputStream.close();
+    fsDirectory.close();
   }
-  
+
   /**
    * Writes the object vectors to this Lucene output stream.
    */
-  public void writeToIndexOutput(VectorStore objectVectors, IndexOutput outputStream)
+  public static void writeToIndexOutput(VectorStore objectVectors, IndexOutput outputStream)
       throws IOException {
     // Write header giving vector type and dimension for all vectors.
     outputStream.writeString(generateHeaderString());
@@ -137,26 +132,20 @@ public class VectorStoreWriter {
    * @param vectorFileName The name of the file to write to
    * @param objectVectors The vector store to be written to disk
    */
-  public boolean writeVectorsInTextFormat(String vectorFileName, VectorStore objectVectors) {
+  public static void writeVectorsInTextFormat(String vectorFileName, VectorStore objectVectors)
+      throws IOException {
     VerbatimLogger.info("About to write " + objectVectors.getNumVectors() + " vectors of dimension "
-    		+ Flags.dimension + " to text file: " + vectorFileName + " ... ");
-    try {
-      BufferedWriter outBuf = new BufferedWriter(new FileWriter(vectorFileName));
-      writeToTextBuffer(objectVectors, outBuf);
-      outBuf.close();
-      VerbatimLogger.info("finished writing vectors.\n");
-      return true;
-    }
-    catch (Exception e) {
-      e.printStackTrace();
-      return false;
-    }
+        + Flags.dimension + " to text file: " + vectorFileName + " ... ");
+    BufferedWriter outBuf = new BufferedWriter(new FileWriter(vectorFileName));
+    writeToTextBuffer(objectVectors, outBuf);
+    outBuf.close();
+    VerbatimLogger.info("finished writing vectors.\n");
   }
 
-  public void writeToTextBuffer(VectorStore objectVectors, BufferedWriter outBuf)
+  public static void writeToTextBuffer(VectorStore objectVectors, BufferedWriter outBuf)
       throws IOException {
     Enumeration<ObjectVector> vecEnum = objectVectors.getAllVectors();
-    
+
     // Write header giving vector type and dimension for all vectors.
     outBuf.write(generateHeaderString() + "\n");
 

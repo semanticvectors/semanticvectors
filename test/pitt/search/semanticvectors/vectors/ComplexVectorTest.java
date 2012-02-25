@@ -142,9 +142,9 @@ public class ComplexVectorTest extends TestCase {
 
   @Test
   public void testNormalize() {
+    ComplexVector.setDominantMode(Mode.CARTESIAN);
     ComplexVector cv = new ComplexVector(new float[] {3, 4, 4, 3, 4, 3, 0, 5});
     cv.normalize();
-    ComplexVector.setDominantMode(Mode.CARTESIAN);
     assertFloatArrayEquals(new float[] {0.3f, 0.4f, 0.4f, 0.3f, 0.4f, 0.3f, 0.0f, 0.5f},
         cv.getCoordinates(), TOL);
     ComplexVector.setDominantMode(Mode.POLAR_DENSE);

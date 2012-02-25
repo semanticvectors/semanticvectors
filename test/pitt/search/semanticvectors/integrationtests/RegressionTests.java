@@ -149,7 +149,7 @@ public class RegressionTests {
         // Setting the -searchvectorfile here is necessary to avoid flag bleedover from previous
         // tests.  Yet another indication of the problems with the current flags design.
         "-queryvectorfile termtermvectors.bin -searchvectorfile termtermvectors.bin simon",
-        new String[] {"termtermvectors.bin", "incremental_docvectors.bin"},
+        new String[] {"termtermvectors.bin", "docvectors.bin"},
         "peter");
     assertTrue(peterRank < 5);
   }
@@ -159,7 +159,7 @@ public class RegressionTests {
     int peterRank = positionalBuildSearchGetRank(
         "-dimension 8192 -vectortype binary -seedlength 4096 positional_index",
         "-queryvectorfile termtermvectors.bin simon",
-        new String[] {"termtermvectors.bin", "incremental_docvectors.bin"},
+        new String[] {"termtermvectors.bin", "docvectors.bin"},
         "peter");
        assertTrue(peterRank < 5);
   }
@@ -169,7 +169,7 @@ public class RegressionTests {
     int peterRank = positionalBuildSearchGetRank(
         "-dimension 200 -vectortype complex -seedlength 10 positional_index",
         "-queryvectorfile termtermvectors.bin simon",
-        new String[] {"termtermvectors.bin", "incremental_docvectors.bin"},
+        new String[] {"termtermvectors.bin", "docvectors.bin"},
         "peter");
     assertTrue(peterRank < 5);
   }
@@ -181,7 +181,7 @@ public class RegressionTests {
         // Setting the -searchvectorfile here is necessary to avoid flag bleedover from previous
         // tests.  Yet another indication of the problems with the current flags design.
         "-queryvectorfile drxntermvectors.bin -searchvectorfile drxntermvectors.bin simon",
-        new String[] {"drxntermvectors.bin", "incremental_docvectors.bin"},
+        new String[] {"drxntermvectors.bin", "docvectors.bin"},
         "peter");
     assertTrue(peterRank <= 3);
   }
@@ -193,7 +193,7 @@ public class RegressionTests {
     int peterRank = positionalBuildSearchGetRank(
         "-dimension 200 -vectortype complex -seedlength 10 -positionalmethod directional -termweight idf positional_index",
         "-queryvectorfile drxntermvectors.bin simon",
-        new String[] {"drxntermvectors.bin", "incremental_docvectors.bin"},
+        new String[] {"drxntermvectors.bin", "docvectors.bin"},
         "peter");
     assertEquals(2, peterRank);
   }
@@ -203,7 +203,7 @@ public class RegressionTests {
     int peterRank = positionalBuildSearchGetRank(
         "-dimension 2048 -vectortype binary -seedlength 1024 -positionalmethod directional -termweight none positional_index",
         "-queryvectorfile drxntermvectors.bin simon",
-        new String[] {"drxntermvectors.bin", "incremental_docvectors.bin"},
+        new String[] {"drxntermvectors.bin", "docvectors.bin"},
         "peter");
     assertEquals(2, peterRank);
   }
@@ -212,8 +212,8 @@ public class RegressionTests {
   public void testBuildAndSearchRealPermutationIndex() {
     int peterRank = positionalBuildSearchGetRank(
         "-dimension 200 -vectortype real -seedlength 10 -positionalmethod permutation positional_index",
-        "-searchtype permutation -queryvectorfile randomvectors.bin -searchvectorfile permtermvectors.bin simon ?",
-        new String[] {"randomvectors.bin", "permtermvectors.bin", "incremental_docvectors.bin"},
+        "-searchtype permutation -queryvectorfile elementalvectors.bin -searchvectorfile permtermvectors.bin simon ?",
+        new String[] {"elementalvectors.bin", "permtermvectors.bin", "docvectors.bin"},
         "peter");
     assertEquals(1, peterRank);
   }
@@ -222,19 +222,18 @@ public class RegressionTests {
   public void testBuildAndSearchComplexPermutationIndex() {
     int peterRank = positionalBuildSearchGetRank(
         "-dimension 200 -vectortype complex -seedlength 10 -positionalmethod permutation positional_index",
-        "-searchtype permutation -queryvectorfile randomvectors.bin -searchvectorfile permtermvectors.bin simon ?",
-        new String[] {"randomvectors.bin", "permtermvectors.bin", "incremental_docvectors.bin"},
+        "-searchtype permutation -queryvectorfile elementalvectors.bin -searchvectorfile permtermvectors.bin simon ?",
+        new String[] {"elementalvectors.bin", "permtermvectors.bin", "docvectors.bin"},
         "peter");
     assertEquals(1, peterRank);
   }
 
   @Test
   public void testBuildAndSearchBinaryPermutationIndex() {
-    // What we'd like to run is ...
     int peterRank = positionalBuildSearchGetRank(
         "-dimension 1024 -vectortype binary -seedlength 512 -positionalmethod permutation positional_index",
-        "-searchtype permutation -queryvectorfile randomvectors.bin -searchvectorfile permtermvectors.bin simon ?",
-        new String[] {"randomvectors.bin", "permtermvectors.bin", "incremental_docvectors.bin"},
+        "-searchtype permutation -queryvectorfile elementalvectors.bin -searchvectorfile permtermvectors.bin simon ?",
+        new String[] {"elementalvectors.bin", "permtermvectors.bin", "docvectors.bin"},
         "peter");
     assertTrue(3 >= peterRank);
   }
@@ -242,14 +241,16 @@ public class RegressionTests {
   /*
    * This last test seems to throw lots of others off in Windows. I wonder if there's
    * some multithreading going on that makes this whole test suite very unsafe - not sure.
+   * Test still causes problems with regular permutation search, so I don't think it's a problem
+   * with balanced_permutation itself.
    */
   /*
   @Test
   public void testBuildAndSearchRealBalancedPermutationIndex() {
     int peterRank = positionalBuildSearchGetRank(
         "-dimension 200 -vectortype real -seedlength 10 -positionalmethod permutation positional_index",
-        "-queryvectorfile randomvectors.bin -searchvectorfile permtermvectors.bin -searchtype balanced_permutation simon ?",
-        new String[] {"randomvectors.bin", "permtermvectors.bin", "incremental_docvectors.bin"},
+        "-queryvectorfile elementalvectors.bin -searchvectorfile permtermvectors.bin -searchtype balanced_permutation simon ?",
+        new String[] {"elementalvectors.bin", "permtermvectors.bin", "docvectors.bin"},
         "peter");
     assertTrue(peterRank < 5);
   }

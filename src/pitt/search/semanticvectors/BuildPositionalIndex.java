@@ -105,12 +105,12 @@ public class BuildPositionalIndex {
       }
     }
 
-    String termFile = "termtermvectors.bin";
-    String docFile = "docvectors.bin";
+    String termFile = Flags.termtermvectorsfile;
+    String docFile = Flags.docvectorsfile;
 
-    if (Flags.positionalmethod.equals("permutation")) termFile = "permtermvectors.bin";
-    else if (Flags.positionalmethod.equals("permutation_plus_basic")) termFile = "permplustermvectors.bin";
-    else if (Flags.positionalmethod.equals("directional")) termFile = "drxntermvectors.bin";
+    if (Flags.positionalmethod.equals("permutation")) termFile = Flags.permutedvectorfile;
+    else if (Flags.positionalmethod.equals("permutation_plus_basic")) termFile = Flags.permplustermvectorfile;
+    else if (Flags.positionalmethod.equals("directional")) termFile = Flags.directionalvectorfile;
 
     VerbatimLogger.info("Building positional index, Lucene index: " + luceneIndex
         + ", Seedlength: " + Flags.seedlength
@@ -130,8 +130,7 @@ public class BuildPositionalIndex {
           Flags.maxnonalphabetchars, 2 * Flags.windowradius + 1, Flags.positionalmethod,
             newBasicTermVectors, Flags.contentsfields);
       
-      VectorStoreWriter vecWriter = new VectorStoreWriter();
-      vecWriter.writeVectors(termFile, vecStore);
+      VectorStoreWriter.writeVectors(termFile, vecStore);
 
       for (int i = 1; i < Flags.trainingcycles; ++i) {
         newBasicTermVectors = vecStore.getBasicTermVectors();
@@ -146,12 +145,12 @@ public class BuildPositionalIndex {
       if (Flags.trainingcycles > 1) {
         termFile = termFile.replaceAll("\\..*", "") + Flags.trainingcycles + ".bin";
         docFile = "docvectors" + Flags.trainingcycles + ".bin";
-        vecWriter.writeVectors(termFile, vecStore);
+        VectorStoreWriter.writeVectors(termFile, vecStore);
       }
 
       if (!Flags.docindexing.equals("none")) {
         IncrementalDocVectors.createIncrementalDocVectors(
-            vecStore, luceneIndex, Flags.contentsfields, "incremental_"+docFile);
+            vecStore, luceneIndex, Flags.contentsfields, docFile);
         //System.exit(0);
       }
     }

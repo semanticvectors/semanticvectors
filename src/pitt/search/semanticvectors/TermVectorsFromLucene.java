@@ -268,16 +268,13 @@ public class TermVectorsFromLucene implements VectorStore {
     if (initialTermVectorsFile.equals("random")) {
       logger.info("Creating random term vectors");
       TermEnum terms = indexReader.terms();
-      int tc = 0;
       while(terms.next()){
         Term term = terms.term();
         // Skip terms that don't pass the filter.
         if (!lUtils.termFilter(terms.term(), fieldsToIndex, minFreq, maxFreq, maxNonAlphabet))  {
           continue;
         }
-        tc++;
-        Vector indexVector = VectorFactory.generateRandomVector(
-            vectorType, dimension, seedLength, random);
+        Vector indexVector = VectorFactory.generateRandomVector(vectorType, dimension, seedLength, random);
         // Place each term vector in the vector store.
         this.termVectors.put(term.text(), new ObjectVector(term.text(), indexVector));
       }
