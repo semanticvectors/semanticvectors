@@ -68,7 +68,7 @@ public class RegressionTests {
     for (String fn : filesToBuild) {
       File file = new File(fn);
       if (file.isFile()) {
-        assertTrue("Failed to delete file: ", file.delete());
+        assertTrue("Failed to delete file: " + fn, file.delete());
       }
       file = null;
       assertFalse("File appears to be still present: " + fn, (new File(fn)).isFile());
@@ -118,7 +118,7 @@ public class RegressionTests {
     for (String fn : filesToBuild) {
       File file = new File(fn);
       if (file.isFile()) {
-        assertTrue("Failed to delete file: ", file.delete());
+        assertTrue("Failed to delete file: " + fn, file.delete());
       }
       file = null;
       assertFalse("File appears to be still present: " + fn, (new File(fn)).isFile());
@@ -242,6 +242,8 @@ public class RegressionTests {
   /*
    * This last test seems to throw lots of others off in Windows. I wonder if there's
    * some multithreading going on that makes this whole test suite very unsafe - not sure.
+   */
+  /*
   @Test
   public void testBuildAndSearchRealBalancedPermutationIndex() {
     int peterRank = positionalBuildSearchGetRank(

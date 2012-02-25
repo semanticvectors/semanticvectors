@@ -462,9 +462,9 @@ abstract public class VectorSearcher {
    * Uses implementation of rotation for permutation proposed by Sahlgren et al 2008
    * Should find the term that appears frequently in the position p relative to the
    * index term (i.e. sat +1 would find a term occurring frequently immediately after "sat"
-   * This is a variant that takes into account differt results obtained when using either
+   * This is a variant that takes into account different results obtained when using either
    * permuted or random index vectors as the cue terms, by taking the mean of the results
-   * obtained with each of these options
+   * obtained with each of these options.
    */
   static public class BalancedVectorSearcherPerm extends VectorSearcher {
     Vector oneDirection;
@@ -472,7 +472,6 @@ abstract public class VectorSearcher {
     VectorStore searchVecStore, queryVecStore;
     LuceneUtils luceneUtils;
     String[] queryTerms;
-
 
     /**
      * @param queryVecStore Vector store to use for query generation (this is also reversed).
@@ -482,7 +481,7 @@ abstract public class VectorSearcher {
      * expression. If the string "?" appears, terms best fitting into this position will be returned
      */
 
-    public BalancedVectorSearcherPerm(VectorStore queryVecStore,  VectorStore searchVecStore,  LuceneUtils luceneUtils,   String[] queryTerms)
+    public BalancedVectorSearcherPerm(VectorStore queryVecStore, VectorStore searchVecStore, LuceneUtils luceneUtils,   String[] queryTerms)
     throws IllegalArgumentException, ZeroVectorException {
       super(queryVecStore, searchVecStore, luceneUtils);
       this.queryVecStore = queryVecStore;
@@ -513,7 +512,6 @@ abstract public class VectorSearcher {
      * 
      * @param numResults the number of results / length of the result list.
      */
-
     @Override
     public LinkedList<SearchResult> getNearestNeighbors(int numResults) {
       LinkedList<SearchResult> results = new LinkedList<SearchResult>();
@@ -583,7 +581,6 @@ abstract public class VectorSearcher {
       testVector.normalize();
       return (otherDirection.measureOverlap(testVector));
     }
-
   }
 
   /**
