@@ -91,8 +91,8 @@ public class BuildIndex {
         + ", Number non-alphabet characters: " + Flags.maxnonalphabetchars
         + ", Contents fields are: " + Arrays.toString(Flags.contentsfields) + "\n");
 
-    String termFile = "termvectors.bin";
-    String docFile = "docvectors.bin";
+    String termFile = Flags.termvectorsfile;
+    String docFile = Flags.docvectorsfile;
 
     try{
       TermVectorsFromLucene vecStore;
@@ -115,19 +115,18 @@ public class BuildIndex {
       }
 
       // Create doc vectors and write vectors to disk.
-      VectorStoreWriter vecWriter = new VectorStoreWriter();
       if (Flags.docindexing.equals("incremental")) {
-        vecWriter.writeVectors(termFile, vecStore);
+        VectorStoreWriter.writeVectors(termFile, vecStore);
         IncrementalDocVectors.createIncrementalDocVectors(
-            vecStore, luceneIndex, Flags.contentsfields, "incremental_"+docFile);
+            vecStore, luceneIndex, Flags.contentsfields, docFile);
         IncrementalTermVectors itermVectors = null;
 
         for (int i = 1; i < Flags.trainingcycles; ++i) {
           itermVectors = new IncrementalTermVectors(
               luceneIndex, VectorType.valueOf(Flags.vectortype.toUpperCase()),
-              Flags.dimension, Flags.contentsfields, "incremental_"+docFile);
+              Flags.dimension, Flags.contentsfields, docFile);
 
-          new VectorStoreWriter().writeVectors(
+          VectorStoreWriter.writeVectors(
               "incremental_termvectors"+Flags.trainingcycles+".bin", itermVectors);
 
         // Write over previous cycle's docvectors until final
@@ -157,13 +156,13 @@ public class BuildIndex {
           docFile = "docvectors" + Flags.trainingcycles + ".bin";
         }
         VerbatimLogger.info("Writing term vectors to " + termFile + "\n");
-        vecWriter.writeVectors(termFile, vecStore);
+        VectorStoreWriter.writeVectors(termFile, vecStore);
         VerbatimLogger.info("Writing doc vectors to " + docFile + "\n");
-        vecWriter.writeVectors(docFile, writeableDocVectors);
+        VectorStoreWriter.writeVectors(docFile, writeableDocVectors);
       } else {
         // Write term vectors to disk even if there are no docvectors to output.
         VerbatimLogger.info("Writing term vectors to " + termFile + "\n");
-        vecWriter.writeVectors(termFile, vecStore);
+        VectorStoreWriter.writeVectors(termFile, vecStore);
       }
     }
     catch (IOException e) {

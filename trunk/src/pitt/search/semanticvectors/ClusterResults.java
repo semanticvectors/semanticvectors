@@ -35,6 +35,7 @@
 
 package pitt.search.semanticvectors;
 
+import java.io.IOException;
 import java.util.Random;
 import java.util.logging.Logger;
 
@@ -50,6 +51,13 @@ import pitt.search.semanticvectors.vectors.VectorUtils;
  */
 public class ClusterResults {
   private static final Logger logger = Logger.getLogger(ClusterResults.class.getCanonicalName());
+  
+  public static String usageMessage = "ClusterResults class in package pitt.search.semanticvectors"
+      + "\nUsage: java pitt.search.semanticvectors.ClusterResults"
+      + "\n                        -numsearchresults [number of search results]" 
+      + "\n                        -numclusters [number of clusters]"
+      + "\n                        <SEARCH ARGS>"
+      + "\nwhere SEARCH ARGS is an expression passed to Search class.";
   
   /**
    * Thin struct for storing cluster information.
@@ -126,24 +134,11 @@ public class ClusterResults {
   }
 
   /**
-   * Prints the following usage message: <br>
-   * <code>
-   * ClusterResults class in package pitt.search.semanticvectors
-   * <br>Usage: java pitt.search.semanticvectors.BuildIndex 
-   * <br>-numsearchresults [number of search results] 
-   * <br>-numclusters [number of clusters]
-   * <br> &lt;SEARCH ARGS&gt;
-   * where SEARCH ARGS is an expression passed to Search class.
-   * </code>
-   * @see Search#usageMessage
+   * Prints out {@link #usageMessage}
+   * 
+   * @see also Search#usageMessage
    */
   public static void usage() {
-    String usageMessage = "\nClusterResults class in package pitt.search.semanticvectors"
-      + "\nUsage: java pitt.search.semanticvectors.ClusterResults"
-      + "\n                        -numsearchresults [number of search results]" 
-      + "\n                        -numclusters [number of clusters]"
-      + "\n                        <SEARCH ARGS>"
-      + "\nwhere SEARCH ARGS is an expression passed to Search class.";
     System.err.println(usageMessage);
   }
   
@@ -156,8 +151,11 @@ public class ClusterResults {
     for (int i = 0; i < clusters.centroids.length; ++i) {
       centroidsOutput.putVector(Integer.toString(i), clusters.centroids[i]);
     }
-    VectorStoreWriter vecWriter = new VectorStoreWriter();
-    vecWriter.writeVectors("cluster_centroids.bin", centroidsOutput);
+    try {
+      VectorStoreWriter.writeVectors("cluster_centroids.bin", centroidsOutput);
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
   }
 
   /**

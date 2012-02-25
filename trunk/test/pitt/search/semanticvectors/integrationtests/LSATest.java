@@ -60,7 +60,7 @@ public class LSATest {
     // Cut dimension to 20; only 22 docs in test data and using more dimensions than this
     // causes ArrayIndexOutOfBoundsException for SVD library.
     String buildCmd = "-dimension 20 -vectortype real positional_index";
-    String[] filesToBuild = new String[] {"svd_termvectors.bin", "svd_docvectors.bin"};
+    String[] filesToBuild = new String[] {"termvectors.bin", "docvectors.bin"};
     String[] buildArgs = buildCmd.split("\\s+");
     for (String fn : filesToBuild) {
       if (new File(fn).isFile()) {
@@ -72,7 +72,7 @@ public class LSATest {
     for (String fn: filesToBuild) assertTrue((new File(fn)).isFile());
 
     String searchCmd =
-        "-queryvectorfile svd_termvectors.bin -searchvectorfile svd_termvectors.bin -searchtype sum simon";
+        "-queryvectorfile termvectors.bin -searchvectorfile termvectors.bin -searchtype sum simon";
     String[] searchArgs = searchCmd.split("\\s+");
     List<SearchResult> results = Search.RunSearch(searchArgs, 10);
     int rank = 1;
@@ -87,7 +87,7 @@ public class LSATest {
     }
     assertTrue(rank < 5);
 
-    searchCmd = "-queryvectorfile svd_termvectors.bin -searchvectorfile svd_docvectors.bin pilate";
+    searchCmd = "-queryvectorfile termvectors.bin -searchvectorfile docvectors.bin pilate";
     searchArgs = searchCmd.split("\\s+");
     results = Search.RunSearch(searchArgs, 10);
     rank = 1;

@@ -212,9 +212,8 @@ public class LSA {
     DMat uT = svdR.Ut;
 
     // Open file and write headers.
-    String termFile = "svd_termvectors.bin";
     FSDirectory fsDirectory = FSDirectory.open(new File("."));
-    IndexOutput outputStream = fsDirectory.createOutput(termFile);
+    IndexOutput outputStream = fsDirectory.createOutput(Flags.termvectorsfile);
 
     // Write header giving number of dimensions for all vectors and make sure type is real.
     outputStream.writeString("-dimension " + Flags.dimension + " -vectortype real");
@@ -234,12 +233,11 @@ public class LSA {
     }
     outputStream.flush();
     outputStream.close();
-    VerbatimLogger.info("Wrote " + cnt + " term vectors incrementally to file " + termFile + ".\n");
+    VerbatimLogger.info("Wrote " + cnt + " term vectors incrementally to file " + Flags.termvectorsfile + ".\n");
 
     // Write document vectors.
     // Open file and write headers.
-    String docFile = "svd_docvectors.bin";
-    outputStream = fsDirectory.createOutput(docFile);
+    outputStream = fsDirectory.createOutput(Flags.docvectorsfile);
 
     // Write header giving number of dimensions for all vectors and make sure type is real.
     outputStream.writeString("-dimension " + Flags.dimension + " -vectortype real");
@@ -260,6 +258,7 @@ public class LSA {
     }
     outputStream.flush();
     outputStream.close();
-    VerbatimLogger.info("Wrote " + cnt + " document vectors incrementally to file " + docFile + ". Done.\n");
+    VerbatimLogger.info("Wrote " + cnt + " document vectors incrementally to file "
+                        + Flags.docvectorsfile + ". Done.\n");
   }
 }

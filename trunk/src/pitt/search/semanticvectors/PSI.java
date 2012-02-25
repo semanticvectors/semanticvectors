@@ -179,9 +179,9 @@ public class PSI {
       e.nextElement().getVector().normalize();
     }
 
-    new VectorStoreWriter().writeVectors("elementalvectors.bin", elementalVectors);
-    new VectorStoreWriter().writeVectors("semanticvectors.bin", semanticVectors);
-    new VectorStoreWriter().writeVectors("predicatevectors.bin", predicateVectors);
+    VectorStoreWriter.writeVectors(Flags.elementalvectorfile, elementalVectors);
+    VectorStoreWriter.writeVectors(Flags.semanticvectorfile, semanticVectors);
+    VectorStoreWriter.writeVectors(Flags.predicatevectorfile, predicateVectors);
 
     VerbatimLogger.info("Finished writing vectors.\n");
   }
