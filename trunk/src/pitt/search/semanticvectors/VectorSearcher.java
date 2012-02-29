@@ -99,7 +99,7 @@ abstract public class VectorSearcher {
     //Counters for statistics to calculate standard deviation
     double sum=0, sumsquared=0;
     int count=0;
-    
+
     Enumeration<ObjectVector> vecEnum = searchVecStore.getAllVectors();
     while (vecEnum.hasMoreElements()) {
       // Test this element.
@@ -113,7 +113,7 @@ abstract public class VectorSearcher {
       // returned are no longer just cosine similarities.
       if (this.luceneUtils != null && Flags.usetermweightsinsearch) {
         score = score *
-        luceneUtils.getGlobalTermWeightFromString((String) testElement.getObject());
+            luceneUtils.getGlobalTermWeightFromString((String) testElement.getObject());
       }
 
       if (Flags.stdev) {
@@ -121,7 +121,7 @@ abstract public class VectorSearcher {
         sum += score;
         sumsquared += Math.pow(score, 2);
       }
-      
+
       if (score > threshold) {
         boolean added = false;
         for (int i = 0; i < results.size(); ++i) {
@@ -163,7 +163,7 @@ abstract public class VectorSearcher {
         VectorStore searchVecStore,
         LuceneUtils luceneUtils,
         String[] queryTerms)
-    throws ZeroVectorException {
+            throws ZeroVectorException {
       super(queryVecStore, searchVecStore, luceneUtils);
       this.queryVector = CompoundVectorBuilder.getQueryVector(queryVecStore,
           luceneUtils,
@@ -172,7 +172,7 @@ abstract public class VectorSearcher {
         throw new ZeroVectorException("Query vector is zero ... no results.");
       }
     }
-    
+
     /**
      * @param queryVecStore Vector store to use for query generation.
      * @param searchVecStore The vector store to search.
@@ -184,7 +184,7 @@ abstract public class VectorSearcher {
         VectorStore searchVecStore,
         LuceneUtils luceneUtils,
         Vector queryVector)
-    throws ZeroVectorException {
+            throws ZeroVectorException {
       super(queryVecStore, searchVecStore, luceneUtils);
       this.queryVector = queryVector;
       Vector testVector = searchVecStore.getAllVectors().nextElement().getVector();
@@ -193,43 +193,35 @@ abstract public class VectorSearcher {
         throw new ZeroVectorException("Query vector is zero ... no results.");
       }
     }
-    
-    
+
+
 
     @Override
     public double getScore(Vector testVector) {
       return this.queryVector.measureOverlap(testVector);
     }
   }
-  
+
   /**
    * Class for searching a vector store using the bound product of a series two vectors
    *
    */
   static public class VectorSearcherBoundProduct extends VectorSearcher {
     Vector queryVector;
-    /**
-     * @param queryVecStore Vector store to use for query generation.
-     * @param searchVecStore The vector store to search.
-     * @param luceneUtils LuceneUtils object to use for query weighting. (May be null.)
-     * @param queryTerms Terms that will be parsed into a query
-     * expression. If the string "NOT" appears, terms after this will be negated.
-     */
-    public VectorSearcherBoundProduct(VectorStore queryVecStore, VectorStore queryVecStore2,
-        VectorStore searchVecStore,
-        LuceneUtils luceneUtils,
-        String term1, String term2)
-    throws ZeroVectorException {
+
+    public VectorSearcherBoundProduct(VectorStore queryVecStore, VectorStore boundVecStore,
+        VectorStore searchVecStore, LuceneUtils luceneUtils, String term1, String term2)
+          throws ZeroVectorException {
       super(queryVecStore, searchVecStore, luceneUtils);
-      
+
       this.queryVector = CompoundVectorBuilder.getBoundProductQueryVectorFromString(queryVecStore, term1);
-      queryVector.release(CompoundVectorBuilder.getBoundProductQueryVectorFromString(queryVecStore2, term2));
-       
+      queryVector.release(CompoundVectorBuilder.getBoundProductQueryVectorFromString(boundVecStore, term2));
+
       if (this.queryVector.isZeroVector()) {
         throw new ZeroVectorException("Query vector is zero ... no results.");
       }
     }
-    
+
     /**
      * @param queryVecStore Vector store to use for query generation.
      * @param searchVecStore The vector store to search.
@@ -241,7 +233,7 @@ abstract public class VectorSearcher {
         VectorStore searchVecStore,
         LuceneUtils luceneUtils,
         Vector queryVector)
-    throws ZeroVectorException {
+            throws ZeroVectorException {
       super(queryVecStore, searchVecStore, luceneUtils);
       this.queryVector = queryVector;
       Vector testVector = searchVecStore.getAllVectors().nextElement().getVector();
@@ -250,62 +242,46 @@ abstract public class VectorSearcher {
         throw new ZeroVectorException("Query vector is zero ... no results.");
       }
     }
-    
-    
 
     @Override
     public double getScore(Vector testVector) {
       return this.queryVector.measureOverlap(testVector);
     }
   }
-  
+
   /**
    * Class for searching a vector store using the bound product of a series two vectors
    *
    */
   static public class VectorSearcherBoundProductSubSpace extends VectorSearcher {
-    
-	ArrayList<Vector> disjunctSpace;
+
+    ArrayList<Vector> disjunctSpace;
     VectorType vectorType;
-    
-    /**
-     * @param queryVecStore Vector store to use for query generation.
-     * @param searchVecStore The vector store to search.
-     * @param luceneUtils LuceneUtils object to use for query weighting. (May be null.)
-     * @param queryTerms Terms that will be parsed into a query
-     * expression. If the string "NOT" appears, terms after this will be negated.
-     */
-    public VectorSearcherBoundProductSubSpace(VectorStore queryVecStore, VectorStore queryVecStore2,
-        VectorStore searchVecStore,
-        LuceneUtils luceneUtils,
-        String term1, String term2)
-    throws ZeroVectorException {
+
+    public VectorSearcherBoundProductSubSpace(VectorStore queryVecStore, VectorStore boundVecStore,
+        VectorStore searchVecStore, LuceneUtils luceneUtils, String term1, String term2)
+            throws ZeroVectorException {
       super(queryVecStore, searchVecStore, luceneUtils);
-      
+
       disjunctSpace = new ArrayList<Vector>();
       vectorType = queryVecStore.getVectorType();
-      
-      Vector queryVector = queryVecStore.getVector(term1).copy();
-      
-      if (queryVector.isZeroVector()) {
-          throw new ZeroVectorException("Query vector is zero ... no results.");
-        }
-      
-      this.disjunctSpace = CompoundVectorBuilder.getBoundProductQuerySubSpaceFromString(queryVecStore2, queryVector, term2);
-    
-    }
-    
-  
-    
-    
- 
-  @Override
-  public double getScore(Vector testVector) {
-  	if (!vectorType.equals(VectorType.BINARY))
-  	return 			  VectorUtils.compareWithProjection(testVector, disjunctSpace);
-  	else return BinaryVectorUtils.compareWithProjection(testVector, disjunctSpace);
-  }
 
+      Vector queryVector = queryVecStore.getVector(term1).copy();
+
+      if (queryVector.isZeroVector()) {
+        throw new ZeroVectorException("Query vector is zero ... no results.");
+      }
+
+      this.disjunctSpace = CompoundVectorBuilder.getBoundProductQuerySubSpaceFromString(
+          boundVecStore, queryVector, term2);
+    }
+
+    @Override
+    public double getScore(Vector testVector) {
+      if (!vectorType.equals(VectorType.BINARY))
+        return 			  VectorUtils.compareWithProjection(testVector, disjunctSpace);
+      else return BinaryVectorUtils.compareWithProjection(testVector, disjunctSpace);
+    }
   }
 
   /**
@@ -314,7 +290,7 @@ abstract public class VectorSearcher {
   static public class VectorSearcherSubspaceSim extends VectorSearcher {
     private ArrayList<Vector> disjunctSpace;
     private VectorType vectorType;
-    
+
     /**
      * @param queryVecStore Vector store to use for query generation.
      * @param searchVecStore The vector store to search.
@@ -325,11 +301,11 @@ abstract public class VectorSearcher {
         VectorStore searchVecStore,
         LuceneUtils luceneUtils,
         String[] queryTerms)
-    throws ZeroVectorException {
+            throws ZeroVectorException {
       super(queryVecStore, searchVecStore, luceneUtils);
       this.disjunctSpace = new ArrayList<Vector>();
       this.vectorType = queryVecStore.getVectorType();
-      
+
       for (int i = 0; i < queryTerms.length; ++i) {
         System.out.println("\t" + queryTerms[i]);
         // There may be compound disjuncts, e.g., "A NOT B" as a single argument.
@@ -344,7 +320,7 @@ abstract public class VectorSearcher {
         throw new ZeroVectorException("No nonzero input vectors ... no results.");
       }
       if (!vectorType.equals(VectorType.BINARY))
-      VectorUtils.orthogonalizeVectors(this.disjunctSpace);
+        VectorUtils.orthogonalizeVectors(this.disjunctSpace);
       else BinaryVectorUtils.orthogonalizeVectors(this.disjunctSpace);
     }
 
@@ -355,9 +331,9 @@ abstract public class VectorSearcher {
      */
     @Override
     public double getScore(Vector testVector) {
-    	if (!vectorType.equals(VectorType.BINARY))
-    	return VectorUtils.compareWithProjection(testVector, disjunctSpace);
-    	else return BinaryVectorUtils.compareWithProjection(testVector, disjunctSpace);
+      if (!vectorType.equals(VectorType.BINARY))
+        return VectorUtils.compareWithProjection(testVector, disjunctSpace);
+      else return BinaryVectorUtils.compareWithProjection(testVector, disjunctSpace);
     }
   }
 
@@ -376,7 +352,7 @@ abstract public class VectorSearcher {
         VectorStore searchVecStore,
         LuceneUtils luceneUtils,
         String[] queryTerms)
-    throws ZeroVectorException {
+            throws ZeroVectorException {
       super(queryVecStore, searchVecStore, luceneUtils);
       this.disjunctVectors = new ArrayList<Vector>();
 
@@ -435,12 +411,12 @@ abstract public class VectorSearcher {
         VectorStore searchVecStore,
         LuceneUtils luceneUtils,
         String[] queryTerms)
-    throws IllegalArgumentException, ZeroVectorException {
+            throws IllegalArgumentException, ZeroVectorException {
       super(queryVecStore, searchVecStore, luceneUtils);
 
       try {
         theAvg = pitt.search.semanticvectors.CompoundVectorBuilder.
-        getPermutedQueryVector(queryVecStore, luceneUtils, queryTerms);
+            getPermutedQueryVector(queryVecStore, luceneUtils, queryTerms);
       } catch (IllegalArgumentException e) {
         logger.info("Couldn't create permutation VectorSearcher ...");
         throw e;
@@ -482,7 +458,7 @@ abstract public class VectorSearcher {
      */
 
     public BalancedVectorSearcherPerm(VectorStore queryVecStore, VectorStore searchVecStore, LuceneUtils luceneUtils,   String[] queryTerms)
-    throws IllegalArgumentException, ZeroVectorException {
+        throws IllegalArgumentException, ZeroVectorException {
       super(queryVecStore, searchVecStore, luceneUtils);
       this.queryVecStore = queryVecStore;
       this.searchVecStore = searchVecStore;
@@ -490,9 +466,9 @@ abstract public class VectorSearcher {
 
       try {
         oneDirection = pitt.search.semanticvectors.CompoundVectorBuilder.
-        getPermutedQueryVector(queryVecStore,luceneUtils,queryTerms);
+            getPermutedQueryVector(queryVecStore,luceneUtils,queryTerms);
         otherDirection = pitt.search.semanticvectors.CompoundVectorBuilder.
-        getPermutedQueryVector(searchVecStore,luceneUtils,queryTerms);
+            getPermutedQueryVector(searchVecStore,luceneUtils,queryTerms);
       } catch (IllegalArgumentException e) {
         logger.info("Couldn't create balanced permutation VectorSearcher ...");
         throw e;
@@ -547,7 +523,7 @@ abstract public class VectorSearcher {
           sum += score;
           sumsquared += Math.pow(score, 2);
         }
-        
+
         if (score > threshold) {
           boolean added = false;
           for (int i = 0; i < results.size(); ++i) {

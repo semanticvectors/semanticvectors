@@ -36,12 +36,9 @@
 package pitt.search.semanticvectors.vectors;
 
 import java.util.ArrayList;
-import java.util.Random;
 import java.util.logging.Logger;
 
 import org.apache.lucene.util.OpenBitSet;
-
-
 
 /**
  * This class provides standard vector methods, e.g., cosine measure,
@@ -50,7 +47,6 @@ import org.apache.lucene.util.OpenBitSet;
 public class BinaryVectorUtils {
   private static final Logger logger = Logger.getLogger(BinaryVectorUtils.class.getCanonicalName());
 
- 
   /**
    * The orthogonalize function takes an array of vectors and
    * makes them dissimilar from one another (Hamming distance = n/2) in
@@ -68,8 +64,7 @@ public class BinaryVectorUtils {
    */
   public static boolean orthogonalizeVectors(ArrayList<Vector> vectors) {
     long dimension = vectors.get(0).getDimension();
-   
-    
+
     // Go up through vectors in turn, parameterized by k.
     for (int k = 0; k < vectors.size(); ++k) {
      Vector kthVector = vectors.get(k);
@@ -90,13 +85,7 @@ public class BinaryVectorUtils {
   /**
    * Binary equivalent of comparing to projection in a subspace as occurs with real and complex vectors
    * The score is the sum of any overlap greater than 50% across all vector components of the binary pseudo-subspace
-   * 
-   * @param testVector
-   * @param vectors
-   * @return
-   */
-  
-  
+   */  
   public static double compareWithProjection(Vector testVector, ArrayList<Vector> vectors) {
 	    float score = 0;
 	    for (int i = 0; i < vectors.size(); ++i) {
@@ -109,16 +98,8 @@ public class BinaryVectorUtils {
    * This method provides the equivalent of orthogonalization for binary vectors. Rather than making vector k 
    * orthogonal to vector j, we alter vector j so it has a Hamming distance of 1/n to vector k. This is the 
    * analog of orthogonality in real/complex space.
-   * 
-   * @param vector
-   * @param numchanges 	
-   * @param subvector
    */
-  
-  
-  public static void sampleSubtract(OpenBitSet vector,  OpenBitSet subvector)
-  {	
-	  
+  public static void sampleSubtract(OpenBitSet vector,  OpenBitSet subvector) {	
 	  long numchanges =  vector.size()/2 - OpenBitSet.xorCount(vector, subvector); //total common bits - n/2
 	
 	  java.util.Random random = new java.util.Random();
@@ -128,21 +109,14 @@ public class BinaryVectorUtils {
 	    
 	  int cnt = 0;
 	  
-	  for (int x =0; cnt < numchanges; x++)
-		{	
+	  for (int x =0; cnt < numchanges; x++) {	
 		  if (x == 0) System.err.print(cnt+"/"+ numchanges+".."+"loop...");
 		  if (x >= vector.size()) x =0;
 			double change = random.nextDouble();
-			if (!commonGround.get(x) && change > 0.5)
-			{
-				
+			if (!commonGround.get(x) && change > 0.5) {
 				vector.fastFlip(x);
 				cnt++;
-				
 			}
 		}
-	  
-	  
   }
-  
 }
