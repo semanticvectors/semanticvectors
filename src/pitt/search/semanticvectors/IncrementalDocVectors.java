@@ -59,7 +59,7 @@ public class IncrementalDocVectors {
       IncrementalDocVectors.class.getCanonicalName());
   private VectorType vectorType;
   private int dimension;
-  
+
   private VectorStore termVectorData;
   private IndexReader indexReader;
   private String[] fieldsToIndex;
@@ -75,18 +75,18 @@ public class IncrementalDocVectors {
    * @param termVectorData Has all the information needed to create doc vectors.
    * @param indexDir Directory of the Lucene Index used to generate termVectorData
    * @param fieldsToIndex String[] containing fields indexed when generating termVectorData
-   * @param vectorFileName Filename for the document vectors
+   * @param vectorStoreName Filename for the document vectors
    */
   public static void createIncrementalDocVectors(
       VectorStore termVectorData, String indexDir,
-      String[] fieldsToIndex, String vectorFileName) throws IOException {
+      String[] fieldsToIndex, String vectorStoreName) throws IOException {
     IncrementalDocVectors incrementalDocVectors = new IncrementalDocVectors();
     incrementalDocVectors.dimension = termVectorData.getDimension();
     incrementalDocVectors.vectorType = termVectorData.getVectorType();
     incrementalDocVectors.termVectorData = termVectorData;
     incrementalDocVectors.indexReader = IndexReader.open(FSDirectory.open(new File(indexDir)));
     incrementalDocVectors.fieldsToIndex = fieldsToIndex;
-    incrementalDocVectors.vectorFileName = vectorFileName;
+    incrementalDocVectors.vectorFileName = VectorStoreUtils.getStoreFileName(vectorStoreName);
     if (incrementalDocVectors.lUtils == null) {
       incrementalDocVectors.lUtils = new LuceneUtils(indexDir);
     }
@@ -129,7 +129,7 @@ public class IncrementalDocVectors {
 
       for (String fieldName: fieldsToIndex) {
         TermFreqVector vex =
-          indexReader.getTermFreqVector(dc, fieldName);
+            indexReader.getTermFreqVector(dc, fieldName);
 
         if (vex != null) {
           // Get terms in document and term frequencies.
@@ -142,13 +142,13 @@ public class IncrementalDocVectors {
             float localweight = freq;
             float globalweight = 1;
             float fieldweight = 1;
-            
-            
+
+
             if (Flags.fieldweight) {
-            //field weight: 1/sqrt(number of terms in field)
-            fieldweight = (float) (1/Math.sqrt(terms.length));
+              //field weight: 1/sqrt(number of terms in field)
+              fieldweight = (float) (1/Math.sqrt(terms.length));
             }
-            
+
             if (Flags.termweight.equals("logentropy")) {
               //local weighting: 1+ log (local frequency)
               localweight = new Double(1 + Math.log(localweight)).floatValue();
@@ -156,14 +156,14 @@ public class IncrementalDocVectors {
               globalweight = globalweight * lUtils.getEntropy(term);
             }
             else 
-            if (Flags.termweight.equals("idf")) {
-            		Term term = new Term(fieldName, termString);
-            		 
-            		int docFreq = indexReader.docFreq(term);
-            		if (docFreq > 0) 	
-                    globalweight =  globalweight * (float) Math.log10(indexReader.numDocs()/docFreq);
-            		else globalweight = 0;
-                  }	
+              if (Flags.termweight.equals("idf")) {
+                Term term = new Term(fieldName, termString);
+
+                int docFreq = indexReader.docFreq(term);
+                if (docFreq > 0) 	
+                  globalweight =  globalweight * (float) Math.log10(indexReader.numDocs()/docFreq);
+                else globalweight = 0;
+              }	
 
             // Add contribution from this term, excluding terms that
             // are not represented in termVectorData.
@@ -179,12 +179,12 @@ public class IncrementalDocVectors {
           }
         }
       }
-        // All fields in document have been processed.
-        // Write out documentID and normalized vector.
-        outputStream.writeString(docID);
-        docVector.normalize();
-        docVector.writeToLuceneStream(outputStream);
-      
+      // All fields in document have been processed.
+      // Write out documentID and normalized vector.
+      outputStream.writeString(docID);
+      docVector.normalize();
+      docVector.writeToLuceneStream(outputStream);
+
     } // Finish iterating through documents.
 
     VerbatimLogger.info("Finished writing vectors.\n");

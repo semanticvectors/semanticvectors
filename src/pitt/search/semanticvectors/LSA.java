@@ -213,7 +213,8 @@ public class LSA {
 
     // Open file and write headers.
     FSDirectory fsDirectory = FSDirectory.open(new File("."));
-    IndexOutput outputStream = fsDirectory.createOutput(Flags.termvectorsfile);
+    IndexOutput outputStream = fsDirectory.createOutput(
+        VectorStoreUtils.getStoreFileName(Flags.termvectorsfile));
 
     // Write header giving number of dimensions for all vectors and make sure type is real.
     outputStream.writeString("-dimension " + Flags.dimension + " -vectortype real");
@@ -237,7 +238,7 @@ public class LSA {
 
     // Write document vectors.
     // Open file and write headers.
-    outputStream = fsDirectory.createOutput(Flags.docvectorsfile);
+    outputStream = fsDirectory.createOutput(VectorStoreUtils.getStoreFileName(Flags.docvectorsfile));
 
     // Write header giving number of dimensions for all vectors and make sure type is real.
     outputStream.writeString("-dimension " + Flags.dimension + " -vectortype real");

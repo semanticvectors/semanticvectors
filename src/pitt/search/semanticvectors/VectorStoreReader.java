@@ -43,13 +43,12 @@ import java.io.IOException;
  */
 public class VectorStoreReader {
 
-  public static CloseableVectorStore openVectorStore(String vectorFile) 
-    throws IOException {
+  public static CloseableVectorStore openVectorStore(String storeName) throws IOException {
     CloseableVectorStore vectorStore = null;
     if (Flags.indexfileformat.equals("lucene")) {
-      vectorStore = new VectorStoreReaderLucene(vectorFile);
+      vectorStore = new VectorStoreReaderLucene(VectorStoreUtils.getStoreFileName(storeName));
     } else if (Flags.indexfileformat.equals("text")) {
-      vectorStore = new VectorStoreReaderText(vectorFile);
+      vectorStore = new VectorStoreReaderText(VectorStoreUtils.getStoreFileName(storeName));
     }
     return vectorStore;
   }

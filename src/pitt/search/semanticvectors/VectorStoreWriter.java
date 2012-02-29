@@ -75,10 +75,11 @@ public class VectorStoreWriter {
   /**
    * Writes vectors in text or lucene format depending on {@link Flags#indexfileformat}.
    * 
-   * @param vectorFileName The name of the file to write to
+   * @param storeName The name of the vector store to write to
    * @param objectVectors The vector store to be written to disk
    */
-  public static void writeVectors(String vectorFileName, VectorStore objectVectors) throws IOException {
+  public static void writeVectors(String storeName, VectorStore objectVectors) throws IOException {
+    String vectorFileName = VectorStoreUtils.getStoreFileName(storeName);
     if (Flags.indexfileformat.equals("lucene")) {
       writeVectorsInLuceneFormat(vectorFileName, objectVectors);
     } else if (Flags.indexfileformat.equals("text")) {
