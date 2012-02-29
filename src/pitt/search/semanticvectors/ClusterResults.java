@@ -136,7 +136,7 @@ public class ClusterResults {
   /**
    * Prints out {@link #usageMessage}
    * 
-   * @see also Search#usageMessage
+   * See also {@link Search#usageMessage}
    */
   public static void usage() {
     System.err.println(usageMessage);

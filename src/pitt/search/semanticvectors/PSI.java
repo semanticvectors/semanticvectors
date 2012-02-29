@@ -37,7 +37,6 @@ package pitt.search.semanticvectors;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.Integer;
 import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.HashSet;
@@ -46,7 +45,6 @@ import java.util.logging.Logger;
 
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.*;
-import org.apache.lucene.store.IndexOutput;
 import org.apache.lucene.store.FSDirectory;
 
 import pitt.search.semanticvectors.vectors.Vector;
@@ -69,19 +67,13 @@ public class PSI {
 
   private VectorStoreRAM elementalVectors, semanticVectors, predicateVectors;
   private IndexReader indexReader;
-  private String[] fieldsToIndex;
+ // private String[] fieldsToIndex;
   private LuceneUtils lUtils;
 
   private PSI() {};
 
   /**
-   * Creates incremental doc vectors, getting everything it needs from a
-   * TermVectorsFromLucene object and a Lucene Index directory, and writing to a named file.
-   * 
-   * @param termVectorData Has all the information needed to create doc vectors.
-   * @param indexDir Directory of the Lucene Index used to generate termVectorData
-   * @param fieldsToIndex String[] containing fields indexed when generating termVectorData
-   * @param vectorFileName Filename for the document vectors
+   * Creates PSI vectors incrementally, using the fields "subject" and "object" from a Lucene index.
    */
   public static void createIncrementalPSIVectors(
       VectorType vectorType, int dimension, int seedlength, String indexDir) throws IOException {
@@ -91,8 +83,8 @@ public class PSI {
     incrementalPSIVectors.seedlength = seedlength;
     incrementalPSIVectors.indexReader = IndexReader.open(FSDirectory.open(new File(indexDir)));
 
-    String[] fieldsToIndex = {"subject", "object"};
-    incrementalPSIVectors.fieldsToIndex = fieldsToIndex;
+   // String[] fieldsToIndex = {"subject", "object"};
+   // incrementalPSIVectors.fieldsToIndex = fieldsToIndex;
 
     if (incrementalPSIVectors.lUtils == null) {
       incrementalPSIVectors.lUtils = new LuceneUtils(indexDir);

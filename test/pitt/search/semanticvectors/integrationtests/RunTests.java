@@ -69,8 +69,7 @@ public class RunTests {
 
   public static boolean testDataPrepared = false;
 
-  public static String vectorTextFile = "testtermvectors.txt";
-  public static String vectorBinFile = "testtermvectors.bin";
+  public static String vectorStoreName = "testtermvectors";
   public static String lucenePositionalIndexDir = "positional_index";
 
   public static String testVectors = "-dimension 3 -vectortype real\n"
@@ -107,11 +106,11 @@ public class RunTests {
 
     // Create basic vector store files. No Lucene / corpus dependencies here.
     try {
-      BufferedWriter outBuf = new BufferedWriter(new FileWriter(vectorTextFile));
+      BufferedWriter outBuf = new BufferedWriter(new FileWriter(vectorStoreName + ".txt"));
       outBuf.write(testVectors);
       outBuf.close();
 
-      String[] translaterArgs = {"-TEXTTOLUCENE", vectorTextFile, vectorBinFile};
+      String[] translaterArgs = {"-TEXTTOLUCENE", vectorStoreName + ".txt", vectorStoreName + ".bin"};
       VectorStoreTranslater.main(translaterArgs);
     } catch (IOException e) {
       System.err.println("Failed to prepare test data ... abandoning tests.");

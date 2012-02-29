@@ -64,7 +64,7 @@ public class CompoundVectorBuilder {
   private LuceneUtils lUtils;
 
   private static final Logger logger =
-    Logger.getLogger(CompoundVectorBuilder.class.getCanonicalName());
+      Logger.getLogger(CompoundVectorBuilder.class.getCanonicalName());
 
   public CompoundVectorBuilder (VectorStore vecReader, LuceneUtils lUtils) {
     this.vecReader = vecReader;
@@ -97,7 +97,7 @@ public class CompoundVectorBuilder {
         } else {
           // If we get to here, there was more than one "?" argument.
           logger.severe("Illegal query argument: arguments to getPermutedQueryVector must " +
-          "have only one '?' string to denote target term position.");
+              "have only one '?' string to denote target term position.");
           throw new IllegalArgumentException();
         }
       }
@@ -105,7 +105,7 @@ public class CompoundVectorBuilder {
     // If we get to here, there were no "?" arguments.
     if (queryTermPosition == -1) {
       logger.severe("Illegal query argument: arguments to getPermutedQueryVector must " +
-      "have exactly one '?' string to denote target term position.");
+          "have exactly one '?' string to denote target term position.");
       throw new IllegalArgumentException();
     }
 
@@ -153,78 +153,74 @@ public class CompoundVectorBuilder {
    * @param queryString
    * @return the resulting query vector
    */
-  
-  
- public static Vector getBoundProductQueryVectorFromString(VectorStore vecReader, String queryString)
- {
-     //allow for bundling of multiple concepts/relations - split initially at "+" to construct vectors to be superposed
-     StringTokenizer bundlingTokenizer = new StringTokenizer(queryString,"+");
-     Vector bundled_queryvector = VectorFactory.createZeroVector(vecReader.getVectorType(), vecReader.getDimension());
-     while (bundlingTokenizer.hasMoreTokens())
-     { 
-     //allow for binding of multiple concepts/relations
-     StringTokenizer bindingTokenizer = new StringTokenizer(bundlingTokenizer.nextToken(),"*");
-     Vector bound_queryvector = vecReader.getVector(bindingTokenizer.nextToken()).copy();
-     
-     while (bindingTokenizer.hasMoreTokens())
-   	  bound_queryvector.bind(vecReader.getVector(bindingTokenizer.nextToken()));
-    
-     bundled_queryvector.superpose(bound_queryvector, 1, null);
-     
-     }
-     
-     
-     bundled_queryvector.normalize();
-     return bundled_queryvector;
- }
- 
- 
- /**
-  * Method gets a query subspace from a query string of the form:
-  * relation1*relation2+relation3*relation4 
-  * 
-  * the resulting subspace (or binary approximation) will be derived from the bound product of concept1 and r1*r2, and the
-  * bound product of the concept vector  and relation r3*r4.
-  * 
-  * this method facilitates the combination of single or dual predicate paths using the quantum OR operator, or a binary approximation thereof
-  * 
-  * @param vecReader
-  * @param queryString
-  * @return
-  */
- 
- 
-public static ArrayList<Vector> getBoundProductQuerySubSpaceFromString(VectorStore vecReader, Vector conceptVector, String queryString)
-{
-	ArrayList<Vector> disjunctSpace = new ArrayList<Vector>();
-    //split initially at "+" to construct derive components
-    StringTokenizer subspaceTokenizer = new StringTokenizer(queryString,"+");
-   
-    while (subspaceTokenizer.hasMoreTokens())
+
+
+  public static Vector getBoundProductQueryVectorFromString(VectorStore vecReader, String queryString)
+  {
+    //allow for bundling of multiple concepts/relations - split initially at "+" to construct vectors to be superposed
+    StringTokenizer bundlingTokenizer = new StringTokenizer(queryString,"+");
+    Vector bundled_queryvector = VectorFactory.createZeroVector(vecReader.getVectorType(), vecReader.getDimension());
+    while (bundlingTokenizer.hasMoreTokens())
     { 
-    //allow for binding of multiple concepts/relations
-    StringTokenizer bindingTokenizer = new StringTokenizer(subspaceTokenizer.nextToken(),"*");
-    Vector bound_queryvector = vecReader.getVector(bindingTokenizer.nextToken()).copy();
-    
-    while (bindingTokenizer.hasMoreTokens())
-  	  bound_queryvector.bind(vecReader.getVector(bindingTokenizer.nextToken()));
-   
-    bound_queryvector.release(conceptVector);
-    disjunctSpace.add(bound_queryvector);
+      //allow for binding of multiple concepts/relations
+      StringTokenizer bindingTokenizer = new StringTokenizer(bundlingTokenizer.nextToken(),"*");
+      Vector bound_queryvector = vecReader.getVector(bindingTokenizer.nextToken()).copy();
+
+      while (bindingTokenizer.hasMoreTokens())
+        bound_queryvector.bind(vecReader.getVector(bindingTokenizer.nextToken()));
+
+      bundled_queryvector.superpose(bound_queryvector, 1, null);
+
     }
-    
-   
-    if (disjunctSpace.size() > 1)
-    {
-  	  if (vecReader.getVectorType().equals(VectorType.BINARY))
-  		  BinaryVectorUtils.orthogonalizeVectors(disjunctSpace);
-  	      else  VectorUtils.orthogonalizeVectors(disjunctSpace);
+
+
+    bundled_queryvector.normalize();
+    return bundled_queryvector;
+  }
+
+
+  /**
+   * Method gets a query subspace from a query string of the form:
+   * relation1*relation2+relation3*relation4 
+   * 
+   * The resulting subspace (or binary approximation) will be derived from the bound product of concept1 and r1*r2, and the
+   * bound product of the concept vector  and relation r3*r4.
+   * 
+   * This method facilitates the combination of single or dual predicate paths using the quantum OR operator, or a binary approximation thereof
+   * 
+   * @param vecReader Vector store reader for input
+   * @param queryString Query expression to be turned into vector subspace
+   * @return List of vectors that are basis elements for subspace
+   */
+  public static ArrayList<Vector> getBoundProductQuerySubSpaceFromString(
+      VectorStore vecReader, Vector conceptVector, String queryString) {
+    ArrayList<Vector> disjunctSpace = new ArrayList<Vector>();
+    // Split initially at "+" to construct derive components.
+    StringTokenizer subspaceTokenizer = new StringTokenizer(queryString,"+");
+
+    while (subspaceTokenizer.hasMoreTokens()) { 
+      // Allow for binding of multiple concepts/relations.
+      StringTokenizer bindingTokenizer = new StringTokenizer(subspaceTokenizer.nextToken(),"*");
+      Vector boundQueryvector = vecReader.getVector(bindingTokenizer.nextToken()).copy();
+
+      while (bindingTokenizer.hasMoreTokens()) {
+        boundQueryvector.bind(vecReader.getVector(bindingTokenizer.nextToken()));
+      }
+
+      boundQueryvector.release(conceptVector);
+      disjunctSpace.add(boundQueryvector);
     }
-   
+
+    if (disjunctSpace.size() > 1) {
+      if (vecReader.getVectorType().equals(VectorType.BINARY)) {
+        BinaryVectorUtils.orthogonalizeVectors(disjunctSpace);
+      } else {
+        VectorUtils.orthogonalizeVectors(disjunctSpace);
+      }
+    }
     return disjunctSpace;
-}
-  
-  
+  }
+
   /**
    * Method gets a query vector from a query string, i.e., a
    * space-separated list of queryterms.
@@ -367,9 +363,9 @@ public static ArrayList<Vector> getBoundProductQuerySubSpaceFromString(VectorSto
     }
     vectorList.add(getAdditiveQueryVector(positiveTerms));
     if (!vecReader.getVectorType().equals(VectorType.BINARY))
-    	VectorUtils.orthogonalizeVectors(vectorList);
-        else BinaryVectorUtils.orthogonalizeVectors(vectorList);
-    
+      VectorUtils.orthogonalizeVectors(vectorList);
+    else BinaryVectorUtils.orthogonalizeVectors(vectorList);
+
     return vectorList.get(vectorList.size() - 1);
   }
 }
