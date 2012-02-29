@@ -78,9 +78,8 @@ public class VectorStoreTranslater {
       } catch (IOException e) {
         throw e;
       }
-      VectorStoreWriter vecWriter = new VectorStoreWriter();
       VerbatimLogger.info("Writing term vectors to " + outfile + "\n");
-      vecWriter.writeVectorsInTextFormat(outfile, vecReader);
+      VectorStoreWriter.writeVectorsInTextFormat(outfile, vecReader);
       vecReader.close();
     }
 
@@ -92,9 +91,8 @@ public class VectorStoreTranslater {
       } catch (IOException e) {
         throw e;
       }
-      VectorStoreWriter vecWriter = new VectorStoreWriter();
       VerbatimLogger.info("Writing term vectors to " + outfile + "\n");
-      vecWriter.writeVectorsInLuceneFormat(outfile, vecReader);
+      VectorStoreWriter.writeVectorsInLuceneFormat(outfile, vecReader);
       vecReader.close();
     }
   }

@@ -120,11 +120,11 @@ public class Flags {
     "Format used for serializing / deserializing vectors from disk";
   public static final String[] indexfileformatValues = {"lucene", "text"};
 
-  public static String termvectorsfile = "termvectors.bin";
-  public static String docvectorsfile = "docvectors.bin";
-  public static String termtermvectorsfile = "termtermvectors.bin";
+  public static String termvectorsfile = "termvectors";
+  public static String docvectorsfile = "docvectors";
+  public static String termtermvectorsfile = "termtermvectors";
   
-  public static String queryvectorfile = "termvectors.bin";
+  public static String queryvectorfile = "termvectors";
   public static String queryvectorfileDescription = "Principal vector store for finding query vectors.";
 
   public static String searchvectorfile = "";
@@ -136,25 +136,25 @@ public class Flags {
   public static String boundvectorfileDescription =
       "Auxiliary vector store used when searching for boundproducts. Used only in some searchtypes.";
 
-  public static final String elementalvectorfile = "elementalvectors.bin";
+  public static final String elementalvectorfile = "elementalvectors";
   public static String elementalvectorfileDescription =
       "Random elemental vectors, sometimes written out, and used (e.g.) in conjunction with permuted vector file.";
   
-  public static final String semanticvectorfile = "semanticvectors.bin";
+  public static final String semanticvectorfile = "semanticvectors";
   public static String semanticvectorfileDescription = "Semantic vectors; used so far as a name in PSI.";
 
-  public static final String predicatevectorfile = "predicatevectors.bin";
+  public static final String predicatevectorfile = "predicatevectors";
   public static String predicatevectorfileDescription = "Vectors used to represent predicates in PSI.";
   
-  public static String permutedvectorfile = "permtermvectors.bin";
+  public static String permutedvectorfile = "permtermvectors";
   public static String permutedvectorfileDescription =
       "Permuted term vectors, output by -positionalmethod permutation.";
   
-  public static String directionalvectorfile ="drxntermvectors.bin";
+  public static String directionalvectorfile ="drxntermvectors";
   public static String directionalvectorfileDescription =
       "Permuted term vectors, output by -positionalmethod directional";
   
-  public static String permplustermvectorfile ="permplustermvectors.bin";
+  public static String permplustermvectorfile ="permplustermvectors";
   public static String permplustermvectorfileDescription =
       "Permuted term vectors, output by -positionalmethod permutation_plus_basic";
   
