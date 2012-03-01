@@ -198,9 +198,7 @@ public class BinaryVector implements Vector {
 
     // Calculate hamming distance in place using cardinality and XOR, then return bitset to
     // original state.
-    this.bitSet.xor(binaryOther.bitSet);
-    double hammingDistance = this.bitSet.cardinality();
-    this.bitSet.xor(binaryOther.bitSet);
+    double hammingDistance = OpenBitSet.xorCount(binaryOther.bitSet, this.bitSet);
     return 2*(0.5 - (hammingDistance / (double) dimension));
   }
 
