@@ -3,6 +3,20 @@
 
 Even-numbered versions are releases. Odd-numbered versions are in development. It follows that the most recent code and the `build.xml` file in the SVN repository is always odd-numbered.
 
+=== Version 3.4 ===
+
+Main addition is PredicationBasedSemanticIndexing (PSI). Works with real, complex, and binary numbers. This is a big advance, thanks again to Trevor Cohen.
+
+Also (related) introduced better support for binary orthogonalization, binding and bundling operations on complex vectors.
+
+Several other flags, tweaks, and options, including:
+
+  * `-docidfield` can now be set to fields other than `path`. (Fixes issue 53.)
+  * `idf` is an option for `-termweight` (and seems to perform particularly well for complex directional indexing).
+  * SVD automatically cuts `-dimension` to the number of documents if initially greater, fixing reported bug.
+  * All hardcoded filenames replaced with flag-configured variables, and extensions `.bin` and `.txt` added automatically depending on      `-indexfileformat`.
+  * Several minor improvements to integration tests, particularly improving some previsou Windows-related bugs.
+
 === Version 3.2 ===
 
 Fixed support for LSA with real typed vectors. (LSA is still not supported with complex and binary vectors.)
