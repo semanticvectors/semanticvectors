@@ -247,7 +247,9 @@ public class Search {
       }
     } 
     else if (Flags.searchtype.equals("boundproduct")) {
-        // Binds vectors to faciliate search across specific relations
+       
+    	if (args.length == 2)
+    	{// Binds vectors to faciliate search across specific relations
         try {
           // Create VectorSearcher and search for nearest neighbors.
           vecSearcher =
@@ -260,7 +262,22 @@ public class Search {
           logger.info(zve.getMessage());
           results = new LinkedList<SearchResult>();
         }
-      }
+        }
+      else  
+          // Binds vectors to faciliate search across specific relations
+          try {
+            // Create VectorSearcher and search for nearest neighbors.
+            vecSearcher =
+                new VectorSearcher.VectorSearcherBoundProduct(queryVecReader, boundVecReader,
+                                                      searchVecReader,
+                                                      luceneUtils,
+                                                      args[0]);
+            results = vecSearcher.getNearestNeighbors(numResults);
+          } catch (ZeroVectorException zve) {
+            logger.info(zve.getMessage());
+            results = new LinkedList<SearchResult>();
+          }
+        }
     else if (Flags.searchtype.equals("boundproductsubspace")) {
         // Binds vectors to faciliate search across multiple relationship paths
         try {
