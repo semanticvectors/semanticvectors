@@ -4,7 +4,7 @@ Predication-based Semantic Indexing, or PSI, is an application of distributional
 
 PSI is integrated and available in SemanticVectors as of version 3.4, and works with real, binary, and complex vectors.
 
-For now, to get it working, please see the example data and commands in the integration tests. Please contact the project if you would like better instructions ;)
+For now, to get it working, please see the example data and commands in the integration tests. (Please contact the project if you would like better instructions than this!)
 
 See [http://www.ncbi.nlm.nih.gov/pmc/articles/PMC2815384/pdf/amia-f2009-114.pdf Predication-based Semantic Indexing: Permutations as a Means to Encode Predications in Semantic Space.] Cohen T, Schvaneveldt, R. Rindlesch, T. AMIA Annu Symp Proc. 2009. 114-118.
 
