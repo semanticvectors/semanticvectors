@@ -144,6 +144,68 @@ public class CompoundVectorBuilder {
 
   /**
    * Method gets a query vector from a query string of the form:
+   * S(concept1)*E(relation2)+S(concept3)*E(relation4) 
+   * 
+   * the resulting vector will be the bundle of the semantic vector for each concept
+   * bound to the elemental vector of the relevant relation
+   * 
+   * @param vecReader
+   * @param queryString
+   * @return the resulting query vector
+   */
+
+  
+  private static Vector getVector(VectorStore semanticVectors, VectorStore elementalVectors, String term)
+  {
+ 	 if (term.startsWith("E(") && term.endsWith(")"))
+ 			 return elementalVectors.getVector(term.substring(2,term.length()-1)).copy();
+     else if (term.startsWith("S(") && term.endsWith(")"))
+     		return semanticVectors.getVector(term.substring(2,term.length()-1)).copy();
+     else return VectorFactory.createZeroVector(semanticVectors.getVectorType(), semanticVectors.getDimension());
+  }
+   
+   
+  public static Vector getBoundProductQueryVectorFromString(VectorStore semanticVectors, VectorStore elementalVectors, String queryString)
+  {
+      //allow for bundling of multiple concepts/relations - split initially at "+" to construct vectors to be superposed
+      StringTokenizer bundlingTokenizer = new StringTokenizer(queryString,"+");
+      Vector bundled_queryvector = VectorFactory.createZeroVector(semanticVectors.getVectorType(), semanticVectors.getDimension());
+      while (bundlingTokenizer.hasMoreTokens())
+      { 
+      //allow for binding of multiple concepts/relations
+      StringTokenizer bindingTokenizer = new StringTokenizer(bundlingTokenizer.nextToken(),"*");
+      
+      String nextToken = bindingTokenizer.nextToken();
+      Vector bound_queryvector = null;
+      
+      bound_queryvector = getVector(semanticVectors, elementalVectors, nextToken).copy();
+          
+      
+      while (bindingTokenizer.hasMoreTokens())
+    	  {
+     	nextToken = bindingTokenizer.nextToken();
+         Vector bound_queryvector2 = null;
+         bound_queryvector2 = getVector(semanticVectors, elementalVectors, nextToken).copy();
+         
+          //sequence of operations important for complex vectors
+          bound_queryvector2.release(bound_queryvector);
+          bound_queryvector = bound_queryvector2;
+         
+    	  }
+      
+     
+      bundled_queryvector.superpose(bound_queryvector, 1, null);
+      
+      }
+      
+      
+      bundled_queryvector.normalize();
+      return bundled_queryvector;
+  }
+
+  
+  /**
+   * Method gets a query vector from a query string of the form:
    * concept1*relation2+concept3*relation4 
    * 
    * the resulting vector will be the bundle of the bound product of concept1 and relation 1, and the
@@ -154,7 +216,7 @@ public class CompoundVectorBuilder {
    * @return the resulting query vector
    */
 
-
+  
   public static Vector getBoundProductQueryVectorFromString(VectorStore vecReader, String queryString)
   {
     //allow for bundling of multiple concepts/relations - split initially at "+" to construct vectors to be superposed

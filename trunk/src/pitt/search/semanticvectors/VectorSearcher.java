@@ -222,6 +222,20 @@ abstract public class VectorSearcher {
       }
     }
 
+    
+
+        public VectorSearcherBoundProduct(VectorStore queryVecStore, VectorStore boundVecStore,
+            VectorStore searchVecStore, LuceneUtils luceneUtils, String term1)
+              throws ZeroVectorException {
+          super(queryVecStore, searchVecStore, luceneUtils);
+
+          this.queryVector = CompoundVectorBuilder.getBoundProductQueryVectorFromString(queryVecStore, boundVecStore, term1);
+        
+          if (this.queryVector.isZeroVector()) {
+            throw new ZeroVectorException("Query vector is zero ... no results.");
+          }
+        }
+    
     /**
      * @param queryVecStore Vector store to use for query generation.
      * @param searchVecStore The vector store to search.
