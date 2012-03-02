@@ -37,6 +37,8 @@ public class IndexFilePositions {
     if (args.length > 0) {
     args = Flags.parseCommandLineFlags(args);
     if (Flags.porterstemmer) INDEX_DIR = new File("stemmed_positional_index");	
+    //allow for the specification of a directory to index to
+    if (Flags.indexRootDirectory.length() > 0) INDEX_DIR = new File(Flags.indexRootDirectory+INDEX_DIR.getName());
     }
     if (INDEX_DIR.exists()) {
       System.out.println(INDEX_DIR.getAbsolutePath());
