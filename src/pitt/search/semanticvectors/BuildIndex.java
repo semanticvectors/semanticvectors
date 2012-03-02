@@ -118,7 +118,7 @@ public class BuildIndex {
       if (Flags.docindexing.equals("incremental")) {
         VectorStoreWriter.writeVectors(termFile, vecStore);
         IncrementalDocVectors.createIncrementalDocVectors(
-            vecStore, luceneIndex, Flags.contentsfields, docFile);
+            vecStore, luceneIndex, Flags.contentsfields, "incremental_"+docFile);
         IncrementalTermVectors itermVectors = null;
 
         for (int i = 1; i < Flags.trainingcycles; ++i) {
