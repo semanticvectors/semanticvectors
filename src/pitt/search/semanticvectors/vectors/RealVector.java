@@ -257,27 +257,27 @@ public class RealVector implements Vector {
   
   @Override
   /**
-   * Implements release using the {#link #convolve} method - not yet implemented.
+   * Implements release using the {@link #bind} method.
    */
   public void release(Vector other, int direction) {
+    this.bind(other, -direction);
   }
   
   @Override
   /**
-   * Implements release using the {#link #convolve} method - not yet implemented.
+   * Implements release using the {@link #bind} method.
    */
   public void bind(Vector other) {
-
+    this.bind(other, 1);
   }
   @Override
   /**
-   * Implements release using the {#link #convolve} method - not yet implemented.
+   * Implements release using the {@link #bind} method.
    */
   public void release(Vector other) {
-
+    this.bind(other, -1);
   }
   
-
   @Override
   /**
    * Normalizes the vector, converting sparse to dense representations in the process.

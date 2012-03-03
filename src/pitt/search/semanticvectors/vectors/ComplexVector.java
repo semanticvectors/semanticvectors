@@ -414,7 +414,7 @@ public class ComplexVector implements Vector {
 
   @Override
   /**
-   * Implements binding using the {#link #convolve} method.
+   * Implements binding using the {@link #convolve} method.
    */
   public void bind(Vector other, int direction) {
     IncompatibleVectorsException.checkVectorsCompatible(this, other);
@@ -424,34 +424,28 @@ public class ComplexVector implements Vector {
   
   @Override
   /**
-   * Implements release using the {#link #convolve} method - not yet implemented.
+   * Implements release using the {@link #bind} method.
    */
   public void release(Vector other, int direction) {
+    this.bind(other, -direction);
   }
   
   @Override
   /**
-   * Implements release using the {#link #convolve} method - not yet implemented.
+   * Implements release using the {@link #bind} method.
    */
   public void bind(Vector other) {
-	 IncompatibleVectorsException.checkVectorsCompatible(this, other);
-	 ComplexVector complexOther = (ComplexVector) other;
-	 this.convolve(complexOther, 1);
+	 this.bind(other, 1);
   }
+
   @Override
   /**
-   * Implements release using the {#link #convolve} method - not yet implemented.
+   * Implements release using the {@link #bind} method.
    */
   public void release(Vector other) {
-		 IncompatibleVectorsException.checkVectorsCompatible(this, other);
-		 ComplexVector complexOther = (ComplexVector) other;
-		 this.convolve(complexOther, -1);
-	
+		 this.bind(other, -1);
   }
-  
-  
-  
-  
+
   /**
    * Convolves this vector with the other. If the value of direction <= 0
    * then the correlation operation is performed, ie. convolution inverse
