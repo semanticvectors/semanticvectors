@@ -159,15 +159,13 @@ abstract public class VectorSearcher {
      * @param queryTerms Terms that will be parsed into a query
      * expression. If the string "NOT" appears, terms after this will be negated.
      */
-    public VectorSearcherCosine(VectorStore queryVecStore,
-        VectorStore searchVecStore,
-        LuceneUtils luceneUtils,
-        String[] queryTerms)
+    public VectorSearcherCosine(
+        VectorStore queryVecStore, VectorStore searchVecStore,
+        LuceneUtils luceneUtils, String[] queryTerms)
             throws ZeroVectorException {
       super(queryVecStore, searchVecStore, luceneUtils);
-      this.queryVector = CompoundVectorBuilder.getQueryVector(queryVecStore,
-          luceneUtils,
-          queryTerms);
+      this.queryVector = CompoundVectorBuilder.getQueryVector(
+          queryVecStore, luceneUtils, queryTerms);
       if (this.queryVector.isZeroVector()) {
         throw new ZeroVectorException("Query vector is zero ... no results.");
       }
@@ -180,10 +178,9 @@ abstract public class VectorSearcher {
      * @param queryVector Vector representing query
      * expression. If the string "NOT" appears, terms after this will be negated.
      */
-    public VectorSearcherCosine(VectorStore queryVecStore,
-        VectorStore searchVecStore,
-        LuceneUtils luceneUtils,
-        Vector queryVector)
+    public VectorSearcherCosine(
+        VectorStore queryVecStore, VectorStore searchVecStore,
+        LuceneUtils luceneUtils, Vector queryVector)
             throws ZeroVectorException {
       super(queryVecStore, searchVecStore, luceneUtils);
       this.queryVector = queryVector;
@@ -194,8 +191,6 @@ abstract public class VectorSearcher {
       }
     }
 
-
-
     @Override
     public double getScore(Vector testVector) {
       return this.queryVector.measureOverlap(testVector);
@@ -203,15 +198,14 @@ abstract public class VectorSearcher {
   }
 
   /**
-   * Class for searching a vector store using the bound product of a series two vectors
-   *
+   * Class for searching a vector store using the bound product of a series two vectors.
    */
   static public class VectorSearcherBoundProduct extends VectorSearcher {
     Vector queryVector;
 
     public VectorSearcherBoundProduct(VectorStore queryVecStore, VectorStore boundVecStore,
         VectorStore searchVecStore, LuceneUtils luceneUtils, String term1, String term2)
-          throws ZeroVectorException {
+            throws ZeroVectorException {
       super(queryVecStore, searchVecStore, luceneUtils);
 
       this.queryVector = CompoundVectorBuilder.getBoundProductQueryVectorFromString(queryVecStore, term1);
@@ -222,20 +216,18 @@ abstract public class VectorSearcher {
       }
     }
 
-    
+    public VectorSearcherBoundProduct(VectorStore queryVecStore, VectorStore boundVecStore,
+        VectorStore searchVecStore, LuceneUtils luceneUtils, String term1)
+            throws ZeroVectorException {
+      super(queryVecStore, searchVecStore, luceneUtils);
 
-        public VectorSearcherBoundProduct(VectorStore queryVecStore, VectorStore boundVecStore,
-            VectorStore searchVecStore, LuceneUtils luceneUtils, String term1)
-              throws ZeroVectorException {
-          super(queryVecStore, searchVecStore, luceneUtils);
+      this.queryVector = CompoundVectorBuilder.getBoundProductQueryVectorFromString(queryVecStore, boundVecStore, term1);
 
-          this.queryVector = CompoundVectorBuilder.getBoundProductQueryVectorFromString(queryVecStore, boundVecStore, term1);
-        
-          if (this.queryVector.isZeroVector()) {
-            throw new ZeroVectorException("Query vector is zero ... no results.");
-          }
-        }
-    
+      if (this.queryVector.isZeroVector()) {
+        throw new ZeroVectorException("Query vector is zero ... no results.");
+      }
+    }
+
     /**
      * @param queryVecStore Vector store to use for query generation.
      * @param searchVecStore The vector store to search.
@@ -264,8 +256,7 @@ abstract public class VectorSearcher {
   }
 
   /**
-   * Class for searching a vector store using the bound product of a series two vectors
-   *
+   * Class for searching a vector store using the bound product of a series two vectors.
    */
   static public class VectorSearcherBoundProductSubSpace extends VectorSearcher {
 
@@ -447,6 +438,35 @@ abstract public class VectorSearcher {
     }
   }
 
+  /**
+   * Test searcher for finding a is to b as c is to ?
+   * 
+   * Doesn't do well yet!
+   * 
+   * @author dwiddows
+   */
+  static public class AnalogySearcher extends VectorSearcher {
+    Vector queryVector;
+    
+    public AnalogySearcher(
+        VectorStore queryVecStore, VectorStore searchVecStore,
+        LuceneUtils luceneUtils, String[] queryTriple) {
+      super(queryVecStore, searchVecStore, luceneUtils);
+      Vector term0 = CompoundVectorBuilder.getQueryVectorFromString(queryVecStore, luceneUtils, queryTriple[0]);
+      Vector term1 = CompoundVectorBuilder.getQueryVectorFromString(queryVecStore, luceneUtils, queryTriple[1]);
+      Vector term2 = CompoundVectorBuilder.getQueryVectorFromString(queryVecStore, luceneUtils, queryTriple[2]);
+      Vector relationVec = term0.copy();
+      relationVec.bind(term1);
+      this.queryVector = term2.copy();
+      this.queryVector.release(relationVec);
+    }
+
+    @Override
+    public double getScore(Vector testVector) {
+      return queryVector.measureOverlap(testVector);
+    }
+  }
+  
   /**
    * Class for searching a permuted vector store using cosine similarity.
    * Uses implementation of rotation for permutation proposed by Sahlgren et al 2008
