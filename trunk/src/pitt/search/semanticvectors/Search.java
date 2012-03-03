@@ -45,7 +45,6 @@ import pitt.search.semanticvectors.vectors.Vector;
 /**
  * Command line term vector search utility.
  *
- *
  * @see VectorSearcher
  * Here is a list of different types of searches that can be
  * performed. Most involve processing combinations of vectors in
@@ -122,8 +121,6 @@ public class Search {
       + "\n                                               [-searchvectorfile search_vector_file]"
       + "\n                                               [-luceneindexpath path_to_lucene_index]"
       + "\n                                               [-searchtype TYPE]"
-      + "\n                                               [-numsearchresults num_results]"
-      + "\n                                               [-lowercasequery]"
       + "\n                                               <QUERYTERMS>"
       + "\nIf no query or search file is given, default will be"
       + "\n    termvectors.bin in local directory."
@@ -199,10 +196,10 @@ public class Search {
       }
     }
 
-    VectorSearcher vecSearcher = null;
-    LinkedList<SearchResult> results = new LinkedList<SearchResult>();
     // Stage iii. Perform search according to which searchType was selected.
     // Most options have corresponding dedicated VectorSearcher subclasses.
+    VectorSearcher vecSearcher = null;
+    LinkedList<SearchResult> results = new LinkedList<SearchResult>();
     VerbatimLogger.info("Searching term vectors, searchtype " + Flags.searchtype + "\n");
 
     // The following is essentially a big "switch" statement on Flags.searchtype that creates the

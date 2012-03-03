@@ -553,7 +553,6 @@ public class BinaryVector implements Vector {
     IncompatibleVectorsException.checkVectorsCompatible(this, other);
     BinaryVector binaryOther = (BinaryVector) other;
     	this.bitSet.xor(binaryOther.bitSet);
-    	
   }
   
   @Override
@@ -563,7 +562,6 @@ public class BinaryVector implements Vector {
   public void release(Vector other) {
 	 bind(other);
   }
-  
 
   @Override
   /**
