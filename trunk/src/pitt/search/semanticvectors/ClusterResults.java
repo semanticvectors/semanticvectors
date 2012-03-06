@@ -51,29 +51,31 @@ import pitt.search.semanticvectors.vectors.VectorUtils;
  */
 public class ClusterResults {
   private static final Logger logger = Logger.getLogger(ClusterResults.class.getCanonicalName());
-  
+
   public static String usageMessage = "ClusterResults class in package pitt.search.semanticvectors"
       + "\nUsage: java pitt.search.semanticvectors.ClusterResults"
       + "\n                        -numsearchresults [number of search results]" 
       + "\n                        -numclusters [number of clusters]"
       + "\n                        <SEARCH ARGS>"
       + "\nwhere SEARCH ARGS is an expression passed to Search class.";
-  
+
   /**
    * Thin struct for storing cluster information.
    * 
    * Initialized to null with public members: use at your own risk!
    */
   public static class Clusters {
-	public int[] clusterMappings;
-	public Vector[] centroids;
-	
-	public Clusters() {
-	  clusterMappings = null;
-	  centroids = null;
-	}
+    /** Array of ints mapping each of a list of object vectors to a cluster. */
+    public int[] clusterMappings;
+    /** Centroids of the clusters in question. */
+    public Vector[] centroids;
+
+    public Clusters() {
+      clusterMappings = null;
+      centroids = null;
+    }
   }
-  
+
   /** 
    * Simple k-means clustering algorithm.
    * 
@@ -82,7 +84,7 @@ public class ClusterResults {
    * cluster each vector belongs to.
    */
   public static Clusters kMeansCluster (ObjectVector[] objectVectors, int numClusters) {
-	Clusters clusters = new Clusters();
+    Clusters clusters = new Clusters();
     clusters.clusterMappings = new int[objectVectors.length];
     clusters.centroids = new Vector[numClusters];
     Random rand = new Random();
@@ -141,13 +143,13 @@ public class ClusterResults {
   public static void usage() {
     System.err.println(usageMessage);
   }
-  
+
   /**
    * Utility method that writes cluster centroids to a file called "cluster_centroids.bin".
    */
   public static void writeCentroidsToFile(Clusters clusters) {
-	VectorStoreRAM centroidsOutput = new VectorStoreRAM(
-    		VectorType.valueOf(Flags.vectortype.toUpperCase()), Flags.dimension);
+    VectorStoreRAM centroidsOutput = new VectorStoreRAM(
+        VectorType.valueOf(Flags.vectortype.toUpperCase()), Flags.dimension);
     for (int i = 0; i < clusters.centroids.length; ++i) {
       centroidsOutput.putVector(Integer.toString(i), clusters.centroids[i]);
     }
@@ -179,7 +181,7 @@ public class ClusterResults {
       }
       System.out.println();
     }
-    
+
     writeCentroidsToFile(clusters);
   }
 }
