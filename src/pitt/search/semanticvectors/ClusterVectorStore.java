@@ -7,15 +7,15 @@
    modification, are permitted provided that the following conditions are
    met:
 
-   * Redistributions of source code must retain the above copyright
+ * Redistributions of source code must retain the above copyright
    notice, this list of conditions and the following disclaimer.
 
-   * Redistributions in binary form must reproduce the above
+ * Redistributions in binary form must reproduce the above
    copyright notice, this list of conditions and the following
    disclaimer in the documentation and/or other materials provided
    with the distribution.
 
-   * Neither the name of the University of Pittsburgh nor the names
+ * Neither the name of the University of Pittsburgh nor the names
    of its contributors may be used to endorse or promote products
    derived from this software without specific prior written
    permission.
@@ -31,10 +31,11 @@
    LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
    NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
    SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-**/
+ **/
 
 package pitt.search.semanticvectors;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Enumeration;
@@ -43,7 +44,7 @@ import java.util.logging.Logger;
 
 /**
  * This class is used for performing kMeans clustering on an entire
- * vector store.  It presumes thae the vector store to be clustered is
+ * vector store.  It presumes that the vector store to be clustered is
  * represented in a file in text format (since it's unlikely that
  * you'd want to try this on large files anyway.
  * @see ClusterResults 
@@ -73,16 +74,16 @@ public class ClusterVectorStore {
    * Small utility for work with the Bible.
    * Assumes input like "bible_chapters/Matthew/Chapter_9".
    */
-  public static String getBookFromPath(String path) {
-    String[] elts = path.split("/");
-    return elts[1];
+  private static String getBookFromPath(String path) {
+    // Change this delimiter on other operating systems.
+    return (new File(path)).getParent();
   }
 
-  public static int getMaxValue(int[] values) {
+  private static int getMaxValue(int[] values) {
     int max = values[0];
     for(int value: values) {
       if (value > max) {
-	max = value;
+        max = value;
       }
     }
     return max;
@@ -92,7 +93,7 @@ public class ClusterVectorStore {
     ArrayList<String> results = new ArrayList<String>();
     for (int i = 0; i < clusterIDs.length; ++i) {
       if (clusterIDs[i] == ID) {
-	results.add(names[i]);
+        results.add(names[i]);
       }
     }
     String[] finalResults = new String[results.size()];
@@ -102,6 +103,9 @@ public class ClusterVectorStore {
     return finalResults;
   }
 
+  /**
+   * Measures the overlap between clusters; configured for the KJB corpus and not very general.
+   */
   public static void clusterOverlapMeasure(int[] clusterIDs, ObjectVector[] vectors) {
     String[] names = new String[vectors.length];
     Hashtable<String, int[]> internalResults = new Hashtable<String, int[]>();
@@ -114,19 +118,19 @@ public class ClusterVectorStore {
     for (int i = 0; i < numClusters; ++i) {
       String[] cluster = getCluster(i, clusterIDs, names);
       if (cluster.length < 2) {
-	continue;
+        continue;
       }
       for (int j = 0; j < cluster.length; ++j) {
-	for (int k = j+1; k < cluster.length; ++k) {
-	  int[] matchAndTotalJ = internalResults.get(cluster[j]);
-	  int[] matchAndTotalK = internalResults.get(cluster[k]);
-	  matchAndTotalJ[1]++;
-	  matchAndTotalK[1]++;
-	  if (cluster[k].equals(cluster[j])) {
-	    matchAndTotalJ[0]++;
-	    matchAndTotalK[0]++;
-	  }
-	}
+        for (int k = j+1; k < cluster.length; ++k) {
+          int[] matchAndTotalJ = internalResults.get(cluster[j]);
+          int[] matchAndTotalK = internalResults.get(cluster[k]);
+          matchAndTotalJ[1]++;
+          matchAndTotalK[1]++;
+          if (cluster[k].equals(cluster[j])) {
+            matchAndTotalJ[0]++;
+            matchAndTotalK[0]++;
+          }
+        }
       }
     }
     for (Enumeration<String> keys = internalResults.keys(); keys.hasMoreElements();) {
@@ -147,7 +151,7 @@ public class ClusterVectorStore {
       usage();
       return;
     }
-	  
+
     CloseableVectorStore vecReader;
     try {
       vecReader = VectorStoreReader.openVectorStore(args[0]);
@@ -179,15 +183,15 @@ public class ClusterVectorStore {
     for (int i = 0; i < Flags.numclusters; ++i) {
       System.out.println("Cluster " + i);
       for (int j = 0; j < clusters.clusterMappings.length; ++j) {
-	if (clusters.clusterMappings[j] == i) {
-	  System.out.println(resultsVectors[j].getObject());
-	}
+        if (clusters.clusterMappings[j] == i) {
+          System.out.println(resultsVectors[j].getObject());
+        }
       }
       System.out.println("\n*********\n");
     }
-	
-    ClusterResults.writeCentroidsToFile(clusters);
-    
-    // clusterOverlapMeasure(clusterMappings, resultsVectors);
+
+    //ClusterResults.writeCentroidsToFile(clusters);
+
+    clusterOverlapMeasure(clusters.clusterMappings, resultsVectors);
   }
 }
