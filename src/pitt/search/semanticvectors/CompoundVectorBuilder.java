@@ -229,7 +229,7 @@ public class CompoundVectorBuilder {
       Vector bound_queryvector = vecReader.getVector(bindingTokenizer.nextToken()).copy();
 
       while (bindingTokenizer.hasMoreTokens())
-        bound_queryvector.bind(vecReader.getVector(bindingTokenizer.nextToken()));
+        bound_queryvector.release(vecReader.getVector(bindingTokenizer.nextToken()));
 
       bundled_queryvector.superpose(bound_queryvector, 1, null);
 
@@ -266,11 +266,12 @@ public class CompoundVectorBuilder {
       Vector boundQueryvector = vecReader.getVector(bindingTokenizer.nextToken()).copy();
 
       while (bindingTokenizer.hasMoreTokens()) {
-        boundQueryvector.bind(vecReader.getVector(bindingTokenizer.nextToken()));
+        boundQueryvector.release(vecReader.getVector(bindingTokenizer.nextToken()));
       }
 
-      boundQueryvector.release(conceptVector);
-      disjunctSpace.add(boundQueryvector);
+      Vector copyConceptVector = conceptVector.copy();
+      copyConceptVector.release(boundQueryvector);
+      disjunctSpace.add(copyConceptVector);
     }
 
     if (disjunctSpace.size() > 1) {

@@ -36,6 +36,8 @@
 package pitt.search.semanticvectors;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Logger;
@@ -205,6 +207,7 @@ public class Search {
     // The following is essentially a big "switch" statement on Flags.searchtype that creates the
     // appropriate VectorSearcher and throws a ZeroVectorException if it doesn't work.
     try {
+  
       if (Flags.searchtype.equals("sum")) {
         vecSearcher = new VectorSearcher.VectorSearcherCosine(
             queryVecReader, searchVecReader, luceneUtils, args);
@@ -310,6 +313,7 @@ public class Search {
       for (SearchResult result: results) {
         System.out.println(result.getScore() + ":" +
             ((ObjectVector)result.getObjectVector()).getObject().toString());
+      
       }
     } else {
       VerbatimLogger.info("No search output.\n");

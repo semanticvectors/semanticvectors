@@ -119,6 +119,11 @@ public class Flags {
   public static final String stdevDescription =
     "Set to true when you would prefer results scored as SD above the mean across all search vectors";
 
+  public static boolean expandsearchspace = false;
+  public static final String expandsearchspaceDescription =
+	  "Set to true to generated bound products from each pairwise element of the search space. "+
+	  "Expands the size of the space to n-squared";
+  
   public static String indexfileformat = "lucene";
   public static final String indexfileformatDescription =
     "Format used for serializing / deserializing vectors from disk";
