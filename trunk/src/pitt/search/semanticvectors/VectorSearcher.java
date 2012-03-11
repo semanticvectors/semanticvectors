@@ -61,6 +61,50 @@ abstract public class VectorSearcher {
 
   private VectorStore searchVecStore;
   private LuceneUtils luceneUtils;
+  
+  /**
+   * Expand search space for dual-predicate searches
+   */
+  
+  public void expandSearchSpace()
+  {
+	    VectorStoreRAM nusearchspace = new VectorStoreRAM(searchVecStore.getVectorType(), searchVecStore.getDimension());
+	    Enumeration<ObjectVector> allVectors = searchVecStore.getAllVectors();
+	    ArrayList<ObjectVector> storeVectors = new ArrayList<ObjectVector>();
+	    
+	    while (allVectors.hasMoreElements())
+	    {
+	    	ObjectVector nextObjectVector = allVectors.nextElement();
+	    	nusearchspace.putVector(nextObjectVector.getObject(), nextObjectVector.getVector());
+	    	storeVectors.add(nextObjectVector);
+	    }
+	    
+	    for (int x=0; x < storeVectors.size()-1; x++)
+	    	for (int y=x; y < storeVectors.size(); y++)
+	    	{
+	    		Vector vec1 = storeVectors.get(x).getVector().copy();
+	    		Vector vec2 = storeVectors.get(y).getVector().copy();
+	    		String obj1 = storeVectors.get(x).getObject().toString();
+	    		String obj2 = storeVectors.get(y).getObject().toString();
+	    		
+	    		
+	    		vec1.release(vec2);
+	    		nusearchspace.putVector(obj2+":"+obj1, vec1);
+	    		
+	    		if (nusearchspace.getVectorType().equals(VectorType.COMPLEX))
+	    		{
+	    			vec2.release(storeVectors.get(x).getVector().copy());
+	    			nusearchspace.putVector(obj1+":"+obj2, vec2);
+	    		}
+	    	
+	    		
+	    	}
+	    
+	    searchVecStore =  nusearchspace;
+	    System.err.println("Expanding search space from "+storeVectors.size()+" to "+nusearchspace.getNumVectors());
+	    
+  }
+  
 
   /**
    * This needs to be filled in for each subclass. It takes an individual
@@ -80,6 +124,7 @@ abstract public class VectorSearcher {
       LuceneUtils luceneUtils) {
     this.searchVecStore = searchVecStore;
     this.luceneUtils = luceneUtils;
+    if (Flags.expandsearchspace) expandSearchSpace();
   }
 
   /**
@@ -209,6 +254,7 @@ abstract public class VectorSearcher {
       super(queryVecStore, searchVecStore, luceneUtils);
 
       this.queryVector = CompoundVectorBuilder.getBoundProductQueryVectorFromString(queryVecStore, term1);
+      
       queryVector.release(CompoundVectorBuilder.getBoundProductQueryVectorFromString(boundVecStore, term2));
 
       if (this.queryVector.isZeroVector()) {
