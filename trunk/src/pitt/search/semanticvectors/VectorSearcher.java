@@ -124,7 +124,7 @@ abstract public class VectorSearcher {
       LuceneUtils luceneUtils) {
     this.searchVecStore = searchVecStore;
     this.luceneUtils = luceneUtils;
-    if (Flags.expandsearchspace) searchVecStore = expandSearchSpace(searchVecStore);
+    if (Flags.expandsearchspace) this.searchVecStore = expandSearchSpace(searchVecStore);
   }
 
   /**
