@@ -66,7 +66,7 @@ abstract public class VectorSearcher {
    * Expand search space for dual-predicate searches
    */
   
-  public void expandSearchSpace()
+  public static VectorStore expandSearchSpace(VectorStore searchVecStore)
   {
 	    VectorStoreRAM nusearchspace = new VectorStoreRAM(searchVecStore.getVectorType(), searchVecStore.getDimension());
 	    Enumeration<ObjectVector> allVectors = searchVecStore.getAllVectors();
@@ -100,9 +100,9 @@ abstract public class VectorSearcher {
 	    		
 	    	}
 	    
-	    searchVecStore =  nusearchspace;
+	   
 	    System.err.println("Expanding search space from "+storeVectors.size()+" to "+nusearchspace.getNumVectors());
-	    
+	    return nusearchspace;
   }
   
 
@@ -124,7 +124,7 @@ abstract public class VectorSearcher {
       LuceneUtils luceneUtils) {
     this.searchVecStore = searchVecStore;
     this.luceneUtils = luceneUtils;
-    if (Flags.expandsearchspace) expandSearchSpace();
+    if (Flags.expandsearchspace) searchVecStore = expandSearchSpace(searchVecStore);
   }
 
   /**
@@ -191,6 +191,51 @@ abstract public class VectorSearcher {
     return results;
   }
 
+  /**
+   * This search is implemented in the abstract
+   * VectorSearcher class itself: this enables all subclasses to reuse
+   * the search whatever scoring method they implement.  Since query
+   * expressions are built into the VectorSearcher,
+   * getAllAboveThreshold does not  takes a query vector as an
+   * argument.
+   * 
+   * This will retrieve all the results above the threshold score passed
+   * as a parameter. It is more computationally convenient than getNearestNeighbor
+   * when large numbers of results are anticipated
+   * 
+   * @param numResults the number of results / length of the result list.
+   */
+  
+  
+  public LinkedList<SearchResult> getAllAboveThreshold(float threshold) {
+		
+		LinkedList<SearchResult> results = new LinkedList<SearchResult>();
+		double score;
+			
+		Enumeration<ObjectVector> vecEnum = null;
+		vecEnum = searchVecStore.getAllVectors();
+				
+		while (vecEnum.hasMoreElements()) {
+	     // Test this element.
+	    ObjectVector testElement = vecEnum.nextElement();
+	    if (testElement == null) score = Float.MIN_VALUE;
+	    else
+	      { 
+	    	
+	    	Vector testVector = testElement.getVector();
+	      	score = getScore(testVector);
+	
+	      }
+	    	
+	     if (score > threshold) {
+				results.add(new SearchResult(score, testElement));}
+		}				
+
+		return results;
+
+	
+}
+  
   /**
    * Class for searching a vector store using cosine similarity.
    * Takes a sum of positive query terms and optionally negates some terms.
