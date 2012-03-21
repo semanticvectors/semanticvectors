@@ -193,11 +193,9 @@ public class CompoundVectorBuilder {
          
     	  }
       
-     
-      bundled_queryvector.superpose(bound_queryvector, 1, null);
+       bundled_queryvector.superpose(bound_queryvector, 1, null);
       
       }
-      
       
       bundled_queryvector.normalize();
       return bundled_queryvector;
@@ -234,7 +232,6 @@ public class CompoundVectorBuilder {
       bundled_queryvector.superpose(bound_queryvector, 1, null);
 
     }
-
 
     bundled_queryvector.normalize();
     return bundled_queryvector;
@@ -283,6 +280,62 @@ public class CompoundVectorBuilder {
     }
     return disjunctSpace;
   }
+  
+  /**
+   * Method gets a query subspace from a query string of the form:
+   * E(C1)*S(C2) + E(C3)*S(C4)
+   * 
+   * 
+   * This method facilitates the combination of single or dual predicate paths using the quantum OR operator, or a binary approximation thereof
+   * 
+   * @param vecReader Vector store reader for input
+   * @param queryString Query expression to be turned into vector subspace
+   * @return List of vectors that are basis elements for subspace
+   */
+  public static ArrayList<Vector> getBoundProductQuerySubspaceFromString(VectorStore semanticVectors, VectorStore elementalVectors, String queryString)
+  {
+	  ArrayList<Vector> disjunctSpace = new ArrayList<Vector>();
+	  
+      //allow for bundling of multiple concepts/relations - split initially at "+" to construct vectors to be superposed
+      StringTokenizer bundlingTokenizer = new StringTokenizer(queryString,"+");
+       while (bundlingTokenizer.hasMoreTokens())
+      { 
+      //allow for binding of multiple concepts/relations
+      StringTokenizer bindingTokenizer = new StringTokenizer(bundlingTokenizer.nextToken(),"*");
+      
+      String nextToken = bindingTokenizer.nextToken();
+      Vector bound_queryvector = null;
+      
+      bound_queryvector = getVector(semanticVectors, elementalVectors, nextToken).copy();
+          
+      
+      while (bindingTokenizer.hasMoreTokens())
+    	  {
+     	nextToken = bindingTokenizer.nextToken();
+         Vector bound_queryvector2 = null;
+         bound_queryvector2 = getVector(semanticVectors, elementalVectors, nextToken).copy();
+         
+          //sequence of operations important for complex vectors
+          bound_queryvector2.release(bound_queryvector);
+          bound_queryvector = bound_queryvector2;
+         
+    	  }
+      
+       disjunctSpace.add(bound_queryvector);
+      
+      }
+      
+      if (disjunctSpace.size() > 1) {
+          if (semanticVectors.getVectorType().equals(VectorType.BINARY)) {
+            BinaryVectorUtils.orthogonalizeVectors(disjunctSpace);
+          } else {
+            VectorUtils.orthogonalizeVectors(disjunctSpace);
+          }
+        }
+  
+      return disjunctSpace;
+  }
+  
 
   /**
    * Method gets a query vector from a query string, i.e., a
