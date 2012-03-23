@@ -254,7 +254,8 @@ public class LSA {
       for (int i = 0; i < Flags.dimension; i++)
         tmp[i] = (float) uT.value[i][cnt];
       RealVector docVector = new RealVector(tmp);
-
+      docVector.normalize();
+      
       docVector.writeToLuceneStream(outputStream);
     }
     outputStream.flush();
