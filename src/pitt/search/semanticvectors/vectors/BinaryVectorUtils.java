@@ -64,7 +64,7 @@ public class BinaryVectorUtils {
    */
   public static boolean orthogonalizeVectors(ArrayList<Vector> vectors) {
     long dimension = vectors.get(0).getDimension();
-
+     
     // Go up through vectors in turn, parameterized by k.
     for (int k = 0; k < vectors.size(); ++k) {
      Vector kthVector = vectors.get(k);
@@ -75,10 +75,14 @@ public class BinaryVectorUtils {
       }
       // Go up to vector k, parameterized by j.
       for (int j = 0; j < k; ++j) {
-        Vector jthVector = vectors.get(j);
-        sampleSubtract(((BinaryVector) kthVector).bitSet, ((BinaryVector) jthVector).bitSet); 
+    	 Vector jthVector = vectors.get(j);
+    	 sampleSubtract(((BinaryVector) kthVector).bitSet, ((BinaryVector) jthVector).bitSet); 
+           
       }
     }
+        
+    
+    
     return true;
   }
   
@@ -89,6 +93,7 @@ public class BinaryVectorUtils {
   public static double compareWithProjection(Vector testVector, ArrayList<Vector> vectors) {
 	    float score = 0;
 	    for (int i = 0; i < vectors.size(); ++i) {
+	    	System.out.println(i+" "+testVector.measureOverlap(vectors.get(i)));
 	      score += testVector.measureOverlap(vectors.get(i));
 	    }
 	    return (float) (score);
@@ -101,7 +106,6 @@ public class BinaryVectorUtils {
    */
   public static void sampleSubtract(OpenBitSet vector,  OpenBitSet subvector) {	
 	  long numchanges =  vector.size()/2 - OpenBitSet.xorCount(vector, subvector); //total common bits - n/2
-	
 	  java.util.Random random = new java.util.Random();
 	  OpenBitSet commonGround = (OpenBitSet) vector.clone();
 	  //everything different
@@ -109,6 +113,8 @@ public class BinaryVectorUtils {
 	    
 	  int cnt = 0;
 	  
+	  //if it is required to introduce random noise to increase the distance between the two vectors
+	  if (numchanges > 0)
 	  for (int x =0; cnt < numchanges; x++) {	
 		  if (x == 0) System.err.print(cnt+"/"+ numchanges+".."+"loop...");
 		  if (x >= vector.size()) x =0;
@@ -118,5 +124,17 @@ public class BinaryVectorUtils {
 				cnt++;
 			}
 		}
+	  //if it is required to introduce commonalities to increase the similarity between the two vectors
+	  else if (numchanges < 0)
+		  for (int x =0; cnt > numchanges; x++) {	
+			  if (x == 0) System.err.print(cnt+"/"+ numchanges+".."+"loop...");
+			  if (x >= vector.size()) x =0;
+				double change = random.nextDouble();
+				if (commonGround.get(x) && change > 0.5) {
+					vector.fastFlip(x);
+					cnt--;
+				}
+			}
+	  
   }
 }
