@@ -371,6 +371,20 @@ abstract public class VectorSearcher {
       this.disjunctSpace = CompoundVectorBuilder.getBoundProductQuerySubSpaceFromString(
           boundVecStore, queryVector, term2);
     }
+    
+    public VectorSearcherBoundProductSubSpace(VectorStore queryVecStore, VectorStore boundVecStore,
+            VectorStore searchVecStore, LuceneUtils luceneUtils, String term1)
+                throws ZeroVectorException {
+          super(queryVecStore, searchVecStore, luceneUtils);
+
+          disjunctSpace = new ArrayList<Vector>();
+          vectorType = queryVecStore.getVectorType();
+ 
+          this.disjunctSpace = CompoundVectorBuilder.getBoundProductQuerySubspaceFromString(queryVecStore, boundVecStore, term1);
+
+        
+        }
+    
 
     @Override
     public double getScore(Vector testVector) {
