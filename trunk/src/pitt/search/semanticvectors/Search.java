@@ -240,7 +240,7 @@ public class Search {
             queryVecReader, boundVecReader, searchVecReader, luceneUtils, args[0],args[1]);
     	  } else {
               // Binds vectors to faciliate search across specific relations
-              vecSearcher = new VectorSearcher.VectorSearcherBoundProduct(
+              vecSearcher = new VectorSearcher.VectorSearcherBoundProductSubSpace(
                   queryVecReader, boundVecReader, searchVecReader, luceneUtils, args[0]);
             }
     	  
