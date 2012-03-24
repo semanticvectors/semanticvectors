@@ -229,10 +229,21 @@ public class Search {
           vecSearcher = new VectorSearcher.VectorSearcherBoundProduct(
               queryVecReader, boundVecReader, searchVecReader, luceneUtils, args[0]);
         }
+        
+        
+        
       } else if (Flags.searchtype.equals("boundproductsubspace")) {
+    	  if (args.length == 2)
+    	  {
         // Binds vectors to faciliate search across multiple relationship paths
         vecSearcher = new VectorSearcher.VectorSearcherBoundProductSubSpace(
             queryVecReader, boundVecReader, searchVecReader, luceneUtils, args[0],args[1]);
+    	  } else {
+              // Binds vectors to faciliate search across specific relations
+              vecSearcher = new VectorSearcher.VectorSearcherBoundProduct(
+                  queryVecReader, boundVecReader, searchVecReader, luceneUtils, args[0]);
+            }
+    	  
       } else if (Flags.searchtype.equals("permutation")) {
         // Permutes query vectors such that the most likely term in the position of the "?" is retrieved.
         vecSearcher = new VectorSearcher.VectorSearcherPerm(
