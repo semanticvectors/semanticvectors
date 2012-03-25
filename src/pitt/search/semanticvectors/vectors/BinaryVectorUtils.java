@@ -93,8 +93,7 @@ public class BinaryVectorUtils {
   public static double compareWithProjection(Vector testVector, ArrayList<Vector> vectors) {
 	    float score = 0;
 	    for (int i = 0; i < vectors.size(); ++i) {
-	    	System.out.println(i+" "+testVector.measureOverlap(vectors.get(i)));
-	      score += testVector.measureOverlap(vectors.get(i));
+	     score += testVector.measureOverlap(vectors.get(i));
 	    }
 	    return (float) (score);
 	  }
