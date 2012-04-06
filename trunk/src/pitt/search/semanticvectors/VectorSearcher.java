@@ -37,6 +37,7 @@ package pitt.search.semanticvectors;
 
 import java.lang.IllegalArgumentException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Enumeration;
@@ -230,7 +231,8 @@ abstract public class VectorSearcher {
 	     if (score > threshold) {
 				results.add(new SearchResult(score, testElement));}
 		}				
-
+		
+		Collections.sort(results);
 		return results;
 
 	
