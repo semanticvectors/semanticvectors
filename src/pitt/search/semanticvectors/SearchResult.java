@@ -40,7 +40,7 @@ package pitt.search.semanticvectors;
  * 
  * @author Dominic Widdows
  */
-public class SearchResult{
+public class SearchResult implements Comparable {
   /** The ObjectVector in the search results. */
   private ObjectVector objectVector;
 
@@ -59,4 +59,16 @@ public class SearchResult{
     this.score = score;
     this.objectVector = object;
   }
+
+@Override
+public int compareTo(Object arg0) {
+	if (! arg0.getClass().equals(this.getClass()))
+	throw new IllegalArgumentException();
+	
+	SearchResult otherSearchResult = (SearchResult) arg0;
+	
+	if (this.getScore() > otherSearchResult.getScore()) return -1;
+	else if (this.getScore() < otherSearchResult.getScore()) return 1;
+	else return 0;
+}
 }

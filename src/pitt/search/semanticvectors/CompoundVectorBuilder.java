@@ -232,6 +232,8 @@ public class CompoundVectorBuilder {
       bundled_queryvector.superpose(bound_queryvector, 1, null);
 
     }
+    
+    
 
     bundled_queryvector.normalize();
     return bundled_queryvector;
@@ -267,17 +269,22 @@ public class CompoundVectorBuilder {
       }
 
       Vector copyConceptVector = conceptVector.copy();
-      copyConceptVector.release(boundQueryvector);
+       copyConceptVector.release(boundQueryvector);
+      
       disjunctSpace.add(copyConceptVector);
+      
+      
     }
 
-    if (disjunctSpace.size() > 1) {
-      if (vecReader.getVectorType().equals(VectorType.BINARY)) {
+     if (vecReader.getVectorType().equals(VectorType.BINARY)) {
         BinaryVectorUtils.orthogonalizeVectors(disjunctSpace);
       } else {
         VectorUtils.orthogonalizeVectors(disjunctSpace);
       }
-    }
+    
+     
+     
+     
     return disjunctSpace;
   }
   
@@ -325,12 +332,11 @@ public class CompoundVectorBuilder {
       
       }
       
-      if (disjunctSpace.size() > 1) {
-          if (semanticVectors.getVectorType().equals(VectorType.BINARY)) {
+         if (semanticVectors.getVectorType().equals(VectorType.BINARY)) {
             BinaryVectorUtils.orthogonalizeVectors(disjunctSpace);
           } else {
             VectorUtils.orthogonalizeVectors(disjunctSpace);
-          }
+          
         }
   
       return disjunctSpace;
