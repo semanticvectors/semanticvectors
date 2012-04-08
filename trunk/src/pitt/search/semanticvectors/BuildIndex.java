@@ -124,7 +124,7 @@ public class BuildIndex {
         for (int i = 1; i < Flags.trainingcycles; ++i) {
           itermVectors = new IncrementalTermVectors(
               luceneIndex, VectorType.valueOf(Flags.vectortype.toUpperCase()),
-              Flags.dimension, Flags.contentsfields, docFile);
+              Flags.dimension, Flags.contentsfields, "incremental_"+docFile);
 
           VectorStoreWriter.writeVectors(
               "incremental_termvectors"+Flags.trainingcycles+".bin", itermVectors);
