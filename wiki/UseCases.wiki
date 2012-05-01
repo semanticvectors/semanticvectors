@@ -28,7 +28,7 @@ Search output follows ...
 
 Applications for such term-similarity models include Automatic Thesaurus Generation and Query Expansion.
 
-SemanticVectors has many different term-weighting and [SearchOptions search options] that enable you to find related terms in different ways.
+SemanticVectors has many different term-weighting and [SearchOptions search options] that enable you to find related terms using a range of features and structural relationships.
 
 == Finding Related Documents ==
 
@@ -36,6 +36,9 @@ See DocumentSearch.
 
 == Clustering and Visualization ==
 
-Clustering 
+Clustering and visualization can help to see groups of related concepts, and general themes across entire datasets. 
+[http://lab.cisti-icist.nrc-cnrc.gc.ca/cistilabswiki/index.php/Torngat1 Project Thorngat] is a great example, creating concept maps to support the search experience for users of digital libraries.
+
+Some basic tools to get started are described on the ClusteringAndVisualization page.
 
 === More to come ... ===
