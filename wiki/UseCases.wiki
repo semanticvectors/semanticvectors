@@ -4,31 +4,38 @@
 
 == Finding Related Terms ==
 
-SemanticVectors can be used to find related terms and concepts to a target term. This application is sometimes called 'Automatic Thesaurus Generation'. For example, with the index built from the King James Bible, we get something like the following:
+SemanticVectors can be used to find related terms and concepts to a target term. For example, with the index built from the King James Bible, a search for related terms to "Asher", one of the sons of Jacob, returns the names of other members of the family, with later results mixed with terms related to kinship more generally:
 
 {{{
-$ java pitt.search.semanticvectors.Search abraham
-Opening query vector store from file: termvectors.bin
+$ java pitt.search.semanticvectors.Search asher
+Opening query vector store from file: termvectors
 Searching term vectors, searchtype sum
-Found vector for 'abraham'
+Found vector for 'asher'
 Search output follows ...
-1.0:abraham
-0.6583164180237148:sarah
-0.580180147565453:isaac
-0.5454297417019632:bethuel
-0.5020329565730541:phichol
-0.488374079184403:lahairoi
-0.4801782313185906:beersheba
-0.4621587919654581:milcah
-0.4339049483796074:shrubs
-0.4100202769017288:jidlaph
+1.0:asher
+0.9178473865092276:issachar
+0.8340573512939335:naphtali
+0.8094583807136287:zebulun
+0.5997927054131444:simeon
+0.5840854434731123:families
+0.5117024109690984:tribe
+0.5102583475778316:numbered
+0.49488405594692364:dan
+0.47865258230814256:gathrimmon
+0.46671084991480544:names
 ...
 }}}
 
-There are many ways of configuring SemanticVectors to use different [SearchOptions search options].
+Applications for such term-similarity models include Automatic Thesaurus Generation and Query Expansion.
+
+SemanticVectors has many different term-weighting and [SearchOptions search options] that enable you to find related terms in different ways.
 
 == Finding Related Documents ==
 
 See DocumentSearch.
+
+== Clustering and Visualization ==
+
+Clustering 
 
 === More to come ... ===
