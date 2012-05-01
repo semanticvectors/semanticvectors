@@ -4,7 +4,27 @@ Predication-based Semantic Indexing, or PSI, is an application of distributional
 
 PSI is integrated and available in SemanticVectors as of version 3.4, and works with real, binary, and complex vectors.
 
-For now, to get it working, please see the example data and commands in the integration tests. (Please contact the project if you would like better instructions than this!)
+To get an example working, get the nationalfacts.txt file from the test directory, and run
+
+{{{
+$ java pitt.search.lucene.LuceneIndexFromTriples nationalfacts.txt
+$ java pitt.search.semanticvectors.PSI predication_index/
+$ java pitt.search.semanticvectors.Search -searchtype boundproduct -queryvectorfile semanticvectors.bin -boundvectorfile predicatevectors.bin -searchvectorfile elementalvectors.bin -matchcase mexico HAS_CURRENCY
+Opening query vector store from file: semanticvectors.bin
+Opening second query vector store from file: predicatevectors.bin
+Opening search vector store from file: elementalvectors.bin
+Searching term vectors, searchtype boundproduct
+Found vector for 'mexico'
+Found vector for 'HAS_CURRENCY'
+Search output follows ...
+0.6981237432989211:mexican_peso
+0.6940203823601886:euro
+0.6930460858871165:armenian_dram
+0.6923611416306082:netherlands_antillean_guilder
+0.6912367947828915:east_caribbean_dollar
+0.6912367627886535:central_african_cfa_franc
+...
+}}}
 
 See [http://www.ncbi.nlm.nih.gov/pmc/articles/PMC2815384/pdf/amia-f2009-114.pdf Predication-based Semantic Indexing: Permutations as a Means to Encode Predications in Semantic Space.] Cohen T, Schvaneveldt, R. Rindlesch, T. AMIA Annu Symp Proc. 2009. 114-118.
 
