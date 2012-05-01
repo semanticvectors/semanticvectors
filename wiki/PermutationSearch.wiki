@@ -12,7 +12,7 @@ Query syntax uses a question mark "?" character to denote the target location, s
 An example query (using the Bible corpus) then goes as follows:
 
 {{{
-~/Data/Corpora/bible_indexes/positional widdows$ java pitt.search.semanticvectors.Search -searchtype permutation -queryvectorfile randomvectors.bin -searchvectorfile permtermvectors.bin king ? 
+~/Data/Corpora/bible_indexes/positional widdows$ java pitt.search.semanticvectors.Search -searchtype permutation -queryvectorfile elementalvectors.bin -searchvectorfile permtermvectors.bin king ? 
 Opening query vector store from file: randomvectors.bin
 Dimensions = 200
 Opening search vector store from file: permtermvectors.bin
@@ -86,4 +86,4 @@ top match: 0.13623515:ostriches
 0.3766794:mediterranean
 }}}
 
-Even at this early stage, this looks like one of the most exciting developments in this area of research in several years!
+The use of directional information has transformed research in distributional semantics in very recent years.
