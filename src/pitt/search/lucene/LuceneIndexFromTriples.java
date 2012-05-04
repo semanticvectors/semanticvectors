@@ -101,16 +101,16 @@ public class LuceneIndexFromTriples {
     	    try {
     	    
     	    String subject = theTokenizer.nextToken().trim().toLowerCase().replaceAll(" ", "_");
-    	    String predication = theTokenizer.nextToken().trim().toUpperCase().replaceAll(" ", "_");
+    	    String predicate = theTokenizer.nextToken().trim().toUpperCase().replaceAll(" ", "_");
     	    String object = theTokenizer.nextToken().trim().toLowerCase().replaceAll(" ", "_");
     	     
     	    
     	    Document doc = new Document();
     	    doc.add(new Field("subject",subject, Field.Store.YES, Field.Index.ANALYZED));
-    	    doc.add(new Field("predicate",predication, Field.Store.YES, Field.Index.ANALYZED));
+    	    doc.add(new Field("predicate",predicate, Field.Store.YES, Field.Index.ANALYZED));
     	    doc.add(new Field("object",object, Field.Store.YES, Field.Index.ANALYZED));
-    	   	    
-    	    System.out.println(subject+" "+predication+" "+object);
+    	   	doc.add(new Field("predication",subject+predicate+object, Field.Store.NO, Field.Index.ANALYZED));
+    	   	
     	    fsWriter.addDocument(doc);
     	    
     	    

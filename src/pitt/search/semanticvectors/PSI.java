@@ -63,11 +63,13 @@ public class PSI {
   private static final Logger logger = Logger.getLogger(PSI.class.getCanonicalName());
   private VectorType vectorType;
   private int dimension;
+  private int minFreq;
+  private int maxFreq;
   private int seedlength;
 
   private VectorStoreRAM elementalVectors, semanticVectors, predicateVectors;
   private IndexReader indexReader;
- // private String[] fieldsToIndex;
+ private String[] desiredFields={"subject","predicate","object"};
   private LuceneUtils lUtils;
 
   private PSI() {};
@@ -76,11 +78,13 @@ public class PSI {
    * Creates PSI vectors incrementally, using the fields "subject" and "object" from a Lucene index.
    */
   public static void createIncrementalPSIVectors(
-      VectorType vectorType, int dimension, int seedlength, String indexDir) throws IOException {
+      VectorType vectorType, int dimension, int seedlength, String indexDir, int minFreq, int maxFreq) throws IOException {
     PSI incrementalPSIVectors = new PSI();
     incrementalPSIVectors.dimension = dimension;
     incrementalPSIVectors.vectorType = vectorType;
     incrementalPSIVectors.seedlength = seedlength;
+    incrementalPSIVectors.maxFreq = maxFreq;
+    incrementalPSIVectors.minFreq = minFreq;
     incrementalPSIVectors.indexReader = IndexReader.open(FSDirectory.open(new File(indexDir)));
 
    // String[] fieldsToIndex = {"subject", "object"};
@@ -107,9 +111,17 @@ public class PSI {
     while(terms.next()){
 
       Term term = terms.term();
+      
+      
       String field = term.field();
 
       if (field.equals("subject") | field.equals("object")) {
+    	  
+    	  if (!lUtils.termFilter(term, desiredFields, minFreq, maxFreq, Integer.MAX_VALUE))
+          {  
+        	  continue;
+          }
+    	  
         if (!addedConcepts.contains(term.text())) {
           addedConcepts.add(term.text());
           Vector semanticVector = VectorFactory.createZeroVector(vectorType, dimension);
@@ -121,32 +133,55 @@ public class PSI {
       }
 
       else if (field.equals("predicate")) {
+    	  
+    	  //frequency thresholds do not apply to predicates... but the stopword list does
+    	  if (!lUtils.termFilter(term, desiredFields, 0, Integer.MAX_VALUE, Integer.MAX_VALUE))
+          {  
+        	  continue;
+          }
+    	  
         Vector elementalVector = VectorFactory.generateRandomVector(vectorType, dimension, seedlength, random);
         Vector inverseElementalVector = VectorFactory.generateRandomVector(vectorType, dimension, seedlength, random);
-        predicateVectors.putVector(term.text(), elementalVector);
-        predicateVectors.putVector(term.text()+"-INV", inverseElementalVector);
+        predicateVectors.putVector(term.text().trim(), elementalVector);
+        predicateVectors.putVector(term.text().trim()+"-INV", inverseElementalVector);
       }
     }
 
     // Iterate through documents (each document = one predication).
-    for (int dc = 0; dc < numdocs; dc++) {
-      // Output progress counter.
-      if ((dc > 0) && ((dc % 10000 == 0) || ( dc < 10000 && dc % 1000 == 0 ))) {
-        VerbatimLogger.info("Processed " + dc + " predications ... ");
+    TermEnum te = indexReader.terms();
+    int pc = 0;
+    
+    while (te.next()) {
+      
+    	Term theTerm = te.term();
+    	if (!theTerm.field().equals("predication"))
+    		continue;
+    	pc++;
+    	
+    	// Output progress counter.
+      if ((pc > 0) && ((pc % 10000 == 0) || ( pc < 10000 && pc % 1000 == 0 ))) {
+        VerbatimLogger.info("Processed " + pc + " unique predications ... ");
       }
 
+      TermDocs theTermDocs = indexReader.termDocs(theTerm);
+      theTermDocs.next();
+      int dc = theTermDocs.doc();
+      
       Document document = indexReader.document(dc);
 
       String subject = document.get("subject");
       String predicate = document.get("predicate");
       String object = document.get("object");
-
+      
       float sWeight =1;
       float oWeight =1;
+      float pWeight =1;
 
       if (Flags.termweight.equalsIgnoreCase("idf")) {
         sWeight = lUtils.getIDF(new Term("subject",subject));
-        oWeight = lUtils.getIDF(new Term("object",object));    
+        oWeight = lUtils.getIDF(new Term("object",object));  
+        pWeight = (float) Math.log10(1+lUtils.getGlobalTermFreq(theTerm)); //log(occurrences of predication)
+        
       }
 
       Vector subject_semanticvector = semanticVectors.getVector(subject);
@@ -156,12 +191,18 @@ public class PSI {
       Vector predicate_vector = predicateVectors.getVector(predicate);
       Vector predicate_vector_inv = predicateVectors.getVector(predicate+"-INV");
 
+      if (subject_semanticvector == null || object_semanticvector == null || predicate_vector == null)
+      {	  
+    	  logger.info("skipping predication "+subject+" "+predicate+" "+object);
+    	  continue;
+      }
+      
       object_elementalvector.bind(predicate_vector);
-      subject_semanticvector.superpose(object_elementalvector, oWeight, null);
+      subject_semanticvector.superpose(object_elementalvector, pWeight*oWeight, null);
       object_elementalvector.release(predicate_vector);
 
       subject_elementalvector.bind(predicate_vector_inv);
-      object_semanticvector.superpose(subject_elementalvector, sWeight, null);
+      object_semanticvector.superpose(subject_elementalvector, pWeight*sWeight, null);
       subject_elementalvector.release(predicate_vector_inv);      
     } // Finish iterating through predications.
 
@@ -193,9 +234,11 @@ public class PSI {
 
     logger.info("Minimum frequency = " + Flags.minfrequency);
     logger.info("Maximum frequency = " + Flags.maxfrequency);
-    logger.info("Number non-alphabet characters = " + Flags.maxnonalphabetchars);
-    logger.info("Contents fields are: " + Arrays.toString(Flags.contentsfields));
-
-    createIncrementalPSIVectors(VectorType.valueOf(Flags.vectortype.toUpperCase()), Flags.dimension, Flags.seedlength, args[0]);
+    
+    if (Flags.termweight.equalsIgnoreCase("idf"))
+    	logger.info("Weighting = log10(predication occurrences)*(IDF other concept)");
+    	else logger.info("Weighting: binary");
+    
+    createIncrementalPSIVectors(VectorType.valueOf(Flags.vectortype.toUpperCase()), Flags.dimension, Flags.seedlength, args[0], Flags.minfrequency, Flags.maxfrequency);
   }
 }
