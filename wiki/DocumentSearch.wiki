@@ -54,6 +54,8 @@ If you want a pairwise comparison score between two documents, Doc1 and Doc2, th
 
 {{{java pitt.search.semanticvectors.CompareTerms -queryvectorfile docvectors.bin ./path/to/Doc1 ./path/to/Doc2}}}
 
+See Deswick's comment below for a complete example. 
+
 For new documents that were not indexed when the model was built, you can still compare the vectors produced by summing the constituent terms, which is conceptually equivalent. (Note the 'conceptually' part: any differences in term-weighting, stemming, case-normalization, etc., will affect your results.) The terms in each document need to be assembled into query statements, surrounded by double quotes.
 
 This could be done on Unix-like systems using something like:
