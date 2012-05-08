@@ -145,6 +145,8 @@ public class Flags {
   public static String boundvectorfileDescription =
       "Auxiliary vector store used when searching for boundproducts. Used only in some searchtypes.";
 
+  public static boolean binarybindingwithpermute = false;
+  
   public static final String elementalvectorfile = "elementalvectors";
   public static String elementalvectorfileDescription =
       "Random elemental vectors, sometimes written out, and used (e.g.) in conjunction with permuted vector file.";

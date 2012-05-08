@@ -525,14 +525,14 @@ public class BinaryVector implements Vector {
     IncompatibleVectorsException.checkVectorsCompatible(this, other);
     BinaryVector binaryOther = (BinaryVector) other;
     if (direction > 0) {
-    	binaryOther.permute(PermutationUtils.getShiftPermutation(VectorType.BINARY, dimension, 1));
+    	//binaryOther.permute(PermutationUtils.getShiftPermutation(VectorType.BINARY, dimension, 1));
     	this.bitSet.xor(binaryOther.bitSet);
-    	binaryOther.permute(PermutationUtils.getShiftPermutation(VectorType.BINARY, dimension, -1));
+    	this.permute(PermutationUtils.getShiftPermutation(VectorType.BINARY, dimension, 1));
       
     } else {
-    	binaryOther.permute(PermutationUtils.getShiftPermutation(VectorType.BINARY, dimension, -1));
+    	this.permute(PermutationUtils.getShiftPermutation(VectorType.BINARY, dimension, -1));
     	this.bitSet.xor(binaryOther.bitSet);
-    	binaryOther.permute(PermutationUtils.getShiftPermutation(VectorType.BINARY, dimension, 1));
+    	//binaryOther.permute(PermutationUtils.getShiftPermutation(VectorType.BINARY, dimension, 1));
  }
   }
   
@@ -542,7 +542,10 @@ public class BinaryVector implements Vector {
    * Implements inverse of binding using permutations and XOR. 
    */
   public void release(Vector other, int direction) {
-	  bind (other, direction);
+	  if (!Flags.binarybindingwithpermute)
+	   bind(other);
+	  else
+		  bind (other, direction);
   }
   
   @Override
@@ -551,8 +554,12 @@ public class BinaryVector implements Vector {
    */
   public void bind(Vector other) {
     IncompatibleVectorsException.checkVectorsCompatible(this, other);
-    BinaryVector binaryOther = (BinaryVector) other;
-    	this.bitSet.xor(binaryOther.bitSet);
+    if (!Flags.binarybindingwithpermute)
+    {BinaryVector binaryOther = (BinaryVector) other;
+     this.bitSet.xor(binaryOther.bitSet);
+    }
+    else
+    	bind(other, 1);
   }
   
   @Override
@@ -560,7 +567,12 @@ public class BinaryVector implements Vector {
    * Implements inverse binding using exclusive OR. 
    */
   public void release(Vector other) {
-	 bind(other);
+	 
+	 if (!Flags.binarybindingwithpermute)
+	  bind(other);
+	  else
+		  bind(other, -1);
+	  
   }
 
   @Override
