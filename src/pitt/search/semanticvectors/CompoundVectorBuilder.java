@@ -178,16 +178,18 @@ public class CompoundVectorBuilder {
       String nextToken = bindingTokenizer.nextToken();
       Vector bound_queryvector = null;
       
+      //get vector for first token
       bound_queryvector = getVector(semanticVectors, elementalVectors, nextToken).copy();
           
       
       while (bindingTokenizer.hasMoreTokens())
     	  {
-     	nextToken = bindingTokenizer.nextToken();
-         Vector bound_queryvector2 = null;
+    	 nextToken = bindingTokenizer.nextToken();
+         
+    	 Vector bound_queryvector2 = null;
          bound_queryvector2 = getVector(semanticVectors, elementalVectors, nextToken).copy();
          
-          //sequence of operations important for complex vectors
+          //sequence of operations important for complex vectors and permuted binary vectors
           bound_queryvector2.release(bound_queryvector);
           bound_queryvector = bound_queryvector2;
          
