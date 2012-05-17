@@ -120,11 +120,11 @@ public class BuildIndex {
         IncrementalDocVectors.createIncrementalDocVectors(
             vecStore, luceneIndex, Flags.contentsfields, "incremental_"+docFile);
         IncrementalTermVectors itermVectors = null;
-
+        
         for (int i = 1; i < Flags.trainingcycles; ++i) {
           itermVectors = new IncrementalTermVectors(
               luceneIndex, VectorType.valueOf(Flags.vectortype.toUpperCase()),
-              Flags.dimension, Flags.contentsfields, "incremental_"+docFile);
+              Flags.dimension, Flags.contentsfields, "incremental_"+docFile+".bin");
 
           VectorStoreWriter.writeVectors(
               "incremental_termvectors"+Flags.trainingcycles+".bin", itermVectors);
