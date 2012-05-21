@@ -35,6 +35,7 @@
 
 package pitt.search.semanticvectors;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.logging.Logger;
 
@@ -62,27 +63,15 @@ import pitt.search.semanticvectors.vectors.Vector;
 public class CompareTerms{
   private static final Logger logger = Logger.getLogger(CompareTerms.class.getCanonicalName());
 
-  /**
-   * Prints the following usage message: 
-   * <code>
-   * <br> CompareTerms class in package pitt.search.semanticvectors 
-   * <br> Usage: java pitt.search.semanticvectors.CompareTerms
-   * <br>                                         "&lt;QUERYTERMS1&gt;" "&lt;QUERYTERMS2&gt;"
-   * <br>"&lt;QUERYTERMS1,2&gt;" should be lists of words, separated by spaces.
-   * <br> The quotes are mandatory unless you are comparing two single words.
-   * <br> If the term NOT is used in one of the lists, subsequent terms in 
-   * <br> that list will be negated (as in Search class).
-   * </code>
-   * @see Search
-   */
-  public static void usage(){
-    String usageMessage = "CompareTerms class in package pitt.search.semanticvectors"
+  public static final String usageMessage = "CompareTerms class in package pitt.search.semanticvectors"
       + "\nUsage: java pitt.search.semanticvectors.CompareTerms"
       + "\n                                        \"<QUERYTERMS1>\" \"<QUERYTERMS2>\""
       + "\n<QUERYTERMS1,2> should be lists of words, separated by spaces."
       + "\nThe quotes are mandatory unless you are comparing two single words."
       + "\nIf the term NOT is used in one of the lists, subsequent terms in "
       + "\nthat list will be negated (as in Search class).";
+  
+  public static void usage(){
     System.out.println(usageMessage);
   }
 
@@ -97,32 +86,24 @@ public class CompareTerms{
     LuceneUtils luceneUtils = null;
 
     if (args.length != 2) {
-      logger.info("After parsing command line options there must be " +
+      logger.warning("After parsing command line options there must be " +
       "exactly two queryterm expressions to compare.");
       usage();
       throw new IllegalArgumentException();
     }
 
-    VectorStoreReaderLucene vecReader = null;
+    VerbatimLogger.info("Opening vector store from file: " + Flags.queryvectorfile + "\n");
+    CloseableVectorStore vecReader = VectorStoreReader.openVectorStore(Flags.queryvectorfile);
 
-    try {
-      vecReader = new VectorStoreReaderLucene(Flags.queryvectorfile);
-    } catch (IOException e) {
-      logger.warning("Failed to open vector store from file: " + Flags.queryvectorfile);
-      throw e;
-    }
-
-    logger.info("Opened query vector store from file: " + Flags.queryvectorfile);
-
-    if (Flags.luceneindexpath != null) {
+    if (!Flags.luceneindexpath.isEmpty()) {
       try {
         luceneUtils = new LuceneUtils(Flags.luceneindexpath);
       } catch (IOException e) {
-        logger.info("Couldn't open Lucene index at " + Flags.luceneindexpath);
+        VerbatimLogger.info("Couldn't open Lucene index at " + Flags.luceneindexpath);
       }
     }
     if (luceneUtils == null) {
-      logger.info("No Lucene index for query term weighting, "
+      VerbatimLogger.info("No Lucene index for query term weighting, "
           + "so all query terms will have same weight.");
     }
 
