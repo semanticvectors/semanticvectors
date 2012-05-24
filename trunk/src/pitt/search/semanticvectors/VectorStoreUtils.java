@@ -43,14 +43,14 @@ public class VectorStoreUtils {
    * is returned unchanged.
    */
   public static String getStoreFileName(String storeName) {
-    if (Flags.indexfileformat == "lucene") {
+    if (Flags.indexfileformat.equals("lucene")) {
       if (storeName.endsWith(".bin")) {
         return storeName;
       }
       else {
         return storeName + ".bin";
       }
-    } else if (Flags.indexfileformat == "text") {
+    } else if (Flags.indexfileformat.equals("text")) {
       if (storeName.endsWith(".txt")) {
         return storeName;
       }
