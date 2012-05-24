@@ -249,19 +249,35 @@ public class ComplexVector implements Vector {
   /**
    * Measure overlap using the scalar product of cartesian form.
    */
+  
   protected double measureCartesianOverlap(ComplexVector other) {
-    toCartesian();
-    other.toCartesian();
-    double result = 0;
-    double norm1 = 0;
-    double norm2 = 0;
-    for (int i = 0; i < dimension*2; ++i) {
-      result += coordinates[i] * other.coordinates[i];
-      norm1 += coordinates[i] * coordinates[i];
-      norm2 += other.coordinates[i] * other.coordinates[i];
-    }
-    return result / Math.sqrt(norm1 * norm2);
-  }
+	    toCartesian();
+	    other.toCartesian();
+	   
+	    double cumulativecosine = 0;
+	   
+	    for (int i = 0; i < dimension*2; i+=2) {
+	    	
+	    	
+	      double result = coordinates[i] * other.coordinates[i];
+	      result += coordinates[i+1] * other.coordinates[i+1];
+	      
+	      double norm1 = coordinates[i] * coordinates[i];
+	      norm1 += coordinates[i+1] * coordinates[i+1];
+	      
+	      	double norm2 = other.coordinates[i] * other.coordinates[i];
+	      	norm2  += other.coordinates[i+1] * other.coordinates[i+1];
+	      
+	      norm1 = Math.sqrt(norm1);
+	      norm2 = Math.sqrt(norm2);
+	      		
+	      cumulativecosine += result / (norm1 * norm2);
+
+	      		
+	    }
+	    return cumulativecosine/dimension;
+	  }
+  
   
   /**
    * Measures overlap of two vectors using mean cosine of difference
@@ -302,21 +318,17 @@ public class ComplexVector implements Vector {
     } 
   }
   
+
+  
   /**
-   * Normalizes the cartesian form of the vector so that it has unit length.  Same as the
-   * real vector implementation (except that dimension is doubled).
+   * Normalizes the cartesian form of the vector so that the vector formed by each real/imaginary pair has unit length 
    */
+  
+  
   protected void normalizeCartesian() {
-    toCartesian();
-    double normSq = 0;
-    for (int i = 0; i < dimension*2; ++i) {
-      normSq += coordinates[i] * coordinates[i];
-    }
-    float norm = (float) Math.sqrt(normSq);
-    for (int i = 0; i < dimension*2; ++i) {
-      coordinates[i] = coordinates[i] / norm;
-    }
-  }
+	    toDensePolar();
+	  	toCartesian();
+	  }
   
   @Override
   /**
