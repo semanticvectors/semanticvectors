@@ -50,7 +50,7 @@ public class VectorStoreUtils {
       else {
         return storeName + ".bin";
       }
-    } else if (Flags.indexfileformat == "lucene") {
+    } else if (Flags.indexfileformat == "text") {
       if (storeName.endsWith(".txt")) {
         return storeName;
       }
