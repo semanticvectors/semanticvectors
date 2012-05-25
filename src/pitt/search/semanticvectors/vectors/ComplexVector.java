@@ -247,35 +247,31 @@ public class ComplexVector implements Vector {
   }
   
   /**
-   * Measure overlap using the scalar product of cartesian form.
+   * Measure overlap, again using the sum of cosines of phase angle difference.
+   * 
+   * Note that this is different from the Hermitian scalar product.
    */
-  
   protected double measureCartesianOverlap(ComplexVector other) {
 	    toCartesian();
 	    other.toCartesian();
 	   
-	    double cumulativecosine = 0;
-	   
-	    for (int i = 0; i < dimension*2; i+=2) {
-	    	
-	    	
-	      double result = coordinates[i] * other.coordinates[i];
-	      result += coordinates[i+1] * other.coordinates[i+1];
+	    double cumulativeCosine = 0;	   
+	    for (int i = 0; i < dimension*2; i+=2) { 	
+	      double resultThisPair= coordinates[i] * other.coordinates[i];
+	      resultThisPair += coordinates[i+1] * other.coordinates[i+1];
 	      
 	      double norm1 = coordinates[i] * coordinates[i];
 	      norm1 += coordinates[i+1] * coordinates[i+1];
 	      
-	      	double norm2 = other.coordinates[i] * other.coordinates[i];
-	      	norm2  += other.coordinates[i+1] * other.coordinates[i+1];
+	      double norm2 = other.coordinates[i] * other.coordinates[i];
+	      norm2  += other.coordinates[i+1] * other.coordinates[i+1];
 	      
 	      norm1 = Math.sqrt(norm1);
 	      norm2 = Math.sqrt(norm2);
 	      		
-	      cumulativecosine += result / (norm1 * norm2);
-
-	      		
+	      cumulativeCosine += resultThisPair / (norm1 * norm2);	      		
 	    }
-	    return cumulativecosine/dimension;
+	    return cumulativeCosine/dimension;
 	  }
   
   
