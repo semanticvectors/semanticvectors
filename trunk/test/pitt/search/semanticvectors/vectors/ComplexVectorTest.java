@@ -57,7 +57,7 @@ import static org.junit.Assert.assertArrayEquals;
  */
 public class ComplexVectorTest extends TestCase {
 
-  private static final double TOL = 0.0001;
+  private static final double TOL = 0.001;
 
   @Test 
   public void testGenerateRandomVector() {
@@ -145,11 +145,13 @@ public class ComplexVectorTest extends TestCase {
     ComplexVector.setDominantMode(Mode.CARTESIAN);
     ComplexVector cv = new ComplexVector(new float[] {3, 4, 4, 3, 4, 3, 0, 5});
     cv.normalize();
-    assertFloatArrayEquals(new float[] {0.3f, 0.4f, 0.4f, 0.3f, 0.4f, 0.3f, 0.0f, 0.5f},
+    System.out.println(cv.toString());
+    // Note that normalize() makes each individual pair give a coordinate on the unit circle.
+    assertFloatArrayEquals(new float[] {0.6f, 0.8f, 0.8f, 0.6f, 0.8f, 0.6f, 0.0f, 1.0f},
         cv.getCoordinates(), TOL);
     ComplexVector.setDominantMode(Mode.POLAR_DENSE);
     cv.normalize();
-    assertArrayEquals(new short[] {2418, 1677, 1677, 4096}, cv.getPhaseAngles());
+    assertArrayEquals(new short[] {2417, 1676, 1676, 4096}, cv.getPhaseAngles());
   }
 
   @Test
