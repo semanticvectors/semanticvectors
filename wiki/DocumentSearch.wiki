@@ -63,3 +63,7 @@ This could be done on Unix-like systems using something like:
 {{{java pitt.search.semanticvectors.CompareTerms -queryvectorfile termvectors.bin "`cat Doc1`" "`cat Doc2`"}}}
 
 Of course, if there are double quotes inside your documents, this will lead to escaping problems. Be prepared to do a certain amount of cutting, pasting, search and replace, and escaping of special characters using your favorite tools.
+
+== Comparing Terms and Documents Explicitly ==
+
+This question was raised in the group discussions. Can you explicitly compare a term vector and a document vector? The answer is yes, but it needs a workaround. See CompareTerms for more details.
