@@ -23,3 +23,30 @@ See also DocumentSearch.
 == Batch Comparisons ==
 
 If you want to assemble scores for large numbers of pairs, consider using [http://semanticvectors.googlecode.com/svn/javadoc/latest-stable/pitt/search/semanticvectors/CompareTermsBatch.html CompareTermsBatch]. This tool caches your vector store in memory, so it's much faster for large numbers of comparisons.
+
+== Comparing Terms with Documents ==
+
+Sometimes you may want to compare two vectors from different vector store files with the same vector type (real, complex, or binary) and the same dimension. The most common case is where you want to compare a term and a document explicitly.
+
+CompareTerms does not support this feature explicitly at the time of writing, but here is a workaround:
+
+  # Build text versions of your models, e.g., using `java pitt.search.semanticvectors.BuildIndex -indexfileformat text positional_index/`
+  # Copy the `termvectors.txt` file to a new `allvectors.txt` file.
+  # Remove the header line from `docvectors.txt`, e.g., using a text editor.
+  # Concatenate this edited `docvectors.txt` file to your `allvectors.txt` file, e.g., using `cat docvectors.txt >> allvectors.txt`.
+  # Run `CompareTerms` on this `allvectors.txt` file.
+    * Remembering to quote your document pathnames if necessary, and to set `-indexfileformat text`.
+
+This should give you something like the following:
+
+{{{
+> java pitt.search.semanticvectors.CompareTerms -queryvectorfile allvectors.txt -indexfileformat text "bible-chapters\bible_chapters\2_Samuel\Chapter_24" david
+Opening vector store from file: allvectors.txt
+Found vector for 'bible-chapters\bible_chapters\2_Samuel\Chapter_24'
+Found vector for 'david'
+Jun 13, 2012 9:16:42 AM pitt.search.semanticvectors.CompareTerms main
+INFO: Outputting similarity of "bible-chapters\bible_chapters\2_Samuel\Chapter_24" with "david" ...
+0.3601597231735099
+}}}
+
+ 
