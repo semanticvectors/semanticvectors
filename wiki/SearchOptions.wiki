@@ -115,54 +115,8 @@ Searching term vectors, searchtype MAXSIM ... Search output follows ...
 ...
 }}}
 
-===TENSOR===
-A product similarity that trains by taking ordered pairs of terms, a target query term, and searches for the term whose tensor product with the target term gives the largest similarity with training tensor.
-
-The queryterms  should be a list of one or more tilde-separated training pairs, e.g., `paris~france berlin~germany` followed by a list of one or more search terms, e.g., `london birmingham`.
-
-Example:
-{{{
-$ java pitt.search.semanticvectors.Search -searchtype tensor abraham~isaac jacob~joseph jesse
-Opening query vector store from file: termvectors.bin
-Dimensions = 200
-Training pair: abraham~isaac
-Training pair: jacob~joseph
-Searching term vectors, searchtype TENSOR ... Search output follows ...
-0.08903535:jacob
-0.052856527:leah
-0.052095436:rachel
-0.051172566:bilhah
-0.048837323:laban
-0.04426618:speckled
-...
-}}}
-
-In an ideal world, this product would be designed to find the item that stands in the same relation to _jesse_ that _isaac_ stands in with respect to _abraham_ and _joseph_ stands in with respect to _jacob_, so we might hope that the model picks out _david_ (who was the most famous son of _jesse_ in the Bible). As you can see, it doesn't behave so nicely, but seems to be just finding terms related to _jacob_.
-
-===CONVOLUTION===
-
-Similar to TENSOR, product similarity that trains by taking ordered pairs of terms, a target query term, and searches for the term whose convolution product with the target term gives the largest similarity with training convolution.
-
-Example:
-{{{
-$ java pitt.search.semanticvectors.Search -searchtype convolution abraham~isaac jacob~joseph jesse
-Opening query vector store from file: termvectors.bin
-Dimensions = 200
-Training pair: abraham~isaac
-Training pair: jacob~joseph
-Searching term vectors, searchtype CONVOLUTION ... Search output follows ...
-0.30361828:faithfulness
-0.28568172:reproached
-0.2765901:lo
-0.2596051:wondrous
-0.24092554:governors
-0.23591144:coat
-...
-}}}
-
-Results look considerably less good that the results with tensor similarity.
-
-It would be premature of course to dismiss these options as "not working", it just may be that these examples are not what they are good for.
+===PERMUTATION===
+See PermutationSearch.
 
 ===PRINTQUERY===
 Build an additive query vector (as with SUM and print out the query vector for debugging.
