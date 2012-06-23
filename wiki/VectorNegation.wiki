@@ -2,6 +2,8 @@
 
 = Vector Negation =
 
+_Note: The vector negation cue string is now `~NOT` instead of `NOT` in the source tree. This change will be pushed out in release 3.6._
+
 SemanticVectors now has a vector negation feature. This enables the user to remove as well as adding terms from a query statement. To try queries with vector negation, put the capitalized string NOT in the middle of your query terms, e.g., 
 
 {{{java pitt.search.semanticvectors.Search pharaoh NOT joseph}}}
