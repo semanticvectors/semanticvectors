@@ -93,12 +93,12 @@ public class CompoundVectorBuilderTest extends TestCase {
 		 TOL);
 
     queryVector =
-      CompoundVectorBuilder.getQueryVectorFromString(vectorStore, null, "vector1 NOT vector2");
+      CompoundVectorBuilder.getQueryVectorFromString(vectorStore, null, "vector1 ~NOT vector2");
     assertEquals(0, queryVector.measureOverlap(vectorStore.getVector("vector2")), TOL);
 
     Flags.suppressnegatedqueries = true;
     queryVector =
-      CompoundVectorBuilder.getQueryVectorFromString(vectorStore, null, "vector1 NOT vector2");
+      CompoundVectorBuilder.getQueryVectorFromString(vectorStore, null, "vector1 ~NOT vector2");
     assertEquals(queryVector.measureOverlap(vectorStore.getVector("vector1")),
 		 queryVector.measureOverlap(vectorStore.getVector("vector2")),
 		 TOL);

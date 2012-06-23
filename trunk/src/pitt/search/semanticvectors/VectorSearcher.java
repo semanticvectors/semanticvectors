@@ -204,12 +204,9 @@ abstract public class VectorSearcher {
    * as a parameter. It is more computationally convenient than getNearestNeighbor
    * when large numbers of results are anticipated
    * 
-   * @param numResults the number of results / length of the result list.
+   * @param threshold minimum score required to get into results list.
    */
-  
-  
-  public LinkedList<SearchResult> getAllAboveThreshold(float threshold) {
-		
+  public LinkedList<SearchResult> getAllAboveThreshold(float threshold) {	
 		LinkedList<SearchResult> results = new LinkedList<SearchResult>();
 		double score;
 			
@@ -234,8 +231,6 @@ abstract public class VectorSearcher {
 		
 		Collections.sort(results);
 		return results;
-
-	
 }
   
   /**
