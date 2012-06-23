@@ -186,8 +186,7 @@ public class RegressionTests {
     assertTrue(peterRank <= 3);
   }
 
-  /* Convolution for complex directional indexing seems to really need some termweighting to work well. 
-   */
+  // Convolution for complex directional indexing seems to really need some termweighting to work well. 
   @Test
   public void testBuildAndSearchComplexDirectionalIndex() {
     int peterRank = positionalBuildSearchGetRank(
@@ -195,7 +194,7 @@ public class RegressionTests {
         "-queryvectorfile drxntermvectors.bin simon",
         new String[] {"drxntermvectors.bin", "docvectors.bin"},
         "peter");
-    assertEquals(2, peterRank);
+    assertTrue(peterRank <= 3);
   }
 
   @Test
@@ -205,7 +204,7 @@ public class RegressionTests {
         "-queryvectorfile drxntermvectors.bin simon",
         new String[] {"drxntermvectors.bin", "docvectors.bin"},
         "peter");
-    assertEquals(2, peterRank);
+    assertTrue(peterRank <= 3);
   }
 
   @Test

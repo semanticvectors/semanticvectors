@@ -60,6 +60,8 @@ import pitt.search.semanticvectors.vectors.VectorUtils;
  * So far these basic operations include negation of one or more terms.
  */
 public class CompoundVectorBuilder {
+  public static final String NEGATION_TOKEN = "~NOT";
+  
   private VectorStore vecReader;
   private LuceneUtils lUtils;
 
@@ -154,56 +156,56 @@ public class CompoundVectorBuilder {
    * @return the resulting query vector
    */
 
-  
+
   private static Vector getVector(VectorStore semanticVectors, VectorStore elementalVectors, String term)
   {
- 	 if (term.startsWith("E(") && term.endsWith(")"))
- 			 return elementalVectors.getVector(term.substring(2,term.length()-1)).copy();
-     else if (term.startsWith("S(") && term.endsWith(")"))
-     		return semanticVectors.getVector(term.substring(2,term.length()-1)).copy();
-     else return VectorFactory.createZeroVector(semanticVectors.getVectorType(), semanticVectors.getDimension());
-  }
-   
-   
-  public static Vector getBoundProductQueryVectorFromString(VectorStore semanticVectors, VectorStore elementalVectors, String queryString)
-  {
-      //allow for bundling of multiple concepts/relations - split initially at "+" to construct vectors to be superposed
-      StringTokenizer bundlingTokenizer = new StringTokenizer(queryString,"+");
-      Vector bundled_queryvector = VectorFactory.createZeroVector(semanticVectors.getVectorType(), semanticVectors.getDimension());
-      while (bundlingTokenizer.hasMoreTokens())
-      { 
-      //allow for binding of multiple concepts/relations
-      StringTokenizer bindingTokenizer = new StringTokenizer(bundlingTokenizer.nextToken(),"*");
-      
-      String nextToken = bindingTokenizer.nextToken();
-      Vector bound_queryvector = null;
-      
-      //get vector for first token
-      bound_queryvector = getVector(semanticVectors, elementalVectors, nextToken).copy();
-          
-      
-      while (bindingTokenizer.hasMoreTokens())
-    	  {
-    	 nextToken = bindingTokenizer.nextToken();
-         
-    	 Vector bound_queryvector2 = null;
-         bound_queryvector2 = getVector(semanticVectors, elementalVectors, nextToken).copy();
-         
-          //sequence of operations important for complex vectors and permuted binary vectors
-          bound_queryvector2.release(bound_queryvector);
-          bound_queryvector = bound_queryvector2;
-         
-    	  }
-      
-       bundled_queryvector.superpose(bound_queryvector, 1, null);
-      
-      }
-      
-      bundled_queryvector.normalize();
-      return bundled_queryvector;
+    if (term.startsWith("E(") && term.endsWith(")"))
+      return elementalVectors.getVector(term.substring(2,term.length()-1)).copy();
+    else if (term.startsWith("S(") && term.endsWith(")"))
+      return semanticVectors.getVector(term.substring(2,term.length()-1)).copy();
+    else return VectorFactory.createZeroVector(semanticVectors.getVectorType(), semanticVectors.getDimension());
   }
 
-  
+
+  public static Vector getBoundProductQueryVectorFromString(VectorStore semanticVectors, VectorStore elementalVectors, String queryString)
+  {
+    //allow for bundling of multiple concepts/relations - split initially at "+" to construct vectors to be superposed
+    StringTokenizer bundlingTokenizer = new StringTokenizer(queryString,"+");
+    Vector bundled_queryvector = VectorFactory.createZeroVector(semanticVectors.getVectorType(), semanticVectors.getDimension());
+    while (bundlingTokenizer.hasMoreTokens())
+    { 
+      //allow for binding of multiple concepts/relations
+      StringTokenizer bindingTokenizer = new StringTokenizer(bundlingTokenizer.nextToken(),"*");
+
+      String nextToken = bindingTokenizer.nextToken();
+      Vector bound_queryvector = null;
+
+      //get vector for first token
+      bound_queryvector = getVector(semanticVectors, elementalVectors, nextToken).copy();
+
+
+      while (bindingTokenizer.hasMoreTokens())
+      {
+        nextToken = bindingTokenizer.nextToken();
+
+        Vector bound_queryvector2 = null;
+        bound_queryvector2 = getVector(semanticVectors, elementalVectors, nextToken).copy();
+
+        //sequence of operations important for complex vectors and permuted binary vectors
+        bound_queryvector2.release(bound_queryvector);
+        bound_queryvector = bound_queryvector2;
+
+      }
+
+      bundled_queryvector.superpose(bound_queryvector, 1, null);
+
+    }
+
+    bundled_queryvector.normalize();
+    return bundled_queryvector;
+  }
+
+
   /**
    * Method gets a query vector from a query string of the form:
    * concept1*relation2+concept3*relation4 
@@ -215,30 +217,23 @@ public class CompoundVectorBuilder {
    * @param queryString
    * @return the resulting query vector
    */
-
-  
-  public static Vector getBoundProductQueryVectorFromString(VectorStore vecReader, String queryString)
-  {
-    //allow for bundling of multiple concepts/relations - split initially at "+" to construct vectors to be superposed
+  public static Vector getBoundProductQueryVectorFromString(VectorStore vecReader, String queryString) {
+    // allow for bundling of multiple concepts/relations - split initially at "+" to construct vectors to be superposed
     StringTokenizer bundlingTokenizer = new StringTokenizer(queryString,"+");
-    Vector bundled_queryvector = VectorFactory.createZeroVector(vecReader.getVectorType(), vecReader.getDimension());
-    while (bundlingTokenizer.hasMoreTokens())
-    { 
+    Vector bundledQueryvector = VectorFactory.createZeroVector(vecReader.getVectorType(), vecReader.getDimension());
+
+    while (bundlingTokenizer.hasMoreTokens()) { 
       //allow for binding of multiple concepts/relations
       StringTokenizer bindingTokenizer = new StringTokenizer(bundlingTokenizer.nextToken(),"*");
-      Vector bound_queryvector = vecReader.getVector(bindingTokenizer.nextToken()).copy();
+      Vector boundQueryvector = vecReader.getVector(bindingTokenizer.nextToken()).copy();
 
       while (bindingTokenizer.hasMoreTokens())
-        bound_queryvector.release(vecReader.getVector(bindingTokenizer.nextToken()));
-
-      bundled_queryvector.superpose(bound_queryvector, 1, null);
-
+        boundQueryvector.release(vecReader.getVector(bindingTokenizer.nextToken()));
+      bundledQueryvector.superpose(boundQueryvector, 1, null);
     }
-    
-    
 
-    bundled_queryvector.normalize();
-    return bundled_queryvector;
+    bundledQueryvector.normalize();
+    return bundledQueryvector;
   }
 
 
@@ -271,87 +266,70 @@ public class CompoundVectorBuilder {
       }
 
       Vector copyConceptVector = conceptVector.copy();
-       copyConceptVector.release(boundQueryvector);
-      
-      disjunctSpace.add(copyConceptVector);
-      
-      
+      copyConceptVector.release(boundQueryvector);
+      disjunctSpace.add(copyConceptVector);  
     }
 
-     if (vecReader.getVectorType().equals(VectorType.BINARY)) {
-        BinaryVectorUtils.orthogonalizeVectors(disjunctSpace);
-      } else {
-        VectorUtils.orthogonalizeVectors(disjunctSpace);
-      }
-    
-     
-     
-     
+    if (vecReader.getVectorType().equals(VectorType.BINARY)) {
+      BinaryVectorUtils.orthogonalizeVectors(disjunctSpace);
+    } else {
+      VectorUtils.orthogonalizeVectors(disjunctSpace);
+    }
+
     return disjunctSpace;
   }
-  
+
   /**
    * Method gets a query subspace from a query string of the form:
    * E(C1)*S(C2) + E(C3)*S(C4)
+   *
+   * This method facilitates the combination of single or dual predicate paths using the quantum OR operator,
+   * or a binary approximation thereof.
    * 
-   * 
-   * This method facilitates the combination of single or dual predicate paths using the quantum OR operator, or a binary approximation thereof
-   * 
-   * @param vecReader Vector store reader for input
-   * @param queryString Query expression to be turned into vector subspace
    * @return List of vectors that are basis elements for subspace
    */
-  public static ArrayList<Vector> getBoundProductQuerySubspaceFromString(VectorStore semanticVectors, VectorStore elementalVectors, String queryString)
-  {
-	  ArrayList<Vector> disjunctSpace = new ArrayList<Vector>();
-	  
-      //allow for bundling of multiple concepts/relations - split initially at "+" to construct vectors to be superposed
-      StringTokenizer bundlingTokenizer = new StringTokenizer(queryString,"+");
-       while (bundlingTokenizer.hasMoreTokens())
-      { 
+  public static ArrayList<Vector> getBoundProductQuerySubspaceFromString(
+      VectorStore semanticVectors, VectorStore elementalVectors, String queryString) {
+    ArrayList<Vector> disjunctSpace = new ArrayList<Vector>();
+
+    //allow for bundling of multiple concepts/relations - split initially at "+" to construct vectors to be superposed
+    StringTokenizer bundlingTokenizer = new StringTokenizer(queryString,"+");
+    while (bundlingTokenizer.hasMoreTokens()) { 
       //allow for binding of multiple concepts/relations
       StringTokenizer bindingTokenizer = new StringTokenizer(bundlingTokenizer.nextToken(),"*");
-      
       String nextToken = bindingTokenizer.nextToken();
-      Vector bound_queryvector = null;
-      
-      bound_queryvector = getVector(semanticVectors, elementalVectors, nextToken).copy();
-          
-      
-      while (bindingTokenizer.hasMoreTokens())
-    	  {
-     	nextToken = bindingTokenizer.nextToken();
-         Vector bound_queryvector2 = null;
-         bound_queryvector2 = getVector(semanticVectors, elementalVectors, nextToken).copy();
-         
-          //sequence of operations important for complex vectors
-          bound_queryvector2.release(bound_queryvector);
-          bound_queryvector = bound_queryvector2;
-         
-    	  }
-      
-       disjunctSpace.add(bound_queryvector);
-      
+      Vector boundQeryvector = null;
+
+      boundQeryvector = getVector(semanticVectors, elementalVectors, nextToken).copy();
+
+      while (bindingTokenizer.hasMoreTokens()) {
+        nextToken = bindingTokenizer.nextToken();
+        Vector boundQueryvector2 = null;
+        boundQueryvector2 = getVector(semanticVectors, elementalVectors, nextToken).copy();
+
+        //sequence of operations important for complex vectors
+        boundQueryvector2.release(boundQeryvector);
+        boundQeryvector = boundQueryvector2;
       }
-      
-         if (semanticVectors.getVectorType().equals(VectorType.BINARY)) {
-            BinaryVectorUtils.orthogonalizeVectors(disjunctSpace);
-          } else {
-            VectorUtils.orthogonalizeVectors(disjunctSpace);
-          
-        }
-  
-      return disjunctSpace;
+
+      disjunctSpace.add(boundQeryvector);
+    }
+
+    if (semanticVectors.getVectorType().equals(VectorType.BINARY)) {
+      BinaryVectorUtils.orthogonalizeVectors(disjunctSpace);
+    } else {
+      VectorUtils.orthogonalizeVectors(disjunctSpace);
+    }
+    return disjunctSpace;
   }
-  
+
 
   /**
    * Method gets a query vector from a query string, i.e., a
    * space-separated list of queryterms.
    */
-  public static Vector getQueryVectorFromString(VectorStore vecReader,
-      LuceneUtils lUtils,
-      String queryString) {
+  public static Vector getQueryVectorFromString(
+      VectorStore vecReader, LuceneUtils lUtils, String queryString) {
     String[] queryTerms = queryString.split("\\s");
     return getQueryVector(vecReader, lUtils, queryTerms);
   }
@@ -370,16 +348,15 @@ public class CompoundVectorBuilder {
    *        be negated.
    * @return queryVector, a vector representing the user's query.
    */
-  public static Vector getQueryVector(VectorStore vecReader,
-      LuceneUtils lUtils,
-      String[] queryTerms) {
+  public static Vector getQueryVector(
+      VectorStore vecReader, LuceneUtils lUtils, String[] queryTerms) {
     CompoundVectorBuilder builder = new CompoundVectorBuilder(vecReader, lUtils);
     Vector returnVector = VectorFactory.createZeroVector(
         vecReader.getVectorType(), vecReader.getDimension());
     // Check through args to see if we need to do negation.
     if (!Flags.suppressnegatedqueries) {
       for (int i = 0; i < queryTerms.length; ++i) {
-        if (queryTerms[i].equalsIgnoreCase("NOT")) {
+        if (queryTerms[i].equalsIgnoreCase(NEGATION_TOKEN)) {
           // If, so build negated query and return.
           return builder.getNegatedQueryVector(queryTerms, i);
         }
