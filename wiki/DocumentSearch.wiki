@@ -38,7 +38,7 @@ Search output follows ...
 0.8963310879414658:taxed
 }}}
 
-For *Document to Document Search*, use commands just like those above but set `-searchvectorfile` to the same file as `-queryvectorstore`, that is, the path to the document vectors.
+For *Document to Document Search*, use commands just like those above but set `-searchvectorfile` to the same file as `-queryvectorfile`, that is, the path to the document vectors.
 
 === Lucene Term Weighting ===
 
