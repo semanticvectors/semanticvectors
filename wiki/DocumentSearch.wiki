@@ -18,13 +18,16 @@ You can also use the document file as a source of queries. For example, to find 
 
 {{{java pitt.search.semanticvectors.Search -queryvectorfile docvectors.bin -searchvectorfile termvectors.bin -matchcase bible_chapters/Genesis/Chapter_1}}}
 
-With default settings, this brings up pretty generic terms like "unto", "i", "them, "have". This can be improved using termweighting: currently SemanticVectors supports `-termweight idf` and `-termweight logentropy`. Sometimes results have have also been better with traditional LSA, e.g., using the King James Bible corpus:
+However, effort is still required to tune this process effectively. Known problems include:
+  * With default settings, results appear to be pretty generic terms like "unto", "i", "them, "have".
+  * With term weighting switched on using `-termweight idf` or `-termweight logentropy`, results appear to be very specific terms like "whales", "yielding", "firmament".
+  * Sometimes results have been promising with traditional LSA, though not consistently. E.g., using the King James Bible corpus:
 
 {{{
 $ java pitt.search.semanticvectors.LSA index/
 $ java pitt.search.semanticvectors.Search -queryvectorfile svd_docvectors.bin -searchvectorfile svd_termvectors.bin -matchcase  bible_chapters/Luke/Chapter_2
-Opening query vector store from file: svd_docvectors.bin
-Opening search vector store from file: svd_termvectors.bin
+Opening query vector store from file: docvectors.bin
+Opening search vector store from file: termvectors.bin
 Searching term vectors, searchtype sum
 Found vector for 'bible_chapters/Luke/Chapter_2'
 Search output follows ...
