@@ -328,6 +328,9 @@ abstract public class VectorSearcher {
           for (int q = 0; q < incomingVectors.size(); q++)
         	  theSuperposition.superpose(incomingVectors.get(q), 1, null);
          
+          theSuperposition.normalize();
+          this.queryVector = theSuperposition;
+          
           if (this.queryVector.isZeroVector()) {
             throw new ZeroVectorException("Query vector is zero ... no results.");
           }
