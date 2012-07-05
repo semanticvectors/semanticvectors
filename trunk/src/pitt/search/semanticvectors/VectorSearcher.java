@@ -49,6 +49,7 @@ import pitt.search.semanticvectors.VectorStore;
 import pitt.search.semanticvectors.vectors.BinaryVectorUtils;
 import pitt.search.semanticvectors.vectors.IncompatibleVectorsException;
 import pitt.search.semanticvectors.vectors.Vector;
+import pitt.search.semanticvectors.vectors.VectorFactory;
 import pitt.search.semanticvectors.vectors.VectorType;
 import pitt.search.semanticvectors.vectors.VectorUtils;
 
@@ -225,7 +226,7 @@ abstract public class VectorSearcher {
 	
 	      }
 	    	
-	     if (score > threshold) {
+	     if (score > threshold || threshold == Float.MIN_VALUE) {
 				results.add(new SearchResult(score, testElement));}
 		}				
 		
@@ -295,7 +296,8 @@ abstract public class VectorSearcher {
             throws ZeroVectorException {
       super(queryVecStore, searchVecStore, luceneUtils);
 
-      this.queryVector = CompoundVectorBuilder.getBoundProductQueryVectorFromString(queryVecStore, term1);
+      this.queryVector = CompoundVectorBuilder.getQueryVectorFromString(queryVecStore, null, term1);
+      
       
       queryVector.release(CompoundVectorBuilder.getBoundProductQueryVectorFromString(boundVecStore, term2));
 
@@ -315,6 +317,22 @@ abstract public class VectorSearcher {
         throw new ZeroVectorException("Query vector is zero ... no results.");
       }
     }
+    
+    public VectorSearcherBoundProduct(VectorStore queryVecStore, VectorStore boundVecStore,
+            VectorStore searchVecStore, LuceneUtils luceneUtils, ArrayList<Vector> incomingVectors)
+                throws ZeroVectorException {
+          super(queryVecStore, searchVecStore, luceneUtils);
+
+          Vector theSuperposition = VectorFactory.createZeroVector(queryVecStore.getVectorType(), queryVecStore.getDimension());
+          
+          for (int q = 0; q < incomingVectors.size(); q++)
+        	  theSuperposition.superpose(incomingVectors.get(q), 1, null);
+         
+          if (this.queryVector.isZeroVector()) {
+            throw new ZeroVectorException("Query vector is zero ... no results.");
+          }
+        }
+    
 
     /**
      * @param queryVecStore Vector store to use for query generation.
@@ -381,6 +399,19 @@ abstract public class VectorSearcher {
 
         
         }
+    
+    public VectorSearcherBoundProductSubSpace(VectorStore queryVecStore, VectorStore boundVecStore,
+            VectorStore searchVecStore, LuceneUtils luceneUtils, ArrayList<Vector> incomingDisjunctSpace)
+                throws ZeroVectorException {
+          super(queryVecStore, searchVecStore, luceneUtils);
+
+          this.disjunctSpace = incomingDisjunctSpace;
+          vectorType = queryVecStore.getVectorType();
+ 
+   
+        
+        }
+    
     
 
     @Override
@@ -478,6 +509,34 @@ abstract public class VectorSearcher {
       }
     }
 
+    /**
+     * @param queryVecStore Vector store to use for query generation.
+     * @param searchVecStore The vector store to search.
+     * @param luceneUtils LuceneUtils object to use for query weighting. (May be null.)
+     * @param queryTerms Terms that will be parsed and used to generate a query subspace.
+     */
+    public VectorSearcherMaxSim(VectorStore queryVecStore,
+        VectorStore searchVecStore,
+        LuceneUtils luceneUtils,
+        Vector[] queryTerms)
+            throws ZeroVectorException {
+      super(queryVecStore, searchVecStore, luceneUtils);
+      this.disjunctVectors = new ArrayList<Vector>();
+
+      for (int i = 0; i < queryTerms.length; ++i) {
+        // There may be compound disjuncts, e.g., "A NOT B" as a single argument.
+        Vector tmpVector = queryTerms[i];
+
+        if (tmpVector != null) {
+          this.disjunctVectors.add(tmpVector);
+        }
+      }
+      if (this.disjunctVectors.size() == 0) {
+        throw new ZeroVectorException("No nonzero input vectors ... no results.");
+      }
+    }
+    
+    
     /**
      * Scoring works by taking scalar product with disjunctSpace
      * (which must by now be represented using an orthogonal basis).
