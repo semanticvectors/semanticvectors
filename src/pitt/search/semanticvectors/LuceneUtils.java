@@ -7,15 +7,15 @@
    modification, are permitted provided that the following conditions are
    met:
 
-   * Redistributions of source code must retain the above copyright
+ * Redistributions of source code must retain the above copyright
    notice, this list of conditions and the following disclaimer.
 
-   * Redistributions in binary form must reproduce the above
+ * Redistributions in binary form must reproduce the above
    copyright notice, this list of conditions and the following
    disclaimer in the documentation and/or other materials provided
    with the distribution.
 
-   * Neither the name of the University of Pittsburgh nor the names
+ * Neither the name of the University of Pittsburgh nor the names
    of its contributors may be used to endorse or promote products
    derived from this software without specific prior written
    permission.
@@ -31,7 +31,7 @@
    LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
    NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
    SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-**/
+ **/
 
 package pitt.search.semanticvectors;
 
@@ -62,7 +62,7 @@ import org.apache.lucene.util.Version;
  */
 public class LuceneUtils{
   private static final Logger logger = Logger.getLogger(DocVectors.class.getCanonicalName());
-  
+
   private IndexReader indexReader;
   private Hashtable<Term, Float> termEntropy = new Hashtable<Term, Float>();
   private Hashtable<Term, Float> termIDF = new Hashtable<Term, Float>();
@@ -70,65 +70,62 @@ public class LuceneUtils{
   //added by sid
   private TreeSet<String> startwords = null;
 
-  
+
   /**
    * @param path - path to lucene index
    */
   public LuceneUtils (String path) throws IOException {
     this.indexReader = IndexReader.open(FSDirectory.open(new File(path)));
     if (Flags.stoplistfile.length() > 0)
-    	loadStopWords(Flags.stoplistfile);
+      loadStopWords(Flags.stoplistfile);
   }
 
 
   /**
-   * Loads the stopword file into memory
-   * @param stoppath - path to stopword file
-   * @throws IOException
+   * Loads the stopword file into the {@link #stopwords} data structure.
+   * @param stoppath Path to stopword file.
+   * @throws IOException If stopword file cannot be read.
    */
+  public void loadStopWords(String stoppath) throws IOException {
+    logger.info("Using stopword file: " + stoppath);
+    stopwords = new TreeSet<String>();
+    try {
+      BufferedReader readIn = new BufferedReader(new FileReader(stoppath));
+      String in = readIn.readLine();
+      while (in != null) {
+        stopwords.add(in);
+        in = readIn.readLine();
+      }
+    }
+    catch (IOException e) {
+      throw new IOException("Couldn't read stopwords from file "+stoppath);
+    }
+  }
 
-  public void loadStopWords(String stoppath) throws IOException
-  {  logger.info("Using stopword file: "+stoppath);
-	  stopwords = new TreeSet<String>();
-  	try{
-  BufferedReader readIn = new BufferedReader(new FileReader(stoppath));
-  String in = readIn.readLine();
-  while (in != null)
-  {stopwords.add(in);
-  in = readIn.readLine();
-  }
-  }
-  catch (IOException e)
-  {throw new IOException("Couldn't open file "+stoppath);}
-  }
 
-  
   /**
-   * added by Siddhartha
-   * Loads the startword file into memory 
-   * @param startpath - path to startword file
-   * @throws IOException
+   * Loads the startword file into the {@link #startwords} data structure.
+   * @param startpath Path to startword file
+   * @throws IOException If startword file cannot be read.
    */
-  
-  public void loadStartWords(String startpath) throws IOException
-  {  System.err.println("Using startword file: "+startpath);
-  	 startwords = new TreeSet<String>();
-  	try{
-  BufferedReader readIn = new BufferedReader(new FileReader(startpath));
-  String in = readIn.readLine();
-  while (in != null)
-  {startwords.add(in);
-  in = readIn.readLine();
-  }	
+  public void loadStartWords(String startpath) throws IOException {
+    System.err.println("Using startword file: "+startpath);
+    startwords = new TreeSet<String>();
+    try {
+      BufferedReader readIn = new BufferedReader(new FileReader(startpath));
+      String in = readIn.readLine();
+      while (in != null) {
+        startwords.add(in);
+        in = readIn.readLine();
+      }	
+    }
+    catch (IOException e) {
+      throw new IOException("Couldn't open file "+startpath);
+    }
   }
-  catch (IOException e) 
-  {throw new IOException("Couldn't open file "+startpath);}
-  }
-  
-  
-  
+
   /**
-   * Returns true if term is in stoplist (returns false if no stoplist)
+   * Returns true if term is in stoplist, false otherwise.
    */
   public boolean stoplistContains(String x) {
     if (stopwords == null) return false;
@@ -169,7 +166,7 @@ public class LuceneUtils{
     try {
       int freq = 0;
       for (String field: Flags.contentsfields)
-	freq += indexReader.docFreq(new Term(field, termString));
+        freq += indexReader.docFreq(new Term(field, termString));
       return (float) Math.pow(freq, -0.05);
     } catch (IOException e) {
       logger.info("Couldn't get term weight for term '" + termString + "'");
@@ -193,30 +190,30 @@ public class LuceneUtils{
   }
 
   /**
-   * Gets the number of documents
+   * Returns the number of documents in the Lucene index.
    */
-  public int getNumDocs()
-  {return indexReader.numDocs();}
+  public int getNumDocs() { return indexReader.numDocs(); }
 
-  
   /**
-   * Gets the IDF (i.e. log10(numdocs/doc frequency)) of a term
-   *	@param term the term whose IDF you would like
-   */
-  
+   * Returns the IDF (i.e. log10(numdocs/doc frequency)) of a term, and caches for future use.
+   * @param term the term whose IDF you would like
+   */  
   public float getIDF(Term term) {
-	  if (termIDF.containsKey(term))
-		  return termIDF.get(term);
-	  else 
-		  try
-	  		{ 	float idf = (float) Math.log10(indexReader.numDocs()/indexReader.docFreq(term));
-	  			termIDF.put(term, idf);
-	  			return idf; 
-	  		} 
-	  	catch (Exception e)
-	  		{e.printStackTrace(); return 1;}
-	  }
-  
+    if (termIDF.containsKey(term)) {
+      return termIDF.get(term);
+    } else { 
+      try {
+        float idf = (float) Math.log10(indexReader.numDocs()/indexReader.docFreq(term));
+        termIDF.put(term, idf);
+        return idf; 
+      } catch (IOException e) {
+        // Catches IOException from looking up doc frequency, never seen yet in practice.
+        e.printStackTrace();
+        return 1;
+      }
+    }
+  }
+
   /**
    * Gets the 1 - entropy (i.e. 1+ plogp) of a term,
    * a function that favors terms that are focally distributed
@@ -276,7 +273,7 @@ public class LuceneUtils{
 
     // Stoplist (if active)
     if (stoplistContains(term.text()))
-    	return false;
+      return false;
 
     if (!isDesiredField) {
       return false;
@@ -315,9 +312,9 @@ public class LuceneUtils{
   static void compressIndex(String indexDir) {
     try {
       IndexWriter compressor = new IndexWriter(FSDirectory.open(new File(indexDir)),
-					       new StandardAnalyzer(Version.LUCENE_30),
-					       false,
-					       MaxFieldLength.UNLIMITED);
+          new StandardAnalyzer(Version.LUCENE_30),
+          false,
+          MaxFieldLength.UNLIMITED);
       compressor.optimize();
       compressor.close();
     } catch (CorruptIndexException e) {

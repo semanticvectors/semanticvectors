@@ -38,7 +38,6 @@ public class LSA {
         + "\n  -minfrequency [minimum term frequency]"
         + "\n  -maxnonalphabetchars [number non-alphabet characters (-1 for any number)]";
 
-  private boolean le = false;
   private String[] termList;
   private IndexReader indexReader;
   private LuceneUtils lUtils;
@@ -68,18 +67,15 @@ public class LSA {
           + "Setting dimension to " + numDocs);
       Flags.dimension = numDocs;
     }
-    
-    if (Flags.termweight.equals("logentropy")) {
-      le = true;
-      VerbatimLogger.info("Term weighting: log-entropy.\n");
-    }
-    
+
     // Log some of the basic properties. This could be altered to be more informative if
     // our users ever ask for different properties.
-    VerbatimLogger.info("Set up LSA indexer.\n" +
-    		"Dimension: " + Flags.dimension + " Minimum frequency = " + Flags.minfrequency
-        + " Maximum frequency = " + Flags.maxfrequency
-        + " Number non-alphabet characters = " + Flags.maxnonalphabetchars +  "\n");
+    VerbatimLogger.info("Set up LSA indexer.\n"
+        + "Dimension: " + Flags.dimension
+        + " Termweight: " + Flags.termweight
+    		+ " Minfrequency: " + Flags.minfrequency
+        + " Maxfrequency: " + Flags.maxfrequency
+        + " Maxnonalphabetchars: " + Flags.maxnonalphabetchars +  "\n");
   }
 
   /**
@@ -161,11 +157,11 @@ public class LSA {
 
           float value = td.freq();
 
-          // Use log-entropy weighting if directed.
-          if (le) {
-            float entropy = lUtils.getEntropy(term);
-            float log1plus = (float) Math.log10(1+value);
-            value = entropy*log1plus;
+          // Apply appropriate term-weighting.
+          if (Flags.termweight.equals("logentropy")) {
+            value = lUtils.getEntropy(term) * (float) Math.log10(1 + value);
+          } else if (Flags.termweight.equals("idf")) {
+            value = value * lUtils.getIDF(term);
           }
 
           S.rowind[nn] = td.doc();  // set row index to document number
@@ -188,8 +184,7 @@ public class LSA {
       throw e;
     }
     if (!Flags.vectortype.equalsIgnoreCase("real")) {
-      logger.warning("LSA is only supported for real vectors ... setting vectortype to 'real'.");
-      
+      logger.warning("LSA is only supported for real vectors ... setting vectortype to 'real'."); 
     }
     
     // Only one argument should remain, the path to the Lucene index.
@@ -234,7 +229,8 @@ public class LSA {
     }
     outputStream.flush();
     outputStream.close();
-    VerbatimLogger.info("Wrote " + cnt + " term vectors incrementally to file " + Flags.termvectorsfile + ".\n");
+    VerbatimLogger.info("Wrote " + cnt + " term vectors incrementally to file "
+            + VectorStoreUtils.getStoreFileName(Flags.termvectorsfile) + ".\n");
 
     // Write document vectors.
     // Open file and write headers.
@@ -261,6 +257,7 @@ public class LSA {
     outputStream.flush();
     outputStream.close();
     VerbatimLogger.info("Wrote " + cnt + " document vectors incrementally to file "
-                        + Flags.docvectorsfile + ". Done.\n");
+                        + VectorStoreUtils.getStoreFileName(Flags.docvectorsfile)
+                        + ". Done.\n");
   }
 }
