@@ -3,14 +3,12 @@
 
 Even-numbered versions are releases. Odd-numbered versions are in development. It follows that the most recent code and the `build.xml` file in the SVN repository is always odd-numbered.
 
-=== Version 3.5 ===
-
-Current development version, to be released soon.
+=== Version 3.6 ===
 
  * Addition of SemanticVectorsCollider, used in experiments that measure frequency of random vectors overlapping over different fields and dimensions.
  * Several improvements to PSI, notably the support for `S(united_states)*S(mexico)*E(dollar)` type notation for queries including subspace queries.
  * Added support for idf termweighting in LSA.
- * Changed negation term from `NOT` to `~NOT`, and fixed tests accordingly. (TODO: confirm update in VectorNegation.)
+ * Changed negation term from `NOT` to `~NOT`, and fixed tests accordingly.
  * [https://code.google.com/p/semanticvectors/source/detail?r=721 Changes] to make complex normalization and overlap measure more circular than Cartesian in nature.
  * Fixes to complete systematic use of `.bin` and `.txt` extensions as appropriate for vector store file names.
  * Added sorting to the GetAllAboveThreshold method, such that results are returned in order.
