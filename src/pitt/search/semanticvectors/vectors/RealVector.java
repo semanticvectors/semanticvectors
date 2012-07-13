@@ -42,6 +42,8 @@ import java.util.logging.Logger;
 import org.apache.lucene.store.IndexInput;
 import org.apache.lucene.store.IndexOutput;
 
+import pitt.search.semanticvectors.Flags;
+
 /**
  * Real number implementation of Vector.
  * 
@@ -145,10 +147,18 @@ public class RealVector implements Vector {
    * the code slightly more complicated to make the implementation
    * slightly more space efficient.
    *
+   * If seedlength == dimension, a dense real vector is generated instead, with each
+   * dimension initialized to a real value between -1 and 1 
+   *
    * @return Sparse representation of basic ternary vector.
    */
   public RealVector generateRandomVector(int dimension, int seedLength, Random random) {
-    RealVector randomVector = new RealVector(dimension);
+     RealVector randomVector = new RealVector(dimension);
+    
+     //allow for dense random vectors, with each value initalized at random between -1 and 1
+     if (Flags.seedlength == Flags.dimension)
+    	return generateDenseRandomVector(dimension, seedLength, random);
+    
     boolean[] occupiedPositions = new boolean[dimension];
     randomVector.sparseOffsets = new short[seedLength];
 
@@ -178,7 +188,29 @@ public class RealVector implements Vector {
 
     return randomVector;
   }
+  
+  
+  /**
+   * Generates a basic dense vector
+   * with values assigned at random to a real value between -1 and 1
+   *
+   * @return Dense representation of basic real vector.
+   */
+  
+  public RealVector generateDenseRandomVector(int dimension, int seedLength, Random random) {
+    
+	  RealVector randomVector = new RealVector(dimension);
+      randomVector.sparseToDense();
+ 
+      for (int q =0; q < dimension; q++)
+    	  randomVector.coordinates[q] = (float) random.nextDouble();
 
+      for (int q =0; q < dimension; q++)
+    	  if (random.nextBoolean()) randomVector.coordinates[q] *=-1;
+    
+    randomVector.normalize();  
+    return randomVector;
+  }
   
   @Override
   /**

@@ -37,6 +37,7 @@ package pitt.search.semanticvectors.vectors;
 
 import java.util.Random;
 
+import pitt.search.semanticvectors.Flags;
 import pitt.search.semanticvectors.vectors.ComplexVector.Mode;
 
 /**
@@ -85,7 +86,10 @@ public class VectorFactory {
    */
   public static Vector generateRandomVector(
       VectorType type, int dimension, int numEntries, Random random) {
-    if (2 * numEntries > dimension && !type.equals(VectorType.COMPLEX)) {
+   
+	
+	 
+	  if (2 * numEntries > dimension && !type.equals(VectorType.COMPLEX) && !(Flags.seedlength == Flags.dimension)) {
       throw new RuntimeException("Requested " + numEntries + " to be filled in sparse "
           + "vector of dimension " + dimension + ". This is not sparse and may cause problems.");
     }
