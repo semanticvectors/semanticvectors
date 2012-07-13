@@ -18,27 +18,26 @@ You can also use the document file as a source of queries. For example, to find 
 
 {{{java pitt.search.semanticvectors.Search -queryvectorfile docvectors.bin -searchvectorfile termvectors.bin -matchcase bible_chapters/Genesis/Chapter_1}}}
 
-However, effort is still required to tune this process effectively. Known problems include:
-  * With default settings, results appear to be pretty generic terms like "unto", "i", "them, "have".
+There have been some reports of good performance in using SemanticVectors in this way for document keyword and tag recommendations. In most situations, effort is required to tune the process effectively. Known problems include:
+  * With default settings (using random projection with `BuildIndex` and the King James Bible corpus, results appear to be pretty generic terms like "unto", "i", "them, "have".
   * With term weighting switched on using `-termweight idf` or `-termweight logentropy`, results appear to be very specific terms like "whales", "yielding", "firmament".
-  * Sometimes results have been promising with traditional LSA, though not consistently. E.g., using the King James Bible corpus:
+  * Results often look promising with traditional LSA and idf term weighting, e.g., using the King James Bible corpus:
 
 {{{
-$ java pitt.search.semanticvectors.LSA index/
-$ java pitt.search.semanticvectors.Search -queryvectorfile svd_docvectors.bin -searchvectorfile svd_termvectors.bin -matchcase  bible_chapters/Luke/Chapter_2
+$ java pitt.search.semanticvectors.LSA -termweight idf positional_index/
+$ java pitt.search.semanticvectors.Search -queryvectorfile docvectors.bin -searchvectorfile termvectors.bin -matchcase "bible_chapters\Luke\Chapter_2"
 Opening query vector store from file: docvectors.bin
 Opening search vector store from file: termvectors.bin
 Searching term vectors, searchtype sum
-Found vector for 'bible_chapters/Luke/Chapter_2'
+Found vector for 'bible_chapters\Luke\Chapter_2'
 Search output follows ...
-0.9513617955705869:anna
-0.9513617955705869:cyrenius
-0.9513617955705869:lineage
-0.9513617955705869:phanuel
-0.9513617955705869:pondered
-0.9513617955705869:swaddling
-0.9513617930195419:manger
-0.8963310879414658:taxed
+0.9894455515331493:anna
+0.9894455515331493:cyrenius
+0.9894455515331493:lineage
+0.9894455515331493:phanuel
+0.9894455515331493:pondered
+0.9894455515331493:swaddling
+0.9894455487129858:manger
 }}}
 
 For *Document to Document Search*, use commands just like those above but set `-searchvectorfile` to the same file as `-queryvectorfile`, that is, the path to the document vectors.
