@@ -17,8 +17,8 @@ public class SemanticVectorCollider {
 		Random random = new Random();
 		
 		
-		int iterations = 100; //number of times to perform experiment
-		int superpositions = 15000; //number of superpositions per experiment
+		int iterations = 1000; //number of times to perform experiment
+		int superpositions = 15000; //number of superpositions per experiment (at most)
 		int min = Integer.MAX_VALUE;
 		int max = Integer.MIN_VALUE;
 		
@@ -45,7 +45,11 @@ public class SemanticVectorCollider {
 		Vector originalVector = VectorFactory.generateRandomVector(VectorType.valueOf(Flags.vectortype.toUpperCase()),Flags.dimension, Flags.seedlength, random);
 		
 		Vector superPosition = VectorFactory.createZeroVector(VectorType.valueOf(Flags.vectortype.toUpperCase()), Flags.dimension);
+		
 		superPosition.superpose(originalVector, 1, null);
+		if (Flags.vectortype.equalsIgnoreCase("binary"))
+		{ superPosition.normalize(); 	}
+		
 		
 		Vector additionalVector = VectorFactory.generateRandomVector(VectorType.valueOf(Flags.vectortype.toUpperCase()),Flags.dimension, Flags.seedlength, random);
 		
@@ -53,18 +57,19 @@ public class SemanticVectorCollider {
 		{
 			if (x % 100 == 0) System.err.print("...");
 			
-				if (Flags.vectortype.equalsIgnoreCase("binary"))
-				{ superPosition.normalize(); 	}
 			
 			double overlapWithOrigin = superPosition.measureOverlap(originalVector); 
-			double overlapWithAddition = originalVector.measureOverlap(additionalVector);
+		
+			//generate another random vector
+			Vector randomVector = VectorFactory.generateRandomVector(VectorType.valueOf(Flags.vectortype.toUpperCase()),Flags.dimension, Flags.seedlength, random);
+			double overlapWithRandom = superPosition.measureOverlap(randomVector); 
 			
-				overlapcount++;
-				overlapscore += overlapWithAddition;
-				overlapScore.add(new Double(overlapWithAddition));
+			
+				overlapscore += overlapWithRandom;
+				overlapScore.add(new Double(overlapWithRandom));
 				
 			
-			if (overlapWithAddition >= overlapWithOrigin)
+			if (overlapWithRandom >= overlapWithOrigin) //version 2.0 based on Roger Schvaneveldt's Matlab edition: compare superposition:origin vs. superposition:random 
 			{
 				System.out.println("Iteration " +cnt+": Incidental overlap occurred at superposition number "+x);
 				
@@ -80,7 +85,11 @@ public class SemanticVectorCollider {
 			}
 			
 			additionalVector = VectorFactory.generateRandomVector(VectorType.valueOf(Flags.vectortype.toUpperCase()),Flags.dimension, Flags.seedlength, random);
+			
 			superPosition.superpose(additionalVector, 1, null);
+			
+			if (Flags.vectortype.equalsIgnoreCase("binary"))
+			{ superPosition.normalize(); 	}
 			
 		
 			
