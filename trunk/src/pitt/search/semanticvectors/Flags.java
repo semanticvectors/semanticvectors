@@ -147,14 +147,14 @@ public class Flags {
 
   public static boolean binarybindingwithpermute = false;
   
-  public static final String elementalvectorfile = "elementalvectors";
+  public static String elementalvectorfile = "elementalvectors";
   public static String elementalvectorfileDescription =
       "Random elemental vectors, sometimes written out, and used (e.g.) in conjunction with permuted vector file.";
   
-  public static final String semanticvectorfile = "semanticvectors";
+  public static String semanticvectorfile = "semanticvectors";
   public static String semanticvectorfileDescription = "Semantic vectors; used so far as a name in PSI.";
 
-  public static final String predicatevectorfile = "predicatevectors";
+  public static String predicatevectorfile = "predicatevectors";
   public static String predicatevectorfileDescription = "Vectors used to represent predicates in PSI.";
   
   public static String permutedvectorfile = "permtermvectors";
