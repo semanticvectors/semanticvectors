@@ -45,64 +45,59 @@ import java.util.logging.Logger;
 import pitt.search.semanticvectors.vectors.Vector;
 
 /**
- * Command line term vector search utility.
- *
- * @see VectorSearcher
- * Here is a list of different types of searches that can be
- * performed. Most involve processing combinations of vectors in
- * different ways, in building a query expression, scoring candidates
- * against these query expressions, or both. Most options here
- * correspond directly to a particular subclass of
- * <code>VectorSearcher</code>
- *
- * The search option is set using the --searchtype flag. Options include:
- *
- * @see VectorSearcher.VectorSearcherCosine
- * <br/> <b>sum</b>:
- * Default option - build a query by adding together (weighted)
- * vectors for each of the query terms, and search using cosine
- * similarity.
- *
- * <br/> <b>sparsesum</b>:
- * Build a query as with <code>SUM</code> option, but quantize to
- * sparse vectors before taking scalar product at search time.
- * This can be used to give a guide to how much similarities are
- * changed by only using the most significant coordinates of a
- * vector.
- *
- * @see VectorSearcher.VectorSearcherSubspaceSim
- * <br/> <b>subspace</b>:
+ * Command line term vector search utility. <br/>
+ * <br/>
+ * 
+ * Following is a list of different types of searches that can be performed.
+ * Most involve processing combinations of vectors in different ways, in
+ * building a query expression, scoring candidates against these query
+ * expressions, or both. Most options here correspond directly to a particular
+ * subclass of <code>{@link VectorSearcher}</code>.
+ * <p>
+ * The search option is set using the <code>--searchtype</code> flag. Options
+ * include:
+ * <p>
+ * 
+ * <ul>
+ * <li>{@link VectorSearcher.VectorSearcherCosine <b>sum</b>}: Default option -
+ * build a query by adding together (weighted) vectors for each of the query
+ * terms, and search using cosine similarity.
+ * 
+ * <li>{@link VectorSearcher.VectorSearcherCosine <b>sparsesum</b>}: Build a
+ * query as with <code>SUM</code> option, but quantize to sparse vectors before
+ * taking scalar product at search time. This can be used to give a guide to how
+ * much similarities are changed by only using the most significant coordinates
+ * of a vector.
+ * 
+ * <li>{@link VectorSearcher.VectorSearcherSubspaceSim <b>subspace</b>}:
  * "Quantum disjunction" - get vectors for each query term, create a
- * representation for the subspace spanned by these vectors, and
- * score by measuring cosine similarity with this subspace.
- *
- * @see VectorSearcher.VectorSearcherMaxSim
- * <br/><b>maxsim</b>:
- * "Closest disjunction" - get vectors for each query term, score
- * by measuring distance to each term and taking the minimum.
- *
- * @see VectorSearcher.VectorSearcherPerm
- * <br/><b>permutation</b>
- * Based on Sahlgren at al. (2008). Searches for the term that best matches
- * the position of a "?" in a sequence of terms. For example
- * 'martin ? king' should retrieve luther as the top ranked match
- * requires the index queried to contain unpermuted vectors, either
- * random vectors or previously learned term vectors, and the index searched must contain
- * permuted vectors.
- *
- * <br/><b>balanced_permutation</b>
- * Based on Sahlgren at al. (2008). Searches for the term that best matches
- * the position of a "?" in a sequence of terms. For example
- * 'martin ? king' should retrieve luther as the top ranked match
- * requires the index queried to contain unpermuted vectors, either
- * random vectors or previously learned term vectors, and the index searched must contain
- * permuted vectors. This is a variant of the method, that takes the mean
- * of the two possible search directions (search with index vectors for permuted vectors,
- * or vice versa).
- *
- * <br/><b>printquery</b>
- * Build an additive query vector (as with <code>SUM</code> and
- * print out the query vector for debugging.
+ * representation for the subspace spanned by these vectors, and score by
+ * measuring cosine similarity with this subspace.
+ * 
+ * <li>{@link VectorSearcher.VectorSearcherMaxSim <b>maxsim</b>}:
+ * "Closest disjunction" - get vectors for each query term, score by measuring
+ * distance to each term and taking the minimum.
+ * 
+ * <li>{@link VectorSearcher.VectorSearcherPerm <b>permutation</b>}: Based on
+ * Sahlgren at al. (2008). Searches for the term that best matches the position
+ * of a "?" in a sequence of terms. For example 'martin ? king' should retrieve
+ * luther as the top ranked match requires the index queried to contain
+ * unpermuted vectors, either random vectors or previously learned term vectors,
+ * and the index searched must contain permuted vectors.
+ * 
+ * <li>{@link VectorSearcher.VectorSearcherPerm <b>balanced_permutation</b>}:
+ * Based on Sahlgren at al. (2008). Searches for the term that best matches the
+ * position of a "?" in a sequence of terms. For example 'martin ? king' should
+ * retrieve luther as the top ranked match requires the index queried to contain
+ * unpermuted vectors, either random vectors or previously learned term vectors,
+ * and the index searched must contain permuted vectors. This is a variant of
+ * the method, that takes the mean of the two possible search directions (search
+ * with index vectors for permuted vectors, or vice versa).
+ * 
+ * <li>{@link VectorSearcher.VectorSearcherPerm <b>printquery</b>}: Build an
+ * additive query vector (as with <code>SUM</code> and print out the query
+ * vector for debugging).
+ * </ul>
  */
 public class Search {
   private static final Logger logger = Logger.getLogger(Search.class.getCanonicalName());
