@@ -139,4 +139,23 @@ public class VectorStoreRAM implements VectorStore {
       return null;
     }
   }
+
+  	/**
+	 * Given an object, return its corresponding vector and remove it from the
+	 * VectorStore. Does nothing and returns null if the object was not found.
+	 * <p>
+	 * This implementation only works for string objects so far.
+	 * 
+	 * @param desiredObject
+	 *            - the string you're searching for
+	 * @return vector from the VectorStore, or null if not found.
+	 */
+  public Vector removeVector(Object desiredObject) {
+    ObjectVector objectVector = this.objectVectors.get(desiredObject);
+    if (objectVector != null) {
+      return objectVectors.remove(desiredObject).getVector();
+    } else {
+      return null;
+    }
+  }
 }
