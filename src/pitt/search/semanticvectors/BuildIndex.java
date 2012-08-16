@@ -51,14 +51,16 @@ public class BuildIndex {
     + "\nUsage: java pitt.search.semanticvectors.BuildIndex PATH_TO_LUCENE_INDEX"
     + "\nBuildIndex creates termvectors and docvectors files in local directory."
     + "\nOther parameters that can be changed include number of dimensions, "
-    + "vector type (real, binary or complex), seed length (number of non-zero entries in"
-    + "basic vectors), minimum term frequency, and number of iterative training cycles."
+    + "vector type (real, binary or complex), seed length (number of non-zero entries in "
+    + "basic vectors), minimum term frequency, max. number of non-alphabetical characters per term, "
+    + "filtering of numeric terms (i.e. numbers), and number of iterative training cycles."
     + "\nTo change these use the command line arguments "
     + "\n  -vectortpe [real, complex or binary]"
     + "\n  -dimension [number of dimension]"
     + "\n  -seedlength [seed length]"
     + "\n  -minfrequency [minimum term frequency]"
     + "\n  -maxnonalphabetchars [number non-alphabet characters (-1 for any number)]"
+    + "\n  -filternumbers [true or false]"
     + "\n  -trainingcycles [training cycles]"
     + "\n  -docindexing [incremental|inmemory|none] Switch between building doc vectors incrementally"
     + "\n        (requires positional index), all in memory (default case), or not at all";
@@ -88,7 +90,8 @@ public class BuildIndex {
         + ", Vector type: " + Flags.vectortype
         + ", Minimum frequency: " + Flags.minfrequency
         + ", Maximum frequency: " + Flags.maxfrequency
-        + ", Number non-alphabet characters: " + Flags.maxnonalphabetchars
+        + ", Max. number non-alphabet characters: " + Flags.maxnonalphabetchars
+        + ", Filter out numbers: " + (Flags.filternumbers ? "yes" : "no")
         + ", Contents fields are: " + Arrays.toString(Flags.contentsfields) + "\n");
 
     String termFile = Flags.termvectorsfile;
@@ -104,14 +107,14 @@ public class BuildIndex {
         VerbatimLogger.info("Creating term vectors ... \n");
         vecStore = TermVectorsFromLucene.createTermBasedRRIVectors(
             luceneIndex, VectorType.valueOf(Flags.vectortype.toUpperCase()), Flags.dimension,
-            Flags.seedlength, Flags.minfrequency, Flags.maxfrequency,
-            Flags.maxnonalphabetchars, Flags.initialtermvectors, Flags.contentsfields);
+            Flags.seedlength, Flags.minfrequency, Flags.maxfrequency, Flags.maxnonalphabetchars,
+            Flags.filternumbers, Flags.initialtermvectors, Flags.contentsfields);
       } else {
         VerbatimLogger.info("Creating elemental document vectors ... \n");
         vecStore = TermVectorsFromLucene.createTermVectorsFromLucene(
             luceneIndex, VectorType.valueOf(Flags.vectortype.toUpperCase()),
             Flags.dimension, Flags.seedlength, Flags.minfrequency, Flags.maxfrequency,
-            Flags.maxnonalphabetchars, null, Flags.contentsfields);
+            Flags.maxnonalphabetchars, Flags.filternumbers, null, Flags.contentsfields);
       }
 
       // Create doc vectors and write vectors to disk.
@@ -143,8 +146,8 @@ public class BuildIndex {
           VerbatimLogger.info("\nRetraining with learned document vectors ...");
           vecStore = TermVectorsFromLucene.createTermVectorsFromLucene(
               luceneIndex, VectorType.valueOf(Flags.vectortype.toUpperCase()),
-              Flags.dimension, Flags.seedlength,
-              Flags.minfrequency, Flags.maxfrequency, Flags.maxnonalphabetchars,
+              Flags.dimension, Flags.seedlength, Flags.minfrequency,
+              Flags.maxfrequency, Flags.maxnonalphabetchars, Flags.filternumbers,
               docVectors, Flags.contentsfields);
           docVectors = new DocVectors(vecStore);
         }

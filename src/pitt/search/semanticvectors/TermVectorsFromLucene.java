@@ -72,6 +72,7 @@ public class TermVectorsFromLucene implements VectorStore {
   private String[] fieldsToIndex;
   private LuceneUtils lUtils;
   private int maxNonAlphabet;
+  private boolean filterNumbers;
   private int minFreq;
   private int maxFreq;
   private VectorStore basicDocVectors;
@@ -124,7 +125,8 @@ public class TermVectorsFromLucene implements VectorStore {
    * @param seedLength number of +1 or -1 entries in basic
    * vectors. Should be even to give same number of each.
    * @param minFreq The minimum term frequency for a term to be indexed.
-   * @param nonAlphabet
+   * @param maxNonAlphabet the max. number of nonalphabet characters permitted
+   * @param filternumbers determines if numbers are filtered out, true or false
    * @param basicDocVectors The store of basic document vectors. Null
    * is an acceptable value, in which case the constructor will build
    * this table. If non-null, the identifiers must correspond to the Lucene doc numbers.
@@ -133,7 +135,7 @@ public class TermVectorsFromLucene implements VectorStore {
    */
   public static TermVectorsFromLucene createTermVectorsFromLucene(
       String indexDir, VectorType vectorType, int dimension, int seedLength, int minFreq,
-      int maxFreq, int nonAlphabet, VectorStore basicDocVectors, String[] fieldsToIndex)
+      int maxFreq, int maxNonAlphabet, boolean filterNumbers, VectorStore basicDocVectors, String[] fieldsToIndex)
   throws IOException, RuntimeException {
     TermVectorsFromLucene vectorStore = new TermVectorsFromLucene() {};
     vectorStore.dimension = dimension;
@@ -141,7 +143,8 @@ public class TermVectorsFromLucene implements VectorStore {
     vectorStore.indexDir = indexDir;
     vectorStore.minFreq = minFreq;
     vectorStore.maxFreq = maxFreq;
-    vectorStore.maxNonAlphabet = nonAlphabet;
+    vectorStore.maxNonAlphabet = maxNonAlphabet;
+    vectorStore.filterNumbers = filterNumbers;
     vectorStore.fieldsToIndex = fieldsToIndex;
     vectorStore.seedLength = seedLength;
     vectorStore.basicDocVectors = basicDocVectors;
@@ -199,7 +202,7 @@ public class TermVectorsFromLucene implements VectorStore {
 
       Term term = terms.term();
       // Skip terms that don't pass the filter.
-      if (!lUtils.termFilter(terms.term(), fieldsToIndex, minFreq, maxFreq, maxNonAlphabet)) {
+      if (!lUtils.termFilter(terms.term(), fieldsToIndex, minFreq, maxFreq, maxNonAlphabet, filterNumbers)) {
         continue;
       }
 
@@ -228,7 +231,8 @@ public class TermVectorsFromLucene implements VectorStore {
    * @param indexDir the directory of the Lucene Index
    * @param seedLength number of +1 or -1 entries in basic vectors.
    *        Should be even to give same number of each.
-   * @param nonAlphabet the number of nonalphabet characters permitted
+   * @param maxNonAlphabet the max. number of nonalphabet characters permitted
+   * @param filterNumbers determines if numbers are filtered out
    * @param minFreq The minimum term frequency for a term to be indexed
    * @param initialTermVectorsFile name of file containing initial term vectors. If "random",
    *        initialize random vectors instead.
@@ -238,14 +242,15 @@ public class TermVectorsFromLucene implements VectorStore {
    */
   public static TermVectorsFromLucene createTermBasedRRIVectors(
       String indexDir, VectorType vectorType, int dimension, int seedLength, int minFreq, int maxFreq,
-      int nonAlphabet, String initialTermVectorsFile, String[] fieldsToIndex)
+      int maxNonAlphabet, boolean filterNumbers, String initialTermVectorsFile, String[] fieldsToIndex)
   throws IOException, RuntimeException {
     TermVectorsFromLucene trainedTermvectors = new TermVectorsFromLucene() {};
     trainedTermvectors.indexDir = indexDir;
     trainedTermvectors.initialTermVectorsFile = initialTermVectorsFile;
     trainedTermvectors.minFreq = minFreq;
     trainedTermvectors.maxFreq = maxFreq;
-    trainedTermvectors.maxNonAlphabet = nonAlphabet;
+    trainedTermvectors.maxNonAlphabet = maxNonAlphabet;
+    trainedTermvectors.filterNumbers = filterNumbers;
     trainedTermvectors.fieldsToIndex = fieldsToIndex;
     trainedTermvectors.seedLength = seedLength;
     trainedTermvectors.dimension = dimension;
@@ -271,7 +276,7 @@ public class TermVectorsFromLucene implements VectorStore {
       while(terms.next()){
         Term term = terms.term();
         // Skip terms that don't pass the filter.
-        if (!lUtils.termFilter(terms.term(), fieldsToIndex, minFreq, maxFreq, maxNonAlphabet))  {
+        if (!lUtils.termFilter(terms.term(), fieldsToIndex, minFreq, maxFreq, maxNonAlphabet, filterNumbers))  {
           continue;
         }
         Vector indexVector = VectorFactory.generateRandomVector(vectorType, dimension, seedLength, random);

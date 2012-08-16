@@ -302,6 +302,31 @@ public class LuceneUtils{
   }
 
   /**
+   * Applies termFilter and additionally (if requested) filters out digit-only words. 
+   * 
+   * @param term Term to be filtered.
+   * @param desiredFields Terms in only these fields are filtered in
+   * @param minFreq minimum term frequency accepted
+   * @param maxFreq maximum term frequency accepted
+   * @param maxNonAlphabet reject terms with more than this number of non-alphabetic characters
+   * @param filterNumbers if true, filters out tokens that represent a number
+   */
+  protected boolean termFilter(
+    Term term, String[] desiredFields, int minFreq, int maxFreq, int maxNonAlphabet, boolean filterNumbers) {
+      // number filter
+    if (filterNumbers) {
+      try {
+	// if the token can be parsed as a floating point number, no exception is thrown and false is returned
+	// if not, an exception is thrown and we continue with the other termFilter method.
+	// remark: this does not filter out e.g. Java or C++ formatted numbers like "1f" or "1.0d"
+	Double.parseDouble( term.text() );
+	return false;
+      } catch (Exception e) {}
+    }
+    return termFilter(term, desiredFields, minFreq, maxFreq, maxNonAlphabet);
+  }
+  
+  /**
    * Static method for compressing an index.
    *
    * This small preprocessing step makes sure that the Lucene index

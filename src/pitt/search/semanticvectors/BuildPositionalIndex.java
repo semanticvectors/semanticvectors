@@ -119,6 +119,7 @@ public class BuildPositionalIndex {
         + ", Minimum term frequency: " + Flags.minfrequency
         + ", Maximum term frequency: " + Flags.maxfrequency
         + ", Number non-alphabet characters: " + Flags.maxnonalphabetchars
+        + ", Filter out numbers: " + (Flags.filternumbers ? "yes" : "no")
         + ", Window radius: " + Flags.windowradius
         + ", Fields to index: " + Arrays.toString(Flags.contentsfields)
         + "\n");
@@ -127,8 +128,8 @@ public class BuildPositionalIndex {
       TermTermVectorsFromLucene vecStore = new TermTermVectorsFromLucene(
           luceneIndex,  VectorType.valueOf(Flags.vectortype.toUpperCase()),
           Flags.dimension, Flags.seedlength, Flags.minfrequency, Flags.maxfrequency,
-          Flags.maxnonalphabetchars, 2 * Flags.windowradius + 1, Flags.positionalmethod,
-            newBasicTermVectors, Flags.contentsfields);
+          Flags.maxnonalphabetchars, Flags.filternumbers, 2 * Flags.windowradius + 1,
+          Flags.positionalmethod, newBasicTermVectors, Flags.contentsfields);
       
       VectorStoreWriter.writeVectors(termFile, vecStore);
 
@@ -138,8 +139,8 @@ public class BuildPositionalIndex {
         vecStore = new TermTermVectorsFromLucene(
             luceneIndex,  VectorType.valueOf(Flags.vectortype.toUpperCase()),
             Flags.dimension, Flags.seedlength, Flags.minfrequency, Flags.maxfrequency,
-            Flags.maxnonalphabetchars, 2 * Flags.windowradius + 1, Flags.positionalmethod,
-            newBasicTermVectors, Flags.contentsfields);
+            Flags.maxnonalphabetchars, Flags.filternumbers, 2 * Flags.windowradius + 1,
+            Flags.positionalmethod, newBasicTermVectors, Flags.contentsfields);
       }
 
       if (Flags.trainingcycles > 1) {
