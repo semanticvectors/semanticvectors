@@ -80,10 +80,11 @@ public class TermTermVectorsFromLucene implements VectorStore {
   private String[] fieldsToIndex;
   private int minFreq;
   private int maxFreq;
+  private int maxNonAlphabet;
+  private boolean filterNumbers;
   private int windowSize;
   private Vector[] localindexvectors;
   private LuceneUtils lUtils;
-  private int maxNonAlphabet;
 
   private String positionalmethod;
   
@@ -137,6 +138,7 @@ public class TermTermVectorsFromLucene implements VectorStore {
    * @param minFreq The minimum term frequency for a term to be indexed.
    * @param maxFreq The minimum term frequency for a term to be indexed.
    * @param maxNonAlphabet
+   * @param filterNumbers
    * @param windowSize The size of the sliding context window.
    * @param positionalmethod
    * @param indexVectors
@@ -145,7 +147,7 @@ public class TermTermVectorsFromLucene implements VectorStore {
    */
   public TermTermVectorsFromLucene(
       String luceneIndexDir, VectorType vectorType, int dimension, int seedLength,
-      int minFreq, int maxFreq, int maxNonAlphabet, int windowSize, String positionalmethod,
+      int minFreq, int maxFreq, int maxNonAlphabet, boolean filterNumbers, int windowSize, String positionalmethod,
       VectorStore indexVectors, String[] fieldsToIndex) throws IOException {
     this.luceneIndexDir = luceneIndexDir;
     this.vectorType = vectorType;
@@ -154,6 +156,7 @@ public class TermTermVectorsFromLucene implements VectorStore {
     this.minFreq = minFreq;
     this.maxFreq = maxFreq;
     this.maxNonAlphabet = maxNonAlphabet;
+    this.filterNumbers = filterNumbers;
     this.fieldsToIndex = fieldsToIndex;
     this.seedLength = seedLength;
     this.windowSize = windowSize;
@@ -229,7 +232,7 @@ public class TermTermVectorsFromLucene implements VectorStore {
     while(terms.next()) {
       Term term = terms.term();
       // Skip terms that don't pass the filter.
-      if (!lUtils.termFilter(terms.term(), fieldsToIndex, minFreq, maxFreq, maxNonAlphabet)) {
+      if (!lUtils.termFilter(terms.term(), fieldsToIndex, minFreq, maxFreq, maxNonAlphabet, filterNumbers)) {
         continue;
       }
       tc++;

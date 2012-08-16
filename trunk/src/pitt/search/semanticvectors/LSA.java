@@ -36,7 +36,8 @@ public class LSA {
         + "\nTo change these use the command line arguments "
         + "\n  -dimension [number of dimension]"
         + "\n  -minfrequency [minimum term frequency]"
-        + "\n  -maxnonalphabetchars [number non-alphabet characters (-1 for any number)]";
+        + "\n  -maxnonalphabetchars [number non-alphabet characters (-1 for any number)]"
+        + "\n  -filternumbers [true or false]";
 
   private String[] termList;
   private IndexReader indexReader;
@@ -73,9 +74,11 @@ public class LSA {
     VerbatimLogger.info("Set up LSA indexer.\n"
         + "Dimension: " + Flags.dimension
         + " Termweight: " + Flags.termweight
-    		+ " Minfrequency: " + Flags.minfrequency
+        + " Minfrequency: " + Flags.minfrequency
         + " Maxfrequency: " + Flags.maxfrequency
-        + " Maxnonalphabetchars: " + Flags.maxnonalphabetchars +  "\n");
+        + " Maxnonalphabetchars: " + Flags.maxnonalphabetchars
+        + " Filter out numbers: " + (Flags.filternumbers ? "yes" : "no") + "\n");
+
   }
 
   /**
@@ -94,7 +97,8 @@ public class LSA {
     int tc = 0;
     while(terms.next()){
       if (lUtils.termFilter(terms.term(), Flags.contentsfields,
-          Flags.minfrequency, Flags.maxfrequency, Flags.maxnonalphabetchars))
+                            Flags.minfrequency, Flags.maxfrequency,
+                            Flags.maxnonalphabetchars, Flags.filternumbers))
         tc++;
     }
 
@@ -109,7 +113,8 @@ public class LSA {
     while(terms.next()){
       org.apache.lucene.index.Term term = terms.term();
       if (lUtils.termFilter(term, Flags.contentsfields,
-          Flags.minfrequency, Flags.maxfrequency, Flags.maxnonalphabetchars)) {
+                            Flags.minfrequency, Flags.maxfrequency,
+                            Flags.maxnonalphabetchars, Flags.filternumbers)) {
         termList[tc] = term.text();
 
         // Create matrix of nonzero indices.
@@ -143,7 +148,7 @@ public class LSA {
       org.apache.lucene.index.Term term = terms.term();
       if (lUtils.termFilter(term, Flags.contentsfields,
                             Flags.minfrequency, Flags.maxfrequency,
-                            Flags.maxnonalphabetchars)) {
+                            Flags.maxnonalphabetchars, Flags.filternumbers)) {
         TermDocs td = indexReader.termDocs(term);
         S.pointr[tc] = nn;  // Index of first non-zero entry (document) of each column (term).
 

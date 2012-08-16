@@ -79,6 +79,7 @@ public class Flags {
   public static int minfrequency;
   public static int maxfrequency = Integer.MAX_VALUE;
   public static int maxnonalphabetchars;
+  public static boolean filternumbers = false;
 
   public static String indexRootDirectory = "";
   public static final String indexRootDirectoryDescription = "Allow for the specification of a directory to place the lucene index in. Requires a trailing slash";
