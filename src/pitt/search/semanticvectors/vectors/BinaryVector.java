@@ -523,16 +523,17 @@ public class BinaryVector implements Vector {
    */
   public void bind(Vector other, int direction) {
     IncompatibleVectorsException.checkVectorsCompatible(this, other);
-    BinaryVector binaryOther = (BinaryVector) other;
+    BinaryVector binaryOther = (BinaryVector) other.copy();
     if (direction > 0) {
-    	//binaryOther.permute(PermutationUtils.getShiftPermutation(VectorType.BINARY, dimension, 1));
-    	this.bitSet.xor(binaryOther.bitSet);
-    	this.permute(PermutationUtils.getShiftPermutation(VectorType.BINARY, dimension, 1));
+    	//as per Kanerva 2009: bind(A,B) = perm+(A) XOR B = C
+    	//this also functions as the left inverse:  left inverse (A,C) = perm+(A) XOR C  = B 
+    	this.permute(PermutationUtils.getShiftPermutation(VectorType.BINARY, dimension, 1)); //perm+(A)
+    	this.bitSet.xor(binaryOther.bitSet); //perm+(A) XOR B
       
     } else {
-    	this.permute(PermutationUtils.getShiftPermutation(VectorType.BINARY, dimension, -1));
-    	this.bitSet.xor(binaryOther.bitSet);
-    	//binaryOther.permute(PermutationUtils.getShiftPermutation(VectorType.BINARY, dimension, 1));
+    	//as per Kanerva 2009: right inverse(C,B) =  perm-(C XOR B) = perm-(perm+(A)) = A 
+    	this.bitSet.xor(binaryOther.bitSet); //C XOR B
+    	this.permute(PermutationUtils.getShiftPermutation(VectorType.BINARY, dimension, -1)); //perm-(C XOR B) = A
  }
   }
   
