@@ -220,12 +220,20 @@ public class PSI {
   }
 
   public static void main(String[] args) throws IllegalArgumentException, IOException {
-    try {
+    
+	  // Currently implemented for complex and binary vectors only
+	  if (Flags.vectortype == "real")
+	  {
+	    		logger.info("PSI is currently implemented for complex and binary vectors only. Changing vector type to (dense) complex.");
+	    		Flags.vectortype = "complex";
+	    		Flags.seedlength = Flags.dimension;
+	  }
+	  try {
       args = Flags.parseCommandLineFlags(args);
     } catch (IllegalArgumentException e) {
       throw e;
     }
-
+    
     // Only two arguments should remain, the path to the Lucene index.
     if (args.length != 1) {
       throw (new IllegalArgumentException("After parsing command line flags, there were "
