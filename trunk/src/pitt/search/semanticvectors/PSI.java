@@ -198,11 +198,11 @@ public class PSI {
       }
       
       object_elementalvector.bind(predicate_vector);
-      subject_semanticvector.superpose(object_elementalvector, pWeight*oWeight, null);
+      subject_semanticvector.superpose(object_elementalvector, pWeight+oWeight, null);
       object_elementalvector.release(predicate_vector);
 
       subject_elementalvector.bind(predicate_vector_inv);
-      object_semanticvector.superpose(subject_elementalvector, pWeight*sWeight, null);
+      object_semanticvector.superpose(subject_elementalvector, pWeight+sWeight, null);
       subject_elementalvector.release(predicate_vector_inv);      
     } // Finish iterating through predications.
 
@@ -244,7 +244,7 @@ public class PSI {
     logger.info("Maximum frequency = " + Flags.maxfrequency);
     
     if (Flags.termweight.equalsIgnoreCase("idf"))
-    	logger.info("Weighting = log10(predication occurrences)*(IDF other concept)");
+    	logger.info("Weighting = log10(predication occurrences)+(IDF other concept)");
     	else logger.info("Weighting: binary");
     
     createIncrementalPSIVectors(VectorType.valueOf(Flags.vectortype.toUpperCase()), Flags.dimension, Flags.seedlength, args[0], Flags.minfrequency, Flags.maxfrequency);
