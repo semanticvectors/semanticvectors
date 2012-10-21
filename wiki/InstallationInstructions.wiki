@@ -65,6 +65,10 @@ If this fails or is too daunting (which it may be, there's a lot going on and ge
  * For more information on searching, see SearchOptions.
  * If you want to search for relevant documents, see DocumentSearch.
 
+=== Command-Line Flags===
+
+For more on configuration options, see CommandLineFlags. The main useful way to see the full list is (I'm afraid!) just to read the [https://code.google.com/p/semanticvectors/source/browse/trunk/src/pitt/search/semanticvectors/Flags.java source file].
+
 == Training Cycles ==
 
 Models can be built in several phases by passing the document vectors back to rebuild new term vectors. See TrainingCycles.
