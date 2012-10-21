@@ -1,8 +1,21 @@
-#summary Command line flags in SemanticVectors - Design doc and Developer guide.
+#summary Command line flags in SemanticVectors - Developer guide.
+
+=The Current Flag-Parsing System=
+
+==List of Flags==
+
+See the [http://semanticvectors.googlecode.com/svn/javadoc/latest-stable/pitt/search/semanticvectors/Flags.html Javadoc] and
+[https://code.google.com/p/semanticvectors/source/browse/trunk/src/pitt/search/semanticvectors/Flags.java source code].
+
+This documentation isn't ideal, of course, but there are so many flags by now it's hard to maintain any documentation that isn't automatically updated!
+
+The benefit of the system is that it's very easy to add and use new flags. This encourages people to experiment with semantic vectors, but it doesn't make sharing your improvements as easy and reliable as we would like.
 
 ==Current Status==
 
-New flags parsing system released in version 1.20.
+The existing flags parsing system was released in version 1.20. It creates public global variables for all Flag values. This is easy to set up, but has clear drawbacks, e.g., configuration state gets shared between different queries and indexing jobs run in the same JVM, which may not be desirable. The immediate problem with this is that is causes tests to break unless each flag is carefully reset.
+
+Improvements are being discussed and (slowly) worked on.
 
 == Motivation ==
 
