@@ -43,7 +43,7 @@ import pitt.search.semanticvectors.vectors.VectorType;
 
 /**
  * Command line utility for creating semantic vector indexes using the
- * sliding context window approach (see work on HAL, and by Shutze).
+ * sliding context window approach (see work on HAL, and by Schutze).
  */
 public class BuildPositionalIndex {
   public static final Logger logger = Logger.getLogger(
@@ -63,7 +63,7 @@ public class BuildPositionalIndex {
     + "\n  -vectortype [real, complex, or binary]"
     + "\n  -dimension [number of dimensions]"
     + "\n  -seedlength [seed length]"
-    + "\n  -mintermfreq [minimum term frequency]"
+    + "\n  -minfrequency [minimum term frequency]"
     + "\n  -initialtermvectors [name of preexisting vectorstore for term vectors]"
     + "\n  -windowradius [window size]"
     + "\n  -positionalmethod [positional indexing method: basic (default), directional (HAL), permutation (Sahlgren 2008)";
