@@ -46,12 +46,13 @@ Note that the clustering algorithm is randomly initialized. It terminates when i
 
 There is also a basic visualization routine, implementing some of the work described in [http://www.springerlink.com/content/148mwqt898j1vue9/ Visualisation Techniques for Analysing Meaning] and elsewhere.
 
-It is contained in the `pitt.util.vector package` in `src-ext`. It can be used as follows: 
+It is contained in the `pitt.util.vector package` in `src-ext`. (This is not part of the regular distributions, so you must check the project out and build from source for this to work.) It can be used as follows: 
 
  # In the main semantic vectors source directory: `ant compile-ext`.
  # Build some vector indexes using `BuildIndex`.
  # In the directory with your vector indexes: `java pitt.util.vectors.PrincipalComponents $ARGS`.
    * `$ARGS` includes first regular semantic vectors flags, e.g., `-queryvectorfile` and `-numsearchresults`, followed by query terms.
 
-Note that some queries have been found to give degenerate results, all in the top left hand corner or down the left hand side. See [http://code.google.com/p/semanticvectors/issues/detail?id=39 Issue 39].
+This routine can also be used to generate TeX output (currently this needs to be done by setting PRINT_TEX_OUTPUT to true in Plot2dVectors.java and recompiling).
 
+Note that some queries have been found to give degenerate results, all in the top left hand corner or down the left hand side. See [http://code.google.com/p/semanticvectors/issues/detail?id=39 Issue 39].
