@@ -50,14 +50,18 @@ public class SearchResult implements Comparable {
   public double getScore() {
     return score;
   }
+  
+  public void set(double score, ObjectVector object) {
+	    this.score = score;
+	    this.objectVector = object;
+  }
 
   public ObjectVector getObjectVector() {
     return objectVector;
   }
 
   public SearchResult(double score, ObjectVector object) {
-    this.score = score;
-    this.objectVector = object;
+    this.set(score, object);
   }
 
 @Override
