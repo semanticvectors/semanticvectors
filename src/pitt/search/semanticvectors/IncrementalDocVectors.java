@@ -158,11 +158,7 @@ public class IncrementalDocVectors {
             else 
               if (Flags.termweight.equals("idf")) {
                 Term term = new Term(fieldName, termString);
-
-                int docFreq = indexReader.docFreq(term);
-                if (docFreq > 0) 	
-                  globalweight =  globalweight * (float) Math.log10(indexReader.numDocs()/docFreq);
-                else globalweight = 0;
+                globalweight = lUtils.getIDF(term);
               }	
 
             // Add contribution from this term, excluding terms that
