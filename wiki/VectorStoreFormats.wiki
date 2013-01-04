@@ -2,7 +2,9 @@
 
 == Vector Store Formats ==
 
-As of version 1.6, the SemanticVectors package has the option of storing vectors on disk in two different formats.
+As of version 1.6, the SemanticVectors package has the option of storing vectors on disk in plain text and optimized Lucene formats.
+
+As of version 3.0, the package supports serialization of real, complex, and binary vectors (see TypedVectors). Thus there is no single "vector format", instead each vector type is responsible for implementing serialization methods for writing and reading vectors. (See the [https://code.google.com/p/semanticvectors/source/browse/trunk/src/pitt/search/semanticvectors/vectors/Vector.java Vector] interface.)
 
 === Optimized Lucene Format ===
 
@@ -24,10 +26,10 @@ However, if you care about space and time, you'll probably want to translate suc
 === Header Information ===
 
 Both formats support a header line (in the appropriate format) that expresses the number of dimensions used by the vectors in the store, e.g., the plain text format contains a header row saying
-`-dimensions|n`
-(the flag `-` is used in front of the word `dimensions` as an escape character).
+`-dimensions $n -vectortype $TYPE`
+(the flag `-` is used in front of the words `dimensions` and `vectortype` as an escape character, so that the header lines are parsed in exactly the same way as CommandLineFlags).
 
-When reading a vector store, SemanticVectors will look for such a header, but if it doesn't find one (e.g., if the indexes were built with older versions of the software) it will try to infer the correct number of dimensions by parsing the first line in the file, assuming that it is a normal vector line.
+As of version 3.0, SemanticVectors cannot read files without this header information.
 
 === Translating Between Formats ===
 
