@@ -6,7 +6,7 @@ As of version 1.6, the SemanticVectors package has the option of storing vectors
 
 As of version 3.0, the package supports serialization of real, complex, and binary vectors (see TypedVectors). Thus there is no single "vector format", instead each vector type is responsible for implementing serialization methods for writing and reading vectors. (See the [https://code.google.com/p/semanticvectors/source/browse/trunk/src/pitt/search/semanticvectors/vectors/Vector.java Vector] interface.)
 
-Which format to use when building new indexes or reading existing ones is configured using the `-indexfileformat` flag, e.g.,`$ java pitt.search.semanticvectors.BuildIndex -vectortype complex -indexfileformat text positional_index/`.
+Which format to use when building new indexes or reading existing ones is configured using the `-indexfileformat` flag, e.g.,`java pitt.search.semanticvectors.BuildIndex -vectortype complex -indexfileformat text positional_index/`.
 
 === Optimized Lucene Format ===
 
