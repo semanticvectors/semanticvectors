@@ -36,18 +36,19 @@
 package pitt.search.semanticvectors;
 
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Enumeration;
 import java.util.Random;
 import java.util.logging.Logger;
 import java.io.File;
 import java.io.IOException;
 
+import org.apache.lucene.index.FieldInfos;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.index.TermEnum;
 import org.apache.lucene.index.TermPositionVector;
 import org.apache.lucene.store.FSDirectory;
+import org.apache.lucene.util.ReaderUtil;
 
 import pitt.search.semanticvectors.vectors.PermutationUtils;
 import pitt.search.semanticvectors.vectors.Vector;
@@ -205,12 +206,11 @@ public class TermTermVectorsFromLucene implements VectorStore {
     // Check that the Lucene index contains Term Positions.
     LuceneUtils.compressIndex(luceneIndexDir);
     this.luceneIndexReader = IndexReader.open(FSDirectory.open(new File(luceneIndexDir)));
-    Collection<String> fields_with_positions =
-      luceneIndexReader.getFieldNames(IndexReader.FieldOption.TERMVECTOR_WITH_POSITION);
-    if (fields_with_positions.isEmpty()) {
-      logger.warning("Term-term indexing requires a Lucene index containing TermPositionVectors."
+    FieldInfos fieldsWithPositions = ReaderUtil.getMergedFieldInfos(luceneIndexReader);
+    if (!fieldsWithPositions.hasVectors()) {
+      throw new IOException(
+          "Term-term indexing requires a Lucene index containing TermPositionVectors."
           + "\nTry rebuilding Lucene index using pitt.search.lucene.IndexFilePositions");
-      throw new IOException("Lucene indexes not built correctly.");
     }
     lUtils = new LuceneUtils(luceneIndexDir);
 
