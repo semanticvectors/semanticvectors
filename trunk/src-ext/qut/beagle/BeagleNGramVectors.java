@@ -41,13 +41,14 @@ import java.util.Enumeration;
 import java.util.Random;
 
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
+import org.apache.lucene.index.FieldInfos;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
-import org.apache.lucene.index.IndexWriter.MaxFieldLength;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.index.TermEnum;
 import org.apache.lucene.index.TermPositionVector;
 import org.apache.lucene.store.FSDirectory;
+import org.apache.lucene.util.ReaderUtil;
 import org.apache.lucene.util.Version;
 
 import pitt.search.semanticvectors.Flags;
@@ -151,24 +152,22 @@ public class BeagleNGramVectors implements VectorStore {
         FSDirectory.open(new File(indexDir)),
         new StandardAnalyzer(Version.LUCENE_30),
         false,
-        MaxFieldLength.UNLIMITED);
+        IndexWriter.MaxFieldLength.UNLIMITED);
     compressor.optimize();
     compressor.close();
 
     /* Create an index vector for each term. */
     this.indexReader = IndexReader.open(FSDirectory.open(new File(indexDir)));
-    Random random = new Random();
 
     this.tFilter = new CustomTermFilter( indexReader, minFreqTerm, stopwords );
     this.iFilter = new TermFreqFilter( indexReader, minFreqIndex );
 
     // Check that the Lucene index contains Term Positions.
-    java.util.Collection fields_with_positions =
-        indexReader.getFieldNames(IndexReader.FieldOption.TERMVECTOR_WITH_POSITION);
-    if (fields_with_positions.isEmpty()) {
-      System.out.println("BEAGLE term indexing requires a Lucene index containing TermPositionVectors");
-      System.out.println("Try rebuilding Lucene index using pitt.search.lucene.IndexFilePositions");
-      throw new IOException("Lucene indexes not built correctly.");
+    FieldInfos fieldsWithPositions = ReaderUtil.getMergedFieldInfos(indexReader);
+    if (!fieldsWithPositions.hasVectors()) {
+      throw new IOException(
+          "Term-term indexing requires a Lucene index containing TermPositionVectors."
+          + "\nTry rebuilding Lucene index using pitt.search.lucene.IndexFilePositions");
     }
 
     this.indexVectors = new VectorStoreRAM(VectorType.REAL, Flags.dimension);
