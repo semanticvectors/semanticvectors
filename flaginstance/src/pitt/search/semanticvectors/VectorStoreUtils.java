@@ -42,15 +42,15 @@ public class VectorStoreUtils {
    * Method is idempotent: if file already ends with ".bin" or ".txt" as appropriate, input
    * is returned unchanged.
    */
-  public static String getStoreFileName(String storeName) {
-    if (FlagConfig.indexfileformat == "lucene") {
+  public static String getStoreFileName(String storeName, FlagConfig flagConfig) {
+    if (flagConfig.getIndexfileformat() == "lucene") {
       if (storeName.endsWith(".bin")) {
         return storeName;
       }
       else {
         return storeName + ".bin";
       }
-    } else if (FlagConfig.indexfileformat == "lucene") {
+    } else if (flagConfig.getIndexfileformat() == "text") {
       if (storeName.endsWith(".txt")) {
         return storeName;
       }
@@ -58,6 +58,6 @@ public class VectorStoreUtils {
         return storeName + ".txt";
       }
     }
-    throw new IllegalStateException("Looks like an illegal indexfileformat: " + FlagConfig.indexfileformat);
+    throw new IllegalStateException("Looks like an illegal indexfileformat: " + flagConfig.getIndexfileformat());
   }
 }

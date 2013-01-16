@@ -54,8 +54,8 @@ public class BuildPositionalIndex {
     "BuildPositionalIndex class in package pitt.search.semanticvectors"
     + "\nUsage: java pitt.search.semanticvectors.BuildPositionalIndex PATH_TO_LUCENE_INDEX"
     + "\nBuildPositionalIndex creates file termtermvectors.bin in local directory."
-    + "\nOther parameters that can be changed include dimension,"
-    + "\n windowlength (size of sliding context window),"
+    + "\nOther parameters that can be changed include"
+    + "\n    windowlength (size of sliding context window),"
     + "\n    dimension (number of dimensions), vectortype (real, complex, binary)"
     + "\n    seedlength (number of non-zero entries in basic vectors),"
     + "\n    minimum term frequency.\n"
@@ -74,8 +74,10 @@ public class BuildPositionalIndex {
    * @param args
    */
   public static void main (String[] args) throws IllegalArgumentException {
+    FlagConfig flagConfig;
     try {
-      args = FlagConfig.parseCommandLineFlags(args);
+      flagConfig = new FlagConfig(args);
+      args = flagConfig.remainingArgs;
     } catch (IllegalArgumentException e) {
       System.out.println(usageMessage);
       throw e;
@@ -91,67 +93,67 @@ public class BuildPositionalIndex {
     String luceneIndex = args[0];
 
     // If initialtermvectors is defined, read these vectors.
-    if (!FlagConfig.initialtermvectors.equals("")) {
+    if (!flagConfig.getInitialtermvectors().isEmpty()) {
       try {
-        VectorStoreRAM vsr = new VectorStoreRAM(
-            VectorType.valueOf(FlagConfig.vectortype.toUpperCase()), FlagConfig.dimension);
-        vsr.initFromFile(FlagConfig.initialtermvectors);
+        VectorStoreRAM vsr = new VectorStoreRAM(flagConfig);
+        vsr.initFromFile(flagConfig.getInitialtermvectors());
         newBasicTermVectors = vsr;
-        VerbatimLogger.info("Using trained index vectors from vector store " + FlagConfig.initialtermvectors);
+        VerbatimLogger.info("Using trained index vectors from vector store " + flagConfig.getInitialtermvectors());
       } catch (IOException e) {
-        logger.info("Could not read from vector store " + FlagConfig.initialtermvectors);
+        logger.info("Could not read from vector store " + flagConfig.getInitialtermvectors());
         System.out.println(usageMessage);
         throw new IllegalArgumentException();
       }
     }
 
-    String termFile = FlagConfig.termtermvectorsfile;
-    String docFile = FlagConfig.docvectorsfile;
+    String termFile = flagConfig.getTermtermvectorsfile();
+    String docFile = flagConfig.getDocvectorsfile();
 
-    if (FlagConfig.positionalmethod.equals("permutation")) termFile = FlagConfig.permutedvectorfile;
-    else if (FlagConfig.positionalmethod.equals("permutation_plus_basic")) termFile = FlagConfig.permplustermvectorfile;
-    else if (FlagConfig.positionalmethod.equals("directional")) termFile = FlagConfig.directionalvectorfile;
+    if (flagConfig.getPositionalmethod().equals("permutation")) termFile = flagConfig.getPermutedvectorfile();
+    else if (flagConfig.getPositionalmethod().equals("permutation_plus_basic")) termFile = flagConfig.getPermplustermvectorfile();
+    else if (flagConfig.getPositionalmethod().equals("directional")) termFile = flagConfig.getDirectionalvectorfile();
 
     VerbatimLogger.info("Building positional index, Lucene index: " + luceneIndex
-        + ", Seedlength: " + FlagConfig.seedlength
-        + ", Vector length: " + FlagConfig.dimension
-        + ", Vector type: " + FlagConfig.vectortype
-        + ", Minimum term frequency: " + FlagConfig.minfrequency
-        + ", Maximum term frequency: " + FlagConfig.maxfrequency
-        + ", Number non-alphabet characters: " + FlagConfig.maxnonalphabetchars
-        + ", Window radius: " + FlagConfig.windowradius
-        + ", Fields to index: " + Arrays.toString(FlagConfig.contentsfields)
+        + ", Seedlength: " + flagConfig.getSeedlength()
+        + ", Vector length: " + flagConfig.getDimension()
+        + ", Vector type: " + flagConfig.getVectortype()
+        + ", Minimum term frequency: " + flagConfig.getMinfrequency()
+        + ", Maximum term frequency: " + flagConfig.getMaxfrequency()
+        + ", Number non-alphabet characters: " + flagConfig.getMaxnonalphabetchars()
+        + ", Window radius: " + flagConfig.getWindowradius()
+        + ", Fields to index: " + Arrays.toString(flagConfig.getContentsfields())
         + "\n");
 
     try {
       TermTermVectorsFromLucene vecStore = new TermTermVectorsFromLucene(
-          luceneIndex,  VectorType.valueOf(FlagConfig.vectortype.toUpperCase()),
-          FlagConfig.dimension, FlagConfig.seedlength, FlagConfig.minfrequency, FlagConfig.maxfrequency,
-          FlagConfig.maxnonalphabetchars, 2 * FlagConfig.windowradius + 1, FlagConfig.positionalmethod,
-            newBasicTermVectors, FlagConfig.contentsfields);
+          flagConfig,
+          luceneIndex,  VectorType.valueOf(flagConfig.getVectortype().toUpperCase()),
+          flagConfig.getDimension(), flagConfig.getSeedlength(), flagConfig.getMinfrequency(), flagConfig.getMaxfrequency(),
+          flagConfig.getMaxnonalphabetchars(), 2 * flagConfig.getWindowradius() + 1, flagConfig.getPositionalmethod(),
+          newBasicTermVectors, flagConfig.getContentsfields());
       
-      VectorStoreWriter.writeVectors(termFile, vecStore);
+      VectorStoreWriter.writeVectors(termFile, flagConfig, vecStore);
 
-      for (int i = 1; i < FlagConfig.trainingcycles; ++i) {
+      for (int i = 1; i < flagConfig.getTrainingcycles(); ++i) {
         newBasicTermVectors = vecStore.getBasicTermVectors();
         VerbatimLogger.info("\nRetraining with learned term vectors ...");
         vecStore = new TermTermVectorsFromLucene(
-            luceneIndex,  VectorType.valueOf(FlagConfig.vectortype.toUpperCase()),
-            FlagConfig.dimension, FlagConfig.seedlength, FlagConfig.minfrequency, FlagConfig.maxfrequency,
-            FlagConfig.maxnonalphabetchars, 2 * FlagConfig.windowradius + 1, FlagConfig.positionalmethod,
-            newBasicTermVectors, FlagConfig.contentsfields);
+            flagConfig,
+            luceneIndex,  VectorType.valueOf(flagConfig.getVectortype().toUpperCase()),
+            flagConfig.getDimension(), flagConfig.getSeedlength(), flagConfig.getMinfrequency(), flagConfig.getMaxfrequency(),
+            flagConfig.getMaxnonalphabetchars(), 2 * flagConfig.getWindowradius() + 1, flagConfig.getPositionalmethod(),
+            newBasicTermVectors, flagConfig.getContentsfields());
       }
 
-      if (FlagConfig.trainingcycles > 1) {
-        termFile = termFile.replaceAll("\\..*", "") + FlagConfig.trainingcycles + ".bin";
-        docFile = "docvectors" + FlagConfig.trainingcycles + ".bin";
-        VectorStoreWriter.writeVectors(termFile, vecStore);
+      if (flagConfig.getTrainingcycles() > 1) {
+        termFile = termFile.replaceAll("\\..*", "") + flagConfig.getTrainingcycles() + ".bin";
+        docFile = "docvectors" + flagConfig.getTrainingcycles() + ".bin";
+        VectorStoreWriter.writeVectors(termFile, flagConfig, vecStore);
       }
 
-      if (!FlagConfig.docindexing.equals("none")) {
+      if (!flagConfig.getDocindexing().equals("none")) {
         IncrementalDocVectors.createIncrementalDocVectors(
-            vecStore, luceneIndex, FlagConfig.contentsfields, docFile);
-        //System.exit(0);
+            vecStore, flagConfig, luceneIndex, flagConfig.getContentsfields(), docFile);
       }
     }
     catch (IOException e) {

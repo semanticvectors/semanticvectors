@@ -92,7 +92,8 @@ public class CompareTerms{
    * @throws IOException 
    */
   public static void main (String[] args) throws IllegalArgumentException, IOException {
-    args = FlagConfig.parseCommandLineFlags(args);
+    FlagConfig flagConfig = new FlagConfig(args);
+    args = flagConfig.remainingArgs;
 
     LuceneUtils luceneUtils = null;
 
@@ -106,19 +107,19 @@ public class CompareTerms{
     VectorStoreReaderLucene vecReader = null;
 
     try {
-      vecReader = new VectorStoreReaderLucene(FlagConfig.queryvectorfile);
+      vecReader = new VectorStoreReaderLucene(flagConfig.getQueryvectorfile(), flagConfig);
     } catch (IOException e) {
-      logger.warning("Failed to open vector store from file: " + FlagConfig.queryvectorfile);
+      logger.warning("Failed to open vector store from file: " + flagConfig.getQueryvectorfile());
       throw e;
     }
 
-    logger.info("Opened query vector store from file: " + FlagConfig.queryvectorfile);
+    logger.info("Opened query vector store from file: " + flagConfig.getQueryvectorfile());
 
-    if (FlagConfig.luceneindexpath != null) {
+    if (flagConfig.getLuceneindexpath() != null) {
       try {
-        luceneUtils = new LuceneUtils(FlagConfig.luceneindexpath);
+        luceneUtils = new LuceneUtils(flagConfig.getLuceneindexpath(), flagConfig);
       } catch (IOException e) {
-        logger.info("Couldn't open Lucene index at " + FlagConfig.luceneindexpath);
+        logger.info("Couldn't open Lucene index at " + flagConfig.getLuceneindexpath());
       }
     }
     if (luceneUtils == null) {
@@ -127,9 +128,9 @@ public class CompareTerms{
     }
 
     Vector vec1 = CompoundVectorBuilder.getQueryVectorFromString(
-        vecReader, luceneUtils, args[0]);
+        vecReader, luceneUtils, flagConfig, args[0]);
     Vector vec2 = CompoundVectorBuilder.getQueryVectorFromString(
-        vecReader, luceneUtils, args[1]);
+        vecReader, luceneUtils, flagConfig, args[1]);
     vecReader.close();
     double simScore = vec1.measureOverlap(vec2);
     // Logging prompt and printing score to stdout, this should enable

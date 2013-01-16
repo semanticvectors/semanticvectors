@@ -61,6 +61,7 @@ import pitt.search.semanticvectors.vectors.VectorType;
  */
 public class PSI {
   private static final Logger logger = Logger.getLogger(PSI.class.getCanonicalName());
+  private FlagConfig flagConfig;
   private VectorType vectorType;
   private int dimension;
   private int seedlength;
@@ -75,9 +76,10 @@ public class PSI {
   /**
    * Creates PSI vectors incrementally, using the fields "subject" and "object" from a Lucene index.
    */
-  public static void createIncrementalPSIVectors(
+  public static void createIncrementalPSIVectors(FlagConfig flagConfig,
       VectorType vectorType, int dimension, int seedlength, String indexDir) throws IOException {
     PSI incrementalPSIVectors = new PSI();
+    incrementalPSIVectors.flagConfig = flagConfig;
     incrementalPSIVectors.dimension = dimension;
     incrementalPSIVectors.vectorType = vectorType;
     incrementalPSIVectors.seedlength = seedlength;
@@ -87,7 +89,7 @@ public class PSI {
    // incrementalPSIVectors.fieldsToIndex = fieldsToIndex;
 
     if (incrementalPSIVectors.lUtils == null) {
-      incrementalPSIVectors.lUtils = new LuceneUtils(indexDir);
+      incrementalPSIVectors.lUtils = new LuceneUtils(indexDir, flagConfig);
     }
     incrementalPSIVectors.trainIncrementalPSIVectors();
   }
@@ -96,9 +98,9 @@ public class PSI {
     int numdocs = indexReader.numDocs();
 
     // Create elemental and semantic vectors for each concept, and elemental vectors for predicates
-    elementalVectors = new VectorStoreRAM(vectorType, dimension);
-    semanticVectors = new VectorStoreRAM(vectorType, dimension);
-    predicateVectors = new VectorStoreRAM(vectorType, dimension);
+    elementalVectors = new VectorStoreRAM(flagConfig);
+    semanticVectors = new VectorStoreRAM(flagConfig);
+    predicateVectors = new VectorStoreRAM(flagConfig);
     Random random = new Random();
 
     TermEnum terms = this.indexReader.terms();
@@ -144,7 +146,7 @@ public class PSI {
       float sWeight =1;
       float oWeight =1;
 
-      if (FlagConfig.termweight.equalsIgnoreCase("idf")) {
+      if (flagConfig.getTermweight().equalsIgnoreCase("idf")) {
         sWeight = lUtils.getIDF(new Term("subject",subject));
         oWeight = lUtils.getIDF(new Term("object",object));    
       }
@@ -171,19 +173,16 @@ public class PSI {
       e.nextElement().getVector().normalize();
     }
 
-    VectorStoreWriter.writeVectors(FlagConfig.elementalvectorfile, elementalVectors);
-    VectorStoreWriter.writeVectors(FlagConfig.semanticvectorfile, semanticVectors);
-    VectorStoreWriter.writeVectors(FlagConfig.predicatevectorfile, predicateVectors);
+    VectorStoreWriter.writeVectors(flagConfig.getElementalvectorfile(), flagConfig, elementalVectors);
+    VectorStoreWriter.writeVectors(flagConfig.getSemanticvectorfile(), flagConfig, semanticVectors);
+    VectorStoreWriter.writeVectors(flagConfig.getPredicatevectorfile(), flagConfig, predicateVectors);
 
     VerbatimLogger.info("Finished writing vectors.\n");
   }
 
   public static void main(String[] args) throws IllegalArgumentException, IOException {
-    try {
-      args = FlagConfig.parseCommandLineFlags(args);
-    } catch (IllegalArgumentException e) {
-      throw e;
-    }
+    FlagConfig flagConfig = new FlagConfig(args);
+    args = flagConfig.remainingArgs;
 
     // Only two arguments should remain, the path to the Lucene index.
     if (args.length != 1) {
@@ -191,11 +190,13 @@ public class PSI {
           + args.length + " arguments, instead of the expected 1."));
     }
 
-    logger.info("Minimum frequency = " + FlagConfig.minfrequency);
-    logger.info("Maximum frequency = " + FlagConfig.maxfrequency);
-    logger.info("Number non-alphabet characters = " + FlagConfig.maxnonalphabetchars);
-    logger.info("Contents fields are: " + Arrays.toString(FlagConfig.contentsfields));
+    logger.info("Minimum frequency = " + flagConfig.getMinfrequency());
+    logger.info("Maximum frequency = " + flagConfig.getMaxfrequency());
+    logger.info("Number non-alphabet characters = " + flagConfig.getMaxnonalphabetchars());
+    logger.info("Contents fields are: " + Arrays.toString(flagConfig.getContentsfields()));
 
-    createIncrementalPSIVectors(VectorType.valueOf(FlagConfig.vectortype.toUpperCase()), FlagConfig.dimension, FlagConfig.seedlength, args[0]);
+    createIncrementalPSIVectors(flagConfig,
+        VectorType.valueOf(flagConfig.getVectortype().toUpperCase()), flagConfig.getDimension(),
+        flagConfig.getSeedlength(), args[0]);
   }
 }

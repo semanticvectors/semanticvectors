@@ -70,7 +70,9 @@ public class TermVectorsFromLucene implements VectorStore {
   private LuceneUtils lUtils;
   private VectorStore basicDocVectors;
 
-  private TermVectorsFromLucene() {}
+  private TermVectorsFromLucene(FlagConfig flagConfig) {
+    this.flagConfig = flagConfig;
+  }
   
   // Basic accessor methods.
   @Override
@@ -91,8 +93,10 @@ public class TermVectorsFromLucene implements VectorStore {
 
   /**
    * @return The object's list of Lucene fields to index.
+   * 
+   * TODO: Deprecate.
    */
-  public String[] getFieldsToIndex() { return flagConfig.contentsfields; }
+  public String[] getFieldsToIndex() { return flagConfig.getContentsfields(); }
   
   // Implementation of basic VectorStore methods.
   public Vector getVector(Object term) {
@@ -115,17 +119,17 @@ public class TermVectorsFromLucene implements VectorStore {
   public static TermVectorsFromLucene createTermVectorsFromLucene(
       FlagConfig flagConfig, VectorStore basicDocVectors)
   throws IOException, RuntimeException {
-    TermVectorsFromLucene vectorStore = new TermVectorsFromLucene() {};
+    TermVectorsFromLucene vectorStore = new TermVectorsFromLucene(flagConfig);
     vectorStore.basicDocVectors = basicDocVectors;
     vectorStore.createTemVectorsFromLuceneImpl();
     return vectorStore;
   }
   
   private void createTemVectorsFromLuceneImpl() throws IOException {
-    LuceneUtils.compressIndex(flagConfig.luceneindexpath);
+    LuceneUtils.compressIndex(flagConfig.getLuceneindexpath());
     // Create LuceneUtils Class to filter terms.
-    lUtils = new LuceneUtils(flagConfig.luceneindexpath);
-    indexReader = IndexReader.open(FSDirectory.open(new File(flagConfig.luceneindexpath)));
+    lUtils = new LuceneUtils(flagConfig.getLuceneindexpath(), flagConfig);
+    indexReader = IndexReader.open(FSDirectory.open(new File(flagConfig.getLuceneindexpath())));
 
     // Check that basicDocVectors is the right size.
     if (basicDocVectors != null) {
@@ -140,8 +144,7 @@ public class TermVectorsFromLucene implements VectorStore {
       // Derived term vectors will be linear combinations of these.
       VerbatimLogger.info("Populating basic sparse doc vector store, number of vectors: "
           + indexReader.numDocs() + "\n");
-      VectorStoreRAM randomBasicDocVectors = new VectorStoreRAM(
-          getVectorType(), flagConfig.getDimension());
+      VectorStoreRAM randomBasicDocVectors = new VectorStoreRAM(flagConfig);
       randomBasicDocVectors.createRandomVectors(
           indexReader.numDocs(), flagConfig.getSeedlength(), null);
       this.basicDocVectors = randomBasicDocVectors;
@@ -204,42 +207,45 @@ public class TermVectorsFromLucene implements VectorStore {
    * @throws IOException
    * @throws RuntimeException
    */
-  public static TermVectorsFromLucene createTermBasedRRIVectors(
-      FlagConfig flagConfig, String initialTermVectorsFile)
+  public static TermVectorsFromLucene createTermBasedRRIVectors(FlagConfig flagConfig)
   throws IOException, RuntimeException {
-    TermVectorsFromLucene trainedTermvectors = new TermVectorsFromLucene() {};
-    trainedTermvectors.flagConfig = flagConfig;
+    TermVectorsFromLucene trainedTermvectors = new TermVectorsFromLucene(flagConfig);
     trainedTermvectors.createTermBasedRRIVectorsImpl();
     return trainedTermvectors;
   }
 
   private void createTermBasedRRIVectorsImpl() throws IOException, RuntimeException {
-    LuceneUtils.compressIndex(flagConfig.luceneindexpath);
+    LuceneUtils.compressIndex(flagConfig.getLuceneindexpath());
 
     // Create LuceneUtils Class to filter terms.
-    lUtils = new LuceneUtils(flagConfig.luceneindexpath);
+    lUtils = new LuceneUtils(flagConfig.getLuceneindexpath(), flagConfig);
 
-    indexReader = IndexReader.open(FSDirectory.open(new File(flagConfig.luceneindexpath)));
+    indexReader = IndexReader.open(FSDirectory.open(new File(flagConfig.getLuceneindexpath())));
     Random random = new Random();
     this.termVectors = new Hashtable<String,ObjectVector>();
 
     // For each term in the index
-    if (initialTermVectorsFile.equals("random")) {
+    if (flagConfig.getInitialtermvectors().isEmpty()) {
       logger.info("Creating random term vectors");
       TermEnum terms = indexReader.terms();
       while(terms.next()){
         Term term = terms.term();
         // Skip terms that don't pass the filter.
-        if (!lUtils.termFilter(terms.term(), fieldsToIndex, minFreq, maxFreq, maxNonAlphabet))  {
+        if (!lUtils.termFilter(
+            terms.term(), getFieldsToIndex(),
+            flagConfig.getMinfrequency(), flagConfig.getMaxfrequency(),
+            flagConfig.getMaxnonalphabetchars()))  {
           continue;
         }
-        Vector indexVector = VectorFactory.generateRandomVector(vectorType, dimension, seedLength, random);
+        Vector indexVector = VectorFactory.generateRandomVector(
+            VectorType.valueOf(flagConfig.getVectortype()), flagConfig.getDimension(),
+            flagConfig.getSeedlength(), random);
         // Place each term vector in the vector store.
         this.termVectors.put(term.text(), new ObjectVector(term.text(), indexVector));
       }
     } else {
-      VerbatimLogger.info("Using semantic term vectors from file " + initialTermVectorsFile);
-      VectorStoreReaderLucene inputReader = new VectorStoreReaderLucene(initialTermVectorsFile);
+      VerbatimLogger.info("Using semantic term vectors from file " + flagConfig.getInitialtermvectors());
+      VectorStoreReaderLucene inputReader = new VectorStoreReaderLucene(flagConfig.getInitialtermvectors(), flagConfig);
       Enumeration<ObjectVector> termEnumeration = inputReader.getAllVectors();
       int count = 0;
 

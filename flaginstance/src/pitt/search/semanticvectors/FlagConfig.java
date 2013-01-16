@@ -96,7 +96,9 @@ public class FlagConfig {
   
   private int numsearchresults = 20;
   public int getNumsearchresults() { return numsearchresults; }
-  public double searchresultsminscore = -1.0;
+  
+  private double searchresultsminscore = -1.0;
+  public double getSearchresultsminscore() { return searchresultsminscore; }
   public static final String searchresultsminscoreDescription = "Search results with similarity scores below "
     + "this value will not be included in search results.";
 
@@ -125,7 +127,7 @@ public class FlagConfig {
   public static final String[] termweightValues = {"logentropy","idf", "none"};
 
   private boolean porterstemmer = false;
-  public boolean getPorterStemmer() { return porterstemmer; }
+  public boolean getPorterstemmer() { return porterstemmer; }
   public static final String porterstemmerDescription =
     "Set to true when using IndexFilePositions if you would like to stem terms";
 
@@ -173,73 +175,99 @@ public class FlagConfig {
   public static String boundvectorfileDescription =
       "Auxiliary vector store used when searching for boundproducts. Used only in some searchtypes.";
 
-  // Got to here ... fix up later if it works
-  public String elementalvectorfile = "elementalvectors";
+  private String elementalvectorfile = "elementalvectors";
+  public String getElementalvectorfile() { return elementalvectorfile; }
   public static String elementalvectorfileDescription =
       "Random elemental vectors, sometimes written out, and used (e.g.) in conjunction with permuted vector file.";
   
-  public String semanticvectorfile = "semanticvectors";
-  public static String semanticvectorfileDescription = "Semantic vectors; used so far as a name in PSI.";
+  private String semanticvectorfile = "semanticvectors";
+  public String getSemanticvectorfile() { return semanticvectorfile; }
+  public static final String semanticvectorfileDescription =
+      "Semantic vectors; used so far as a name in PSI.";
 
-  public String predicatevectorfile = "predicatevectors";
-  public static String predicatevectorfileDescription = "Vectors used to represent predicates in PSI.";
+  private String predicatevectorfile = "predicatevectors";
+  public String getPredicatevectorfile() { return predicatevectorfile; }
+  public static final String predicatevectorfileDescription =
+      "Vectors used to represent predicates in PSI.";
   
-  public String permutedvectorfile = "permtermvectors";
-  public static String permutedvectorfileDescription =
+  private String permutedvectorfile = "permtermvectors";
+  public String getPermutedvectorfile() { return permutedvectorfile; }
+  public static final String permutedvectorfileDescription =
       "Permuted term vectors, output by -positionalmethod permutation.";
   
-  public String directionalvectorfile ="drxntermvectors";
-  public static String directionalvectorfileDescription =
+  private String directionalvectorfile ="drxntermvectors";
+  public String getDirectionalvectorfile() { return directionalvectorfile; }
+  public static final String directionalvectorfileDescription =
       "Permuted term vectors, output by -positionalmethod directional";
   
-  public String permplustermvectorfile ="permplustermvectors";
-  public static String permplustermvectorfileDescription =
+  private String permplustermvectorfile ="permplustermvectors";
+  public String getPermplustermvectorfile() { return permplustermvectorfile; }
+  public static final String permplustermvectorfileDescription =
       "Permuted term vectors, output by -positionalmethod permutation_plus_basic";
   
-  public String positionalmethod = "basic";
-  public static String positionalmethodDescription = "Method used for positional indexing.";
+  private String positionalmethod = "basic";
+  public String getPositionalmethod() { return positionalmethod; }
+  public static final String positionalmethodDescription =
+      "Method used for positional indexing.";
   public static String positionalmethodValues[] =
       {"basic", "directional", "permutation","permutation_plus_basic"};
   
-  public String stoplistfile = "";
-  public String startlistfile = "";
-  public String luceneindexpath = "";
-  public String initialtermvectors = "";
-  public static String initialtermvectorsDescription =
+  private String stoplistfile = "";
+  public String getStoplistfile() { return stoplistfile; }
+
+  private String startlistfile = "";
+  public String getStartlistfile() { return startlistfile; }
+  
+  private String luceneindexpath = "";
+  public String getLuceneindexpath() { return luceneindexpath; }
+  
+  private String initialtermvectors = "";
+  public String getInitialtermvectors() { return initialtermvectors; }
+  public static final String initialtermvectorsDescription =
     "Use the vectors in this file for initialization instead of new random vectors.";
 
   public String initialdocumentvectors = "";
   public static String initialdocumentvectorsDescription =
     "Use the vectors in this file for initialization instead of new random vectors.";
 
-  public String docindexing = "inmemory";
+  private String docindexing = "inmemory";
+  public String getDocindexing() { return docindexing; }
   public static String docindexingDescription = "Memory management method used for indexing documents.";
   public static String docindexingValues[] = {"inmemory", "incremental", "none"};
 
-  public String vectorlookupsyntax = "exactmatch";
+  private String vectorlookupsyntax = "exactmatch";
+  public String getVectorlookupsyntax() { return vectorlookupsyntax; }
   public static final String vectorlookupsyntaxDescription =
     "Method used for looking up vectors in a vector store";
   public static String[] vectorlookupsyntaxValues = {"exactmatch", "regex"};
 
-  public boolean matchcase = false;
-
-  public String vectorstorelocation = "ram";
+  private boolean matchcase = false;
+  public boolean getMatchcase() { return matchcase; }
+  public static final String matchcaseDescription =
+      "If true, matching of query terms is case-sensitive; otherwise case-insensitive";
+  
+  private String vectorstorelocation = "ram";
+  public String getVectorstorelocation() { return vectorstorelocation; }
   public static String vectorstorelocationDescription = "Where to store vectors - in memory or on disk";
   public static String[] vectorstorelocationValues = {"ram", "disk"};
 
-  public String batchcompareseparator = "\\|";
+  private String batchcompareseparator = "\\|";
+  public String getBatchcompareseparator() { return batchcompareseparator; }
   public static String batchcompareseparatorDescription = "Separator for documents on a single line in batch comparison mode.";
 
-  public boolean suppressnegatedqueries = false;
+  private boolean suppressnegatedqueries = false;
+  public boolean getSuppressnegatedqueries() { return suppressnegatedqueries; }
   public static String suppressnegatedqueriesDescription = "Suppress checking for the query negation token which indicates subsequent terms are to be negated when comparing terms. If this is set all terms are treated as positive";
 
-  public String[] contentsfields = {"contents"};
-  public static String docidfield = "path";
-
+  private String[] contentsfields = {"contents"};
+  public String[] getContentsfields() { return contentsfields; }
+  private String docidfield = "path";
+  public String getDocidfield() { return docidfield; }
+  
   /**
    * Parse flags from a single string.  Presumes that string contains only command line flags.
    */
-  public FlagConfig parseFlagsFromString(String header) {
+  public static FlagConfig parseFlagsFromString(String header) {
     String[] args = header.split("\\s");
     return new FlagConfig(args);
   }
@@ -363,6 +391,28 @@ public class FlagConfig {
     return;
   }
 
+  public static void mergeWriteableFlagsFromString(String source, FlagConfig target) {
+    FlagConfig sourceConfig = FlagConfig.parseFlagsFromString(source);
+    mergeWriteableFlags(sourceConfig, target);
+  }
+  
+  /**
+   * Sets dimension and vectortype of target to be the same as that of source.
+   */
+  public static void mergeWriteableFlags(FlagConfig source, FlagConfig target) {
+    if (target.dimension != source.dimension)
+    {
+      VerbatimLogger.info("Setting dimension of target config to: " + source.dimension);
+      target.dimension = source.dimension;
+    }
+    if (target.vectortype != source.vectortype)
+    {
+      VerbatimLogger.info("Setting vectortype of target config to: " + source.vectortype);
+      target.vectortype = source.vectortype;
+    }
+    target.makeFlagsCompatible();
+  }
+  
   /**
    * Checks some interaction between flags, and fixes them up to make them compatible.
    * 

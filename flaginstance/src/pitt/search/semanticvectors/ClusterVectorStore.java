@@ -153,7 +153,8 @@ public class ClusterVectorStore {
    * text format) as arguments and prints out clusters.
    */
   public static void main(String[] args) throws IllegalArgumentException {
-    args = FlagConfig.parseCommandLineFlags(args);
+    FlagConfig flagConfig = new FlagConfig(args);
+    args = flagConfig.remainingArgs;
     if (args.length != 1) {
       System.out.println("Wrong number of arguments.");
       usage();
@@ -162,7 +163,7 @@ public class ClusterVectorStore {
 
     CloseableVectorStore vecReader;
     try {
-      vecReader = VectorStoreReader.openVectorStore(args[0]);
+      vecReader = VectorStoreReader.openVectorStore(args[0], flagConfig);
     } catch (IOException e) {
       System.out.println("Failed to open vector store from file: '" + args[0] + "'");
       logger.info(e.getMessage());
@@ -186,7 +187,7 @@ public class ClusterVectorStore {
     for (int runNumber = 0; runNumber < numRunsForOverlap; ++runNumber) {
       // Perform clustering and print out results.
       logger.info("Clustering vectors ...");
-      ClusterResults.Clusters clusters = ClusterResults.kMeansCluster(resultsVectors, FlagConfig.numclusters);
+      ClusterResults.Clusters clusters = ClusterResults.kMeansCluster(resultsVectors, flagConfig);
       
       /*
       for (int i = 0; i < Flags.numclusters; ++i) {

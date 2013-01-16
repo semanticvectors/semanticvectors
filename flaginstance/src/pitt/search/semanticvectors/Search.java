@@ -151,38 +151,36 @@ public class Search {
      */
 
     // Stage i. Assemble command line options.
-    args = FlagConfig.parseCommandLineFlags(args);
+    FlagConfig flagConfig = new FlagConfig(args);
+    args = flagConfig.remainingArgs;
 
-    if (FlagConfig.numsearchresults > 0) numResults = FlagConfig.numsearchresults;
-
-    // If Flags.searchvectorfile wasn't set, it defaults to Flags.queryvectorfile.
-    if (FlagConfig.searchvectorfile.equals("")) {
-      FlagConfig.searchvectorfile = FlagConfig.queryvectorfile;
-    }
+    if (flagConfig.getNumsearchresults() > 0) numResults = flagConfig.getNumsearchresults();
 
     // Stage ii. Open vector stores, and Lucene utils.
     try {
       // Default VectorStore implementation is (Lucene) VectorStoreReader.
-      VerbatimLogger.info("Opening query vector store from file: " + FlagConfig.queryvectorfile + "\n");
-      queryVecReader = VectorStoreReader.openVectorStore(FlagConfig.queryvectorfile);
+      VerbatimLogger.info("Opening query vector store from file: " + flagConfig.getQueryvectorfile() + "\n");
+      queryVecReader = VectorStoreReader.openVectorStore(flagConfig.getQueryvectorfile(), flagConfig);
 
-      if (FlagConfig.boundvectorfile.length() > 0) {
-        VerbatimLogger.info("Opening second query vector store from file: " + FlagConfig.boundvectorfile + "\n");
-        boundVecReader = VectorStoreReader.openVectorStore(FlagConfig.boundvectorfile);
+      if (flagConfig.getBoundvectorfile().length() > 0) {
+        VerbatimLogger.info("Opening second query vector store from file: " + flagConfig.getBoundvectorfile() + "\n");
+        boundVecReader = VectorStoreReader.openVectorStore(flagConfig.getBoundvectorfile(), flagConfig);
       }
 
       // Open second vector store if search vectors are different from query vectors.
-      if (FlagConfig.queryvectorfile.equals(FlagConfig.searchvectorfile)) {
+      if (flagConfig.getQueryvectorfile().equals(flagConfig.getSearchvectorfile())
+          || flagConfig.getSearchvectorfile().isEmpty()) {
         searchVecReader = queryVecReader;
       } else {
-        VerbatimLogger.info("Opening search vector store from file: " + FlagConfig.searchvectorfile + "\n");
-        searchVecReader = VectorStoreReader.openVectorStore(FlagConfig.searchvectorfile);
+        VerbatimLogger.info("Opening search vector store from file: " + flagConfig.getSearchvectorfile() + "\n");
+        searchVecReader = VectorStoreReader.openVectorStore(flagConfig.getSearchvectorfile(), flagConfig);
       }
 
-      if (FlagConfig.luceneindexpath != "") {
-        try { luceneUtils = new LuceneUtils(FlagConfig.luceneindexpath); }
-        catch (IOException e) {
-          logger.warning("Couldn't open Lucene index at " + FlagConfig.luceneindexpath
+      if (!flagConfig.getLuceneindexpath().isEmpty()) {
+        try {
+          luceneUtils = new LuceneUtils(flagConfig.getLuceneindexpath(), flagConfig);
+        } catch (IOException e) {
+          logger.warning("Couldn't open Lucene index at " + flagConfig.getLuceneindexpath()
               + ". Will continue without term weighting.");
         }
       }
@@ -192,7 +190,7 @@ public class Search {
     }
 
     // This takes the slice of args from argc to end.
-    if (!FlagConfig.matchcase) {
+    if (!flagConfig.getMatchcase()) {
       for (int i = 0; i < args.length; ++i) {
         args[i] = args[i].toLowerCase();
       }
@@ -202,68 +200,64 @@ public class Search {
     // Most options have corresponding dedicated VectorSearcher subclasses.
     VectorSearcher vecSearcher = null;
     LinkedList<SearchResult> results = new LinkedList<SearchResult>();
-    VerbatimLogger.info("Searching term vectors, searchtype " + FlagConfig.searchtype + "\n");
+    VerbatimLogger.info("Searching term vectors, searchtype " + flagConfig.getSearchtype() + "\n");
 
     // The following is essentially a big "switch" statement on Flags.searchtype that creates the
     // appropriate VectorSearcher and throws a ZeroVectorException if it doesn't work.
     try {
   
-      if (FlagConfig.searchtype.equals("sum")) {
+      if (flagConfig.getSearchtype().equals("sum")) {
         vecSearcher = new VectorSearcher.VectorSearcherCosine(
-            queryVecReader, searchVecReader, luceneUtils, args);
-      } else if (FlagConfig.searchtype.equals("subspace")) {
+            queryVecReader, searchVecReader, luceneUtils, flagConfig, args);
+      } else if (flagConfig.getSearchtype().equals("subspace")) {
         // Quantum disjunction / subspace similarity.
         vecSearcher = new VectorSearcher.VectorSearcherSubspaceSim(
-            queryVecReader, searchVecReader, luceneUtils, args);
-      } else if (FlagConfig.searchtype.equals("maxsim")) {
+            queryVecReader, searchVecReader, luceneUtils, flagConfig, args);
+      } else if (flagConfig.getSearchtype().equals("maxsim")) {
         // Ranks by maximum similarity with any of the query terms.
         vecSearcher = new VectorSearcher.VectorSearcherMaxSim(
-            queryVecReader, searchVecReader, luceneUtils, args);
-      } else if (FlagConfig.searchtype.equals("boundproduct")) {
+            queryVecReader, searchVecReader, luceneUtils, flagConfig, args);
+      } else if (flagConfig.getSearchtype().equals("boundproduct")) {
         if (args.length == 2) {
           // Binds vectors to faciliate search across specific relations
           vecSearcher = new VectorSearcher.VectorSearcherBoundProduct(
-              queryVecReader, boundVecReader, searchVecReader, luceneUtils, args[0],args[1]);
+              queryVecReader, boundVecReader, searchVecReader, luceneUtils, flagConfig, args[0],args[1]);
         } else {
           // Binds vectors to faciliate search across specific relations
           vecSearcher = new VectorSearcher.VectorSearcherBoundProduct(
-              queryVecReader, boundVecReader, searchVecReader, luceneUtils, args[0]);
+              queryVecReader, boundVecReader, searchVecReader, luceneUtils, flagConfig, args[0]);
         }
-        
-        
-        
-      } else if (FlagConfig.searchtype.equals("boundproductsubspace")) {
+      } else if (flagConfig.getSearchtype().equals("boundproductsubspace")) {
     	  if (args.length == 2)
     	  {
-        // Binds vectors to faciliate search across multiple relationship paths
+        // Binds vectors to facilitate search across multiple relationship paths
         vecSearcher = new VectorSearcher.VectorSearcherBoundProductSubSpace(
-            queryVecReader, boundVecReader, searchVecReader, luceneUtils, args[0],args[1]);
+            queryVecReader, boundVecReader, searchVecReader, luceneUtils, flagConfig, args[0],args[1]);
     	  } else {
-              // Binds vectors to faciliate search across specific relations
+              // Binds vectors to facilitate search across specific relations
               vecSearcher = new VectorSearcher.VectorSearcherBoundProductSubSpace(
-                  queryVecReader, boundVecReader, searchVecReader, luceneUtils, args[0]);
-            }
-    	  
-      } else if (FlagConfig.searchtype.equals("permutation")) {
+                  queryVecReader, boundVecReader, searchVecReader, luceneUtils, flagConfig, args[0]);
+            }    	  
+      } else if (flagConfig.getSearchtype().equals("permutation")) {
         // Permutes query vectors such that the most likely term in the position of the "?" is retrieved.
         vecSearcher = new VectorSearcher.VectorSearcherPerm(
-            queryVecReader, searchVecReader, luceneUtils, args);
-      } else if (FlagConfig.searchtype.equals("balanced_permutation")) {
+            queryVecReader, searchVecReader, luceneUtils, flagConfig, args);
+      } else if (flagConfig.getSearchtype().equals("balanced_permutation")) {
         // Permutes query vectors such that the most likely term in the position of the "?" is retrieved
         vecSearcher = new VectorSearcher.BalancedVectorSearcherPerm(
-            queryVecReader, searchVecReader, luceneUtils, args);
-      } else if (FlagConfig.searchtype.equals("analogy")) {
+            queryVecReader, searchVecReader, luceneUtils, flagConfig, args);
+      } else if (flagConfig.getSearchtype().equals("analogy")) {
         // Try to find best filler for slot in a is to b as c is to ?
         vecSearcher = new VectorSearcher.AnalogySearcher(
-            queryVecReader, searchVecReader, luceneUtils, args);
-      } else if (FlagConfig.searchtype.equals("printquery")) {
+            queryVecReader, searchVecReader, luceneUtils, flagConfig, args);
+      } else if (flagConfig.getSearchtype().equals("printquery")) {
         // Simply prints out the query vector: doesn't do any searching.
         Vector queryVector = CompoundVectorBuilder.getQueryVector(
-            queryVecReader, luceneUtils, args);
+            queryVecReader, luceneUtils, flagConfig, args);
         System.out.println(queryVector.toString());
         return new LinkedList<SearchResult>();
       } else {
-        throw new IllegalArgumentException("Unknown search type: " + FlagConfig.searchtype);
+        throw new IllegalArgumentException("Unknown search type: " + flagConfig.getSearchtype());
       }
     } catch (ZeroVectorException zve) {
       logger.info(zve.getMessage());
@@ -279,7 +273,7 @@ public class Search {
     // Really there should be a global variable for indexformat (text
     // or lucene), and general "openIndexes" and "closeIndexes" methods.
     queryVecReader.close();
-    if (!FlagConfig.queryvectorfile.equals(FlagConfig.searchvectorfile)) {
+    if (!(searchVecReader == queryVecReader)) {
       searchVecReader.close();
     }
     if (boundVecReader != null) {
@@ -292,12 +286,12 @@ public class Search {
   /**
    * Search wrapper that returns the list of ObjectVectors.
    */
-  public static ObjectVector[] getSearchResultVectors(String[] args, int numResults)
+  public static ObjectVector[] getSearchResultVectors(FlagConfig flagConfig, String[] args, int numResults)
       throws IllegalArgumentException {
     List<SearchResult> results = Search.RunSearch(args, numResults);
 
     try {
-      searchVecReader = VectorStoreReader.openVectorStore(FlagConfig.searchvectorfile);
+      searchVecReader = VectorStoreReader.openVectorStore(flagConfig.getSearchvectorfile(), flagConfig);
     } catch (IOException e) {
       e.printStackTrace();
     }
