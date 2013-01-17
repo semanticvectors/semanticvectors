@@ -2,7 +2,7 @@
 
 = Typed Vectors =
 
-As of version 2.5, SemanticVectors supports vectors with binary, real, and complex values. This is a very important development for us. Real vectors are used in machine learning, complex vectors in physics, binary values are really the core of modern computing. Now we can explore their properties in comparative experiments, perhaps for the first time.
+As of version 2.5, SemanticVectors supports vectors with binary, real, and complex values. This is a very important development for us. Real vectors are used in machine learning, complex vectors in physics, binary values are really the core of modern computing. Now we can explore their properties in comparative experiments, perhaps for the first time. Typed Vectors are described quite thoroughly in the [http://www.puttypeg.net/papers/typed-vectors.pdf Real, Complex and Binary Vectors] paper. 
 
 To experiment with the new vector types, simply use 
 
