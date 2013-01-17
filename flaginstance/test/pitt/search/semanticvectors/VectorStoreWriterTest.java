@@ -48,10 +48,12 @@ import junit.framework.TestCase;
 
 public class VectorStoreWriterTest extends TestCase {
   
+  static final String[] COMMAND_LINE_ARGS = {"-vectortype", "real", "-dimension", "2"};
+  static final FlagConfig FLAG_CONFIG = new FlagConfig(COMMAND_LINE_ARGS);
   public static final RAMDirectory directory = new RAMDirectory();
 
   public VectorStoreRAM createTestVectorStore() {
-    VectorStoreRAM store = new VectorStoreRAM(VectorType.REAL, 2);
+    VectorStoreRAM store = new VectorStoreRAM(FLAG_CONFIG);
     store.putVector("isaac", new RealVector(new float[] {1, 0}));
     store.putVector("abraham", new RealVector(new float[] {0.7f, 0.7f}));
     return store;
@@ -59,10 +61,10 @@ public class VectorStoreWriterTest extends TestCase {
   
   @Test
   public void testGenerateHeaderString() {
-    FlagConfig.dimension = 2;
-    FlagConfig.vectortype = "binary";
-    assertEquals(VectorStoreWriter.generateHeaderString(), "-vectortype binary -dimension 2");
-    FlagConfig.vectortype = "real";  // Cleanup!
+    FlagConfig flagConfig = new FlagConfig(new String[] {});
+    flagConfig.setDimension(2);
+    flagConfig.setVectortype("binary");
+    assertEquals( "-vectortype binary -dimension 2", VectorStoreWriter.generateHeaderString(flagConfig));
   }
 
   @Test
@@ -70,7 +72,7 @@ public class VectorStoreWriterTest extends TestCase {
     IndexOutput indexOutput = directory.createOutput("realvectors.bin");
     VectorStore store = createTestVectorStore();
     VectorStoreWriter writer = new VectorStoreWriter();
-    writer.writeToIndexOutput(store, indexOutput);
+    writer.writeToIndexOutput(store, FLAG_CONFIG, indexOutput);
     indexOutput.flush();
     
     ThreadLocal<IndexInput> threadLocalIndexInput = new ThreadLocal<IndexInput>() {
@@ -84,7 +86,7 @@ public class VectorStoreWriterTest extends TestCase {
         return null;
       }
     };
-    VectorStoreReaderLucene storeReader = new VectorStoreReaderLucene(threadLocalIndexInput);
+    VectorStoreReaderLucene storeReader = new VectorStoreReaderLucene(threadLocalIndexInput, FLAG_CONFIG);
     assertEquals(2, storeReader.getNumVectors());
     Vector abrahamVector = storeReader.getVector("abraham");
     Vector isaacVector = storeReader.getVector("isaac");

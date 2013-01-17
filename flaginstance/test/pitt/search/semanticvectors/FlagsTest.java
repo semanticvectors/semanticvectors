@@ -45,10 +45,11 @@ public class FlagsTest extends TestCase {
   public void testParseCommandLineFlags() {
     String[] args = {"-searchtype", "subspace", "--dimension", "3",
         "-queryvectorfile", "myvectors.bin", "queryterm"};
-    args = FlagConfig.parseCommandLineFlags(args);
-    assertEquals("subspace", FlagConfig.searchtype);
-    assertEquals(3, FlagConfig.dimension);
-    assertEquals("myvectors.bin", FlagConfig.queryvectorfile);
+    FlagConfig flagConfig = new FlagConfig(args);
+    args = flagConfig.remainingArgs;
+    assertEquals("subspace", flagConfig.getSearchtype());
+    assertEquals(3, flagConfig.getDimension());
+    assertEquals("myvectors.bin", flagConfig.getQueryvectorfile());
 
     // Test remaining query args correct.
     assertEquals(1, args.length);
@@ -56,32 +57,30 @@ public class FlagsTest extends TestCase {
   }
 
   @Test
-  public void testParseFlagsFromString() {
-    FlagConfig.dimension = 3;
-    FlagConfig.vectortype = "real";
-    FlagConfig.parseFlagsFromString("-vectortype complex -dimension 2");
-    assertEquals(2, FlagConfig.dimension);
-    assertEquals("complex", FlagConfig.vectortype);
-    FlagConfig.vectortype = "real";  // Cleanup!!
+  public void testParseFlagsFromString() {    
+    FlagConfig flagConfig = FlagConfig.parseFlagsFromString("-vectortype complex -dimension 2");
+    assertEquals(2, flagConfig.getDimension());
+    assertEquals("complex", flagConfig.getVectortype());
   }
 
 
   @Test
   public void testParseStringListFlag() {
     String[] args = {"-contentsfields", "text,moretext"};
-    args = FlagConfig.parseCommandLineFlags(args);
-    assertEquals(2, FlagConfig.contentsfields.length);
-    assertEquals("moretext", FlagConfig.contentsfields[1]);
+    FlagConfig flagConfig = new FlagConfig(args);
+    args = flagConfig.remainingArgs;
+    assertEquals(2, flagConfig.getContentsfields().length);
+    assertEquals("moretext", flagConfig.getContentsfields()[1]);
     String[] args2 = {"-contentsfields", "contents"};
-    args2 = FlagConfig.parseCommandLineFlags(args2);
-    assertEquals(1, FlagConfig.contentsfields.length);
+    flagConfig = new FlagConfig(args2);
+    assertEquals(1, flagConfig.getContentsfields().length);
   }
 
   @Test
   public void testThrowsUnrecognizedFlag() {
     String[] args = {"-notaflag", "notagoodvalue"};
     try {
-      FlagConfig.parseCommandLineFlags(args);
+      new FlagConfig(args);
       fail();
     } catch (IllegalArgumentException e) {
       assertEquals("Command line flag not defined: notaflag", e.getMessage());
@@ -92,14 +91,14 @@ public class FlagsTest extends TestCase {
   public void testThrowsUnrecognizedValue() {
     String[] args = {"-searchtype", "sum"};
     try {
-      FlagConfig.parseCommandLineFlags(args);
+      new FlagConfig(args);
     } catch (IllegalArgumentException e) {
       fail();
     }
 
     String[] args2 = {"-searchtype", "notagoodvalue"};
     try {
-      FlagConfig.parseCommandLineFlags(args2);
+      new FlagConfig(args2);
       fail();
     } catch (IllegalArgumentException e) {
       assertTrue(e.getMessage().contains("Value 'notagoodvalue' not valid"));
@@ -110,15 +109,15 @@ public class FlagsTest extends TestCase {
   @Test
   public void testMakeFlagsCompatible() {
     String[] args = {"-dimension", "60", "-vectortype", "binary", "-seedlength", "20"};
-    FlagConfig.parseCommandLineFlags(args);
-    assertEquals(64, FlagConfig.dimension);
-    assertEquals(32, FlagConfig.seedlength);
+    FlagConfig flagConfig = new FlagConfig(args);
+    assertEquals(64, flagConfig.getDimension());
+    assertEquals(32, flagConfig.getSeedlength());
     
     // Reset the vectortype flag to real and you have more options.
     args = new String[] {"-dimension", "60", "-vectortype", "real", "-seedlength", "20"};
-    FlagConfig.parseCommandLineFlags(args);
-    assertEquals(60, FlagConfig.dimension);
-    assertEquals(20, FlagConfig.seedlength);
+    flagConfig = new FlagConfig(args);
+    assertEquals(60, flagConfig.getDimension());
+    assertEquals(20, flagConfig.getSeedlength());
   }
 
   @org.junit.Test

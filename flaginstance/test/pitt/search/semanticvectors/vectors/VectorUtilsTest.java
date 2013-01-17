@@ -47,7 +47,8 @@ public class VectorUtilsTest extends TestCase {
 
   @Test
   public void testOrthogonalizeVectors() {
-    FlagConfig.dimension = 3;
+    FlagConfig flagConfig = new FlagConfig(new String[] {});
+    flagConfig.setDimension(3);
     Vector vec1 = new RealVector(new float[] {1, 2, 1});
     Vector vec2 = new RealVector(new float[] {2, 3, 1});
     Vector vec3 = new RealVector(new float[] {2, 1, 1});
