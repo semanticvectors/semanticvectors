@@ -36,10 +36,10 @@ public class LSA {
         + "\nTo change these use the command line arguments "
         + "\n  -dimension [number of dimension]"
         + "\n  -minfrequency [minimum term frequency]"
-        + "\n  -maxnonalphabetchars [number non-alphabet characters (-1 for any number)]";
+        + "\n  -maxnonalphabetchars [number non-alphabet characters (-1 for any number)]"
+        + "\n  -filternumbers [true or false]";
 
   private FlagConfig flagConfig;
-  
   private String[] termList;
   private IndexReader indexReader;
   private LuceneUtils lUtils;
@@ -69,11 +69,11 @@ public class LSA {
           + "Setting dimension to " + numDocs);
       flagConfig.setDimension(numDocs);
     }
-    
+
     if (flagConfig.getTermweight().equals("logentropy")) {
       VerbatimLogger.info("Term weighting: log-entropy.\n");
     }
-    
+
     // Log some of the basic properties. This could be altered to be more informative if
     // our users ever ask for different properties.
     VerbatimLogger.info("Set up LSA indexer.\n" +
@@ -190,8 +190,7 @@ public class LSA {
       throw e;
     }
     if (!flagConfig.getVectortype().equalsIgnoreCase("real")) {
-      logger.warning("LSA is only supported for real vectors ... setting vectortype to 'real'.");
-      
+      logger.warning("LSA is only supported for real vectors ... setting vectortype to 'real'."); 
     }
     
     // Only one argument should remain, the path to the Lucene index.

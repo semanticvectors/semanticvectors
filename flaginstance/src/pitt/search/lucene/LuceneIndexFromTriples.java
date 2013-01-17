@@ -93,31 +93,38 @@ public class LuceneIndexFromTriples {
       		java.util.StringTokenizer theTokenizer = new java.util.StringTokenizer(lineIn,"\t");
       		/* output progress counter */
       		boolean semtype = false;
-    
+      	
     	    	
     	    if( ( ++linecnt % 10000 == 0 ) || ( linecnt < 10000 && linecnt % 1000 == 0 ) ){
     	      	System.err.print((linecnt) + " ... ");
     	      }
     	    try {
     	    
+    	    if (theTokenizer.countTokens() < 3)
+    	    {
+    	    	lineIn = theReader.readLine();
+    	    	continue;
+    	    }
+    	    	
     	    String subject = theTokenizer.nextToken().trim().toLowerCase().replaceAll(" ", "_");
-    	    String predication = theTokenizer.nextToken().trim().toUpperCase().replaceAll(" ", "_");
+    	    String predicate = theTokenizer.nextToken().trim().toUpperCase().replaceAll(" ", "_");
     	    String object = theTokenizer.nextToken().trim().toLowerCase().replaceAll(" ", "_");
     	     
     	    
     	    Document doc = new Document();
     	    doc.add(new Field("subject",subject, Field.Store.YES, Field.Index.ANALYZED));
-    	    doc.add(new Field("predicate",predication, Field.Store.YES, Field.Index.ANALYZED));
+    	    doc.add(new Field("predicate",predicate, Field.Store.YES, Field.Index.ANALYZED));
     	    doc.add(new Field("object",object, Field.Store.YES, Field.Index.ANALYZED));
-    	   	    
-    	    System.out.println(subject+" "+predication+" "+object);
+    	   	doc.add(new Field("predication",subject+predicate+object, Field.Store.NO, Field.Index.ANALYZED));
+    	   	
     	    fsWriter.addDocument(doc);
     	    
     	    
     	    }
     	    catch (Exception e)
-    	    {System.out.println(lineIn);
-    	     
+    	    {
+    	    	System.out.println(lineIn);
+    	    	e.printStackTrace();
     	    }
       
     	    lineIn = theReader.readLine();

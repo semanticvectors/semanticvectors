@@ -114,6 +114,9 @@ public class TermVectorsFromLucene implements VectorStore {
   /**
    * Creates term vectors from a Lucene index.
    * 
+   * @param basicDocVectors The store of basic document vectors. Null
+   * is an acceptable value, in which case the constructor will build
+   * this table. If non-null, the identifiers must correspond to the Lucene doc numbers.
    * @throws IOException if resources on disk cannot be opened.
    */
   public static TermVectorsFromLucene createTermVectorsFromLucene(

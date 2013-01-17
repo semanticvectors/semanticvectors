@@ -106,6 +106,7 @@ public class BinaryVectorUtils {
   public static void sampleSubtract(OpenBitSet vector,  OpenBitSet subvector) {	
 	  long numchanges =  vector.size()/2 - OpenBitSet.xorCount(vector, subvector); //total common bits - n/2
 	  java.util.Random random = new java.util.Random();
+	  random.setSeed((long) 23); //for consistency across experiments 
 	  OpenBitSet commonGround = (OpenBitSet) vector.clone();
 	  //everything different
 	  commonGround.xor(subvector);

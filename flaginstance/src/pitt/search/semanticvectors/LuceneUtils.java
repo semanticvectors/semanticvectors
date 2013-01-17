@@ -62,7 +62,6 @@ import org.apache.lucene.util.Version;
  */
 public class LuceneUtils{
   private static final Logger logger = Logger.getLogger(DocVectors.class.getCanonicalName());
-
   private FlagConfig flagConfig;
   private IndexReader indexReader;
   private Hashtable<Term, Float> termEntropy = new Hashtable<Term, Float>();
@@ -84,9 +83,9 @@ public class LuceneUtils{
 
 
   /**
-   * Loads the stopword file into memory
-   * @param stoppath - path to stopword file
-   * @throws IOException
+   * Loads the stopword file into the {@link #stopwords} data structure.
+   * @param stoppath Path to stopword file.
+   * @throws IOException If stopword file cannot be read.
    */
   public void loadStopWords(String stoppath) throws IOException  {
     logger.info("Using stopword file: "+stoppath);
@@ -104,12 +103,10 @@ public class LuceneUtils{
     }
   }
 
-
   /**
-   * added by Siddhartha
-   * Loads the startword file into memory 
-   * @param startpath - path to startword file
-   * @throws IOException
+   * Loads the startword file into the {@link #startwords} data structure.
+   * @param startpath Path to startword file
+   * @throws IOException If startword file cannot be read.
    */
   public void loadStartWords(String startpath) throws IOException  {
     System.err.println("Using startword file: " + startpath);
@@ -128,7 +125,7 @@ public class LuceneUtils{
   }
 
   /**
-   * Returns true if term is in stoplist (returns false if no stoplist)
+   * Returns true if term is in stoplist, false otherwise.
    */
   public boolean stoplistContains(String x) {
     if (stopwords == null) return false;
@@ -193,28 +190,28 @@ public class LuceneUtils{
   }
 
   /**
-   * Gets the number of documents
+   * Returns the number of documents in the Lucene index.
    */
-  public int getNumDocs()
-  {return indexReader.numDocs();}
-
+  public int getNumDocs() { return indexReader.numDocs(); }
 
   /**
    * Gets the IDF (i.e. log10(numdocs/doc frequency)) of a term
    *	@param term the term whose IDF you would like
    */
-
   public float getIDF(Term term) {
-    if (termIDF.containsKey(term))
+    if (termIDF.containsKey(term)) {
       return termIDF.get(term);
-    else 
-      try
-    { 	float idf = (float) Math.log10(indexReader.numDocs()/indexReader.docFreq(term));
-    termIDF.put(term, idf);
-    return idf; 
-    } 
-    catch (Exception e)
-    {e.printStackTrace(); return 1;}
+    } else { 
+      try {
+        float idf = (float) Math.log10(indexReader.numDocs()/indexReader.docFreq(term));
+        termIDF.put(term, idf);
+        return idf; 
+      } catch (IOException e) {
+        // Catches IOException from looking up doc frequency, never seen yet in practice.
+        e.printStackTrace();
+        return 1;
+      }
+    }
   }
 
   /**
@@ -304,6 +301,31 @@ public class LuceneUtils{
     return true;
   }
 
+  /**
+   * Applies termFilter and additionally (if requested) filters out digit-only words. 
+   * 
+   * @param term Term to be filtered.
+   * @param desiredFields Terms in only these fields are filtered in
+   * @param minFreq minimum term frequency accepted
+   * @param maxFreq maximum term frequency accepted
+   * @param maxNonAlphabet reject terms with more than this number of non-alphabetic characters
+   * @param filterNumbers if true, filters out tokens that represent a number
+   */
+  protected boolean termFilter(
+    Term term, String[] desiredFields, int minFreq, int maxFreq, int maxNonAlphabet, boolean filterNumbers) {
+      // number filter
+    if (filterNumbers) {
+      try {
+	// if the token can be parsed as a floating point number, no exception is thrown and false is returned
+	// if not, an exception is thrown and we continue with the other termFilter method.
+	// remark: this does not filter out e.g. Java or C++ formatted numbers like "1f" or "1.0d"
+	Double.parseDouble( term.text() );
+	return false;
+      } catch (Exception e) {}
+    }
+    return termFilter(term, desiredFields, minFreq, maxFreq, maxNonAlphabet);
+  }
+  
   /**
    * Static method for compressing an index.
    *

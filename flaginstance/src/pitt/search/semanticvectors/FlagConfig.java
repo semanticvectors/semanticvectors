@@ -78,10 +78,13 @@ public class FlagConfig {
   public static final String seedlengthDescription =
     "Number of +1 and number of -1 entries in a sparse random vector";
 
+  /*
   private int binaryvectordecimalplaces = 2;
   public int getBinaryvectordecimalplaces() { return binaryvectordecimalplaces; }
   public static final String binaryvectordecimalplacesDescription =
-    "Number of decimal places to consider in weighted superpositions of binary vectors. Higher precision requires additional memory during training.";
+    "Number of decimal places to consider in weighted superpositions of binary vectors. " +
+    		"Higher precision requires additional memory during training.";
+  */
   
   private int minfrequency = 0;
   public int getMinfrequency() { return minfrequency; }
@@ -89,6 +92,8 @@ public class FlagConfig {
   public int getMaxfrequency() { return maxfrequency; }
   private int maxnonalphabetchars = Integer.MAX_VALUE;
   public int getMaxnonalphabetchars() { return maxnonalphabetchars; }
+  private boolean filteroutnumbers = true;
+  public boolean getFilteroutnumbers() { return filteroutnumbers; }
   
   private String indexrootdirectory = "";
   public String getIndexrootdirectory() { return indexrootdirectory; }

@@ -26,6 +26,16 @@ import pitt.search.semanticvectors.FlagConfig;
  */
 public class BinaryVector implements Vector {
   public static final Logger logger = Logger.getLogger(BinaryVector.class.getCanonicalName());
+
+  // TODO: Determing proper interface for default constants.
+  /**
+   * Number of decimal places to consider in weighted superpositions of binary vectors.
+   * Higher precision requires additional memory during training.
+   */
+  public static final int BINARY_VECTOR_DECIMAL_PLACES = 2;
+  public static final boolean BINARY_BINDING_WITH_PERMUTE = false;
+
+  
   private static final int DEBUG_PRINT_LENGTH = 64;
 
   private final int dimension;
@@ -221,7 +231,7 @@ public class BinaryVector implements Vector {
     BinaryVector binaryOther = (BinaryVector) other;
     if (isSparse) {
       if (Math.round(weight) != weight) {
-        decimalPlaces = FlagConfig.binaryvectordecimalplaces; 
+        decimalPlaces = BINARY_VECTOR_DECIMAL_PLACES; 
       }
       elementalToSemantic();
     }
@@ -523,16 +533,17 @@ public class BinaryVector implements Vector {
    */
   public void bind(Vector other, int direction) {
     IncompatibleVectorsException.checkVectorsCompatible(this, other);
-    BinaryVector binaryOther = (BinaryVector) other;
+    BinaryVector binaryOther = (BinaryVector) other.copy();
     if (direction > 0) {
-    	binaryOther.permute(PermutationUtils.getShiftPermutation(VectorType.BINARY, dimension, 1));
-    	this.bitSet.xor(binaryOther.bitSet);
-    	binaryOther.permute(PermutationUtils.getShiftPermutation(VectorType.BINARY, dimension, -1));
+    	//as per Kanerva 2009: bind(A,B) = perm+(A) XOR B = C
+    	//this also functions as the left inverse:  left inverse (A,C) = perm+(A) XOR C  = B 
+    	this.permute(PermutationUtils.getShiftPermutation(VectorType.BINARY, dimension, 1)); //perm+(A)
+    	this.bitSet.xor(binaryOther.bitSet); //perm+(A) XOR B
       
     } else {
-    	binaryOther.permute(PermutationUtils.getShiftPermutation(VectorType.BINARY, dimension, -1));
-    	this.bitSet.xor(binaryOther.bitSet);
-    	binaryOther.permute(PermutationUtils.getShiftPermutation(VectorType.BINARY, dimension, 1));
+    	//as per Kanerva 2009: right inverse(C,B) =  perm-(C XOR B) = perm-(perm+(A)) = A 
+    	this.bitSet.xor(binaryOther.bitSet); //C XOR B
+    	this.permute(PermutationUtils.getShiftPermutation(VectorType.BINARY, dimension, -1)); //perm-(C XOR B) = A
  }
   }
   
@@ -542,7 +553,10 @@ public class BinaryVector implements Vector {
    * Implements inverse of binding using permutations and XOR. 
    */
   public void release(Vector other, int direction) {
-	  bind (other, direction);
+    if (!BINARY_BINDING_WITH_PERMUTE)
+	   bind(other);
+	  else
+		  bind (other, direction);
   }
   
   @Override
@@ -551,8 +565,12 @@ public class BinaryVector implements Vector {
    */
   public void bind(Vector other) {
     IncompatibleVectorsException.checkVectorsCompatible(this, other);
-    BinaryVector binaryOther = (BinaryVector) other;
-    	this.bitSet.xor(binaryOther.bitSet);
+    if (!BINARY_BINDING_WITH_PERMUTE) {
+      BinaryVector binaryOther = (BinaryVector) other;
+      this.bitSet.xor(binaryOther.bitSet);
+    } else {
+    	bind(other, 1);
+    }
   }
   
   @Override
@@ -560,7 +578,11 @@ public class BinaryVector implements Vector {
    * Implements inverse binding using exclusive OR. 
    */
   public void release(Vector other) {
-	 bind(other);
+	 
+	 if (!BINARY_BINDING_WITH_PERMUTE)
+	   bind(other);
+	 else
+		 bind(other, -1);
   }
 
   @Override

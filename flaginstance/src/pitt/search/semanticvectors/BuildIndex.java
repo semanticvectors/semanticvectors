@@ -51,14 +51,16 @@ public class BuildIndex {
     + "\nUsage: java pitt.search.semanticvectors.BuildIndex PATH_TO_LUCENE_INDEX"
     + "\nBuildIndex creates termvectors and docvectors files in local directory."
     + "\nOther parameters that can be changed include number of dimensions, "
-    + "vector type (real, binary or complex), seed length (number of non-zero entries in"
-    + "basic vectors), minimum term frequency, and number of iterative training cycles."
+    + "vector type (real, binary or complex), seed length (number of non-zero entries in "
+    + "basic vectors), minimum term frequency, max. number of non-alphabetical characters per term, "
+    + "filtering of numeric terms (i.e. numbers), and number of iterative training cycles."
     + "\nTo change these use the command line arguments "
     + "\n  -vectortpe [real, complex or binary]"
     + "\n  -dimension [number of dimension]"
     + "\n  -seedlength [seed length]"
     + "\n  -minfrequency [minimum term frequency]"
     + "\n  -maxnonalphabetchars [number non-alphabet characters (-1 for any number)]"
+    + "\n  -filternumbers [true or false]"
     + "\n  -trainingcycles [training cycles]"
     + "\n  -docindexing [incremental|inmemory|none] Switch between building doc vectors incrementally"
     + "\n        (requires positional index), all in memory (default case), or not at all";
@@ -116,7 +118,7 @@ public class BuildIndex {
         IncrementalDocVectors.createIncrementalDocVectors(
             vecStore, flagConfig, luceneIndex, flagConfig.getContentsfields(), "incremental_"+docFile);
         IncrementalTermVectors itermVectors = null;
-
+        
         for (int i = 1; i < flagConfig.getTrainingcycles(); ++i) {
           itermVectors = new IncrementalTermVectors(flagConfig,
               luceneIndex, VectorType.valueOf(flagConfig.getVectortype().toUpperCase()),

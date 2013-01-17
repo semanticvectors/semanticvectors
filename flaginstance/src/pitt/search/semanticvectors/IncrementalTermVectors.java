@@ -68,6 +68,7 @@ public class IncrementalTermVectors implements VectorStore {
     + "\n  -seedlength [seed length]"
     + "\n  -minfrequency [minimum term frequency]"
     + "\n  -maxnonalphabetchars [number non-alphabet characters (-1 for any number)]"
+    + "\n  -filternumbers [true or false]"
     + "\n  -trainingcycles [training cycles]"
     + "\n  -docindexing [incremental|inmemory|none] Switch between building doc vectors incrementally"
     + "\n        (requires positional index), all in memory (default case), or not at all";

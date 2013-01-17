@@ -36,18 +36,19 @@
 package pitt.search.semanticvectors;
 
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Enumeration;
 import java.util.Random;
 import java.util.logging.Logger;
 import java.io.File;
 import java.io.IOException;
 
+import org.apache.lucene.index.FieldInfos;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.index.TermEnum;
 import org.apache.lucene.index.TermPositionVector;
 import org.apache.lucene.store.FSDirectory;
+import org.apache.lucene.util.ReaderUtil;
 
 import pitt.search.semanticvectors.vectors.PermutationUtils;
 import pitt.search.semanticvectors.vectors.Vector;
@@ -83,10 +84,11 @@ public class TermTermVectorsFromLucene implements VectorStore {
   private String[] fieldsToIndex;
   private int minFreq;
   private int maxFreq;
+  private int maxNonAlphabet;
+  private boolean filterNumbers;
   private int windowSize;
   private Vector[] localindexvectors;
   private LuceneUtils lUtils;
-  private int maxNonAlphabet;
 
   private String positionalmethod;
   
@@ -140,6 +142,7 @@ public class TermTermVectorsFromLucene implements VectorStore {
    * @param minFreq The minimum term frequency for a term to be indexed.
    * @param maxFreq The minimum term frequency for a term to be indexed.
    * @param maxNonAlphabet
+   * @param filterNumbers
    * @param windowSize The size of the sliding context window.
    * @param positionalmethod
    * @param indexVectors
@@ -149,7 +152,7 @@ public class TermTermVectorsFromLucene implements VectorStore {
   public TermTermVectorsFromLucene(
       FlagConfig flagConfig,
       String luceneIndexDir, VectorType vectorType, int dimension, int seedLength,
-      int minFreq, int maxFreq, int maxNonAlphabet, int windowSize, String positionalmethod,
+      int minFreq, int maxFreq, int maxNonAlphabet, boolean filterNumbers, int windowSize, String positionalmethod,
       VectorStore indexVectors, String[] fieldsToIndex) throws IOException {
     this.flagConfig = flagConfig;
     this.luceneIndexDir = luceneIndexDir;
@@ -159,6 +162,7 @@ public class TermTermVectorsFromLucene implements VectorStore {
     this.minFreq = minFreq;
     this.maxFreq = maxFreq;
     this.maxNonAlphabet = maxNonAlphabet;
+    this.filterNumbers = filterNumbers;
     this.fieldsToIndex = fieldsToIndex;
     this.seedLength = seedLength;
     this.windowSize = windowSize;
@@ -207,12 +211,11 @@ public class TermTermVectorsFromLucene implements VectorStore {
     // Check that the Lucene index contains Term Positions.
     LuceneUtils.compressIndex(luceneIndexDir);
     this.luceneIndexReader = IndexReader.open(FSDirectory.open(new File(luceneIndexDir)));
-    Collection<String> fields_with_positions =
-      luceneIndexReader.getFieldNames(IndexReader.FieldOption.TERMVECTOR_WITH_POSITION);
-    if (fields_with_positions.isEmpty()) {
-      logger.warning("Term-term indexing requires a Lucene index containing TermPositionVectors."
+    FieldInfos fieldsWithPositions = ReaderUtil.getMergedFieldInfos(luceneIndexReader);
+    if (!fieldsWithPositions.hasVectors()) {
+      throw new IOException(
+          "Term-term indexing requires a Lucene index containing TermPositionVectors."
           + "\nTry rebuilding Lucene index using pitt.search.lucene.IndexFilePositions");
-      throw new IOException("Lucene indexes not built correctly.");
     }
     lUtils = new LuceneUtils(luceneIndexDir, flagConfig);
 
@@ -234,7 +237,7 @@ public class TermTermVectorsFromLucene implements VectorStore {
     while(terms.next()) {
       Term term = terms.term();
       // Skip terms that don't pass the filter.
-      if (!lUtils.termFilter(terms.term(), fieldsToIndex, minFreq, maxFreq, maxNonAlphabet)) {
+      if (!lUtils.termFilter(terms.term(), fieldsToIndex, minFreq, maxFreq, maxNonAlphabet, filterNumbers)) {
         continue;
       }
       tc++;
