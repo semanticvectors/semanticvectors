@@ -122,14 +122,14 @@ public class FlagsTest extends TestCase {
 
   @org.junit.Test
   public void testFlagsMetadata() {
-    Field[] allFlagFields = FlagConfig.class.getFields();
+    Field[] allFlagFields = FlagConfig.class.getDeclaredFields();
     for (Field field: allFlagFields) {
       String fieldName = field.getName();
       if (fieldName.endsWith("Description")) {
         try {
           String flagName = fieldName.substring(0, fieldName.length() - 11);
           @SuppressWarnings("unused")
-          Field flagField = FlagConfig.class.getField(flagName);
+          Field flagField = FlagConfig.class.getDeclaredField(flagName);
         } catch (NoSuchFieldException e) {
           System.err.println("Description field '" + fieldName
               + "' has no corresponding flag defined.");

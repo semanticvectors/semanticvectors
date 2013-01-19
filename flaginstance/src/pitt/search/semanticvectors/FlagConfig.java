@@ -57,6 +57,12 @@ import java.util.logging.Logger;
 public class FlagConfig {
   private static final Logger logger = Logger.getLogger(FlagConfig.class.getCanonicalName());
   
+  private FlagConfig() {
+    Field[] fields = FlagConfig.class.getDeclaredFields();
+    for (int q = 0; q < fields.length; q++)
+      fields[q].setAccessible(true);
+  }
+  
   public String[] remainingArgs;
 
   // Add new command line flags here. By convention, please use lower case.
@@ -73,18 +79,10 @@ public class FlagConfig {
   public static final String vectortypeDescription = "Ground field for vectors: real, binary or complex.";
   public static final String[] vectortypeValues = {"binary", "real", "complex"};
 
-  private int seedlength = 10;
+  public int seedlength = 10;
   public int getSeedlength() { return seedlength; }
   public static final String seedlengthDescription =
     "Number of +1 and number of -1 entries in a sparse random vector";
-
-  /*
-  private int binaryvectordecimalplaces = 2;
-  public int getBinaryvectordecimalplaces() { return binaryvectordecimalplaces; }
-  public static final String binaryvectordecimalplacesDescription =
-    "Number of decimal places to consider in weighted superpositions of binary vectors. " +
-    		"Higher precision requires additional memory during training.";
-  */
   
   private int minfrequency = 0;
   public int getMinfrequency() { return minfrequency; }
@@ -97,7 +95,7 @@ public class FlagConfig {
   
   private String indexrootdirectory = "";
   public String getIndexrootdirectory() { return indexrootdirectory; }
-  public String indexRootDirectoryDescription = "Allow for the specification of a directory to place the lucene index in. Requires a trailing slash";
+  public String indexrootdirectoryDescription = "Allow for the specification of a directory to place the lucene index in. Requires a trailing slash";
   
   private int numsearchresults = 20;
   public int getNumsearchresults() { return numsearchresults; }
@@ -167,22 +165,22 @@ public class FlagConfig {
   
   private String queryvectorfile = "termvectors";
   public String getQueryvectorfile() { return queryvectorfile; }
-  public static String queryvectorfileDescription = "Principal vector store for finding query vectors.";
+  public static final String queryvectorfileDescription = "Principal vector store for finding query vectors.";
 
   private String searchvectorfile = "";
   public String getSearchvectorfile() { return searchvectorfile; }
-  public static String searchvectorfileDescription =
+  public static final String searchvectorfileDescription =
       "Vector store for searching. Defaults to being the same as {@link #queryVecReader}. "
       + "May be different from queryvectorfile e.g., when using terms to search for documents.";
   
   private String boundvectorfile = "";
   public String getBoundvectorfile() { return boundvectorfile; }
-  public static String boundvectorfileDescription =
+  public static final String boundvectorfileDescription =
       "Auxiliary vector store used when searching for boundproducts. Used only in some searchtypes.";
 
   private String elementalvectorfile = "elementalvectors";
   public String getElementalvectorfile() { return elementalvectorfile; }
-  public static String elementalvectorfileDescription =
+  public static final String elementalvectorfileDescription =
       "Random elemental vectors, sometimes written out, and used (e.g.) in conjunction with permuted vector file.";
   
   private String semanticvectorfile = "semanticvectors";
@@ -232,12 +230,12 @@ public class FlagConfig {
     "Use the vectors in this file for initialization instead of new random vectors.";
 
   public String initialdocumentvectors = "";
-  public static String initialdocumentvectorsDescription =
+  public static final String initialdocumentvectorsDescription =
     "Use the vectors in this file for initialization instead of new random vectors.";
 
   private String docindexing = "inmemory";
   public String getDocindexing() { return docindexing; }
-  public static String docindexingDescription = "Memory management method used for indexing documents.";
+  public static final String docindexingDescription = "Memory management method used for indexing documents.";
   public static String docindexingValues[] = {"inmemory", "incremental", "none"};
 
   private String vectorlookupsyntax = "exactmatch";
@@ -253,16 +251,16 @@ public class FlagConfig {
   
   private String vectorstorelocation = "ram";
   public String getVectorstorelocation() { return vectorstorelocation; }
-  public static String vectorstorelocationDescription = "Where to store vectors - in memory or on disk";
+  public static final String vectorstorelocationDescription = "Where to store vectors - in memory or on disk";
   public static String[] vectorstorelocationValues = {"ram", "disk"};
 
   private String batchcompareseparator = "\\|";
   public String getBatchcompareseparator() { return batchcompareseparator; }
-  public static String batchcompareseparatorDescription = "Separator for documents on a single line in batch comparison mode.";
+  public static final String batchcompareseparatorDescription = "Separator for documents on a single line in batch comparison mode.";
 
   private boolean suppressnegatedqueries = false;
   public boolean getSuppressnegatedqueries() { return suppressnegatedqueries; }
-  public static String suppressnegatedqueriesDescription = "Suppress checking for the query negation token which indicates subsequent terms are to be negated when comparing terms. If this is set all terms are treated as positive";
+  public static final String suppressnegatedqueriesDescription = "Suppress checking for the query negation token which indicates subsequent terms are to be negated when comparing terms. If this is set all terms are treated as positive";
 
   private String[] contentsfields = {"contents"};
   public String[] getContentsfields() { return contentsfields; }
@@ -291,7 +289,9 @@ public class FlagConfig {
       remainingArgs = new String[0];
       return;
     }
-
+    
+    new FlagConfig();
+    
     int argc = 0;
     while (args[argc].charAt(0) == '-') {
       String flagName = args[argc];
@@ -303,7 +303,7 @@ public class FlagConfig {
       }
 
       try {
-        Field field = FlagConfig.class.getField(flagName);
+        Field field = FlagConfig.class.getDeclaredField(flagName);
 
         // Parse String arguments.
         if (field.getType().getName().equals("java.lang.String")) {
@@ -313,7 +313,7 @@ public class FlagConfig {
           } catch (ArrayIndexOutOfBoundsException e) {
             throw new IllegalArgumentException("option -" + flagName + " requires an argument");
           }
-          field.set(field, flagValue);
+          field.set(this, flagValue);
           // If there is an enum of accepted values, check that it's one of these.
           try {
             Field valuesField = FlagConfig.class.getField(flagName + "Values");
@@ -345,12 +345,12 @@ public class FlagConfig {
           } catch (ArrayIndexOutOfBoundsException e) {
             throw new IllegalArgumentException("option -" + flagName + " requires an argument");
           }
-          field.set(field, flagValue.split(","));
+          field.set(this, flagValue.split(","));
           argc += 2;
         } else if (field.getType().getName().equals("int")) {
           // Parse int arguments.
           try {
-            field.setInt(field, Integer.parseInt(args[argc + 1]));
+            field.setInt(this, Integer.parseInt(args[argc + 1]));
           } catch (ArrayIndexOutOfBoundsException e) {
             throw new IllegalArgumentException("option -" + flagName + " requires an argument");
           }
@@ -358,14 +358,14 @@ public class FlagConfig {
         } else if (field.getType().getName().equals("double")) {
           // Parse double arguments.
           try {
-            field.setDouble(field, Double.parseDouble(args[argc + 1]));
+            field.setDouble(this, Double.parseDouble(args[argc + 1]));
           } catch (ArrayIndexOutOfBoundsException e) {
             throw new IllegalArgumentException("option -" + flagName + " requires an argument");
           }
           argc += 2;
         } else if (field.getType().getName().equals("boolean")) {
           // Parse boolean arguments.
-          field.setBoolean(field, true);
+          field.setBoolean(this, true);
           ++argc;
         } else {
           logger.warning("No support for fields of type: "  + field.getType().getName());

@@ -62,6 +62,7 @@ public class VectorStoreReaderLuceneTest extends TestCase {
 
   @Before
   public void setUp() {
+    assertEquals(2, FLAG_CONFIG.getDimension());
     VectorStoreRAM store = new VectorStoreRAM(FLAG_CONFIG);
     store.putVector("isaac", new RealVector(new float[] {1, 0}));
     store.putVector("abraham", new RealVector(new float[] {0.7f, 0.7f}));
