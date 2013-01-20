@@ -52,8 +52,8 @@ import java.util.NoSuchElementException;
 import junit.framework.TestCase;
 
 public class VectorStoreReaderLuceneTest extends TestCase {
-  static final String[] COMMAND_LINE_ARGS = {"-vectortype", "real", "-dimension", "2"};
-  static final FlagConfig FLAG_CONFIG = new FlagConfig(COMMAND_LINE_ARGS);
+  private static final String[] COMMAND_LINE_ARGS = {"-vectortype", "real", "-dimension", "2"};
+  private static FlagConfig FLAG_CONFIG;
   private static double TOL = 0.0001;
   private final RAMDirectory directory = new RAMDirectory();
   private final String TEST_VECTOR_FILE = "realvectors.bin";
@@ -62,7 +62,8 @@ public class VectorStoreReaderLuceneTest extends TestCase {
 
   @Before
   public void setUp() {
-    assertEquals(2, FLAG_CONFIG.getDimension());
+    System.out.println("Setting up " + this.getClass().getCanonicalName());
+    FLAG_CONFIG = FlagConfig.getFlagConfig(COMMAND_LINE_ARGS);
     VectorStoreRAM store = new VectorStoreRAM(FLAG_CONFIG);
     store.putVector("isaac", new RealVector(new float[] {1, 0}));
     store.putVector("abraham", new RealVector(new float[] {0.7f, 0.7f}));

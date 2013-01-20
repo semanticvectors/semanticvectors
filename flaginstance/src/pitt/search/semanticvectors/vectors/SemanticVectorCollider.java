@@ -10,7 +10,7 @@ public class SemanticVectorCollider {
 
 	public static void main(String[] args)
 	{
-		FlagConfig flagConfig = new FlagConfig(args);
+		FlagConfig flagConfig = FlagConfig.getFlagConfig(args);
 	  args = flagConfig.remainingArgs;
 		
 		ComplexVector.setDominantMode(Mode.CARTESIAN);

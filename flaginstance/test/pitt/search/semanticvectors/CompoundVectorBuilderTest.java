@@ -43,7 +43,7 @@ import pitt.search.semanticvectors.vectors.Vector;
 public class CompoundVectorBuilderTest extends TestCase {
   
   static final String[] COMMAND_LINE_ARGS = {"-vectortype", "real", "-dimension", "2"};
-  static final FlagConfig FLAG_CONFIG = new FlagConfig(COMMAND_LINE_ARGS);
+  static final FlagConfig FLAG_CONFIG = FlagConfig.getFlagConfig(COMMAND_LINE_ARGS);
   static final double TOL = 0.0001;
 
   private VectorStoreRAM createVectorStore() {  
@@ -97,7 +97,7 @@ public class CompoundVectorBuilderTest extends TestCase {
     assertEquals(0, queryVector.measureOverlap(vectorStore.getVector("vector2")), TOL);
 
     String[] configForNegatedQueries = {"-vectortype", "real", "-dimension", "2", "-suppressnegatedqueries"};
-    FlagConfig flagConfig = new FlagConfig(configForNegatedQueries);
+    FlagConfig flagConfig = FlagConfig.getFlagConfig(configForNegatedQueries);
     queryVector =
       CompoundVectorBuilder.getQueryVectorFromString(vectorStore, null, flagConfig, "vector1 ~NOT vector2");
     assertEquals(queryVector.measureOverlap(vectorStore.getVector("vector1")),

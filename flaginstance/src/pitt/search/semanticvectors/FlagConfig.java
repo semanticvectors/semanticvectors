@@ -272,7 +272,7 @@ public class FlagConfig {
    */
   public static FlagConfig parseFlagsFromString(String header) {
     String[] args = header.split("\\s");
-    return new FlagConfig(args);
+    return getFlagConfig(args);
   }
 
   /**
@@ -284,13 +284,15 @@ public class FlagConfig {
   // and the number of command line arguments given. This is quadratic
   // and so inefficient, but in practice we only have to do it once
   // per command so it's probably negligible.
-  public FlagConfig(String[] args) throws IllegalArgumentException {
-    if (args.length == 0) {
-      remainingArgs = new String[0];
-      return;
-    }
+  public static FlagConfig getFlagConfig(String[] args) throws IllegalArgumentException {
+    VerbatimLogger.info("Calling with args: " + Arrays.toString(args) + "\n");
     
-    new FlagConfig();
+    FlagConfig flagConfig = new FlagConfig();
+    
+    if (args == null || args.length == 0) {
+      flagConfig.remainingArgs = new String[0];
+      return flagConfig;
+    }
     
     int argc = 0;
     while (args[argc].charAt(0) == '-') {
@@ -313,7 +315,7 @@ public class FlagConfig {
           } catch (ArrayIndexOutOfBoundsException e) {
             throw new IllegalArgumentException("option -" + flagName + " requires an argument");
           }
-          field.set(this, flagValue);
+          field.set(flagConfig, flagValue);
           // If there is an enum of accepted values, check that it's one of these.
           try {
             Field valuesField = FlagConfig.class.getField(flagName + "Values");
@@ -345,12 +347,12 @@ public class FlagConfig {
           } catch (ArrayIndexOutOfBoundsException e) {
             throw new IllegalArgumentException("option -" + flagName + " requires an argument");
           }
-          field.set(this, flagValue.split(","));
+          field.set(flagConfig, flagValue.split(","));
           argc += 2;
         } else if (field.getType().getName().equals("int")) {
           // Parse int arguments.
           try {
-            field.setInt(this, Integer.parseInt(args[argc + 1]));
+            field.setInt(flagConfig, Integer.parseInt(args[argc + 1]));
           } catch (ArrayIndexOutOfBoundsException e) {
             throw new IllegalArgumentException("option -" + flagName + " requires an argument");
           }
@@ -358,14 +360,14 @@ public class FlagConfig {
         } else if (field.getType().getName().equals("double")) {
           // Parse double arguments.
           try {
-            field.setDouble(this, Double.parseDouble(args[argc + 1]));
+            field.setDouble(flagConfig, Double.parseDouble(args[argc + 1]));
           } catch (ArrayIndexOutOfBoundsException e) {
             throw new IllegalArgumentException("option -" + flagName + " requires an argument");
           }
           argc += 2;
         } else if (field.getType().getName().equals("boolean")) {
           // Parse boolean arguments.
-          field.setBoolean(this, true);
+          field.setBoolean(flagConfig, true);
           ++argc;
         } else {
           logger.warning("No support for fields of type: "  + field.getType().getName());
@@ -380,20 +382,20 @@ public class FlagConfig {
 
       if (argc >= args.length) {
         logger.fine("Consumed all command line input while parsing flags");
-        makeFlagsCompatible();
-        return;
+        flagConfig.makeFlagsCompatible();
+        return flagConfig;
       }
     }
 
     // Enforce constraints between flags.
-    makeFlagsCompatible();
+    flagConfig.makeFlagsCompatible();
 
     // No more command line flags to parse. Trim args[] list and return.
-    remainingArgs = new String[args.length - argc];
+    flagConfig.remainingArgs = new String[args.length - argc];
     for (int i = 0; i < args.length - argc; ++i) {
-      remainingArgs[i] = args[argc + i];
+      flagConfig.remainingArgs[i] = args[argc + i];
     }
-    return;
+    return flagConfig;
   }
 
   public static void mergeWriteableFlagsFromString(String source, FlagConfig target) {
@@ -407,12 +409,12 @@ public class FlagConfig {
   public static void mergeWriteableFlags(FlagConfig source, FlagConfig target) {
     if (target.dimension != source.dimension)
     {
-      VerbatimLogger.info("Setting dimension of target config to: " + source.dimension);
+      VerbatimLogger.info("Setting dimension of target config to: " + source.dimension + "\n");
       target.dimension = source.dimension;
     }
     if (target.vectortype != source.vectortype)
     {
-      VerbatimLogger.info("Setting vectortype of target config to: " + source.vectortype);
+      VerbatimLogger.info("Setting vectortype of target config to: " + source.vectortype + "\n");
       target.vectortype = source.vectortype;
     }
     target.makeFlagsCompatible();

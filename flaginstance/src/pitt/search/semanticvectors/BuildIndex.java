@@ -72,7 +72,7 @@ public class BuildIndex {
   public static void main (String[] args) throws IllegalArgumentException {
     FlagConfig flagConfig = null;
     try {
-      flagConfig = new FlagConfig(args);
+      flagConfig = FlagConfig.getFlagConfig(args);
       args = flagConfig.remainingArgs;
     } catch (IllegalArgumentException e) {
       System.err.println(usageMessage);

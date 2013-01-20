@@ -71,7 +71,7 @@ public class VectorStoreTranslater {
     String outfile = args[2];
 
     // Empty flag config is needed to satisfy vector store interfaces.
-    FlagConfig flagConfig = new FlagConfig(null);
+    FlagConfig flagConfig = FlagConfig.getFlagConfig(null);
     
     // Convert Lucene-style index to plain text.
     if (option == Options.LUCENE_TO_TEXT) {

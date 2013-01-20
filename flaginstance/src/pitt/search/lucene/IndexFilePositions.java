@@ -36,7 +36,7 @@ public class IndexFilePositions {
       System.exit(1);
     }
     if (args.length > 0) {
-      flagConfig = new FlagConfig(args);
+      flagConfig = FlagConfig.getFlagConfig(args);
       if (flagConfig.getPorterstemmer())
         INDEX_DIR = new File("stemmed_positional_index");
       // Allow for the specification of a directory to write the index to.

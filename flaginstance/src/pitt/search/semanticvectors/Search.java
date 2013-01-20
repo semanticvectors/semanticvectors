@@ -146,7 +146,7 @@ public class Search {
      */
 
     // Stage i. Assemble command line options.
-    FlagConfig flagConfig = new FlagConfig(args);
+    FlagConfig flagConfig = FlagConfig.getFlagConfig(args);
     args = flagConfig.remainingArgs;
 
     if (flagConfig.getNumsearchresults() > 0) numResults = flagConfig.getNumsearchresults();

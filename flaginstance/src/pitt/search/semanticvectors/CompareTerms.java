@@ -81,7 +81,7 @@ public class CompareTerms{
    * @throws IOException 
    */
   public static void main (String[] args) throws IllegalArgumentException, IOException {
-    FlagConfig flagConfig = new FlagConfig(args);
+    FlagConfig flagConfig = FlagConfig.getFlagConfig(args);
     args = flagConfig.remainingArgs;
 
     LuceneUtils luceneUtils = null;

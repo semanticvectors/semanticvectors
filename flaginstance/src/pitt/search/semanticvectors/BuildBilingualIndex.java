@@ -81,7 +81,7 @@ public class BuildBilingualIndex{
     // This is actually just a test; the "real" configs will be created below.
     FlagConfig flagConfig;
     try {
-      flagConfig = new FlagConfig(args);
+      flagConfig = FlagConfig.getFlagConfig(args);
     } catch (IllegalArgumentException e) {
       usage();
       throw e;
@@ -110,9 +110,9 @@ public class BuildBilingualIndex{
     System.arraycopy(argsWithDocIdField, 0, argsWithDocIdAndContentsField, 0, argsWithDocIdField.length);
     argsWithDocIdAndContentsField[args.length + 2] = "-contentsfield";
     argsWithDocIdAndContentsField[args.length + 3] = "contents_" + lang1;
-    FlagConfig actualConfigLang1 = new FlagConfig(argsWithDocIdAndContentsField);
+    FlagConfig actualConfigLang1 = FlagConfig.getFlagConfig(argsWithDocIdAndContentsField);
     argsWithDocIdAndContentsField[args.length + 3] = "contents_" + lang2;
-    FlagConfig actualConfigLang2 = new FlagConfig(argsWithDocIdAndContentsField);
+    FlagConfig actualConfigLang2 = FlagConfig.getFlagConfig(argsWithDocIdAndContentsField);
 
     VerbatimLogger.info("Creating bilingual indexes ...");
     try{

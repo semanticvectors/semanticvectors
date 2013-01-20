@@ -153,7 +153,7 @@ public class ClusterVectorStore {
    * text format) as arguments and prints out clusters.
    */
   public static void main(String[] args) throws IllegalArgumentException {
-    FlagConfig flagConfig = new FlagConfig(args);
+    FlagConfig flagConfig = FlagConfig.getFlagConfig(args);
     args = flagConfig.remainingArgs;
     if (args.length != 1) {
       System.out.println("Wrong number of arguments.");

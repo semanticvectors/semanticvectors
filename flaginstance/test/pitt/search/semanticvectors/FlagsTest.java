@@ -45,7 +45,7 @@ public class FlagsTest extends TestCase {
   public void testParseCommandLineFlags() {
     String[] args = {"-searchtype", "subspace", "--dimension", "3",
         "-queryvectorfile", "myvectors.bin", "queryterm"};
-    FlagConfig flagConfig = new FlagConfig(args);
+    FlagConfig flagConfig = FlagConfig.getFlagConfig(args);
     args = flagConfig.remainingArgs;
     assertEquals("subspace", flagConfig.getSearchtype());
     assertEquals(3, flagConfig.getDimension());
@@ -67,12 +67,12 @@ public class FlagsTest extends TestCase {
   @Test
   public void testParseStringListFlag() {
     String[] args = {"-contentsfields", "text,moretext"};
-    FlagConfig flagConfig = new FlagConfig(args);
+    FlagConfig flagConfig = FlagConfig.getFlagConfig(args);
     args = flagConfig.remainingArgs;
     assertEquals(2, flagConfig.getContentsfields().length);
     assertEquals("moretext", flagConfig.getContentsfields()[1]);
     String[] args2 = {"-contentsfields", "contents"};
-    flagConfig = new FlagConfig(args2);
+    flagConfig = FlagConfig.getFlagConfig(args2);
     assertEquals(1, flagConfig.getContentsfields().length);
   }
 
@@ -80,7 +80,7 @@ public class FlagsTest extends TestCase {
   public void testThrowsUnrecognizedFlag() {
     String[] args = {"-notaflag", "notagoodvalue"};
     try {
-      new FlagConfig(args);
+      FlagConfig.getFlagConfig(args);
       fail();
     } catch (IllegalArgumentException e) {
       assertEquals("Command line flag not defined: notaflag", e.getMessage());
@@ -91,14 +91,14 @@ public class FlagsTest extends TestCase {
   public void testThrowsUnrecognizedValue() {
     String[] args = {"-searchtype", "sum"};
     try {
-      new FlagConfig(args);
+      FlagConfig.getFlagConfig(args);
     } catch (IllegalArgumentException e) {
       fail();
     }
 
     String[] args2 = {"-searchtype", "notagoodvalue"};
     try {
-      new FlagConfig(args2);
+      FlagConfig.getFlagConfig(args2);
       fail();
     } catch (IllegalArgumentException e) {
       assertTrue(e.getMessage().contains("Value 'notagoodvalue' not valid"));
@@ -109,13 +109,13 @@ public class FlagsTest extends TestCase {
   @Test
   public void testMakeFlagsCompatible() {
     String[] args = {"-dimension", "60", "-vectortype", "binary", "-seedlength", "20"};
-    FlagConfig flagConfig = new FlagConfig(args);
+    FlagConfig flagConfig = FlagConfig.getFlagConfig(args);
     assertEquals(64, flagConfig.getDimension());
     assertEquals(32, flagConfig.getSeedlength());
     
     // Reset the vectortype flag to real and you have more options.
     args = new String[] {"-dimension", "60", "-vectortype", "real", "-seedlength", "20"};
-    flagConfig = new FlagConfig(args);
+    flagConfig = FlagConfig.getFlagConfig(args);
     assertEquals(60, flagConfig.getDimension());
     assertEquals(20, flagConfig.getSeedlength());
   }

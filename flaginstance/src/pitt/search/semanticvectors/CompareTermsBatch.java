@@ -97,7 +97,7 @@ public class CompareTermsBatch {
   public static void main (String[] args) throws IllegalArgumentException {
     FlagConfig flagConfig;
     try {
-      flagConfig = new FlagConfig(args);
+      flagConfig = FlagConfig.getFlagConfig(args);
       args = flagConfig.remainingArgs;
     }
     catch (java.lang.IllegalArgumentException e) {

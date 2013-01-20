@@ -166,7 +166,7 @@ public class ClusterResults {
    * @see ClusterResults#usage
    */
   public static void main (String[] args) throws IllegalArgumentException {
-    FlagConfig flagConfig = new FlagConfig(args);
+    FlagConfig flagConfig = FlagConfig.getFlagConfig(args);
     args = flagConfig.remainingArgs;
 
     // Get search results, perform clustering, and print out results.		

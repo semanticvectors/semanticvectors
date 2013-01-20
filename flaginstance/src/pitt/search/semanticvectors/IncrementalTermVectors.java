@@ -236,7 +236,7 @@ public class IncrementalTermVectors implements VectorStore {
   public static void main(String[] args) throws IOException {
     FlagConfig flagConfig;
     try {
-      flagConfig = new FlagConfig(args);
+      flagConfig = FlagConfig.getFlagConfig(args);
       args = flagConfig.remainingArgs;
     } catch (IllegalArgumentException e) {
       System.err.println(usageMessage);

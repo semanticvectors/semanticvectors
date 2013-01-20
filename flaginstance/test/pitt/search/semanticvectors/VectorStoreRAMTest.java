@@ -43,7 +43,7 @@ import junit.framework.TestCase;
 public class VectorStoreRAMTest extends TestCase {
 
   static final String[] COMMAND_LINE_ARGS = {"-vectortype", "real", "-dimension", "2"};
-  static final FlagConfig FLAG_CONFIG = new FlagConfig(COMMAND_LINE_ARGS);
+  static final FlagConfig FLAG_CONFIG = FlagConfig.getFlagConfig(COMMAND_LINE_ARGS);
   static double TOL = 0.0001;
 
   @Test

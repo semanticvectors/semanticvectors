@@ -17,11 +17,11 @@ public class VectorStoreDeterministicTest extends TestCase  {
   @Before
   public void setUp() {
     vecStoreReal = new VectorStoreDeterministic(
-        new FlagConfig(new String[] {"-vectortype", "real", "-dimension", "1024", "-seedlength", "100"}));
+        FlagConfig.getFlagConfig(new String[] {"-vectortype", "real", "-dimension", "1024", "-seedlength", "100"}));
     vecStoreBinary = new VectorStoreDeterministic(
-        new FlagConfig(new String[] {"-vectortype", "binary", "-dimension", "8192", "-seedlength", "4096"}));
+        FlagConfig.getFlagConfig(new String[] {"-vectortype", "binary", "-dimension", "8192", "-seedlength", "4096"}));
     vecStoreComplex = new VectorStoreDeterministic(
-        new FlagConfig(new String[] {"-vectortype", "complex", "-dimension", "512", "-seedlength", "512"}));
+        FlagConfig.getFlagConfig(new String[] {"-vectortype", "complex", "-dimension", "512", "-seedlength", "512"}));
   }
 
   @Test

@@ -42,14 +42,13 @@ import org.junit.*;
 
 import pitt.search.semanticvectors.vectors.RealVector;
 import pitt.search.semanticvectors.vectors.Vector;
-import pitt.search.semanticvectors.vectors.VectorType;
 
 import junit.framework.TestCase;
 
 public class VectorStoreWriterTest extends TestCase {
   
   static final String[] COMMAND_LINE_ARGS = {"-vectortype", "real", "-dimension", "2"};
-  static final FlagConfig FLAG_CONFIG = new FlagConfig(COMMAND_LINE_ARGS);
+  static final FlagConfig FLAG_CONFIG = FlagConfig.getFlagConfig(COMMAND_LINE_ARGS);
   public static final RAMDirectory directory = new RAMDirectory();
 
   public VectorStoreRAM createTestVectorStore() {
@@ -61,7 +60,7 @@ public class VectorStoreWriterTest extends TestCase {
   
   @Test
   public void testGenerateHeaderString() {
-    FlagConfig flagConfig = new FlagConfig(new String[] {});
+    FlagConfig flagConfig = FlagConfig.getFlagConfig(new String[] {});
     flagConfig.setDimension(2);
     flagConfig.setVectortype("binary");
     assertEquals( "-vectortype binary -dimension 2", VectorStoreWriter.generateHeaderString(flagConfig));
@@ -71,8 +70,7 @@ public class VectorStoreWriterTest extends TestCase {
   public void testWriteLuceneVectorStoreAndRead() throws IOException {
     IndexOutput indexOutput = directory.createOutput("realvectors.bin");
     VectorStore store = createTestVectorStore();
-    VectorStoreWriter writer = new VectorStoreWriter();
-    writer.writeToIndexOutput(store, FLAG_CONFIG, indexOutput);
+    VectorStoreWriter.writeToIndexOutput(store, FLAG_CONFIG, indexOutput);
     indexOutput.flush();
     
     ThreadLocal<IndexInput> threadLocalIndexInput = new ThreadLocal<IndexInput>() {

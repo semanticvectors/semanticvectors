@@ -76,7 +76,7 @@ public class BuildPositionalIndex {
   public static void main (String[] args) throws IllegalArgumentException {
     FlagConfig flagConfig;
     try {
-      flagConfig = new FlagConfig(args);
+      flagConfig = FlagConfig.getFlagConfig(args);
       args = flagConfig.remainingArgs;
     } catch (IllegalArgumentException e) {
       System.out.println(usageMessage);
