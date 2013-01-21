@@ -180,7 +180,7 @@ public class PSI {
       if (Flags.termweight.equalsIgnoreCase("idf")) {
         sWeight = lUtils.getIDF(new Term("subject",subject));
         oWeight = lUtils.getIDF(new Term("object",object));  
-        pWeight = (float) Math.log10(1+lUtils.getGlobalTermFreq(theTerm)); //log(occurrences of predication)
+        pWeight = (float) Math.log(1+lUtils.getGlobalTermFreq(theTerm)); //log(occurrences of predication)
         
       }
 
@@ -198,11 +198,11 @@ public class PSI {
       }
       
       object_elementalvector.bind(predicate_vector);
-      subject_semanticvector.superpose(object_elementalvector, pWeight+oWeight, null);
+      subject_semanticvector.superpose(object_elementalvector, pWeight*oWeight, null);
       object_elementalvector.release(predicate_vector);
 
       subject_elementalvector.bind(predicate_vector_inv);
-      object_semanticvector.superpose(subject_elementalvector, pWeight+sWeight, null);
+      object_semanticvector.superpose(subject_elementalvector, pWeight*sWeight, null);
       subject_elementalvector.release(predicate_vector_inv);      
     } // Finish iterating through predications.
 
@@ -221,6 +221,12 @@ public class PSI {
 
   public static void main(String[] args) throws IllegalArgumentException, IOException {
     
+	  try {
+      args = Flags.parseCommandLineFlags(args);
+    } catch (IllegalArgumentException e) {
+      throw e;
+    }
+	  
 	  // Currently implemented for complex and binary vectors only
 	  if (Flags.vectortype == "real")
 	  {
@@ -228,11 +234,7 @@ public class PSI {
 	    		Flags.vectortype = "complex";
 	    		Flags.seedlength = Flags.dimension;
 	  }
-	  try {
-      args = Flags.parseCommandLineFlags(args);
-    } catch (IllegalArgumentException e) {
-      throw e;
-    }
+	  
     
     // Only two arguments should remain, the path to the Lucene index.
     if (args.length != 1) {
@@ -244,7 +246,7 @@ public class PSI {
     logger.info("Maximum frequency = " + Flags.maxfrequency);
     
     if (Flags.termweight.equalsIgnoreCase("idf"))
-    	logger.info("Weighting = log10(predication occurrences)+(IDF other concept)");
+    	logger.info("Weighting = log(predication occurrences)*(IDF other concept)");
     	else logger.info("Weighting: binary");
     
     createIncrementalPSIVectors(VectorType.valueOf(Flags.vectortype.toUpperCase()), Flags.dimension, Flags.seedlength, args[0], Flags.minfrequency, Flags.maxfrequency);
