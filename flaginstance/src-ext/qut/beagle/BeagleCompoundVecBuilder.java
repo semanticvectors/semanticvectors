@@ -35,6 +35,7 @@
 
 package qut.beagle;
 
+import pitt.search.semanticvectors.FlagConfig;
 import pitt.search.semanticvectors.VectorStore;
 import pitt.search.semanticvectors.vectors.RealVector;
 import cern.colt.matrix.tfloat.impl.DenseFloatMatrix1D;
@@ -50,9 +51,9 @@ public class BeagleCompoundVecBuilder
 {
 
 	BeagleNGramBuilder ngBuilder;
-	public BeagleCompoundVecBuilder () 
+	public BeagleCompoundVecBuilder(FlagConfig flagConfig) 
 	{			
-		ngBuilder = BeagleNGramBuilder.getInstance();		
+		ngBuilder = BeagleNGramBuilder.getInstance(flagConfig);		
 	}
 
 	

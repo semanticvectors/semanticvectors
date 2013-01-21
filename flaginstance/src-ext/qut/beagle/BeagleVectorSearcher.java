@@ -36,6 +36,7 @@
 package qut.beagle;
 
 import pitt.search.semanticvectors.CompoundVectorBuilder;
+import pitt.search.semanticvectors.FlagConfig;
 import pitt.search.semanticvectors.LuceneUtils;
 import pitt.search.semanticvectors.VectorSearcher;
 import pitt.search.semanticvectors.VectorStore;
@@ -69,12 +70,13 @@ public class BeagleVectorSearcher extends VectorSearcher
 	 */
 	public BeagleVectorSearcher(VectorStore queryVecStore, VectorStore searchVecStore,
 															LuceneUtils luceneUtils,
+															FlagConfig flagConfig,
 															String[] queryTerms)
 		throws ZeroVectorException 
 	{
-		super(queryVecStore, searchVecStore, luceneUtils);
+		super(queryVecStore, searchVecStore, luceneUtils, flagConfig);
 				
-		BeagleCompoundVecBuilder bcvb = new BeagleCompoundVecBuilder();
+		BeagleCompoundVecBuilder bcvb = new BeagleCompoundVecBuilder(flagConfig);
 		
 		queryVector = new RealVector(bcvb.getNGramQueryVector(queryVecStore, queryTerms));
 				
