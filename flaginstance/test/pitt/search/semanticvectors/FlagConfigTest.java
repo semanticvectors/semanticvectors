@@ -39,7 +39,7 @@ import junit.framework.TestCase;
 
 import org.junit.*;
 
-public class FlagsTest extends TestCase {
+public class FlagConfigTest extends TestCase {
 
   @Test
   public void testParseCommandLineFlags() {
@@ -54,6 +54,14 @@ public class FlagsTest extends TestCase {
     // Test remaining query args correct.
     assertEquals(1, args.length);
     assertEquals("queryterm", args[0]);
+  }
+  
+  @Test 
+  public void testTwoDifferentFlagConfigs() {
+    FlagConfig config1 = FlagConfig.getFlagConfig(new String[] {"-dimension", "2"});
+    FlagConfig config2 = FlagConfig.getFlagConfig(new String[] {"-dimension", "3"});
+    assertEquals(2, config1.getDimension());
+    assertEquals(3, config2.getDimension());
   }
 
   @Test

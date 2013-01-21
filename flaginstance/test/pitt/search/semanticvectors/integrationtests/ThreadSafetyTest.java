@@ -61,7 +61,7 @@ public class ThreadSafetyTest {
   @Test
   public void TestSearchThreadSafety() throws Exception {
     // Build termvectors and docvectors
-    String[] buildArgs = new String[] {"-dimension", "200", "positional_index"};
+    String[] buildArgs = new String[] {"-dimension", "200", "-luceneindexpath", "positional_index"};
     
     File termFile = new File("termvectors.bin");
     assertFalse(termFile.isFile());

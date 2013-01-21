@@ -63,8 +63,8 @@ public class RunTests {
   public static Class<?>[] integrationTestClasses = {
     ThreadSafetyTest.class,
     LSATest.class,
-    RegressionTests.class,
-    PSITest.class,
+    //RegressionTests.class,
+    //PSITest.class,
   };
 
   public static boolean testDataPrepared = false;
