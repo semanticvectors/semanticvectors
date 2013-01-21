@@ -28,7 +28,7 @@ public class LSA {
   private static final Logger logger = Logger.getLogger(LSA.class.getCanonicalName());
 
   public static String usageMessage = "\nLSA class in package pitt.search.semanticvectors"
-        + "\nUsage: java pitt.search.semanticvectors.LSA PATH_TO_LUCENE_INDEX"
+        + "\nUsage: java pitt.search.semanticvectors.LSA -luceneindexpath PATH_TO_LUCENE_INDEX"
         + "\nBuildIndex creates svd_termvectors and svd_docvectors files in local directory."
         + "\nOther parameters that can be changed include vector length,"
         + "\n    (number of dimension), seed length (number of non-zero"
@@ -51,7 +51,8 @@ public class LSA {
    * 
    * @param luceneIndexDir Relative path to directory containing Lucene index.
    */
-  private LSA(String luceneIndexDir) {
+  private LSA(String luceneIndexDir, FlagConfig flagConfig) {
+    this.flagConfig = flagConfig;
     LuceneUtils.compressIndex(luceneIndexDir);
     
     try {
@@ -193,16 +194,13 @@ public class LSA {
       logger.warning("LSA is only supported for real vectors ... setting vectortype to 'real'."); 
     }
     
-    // Only one argument should remain, the path to the Lucene index.
-    if (args.length != 1) {
-      System.out.println(usageMessage);
-      throw (new IllegalArgumentException("After parsing command line flags, there were " + args.length
-                                          + " arguments, instead of the expected 1."));
+    if (flagConfig.getLuceneindexpath().isEmpty()) {
+      throw (new IllegalArgumentException("-luceneindexpath must be set."));
     }
     
     // Create an instance of the LSA class.
     // TODO: given the more object oriented instantiation pattern, consider calling this class LSAIndexer.
-    LSA lsaIndexer = new LSA(args[0]);
+    LSA lsaIndexer = new LSA(flagConfig.getLuceneindexpath(), flagConfig);
     SMat A = lsaIndexer.smatFromIndex();
     Svdlib svd = new Svdlib();
 
@@ -245,7 +243,7 @@ public class LSA {
 
     // Write header giving number of dimensions for all vectors and make sure type is real.
     outputStream.writeString(VectorStoreWriter.generateHeaderString(flagConfig));
-    File file = new File(args[0]);
+    File file = new File(flagConfig.getLuceneindexpath());
     IndexReader indexReader = IndexReader.open(FSDirectory.open(file));
 
     // Write out document vectors

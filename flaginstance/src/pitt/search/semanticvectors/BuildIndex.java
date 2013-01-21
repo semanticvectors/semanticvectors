@@ -48,7 +48,7 @@ public class BuildIndex {
   public static Logger logger = Logger.getLogger("pitt.search.semanticvectors");
 
   public static String usageMessage = "\nBuildIndex class in package pitt.search.semanticvectors"
-    + "\nUsage: java pitt.search.semanticvectors.BuildIndex PATH_TO_LUCENE_INDEX"
+    + "\nUsage: java pitt.search.semanticvectors.BuildIndex -luceneindexpath PATH_TO_LUCENE_INDEX"
     + "\nBuildIndex creates termvectors and docvectors files in local directory."
     + "\nOther parameters that can be changed include number of dimensions, "
     + "vector type (real, binary or complex), seed length (number of non-zero entries in "
@@ -79,14 +79,11 @@ public class BuildIndex {
       throw e;
     }
 
-    // Only one argument should remain, the path to the Lucene index.
-    if (args.length != 1) {
-      System.out.println(usageMessage);
-      throw (new IllegalArgumentException("After parsing command line flags, there were " + args.length
-                                          + " arguments, instead of the expected 1."));
+    if (flagConfig.getLuceneindexpath().isEmpty()) {
+      throw (new IllegalArgumentException("-luceneindexpath must be set."));
     }
 
-    String luceneIndex = args[0];
+    String luceneIndex = flagConfig.getLuceneindexpath();
     VerbatimLogger.info("Seedlength: " + flagConfig.getSeedlength()
         + ", Dimension: " + flagConfig.getDimension()
         + ", Vector type: " + flagConfig.getVectortype()

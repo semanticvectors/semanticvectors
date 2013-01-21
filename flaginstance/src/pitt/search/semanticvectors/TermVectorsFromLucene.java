@@ -76,7 +76,9 @@ public class TermVectorsFromLucene implements VectorStore {
   
   // Basic accessor methods.
   @Override
-  public VectorType getVectorType() { return VectorType.valueOf(flagConfig.getVectortype()); }
+  public VectorType getVectorType() {
+    return VectorType.valueOf(flagConfig.getVectortype().toUpperCase());
+  }
   
   @Override
   public int getDimension() { return flagConfig.getDimension(); }
