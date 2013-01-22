@@ -285,8 +285,6 @@ public class FlagConfig {
   // and so inefficient, but in practice we only have to do it once
   // per command so it's probably negligible.
   public static FlagConfig getFlagConfig(String[] args) throws IllegalArgumentException {
-    VerbatimLogger.info("Calling with args: " + Arrays.toString(args) + "\n");
-    
     FlagConfig flagConfig = new FlagConfig();
     
     if (args == null || args.length == 0) {

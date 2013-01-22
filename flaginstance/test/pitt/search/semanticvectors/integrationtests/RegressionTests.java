@@ -94,20 +94,20 @@ public class RegressionTests {
 
   @Test
   public void testBuildAndSearchBasicRealIndex() {
-    assertEquals(2, buildSearchGetRank("-dimension 200 positional_index",
+    assertEquals(2, buildSearchGetRank("-dimension 200 -luceneindexpath positional_index",
         "-queryvectorfile termvectors.bin -searchvectorfile termvectors.bin peter", "simon"));
   }
 
   @Test
   public void testBuildAndSearchBasicComplexIndex() {
     assertEquals(2, buildSearchGetRank(
-        "-dimension 200 -vectortype complex positional_index", "peter", "simon"));
+        "-dimension 200 -vectortype complex -luceneindexpath positional_index", "peter", "simon"));
   }
 
   @Test
   public void testBuildAndSearchBasicBinaryIndex() {
     assertEquals(2, buildSearchGetRank(
-        "-dimension 8192 -seedlength 128 -vectortype binary positional_index", "peter", "simon"));
+        "-dimension 8192 -seedlength 128 -vectortype binary -luceneindexpath positional_index", "peter", "simon"));
   }
 
   private int positionalBuildSearchGetRank(
@@ -145,7 +145,7 @@ public class RegressionTests {
   @Test
   public void testBuildAndSearchRealPositionalIndex() {
     int peterRank = positionalBuildSearchGetRank(
-        "-dimension 200 -vectortype real -seedlength 10 positional_index",
+        "-dimension 200 -vectortype real -seedlength 10 -luceneindexpath positional_index",
         // Setting the -searchvectorfile here is necessary to avoid flag bleedover from previous
         // tests.  Yet another indication of the problems with the current flags design.
         "-queryvectorfile termtermvectors.bin -searchvectorfile termtermvectors.bin simon",
@@ -157,7 +157,7 @@ public class RegressionTests {
   @Test
   public void testBuildAndSearchBinaryPositionalIndex() {
     int peterRank = positionalBuildSearchGetRank(
-        "-dimension 8192 -vectortype binary -seedlength 4096 positional_index",
+        "-dimension 8192 -vectortype binary -seedlength 4096 -luceneindexpath positional_index",
         "-queryvectorfile termtermvectors.bin simon",
         new String[] {"termtermvectors.bin", "docvectors.bin"},
         "peter");
@@ -167,7 +167,7 @@ public class RegressionTests {
   @Test
   public void testBuildAndSearchComplexPositionalIndex() {
     int peterRank = positionalBuildSearchGetRank(
-        "-dimension 200 -vectortype complex -seedlength 10 positional_index",
+        "-dimension 200 -vectortype complex -seedlength 10 -luceneindexpath positional_index",
         "-queryvectorfile termtermvectors.bin simon",
         new String[] {"termtermvectors.bin", "docvectors.bin"},
         "peter");
@@ -177,7 +177,7 @@ public class RegressionTests {
   @Test
   public void testBuildAndSearchRealDirectionalIndex() {
     int peterRank = positionalBuildSearchGetRank(
-        "-dimension 200 -vectortype real -seedlength 10 -positionalmethod directional positional_index",
+        "-dimension 200 -vectortype real -seedlength 10 -positionalmethod directional -luceneindexpath positional_index",
         // Setting the -searchvectorfile here is necessary to avoid flag bleedover from previous
         // tests.  Yet another indication of the problems with the current flags design.
         "-queryvectorfile drxntermvectors.bin -searchvectorfile drxntermvectors.bin simon",
@@ -190,7 +190,7 @@ public class RegressionTests {
   @Test
   public void testBuildAndSearchComplexDirectionalIndex() {
     int peterRank = positionalBuildSearchGetRank(
-        "-dimension 200 -vectortype complex -seedlength 10 -positionalmethod directional -termweight idf positional_index",
+        "-dimension 200 -vectortype complex -seedlength 10 -positionalmethod directional -termweight idf -luceneindexpath positional_index",
         "-queryvectorfile drxntermvectors.bin simon",
         new String[] {"drxntermvectors.bin", "docvectors.bin"},
         "peter");
@@ -200,7 +200,7 @@ public class RegressionTests {
   @Test
   public void testBuildAndSearchBinaryDirectionalIndex() {
     int peterRank = positionalBuildSearchGetRank(
-        "-dimension 2048 -vectortype binary -seedlength 1024 -positionalmethod directional -termweight none positional_index",
+        "-dimension 2048 -vectortype binary -seedlength 1024 -positionalmethod directional -termweight none -luceneindexpath positional_index",
         "-queryvectorfile drxntermvectors.bin simon",
         new String[] {"drxntermvectors.bin", "docvectors.bin"},
         "peter");
@@ -210,7 +210,7 @@ public class RegressionTests {
   @Test
   public void testBuildAndSearchRealPermutationIndex() {
     int peterRank = positionalBuildSearchGetRank(
-        "-dimension 200 -vectortype real -seedlength 10 -positionalmethod permutation positional_index",
+        "-dimension 200 -vectortype real -seedlength 10 -positionalmethod permutation -luceneindexpath positional_index",
         "-searchtype permutation -queryvectorfile elementalvectors.bin -searchvectorfile permtermvectors.bin simon ?",
         new String[] {"elementalvectors.bin", "permtermvectors.bin", "docvectors.bin"},
         "peter");
@@ -220,7 +220,7 @@ public class RegressionTests {
   @Test
   public void testBuildAndSearchComplexPermutationIndex() {
     int peterRank = positionalBuildSearchGetRank(
-        "-dimension 200 -vectortype complex -seedlength 10 -positionalmethod permutation positional_index",
+        "-dimension 200 -vectortype complex -seedlength 10 -positionalmethod permutation -luceneindexpath positional_index",
         "-searchtype permutation -queryvectorfile elementalvectors.bin -searchvectorfile permtermvectors.bin simon ?",
         new String[] {"elementalvectors.bin", "permtermvectors.bin", "docvectors.bin"},
         "peter");
@@ -230,7 +230,7 @@ public class RegressionTests {
   @Test
   public void testBuildAndSearchBinaryPermutationIndex() {
     int peterRank = positionalBuildSearchGetRank(
-        "-dimension 1024 -vectortype binary -seedlength 512 -positionalmethod permutation positional_index",
+        "-dimension 1024 -vectortype binary -seedlength 512 -positionalmethod permutation -luceneindexpath positional_index",
         "-searchtype permutation -queryvectorfile elementalvectors.bin -searchvectorfile permtermvectors.bin simon ?",
         new String[] {"elementalvectors.bin", "permtermvectors.bin", "docvectors.bin"},
         "peter");

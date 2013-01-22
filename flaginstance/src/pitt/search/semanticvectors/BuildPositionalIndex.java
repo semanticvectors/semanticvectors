@@ -52,7 +52,7 @@ public class BuildPositionalIndex {
 
   public static String usageMessage =
     "BuildPositionalIndex class in package pitt.search.semanticvectors"
-    + "\nUsage: java pitt.search.semanticvectors.BuildPositionalIndex PATH_TO_LUCENE_INDEX"
+    + "\nUsage: java pitt.search.semanticvectors.BuildPositionalIndex -luceneindexpath PATH_TO_LUCENE_INDEX"
     + "\nBuildPositionalIndex creates file termtermvectors.bin in local directory."
     + "\nOther parameters that can be changed include"
     + "\n    windowlength (size of sliding context window),"
@@ -83,14 +83,10 @@ public class BuildPositionalIndex {
       throw e;
     }
 
-    // Only one argument should remain, the path to the Lucene index.
-    if (args.length != 1) {
-      System.out.println(usageMessage);
-      throw (new IllegalArgumentException("After parsing command line flags, there were "
-          + args.length
-          + " arguments, instead of the expected 1."));
+    if (flagConfig.getLuceneindexpath().isEmpty()) {
+      throw (new IllegalArgumentException("-luceneindexpath must be set."));
     }
-    String luceneIndex = args[0];
+    String luceneIndex = flagConfig.getLuceneindexpath();
 
     // If initialtermvectors is defined, read these vectors.
     if (!flagConfig.getInitialtermvectors().isEmpty()) {
