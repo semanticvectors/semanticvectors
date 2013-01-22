@@ -178,8 +178,8 @@ public class PSI {
       if (flagConfig.getTermweight().equalsIgnoreCase("idf")) {
         sWeight = lUtils.getIDF(new Term("subject",subject));
         oWeight = lUtils.getIDF(new Term("object",object));  
-        pWeight = (float) Math.log10(1+lUtils.getGlobalTermFreq(theTerm)); //log(occurrences of predication)
-
+        pWeight = (float) Math.log(1+lUtils.getGlobalTermFreq(theTerm)); //log(occurrences of predication)
+        
       }
 
       Vector subject_semanticvector = semanticVectors.getVector(subject);
@@ -196,11 +196,11 @@ public class PSI {
       }
 
       object_elementalvector.bind(predicate_vector);
-      subject_semanticvector.superpose(object_elementalvector, pWeight+oWeight, null);
+      subject_semanticvector.superpose(object_elementalvector, pWeight*oWeight, null);
       object_elementalvector.release(predicate_vector);
 
       subject_elementalvector.bind(predicate_vector_inv);
-      object_semanticvector.superpose(subject_elementalvector, pWeight+sWeight, null);
+      object_semanticvector.superpose(subject_elementalvector, pWeight*sWeight, null);
       subject_elementalvector.release(predicate_vector_inv);      
     } // Finish iterating through predications.
 
@@ -229,7 +229,7 @@ public class PSI {
           "Try rerunning using -vectortype complex or binary with appropriate -dimension and -seedlength");
     }
 
-    // Only two arguments should remain, the path to the Lucene index.
+    // Only one argument should remain, the path to the Lucene index.
     if (args.length != 1) {
       throw (new IllegalArgumentException("After parsing command line flags, there were "
           + args.length + " arguments, instead of the expected 1."));
