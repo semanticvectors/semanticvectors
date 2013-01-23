@@ -37,7 +37,6 @@ package pitt.search.semanticvectors;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Random;
@@ -62,12 +61,6 @@ import pitt.search.semanticvectors.vectors.VectorType;
 public class PSI {
   private static final Logger logger = Logger.getLogger(PSI.class.getCanonicalName());
   private FlagConfig flagConfig;
-  private VectorType vectorType;
-  private int dimension;
-  //private int minFreq;
-  //private int maxFreq;
-  private int seedlength;
-
   private VectorStoreRAM elementalVectors, semanticVectors, predicateVectors;
   private IndexReader indexReader;
   private String[] desiredFields={"subject","predicate","object"};
@@ -78,27 +71,19 @@ public class PSI {
   /**
    * Creates PSI vectors incrementally, using the fields "subject" and "object" from a Lucene index.
    */
-  public static void createIncrementalPSIVectors(FlagConfig flagConfig,
-      VectorType vectorType, int dimension, int seedlength, String indexDir) throws IOException {
+  public static void createIncrementalPSIVectors(FlagConfig flagConfig) throws IOException {
     PSI incrementalPSIVectors = new PSI();
     incrementalPSIVectors.flagConfig = flagConfig;
-    incrementalPSIVectors.dimension = dimension;
-    incrementalPSIVectors.vectorType = vectorType;
-    incrementalPSIVectors.seedlength = seedlength;
-    incrementalPSIVectors.indexReader = IndexReader.open(FSDirectory.open(new File(indexDir)));
-
-    // String[] fieldsToIndex = {"subject", "object"};
-    // incrementalPSIVectors.fieldsToIndex = fieldsToIndex;
+    incrementalPSIVectors.indexReader = IndexReader.open(
+        FSDirectory.open(new File(flagConfig.getLuceneindexpath())));
 
     if (incrementalPSIVectors.lUtils == null) {
-      incrementalPSIVectors.lUtils = new LuceneUtils(indexDir, flagConfig);
+      incrementalPSIVectors.lUtils = new LuceneUtils(flagConfig.getLuceneindexpath(), flagConfig);
     }
     incrementalPSIVectors.trainIncrementalPSIVectors();
   }
 
   private void trainIncrementalPSIVectors() throws IOException {
-    int numdocs = indexReader.numDocs();
-
     // Create elemental and semantic vectors for each concept, and elemental vectors for predicates
     elementalVectors = new VectorStoreRAM(flagConfig);
     semanticVectors = new VectorStoreRAM(flagConfig);
@@ -122,8 +107,11 @@ public class PSI {
 
         if (!addedConcepts.contains(term.text())) {
           addedConcepts.add(term.text());
-          Vector semanticVector = VectorFactory.createZeroVector(vectorType, dimension);
-          Vector elementalVector = VectorFactory.generateRandomVector(vectorType, dimension, seedlength, random);
+          Vector semanticVector = VectorFactory.createZeroVector(
+              VectorType.valueOf(flagConfig.getVectortype().toUpperCase()), flagConfig.getDimension());
+          Vector elementalVector = VectorFactory.generateRandomVector(
+              VectorType.valueOf(flagConfig.getVectortype().toUpperCase()), flagConfig.getDimension(),
+              flagConfig.getSeedlength(), random);
 
           semanticVectors.putVector(term.text(), semanticVector);
           elementalVectors.putVector(term.text(), elementalVector);
@@ -138,8 +126,12 @@ public class PSI {
           continue;
         }
 
-        Vector elementalVector = VectorFactory.generateRandomVector(vectorType, dimension, seedlength, random);
-        Vector inverseElementalVector = VectorFactory.generateRandomVector(vectorType, dimension, seedlength, random);
+        Vector elementalVector = VectorFactory.generateRandomVector(
+            VectorType.valueOf(flagConfig.getVectortype().toUpperCase()), flagConfig.getDimension(),
+            flagConfig.getSeedlength(), random);
+        Vector inverseElementalVector = VectorFactory.generateRandomVector(
+            VectorType.valueOf(flagConfig.getVectortype().toUpperCase()), flagConfig.getDimension(),
+            flagConfig.getSeedlength(), random);
         predicateVectors.putVector(term.text().trim(), elementalVector);
         predicateVectors.putVector(term.text().trim()+"-INV", inverseElementalVector);
       }
@@ -229,19 +221,15 @@ public class PSI {
           "Try rerunning using -vectortype complex or binary with appropriate -dimension and -seedlength");
     }
 
-    // Only one argument should remain, the path to the Lucene index.
-    if (args.length != 1) {
-      throw (new IllegalArgumentException("After parsing command line flags, there were "
-          + args.length + " arguments, instead of the expected 1."));
+    if (flagConfig.getLuceneindexpath().isEmpty()) {
+      throw (new IllegalArgumentException("-luceneindexpath must be set."));
     }
 
-    logger.info("Minimum frequency = " + flagConfig.getMinfrequency());
-    logger.info("Maximum frequency = " + flagConfig.getMaxfrequency());
-    logger.info("Number non-alphabet characters = " + flagConfig.getMaxnonalphabetchars());
-    logger.info("Contents fields are: " + Arrays.toString(flagConfig.getContentsfields()));
+    VerbatimLogger.info("Building PSI model from index in: " + flagConfig.getLuceneindexpath() + "\n");
+    VerbatimLogger.info("Minimum frequency = " + flagConfig.getMinfrequency() + "\n");
+    VerbatimLogger.info("Maximum frequency = " + flagConfig.getMaxfrequency() + "\n");
+    VerbatimLogger.info("Number non-alphabet characters = " + flagConfig.getMaxnonalphabetchars() + "\n");
 
-    createIncrementalPSIVectors(flagConfig,
-        VectorType.valueOf(flagConfig.getVectortype().toUpperCase()), flagConfig.getDimension(),
-        flagConfig.getSeedlength(), args[0]);
+    createIncrementalPSIVectors(flagConfig);
   }
 }
