@@ -13,7 +13,7 @@ import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.util.Version;
 import org.apache.lucene.analysis.PorterStemFilter;
 
-import pitt.search.semanticvectors.Flags;
+import pitt.search.semanticvectors.FlagConfig;
 
 
 /** Index all text files under a directory. This class makes minor
@@ -29,16 +29,19 @@ public class IndexFilePositions {
 
   /** Index all text files under a directory. */
   public static void main(String[] args) {
+    FlagConfig flagConfig = null;
     String usage = "java pitt.search.lucene.IndexFilePositions <root_directory> ";
     if (args.length == 0) {
       System.err.println("Usage: " + usage);
       System.exit(1);
     }
     if (args.length > 0) {
-    args = Flags.parseCommandLineFlags(args);
-    if (Flags.porterstemmer) INDEX_DIR = new File("stemmed_positional_index");	
-    //allow for the specification of a directory to index to
-    if (Flags.indexRootDirectory.length() > 0) INDEX_DIR = new File(Flags.indexRootDirectory+INDEX_DIR.getName());
+      flagConfig = FlagConfig.getFlagConfig(args);
+      if (flagConfig.getPorterstemmer())
+        INDEX_DIR = new File("stemmed_positional_index");
+      // Allow for the specification of a directory to write the index to.
+      if (flagConfig.getIndexrootdirectory().length() > 0)
+        INDEX_DIR = new File(flagConfig.getIndexrootdirectory() + INDEX_DIR.getName());
     }
     if (INDEX_DIR.exists()) {
       System.out.println(INDEX_DIR.getAbsolutePath());
@@ -47,24 +50,23 @@ public class IndexFilePositions {
     }
     try {
     	IndexWriter writer;
-    	if (Flags.porterstemmer)
-    	{	/** create IndexWriter using porter stemmer without any stopword list**/
+    	if (flagConfig.getPorterstemmer()) {
+    	  // Create IndexWriter using porter stemmer without any stopword list.
     		writer = new IndexWriter(FSDirectory.open(INDEX_DIR),
-                    new PorterAnalyzer(),
-                    true, MaxFieldLength.UNLIMITED);
+    		    new PorterAnalyzer(),
+    		    true, MaxFieldLength.UNLIMITED);
     	} 
-    	else
-    	{	/** create IndexWriter using StandardAnalyzer without any stopword list**/
+    	else	{
+    	  // Create IndexWriter using StandardAnalyzer without any stopword list.
     		writer = new IndexWriter(FSDirectory.open(INDEX_DIR),
-                                           new StandardAnalyzer(Version.LUCENE_30, new TreeSet()),
-                                           true, MaxFieldLength.UNLIMITED);
+    		    new StandardAnalyzer(Version.LUCENE_30, new TreeSet()),
+    		    true, MaxFieldLength.UNLIMITED);
     	}
 
-    	final File docDir = new File(args[0]);
+    	final File docDir = new File(flagConfig.remainingArgs[0]);
       if (!docDir.exists() || !docDir.canRead()) {
-        System.err.println("Document directory '" + docDir.getAbsolutePath() +
-                           "' does not exist or is not readable, please check the path");
-        System.exit(1);
+        throw new IOException ("Document directory '" + docDir.getAbsolutePath() +
+            "' does not exist or is not readable, please check the path");
       }
 
       Date start = new Date();
