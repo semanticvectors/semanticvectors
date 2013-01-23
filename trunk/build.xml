@@ -128,6 +128,7 @@
   <target name="clean" depends="init">
     <delete dir="${builddir}"/>
     <delete dir="${distdir}"/>
+    <delete dir="${testworkingdir}"/>
     <!-- Only delete html files from ${docdir} - don't delete
          directories since this is part of svn tree -->
     <delete>    
