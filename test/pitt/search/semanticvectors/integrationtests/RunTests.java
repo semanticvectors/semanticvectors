@@ -160,7 +160,6 @@ public class RunTests {
 
     int successes = 0;
     int failures = 0;
-    int[] scores = {0, 0};
 
     System.err.println("Preparing test data ...");
     if (!prepareTestData()) {

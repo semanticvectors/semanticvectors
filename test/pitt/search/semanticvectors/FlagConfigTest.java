@@ -39,49 +39,56 @@ import junit.framework.TestCase;
 
 import org.junit.*;
 
-public class FlagsTest extends TestCase {
+public class FlagConfigTest extends TestCase {
 
   @Test
   public void testParseCommandLineFlags() {
     String[] args = {"-searchtype", "subspace", "--dimension", "3",
         "-queryvectorfile", "myvectors.bin", "queryterm"};
-    args = Flags.parseCommandLineFlags(args);
-    assertEquals("subspace", Flags.searchtype);
-    assertEquals(3, Flags.dimension);
-    assertEquals("myvectors.bin", Flags.queryvectorfile);
+    FlagConfig flagConfig = FlagConfig.getFlagConfig(args);
+    args = flagConfig.remainingArgs;
+    assertEquals("subspace", flagConfig.getSearchtype());
+    assertEquals(3, flagConfig.getDimension());
+    assertEquals("myvectors.bin", flagConfig.getQueryvectorfile());
 
     // Test remaining query args correct.
     assertEquals(1, args.length);
     assertEquals("queryterm", args[0]);
   }
+  
+  @Test 
+  public void testTwoDifferentFlagConfigs() {
+    FlagConfig config1 = FlagConfig.getFlagConfig(new String[] {"-dimension", "2"});
+    FlagConfig config2 = FlagConfig.getFlagConfig(new String[] {"-dimension", "3"});
+    assertEquals(2, config1.getDimension());
+    assertEquals(3, config2.getDimension());
+  }
 
   @Test
-  public void testParseFlagsFromString() {
-    Flags.dimension = 3;
-    Flags.vectortype = "real";
-    Flags.parseFlagsFromString("-vectortype complex -dimension 2");
-    assertEquals(2, Flags.dimension);
-    assertEquals("complex", Flags.vectortype);
-    Flags.vectortype = "real";  // Cleanup!!
+  public void testParseFlagsFromString() {    
+    FlagConfig flagConfig = FlagConfig.parseFlagsFromString("-vectortype complex -dimension 2");
+    assertEquals(2, flagConfig.getDimension());
+    assertEquals("complex", flagConfig.getVectortype());
   }
 
 
   @Test
   public void testParseStringListFlag() {
     String[] args = {"-contentsfields", "text,moretext"};
-    args = Flags.parseCommandLineFlags(args);
-    assertEquals(2, Flags.contentsfields.length);
-    assertEquals("moretext", Flags.contentsfields[1]);
+    FlagConfig flagConfig = FlagConfig.getFlagConfig(args);
+    args = flagConfig.remainingArgs;
+    assertEquals(2, flagConfig.getContentsfields().length);
+    assertEquals("moretext", flagConfig.getContentsfields()[1]);
     String[] args2 = {"-contentsfields", "contents"};
-    args2 = Flags.parseCommandLineFlags(args2);
-    assertEquals(1, Flags.contentsfields.length);
+    flagConfig = FlagConfig.getFlagConfig(args2);
+    assertEquals(1, flagConfig.getContentsfields().length);
   }
 
   @Test
   public void testThrowsUnrecognizedFlag() {
     String[] args = {"-notaflag", "notagoodvalue"};
     try {
-      Flags.parseCommandLineFlags(args);
+      FlagConfig.getFlagConfig(args);
       fail();
     } catch (IllegalArgumentException e) {
       assertEquals("Command line flag not defined: notaflag", e.getMessage());
@@ -92,14 +99,14 @@ public class FlagsTest extends TestCase {
   public void testThrowsUnrecognizedValue() {
     String[] args = {"-searchtype", "sum"};
     try {
-      Flags.parseCommandLineFlags(args);
+      FlagConfig.getFlagConfig(args);
     } catch (IllegalArgumentException e) {
       fail();
     }
 
     String[] args2 = {"-searchtype", "notagoodvalue"};
     try {
-      Flags.parseCommandLineFlags(args2);
+      FlagConfig.getFlagConfig(args2);
       fail();
     } catch (IllegalArgumentException e) {
       assertTrue(e.getMessage().contains("Value 'notagoodvalue' not valid"));
@@ -110,27 +117,27 @@ public class FlagsTest extends TestCase {
   @Test
   public void testMakeFlagsCompatible() {
     String[] args = {"-dimension", "60", "-vectortype", "binary", "-seedlength", "20"};
-    Flags.parseCommandLineFlags(args);
-    assertEquals(64, Flags.dimension);
-    assertEquals(32, Flags.seedlength);
+    FlagConfig flagConfig = FlagConfig.getFlagConfig(args);
+    assertEquals(64, flagConfig.getDimension());
+    assertEquals(32, flagConfig.getSeedlength());
     
     // Reset the vectortype flag to real and you have more options.
     args = new String[] {"-dimension", "60", "-vectortype", "real", "-seedlength", "20"};
-    Flags.parseCommandLineFlags(args);
-    assertEquals(60, Flags.dimension);
-    assertEquals(20, Flags.seedlength);
+    flagConfig = FlagConfig.getFlagConfig(args);
+    assertEquals(60, flagConfig.getDimension());
+    assertEquals(20, flagConfig.getSeedlength());
   }
 
   @org.junit.Test
   public void testFlagsMetadata() {
-    Field[] allFlagFields = Flags.class.getFields();
+    Field[] allFlagFields = FlagConfig.class.getDeclaredFields();
     for (Field field: allFlagFields) {
       String fieldName = field.getName();
       if (fieldName.endsWith("Description")) {
         try {
           String flagName = fieldName.substring(0, fieldName.length() - 11);
           @SuppressWarnings("unused")
-          Field flagField = Flags.class.getField(flagName);
+          Field flagField = FlagConfig.class.getDeclaredField(flagName);
         } catch (NoSuchFieldException e) {
           System.err.println("Description field '" + fieldName
               + "' has no corresponding flag defined.");

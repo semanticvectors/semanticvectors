@@ -46,7 +46,6 @@ import org.junit.Test;
 import static org.junit.Assert.*;
 
 import pitt.search.semanticvectors.BuildIndex;
-import pitt.search.semanticvectors.Flags;
 import pitt.search.semanticvectors.ObjectVector;
 import pitt.search.semanticvectors.Search;
 import pitt.search.semanticvectors.SearchResult;
@@ -57,14 +56,12 @@ public class ThreadSafetyTest {
   @Before
   public void setUp() {
     assert(RunTests.prepareTestData());
-    Flags.searchtype = "sum";
   }
 
   @Test
   public void TestSearchThreadSafety() throws Exception {
     // Build termvectors and docvectors
-    Flags.dimension = 200;
-    String[] buildArgs = new String[] {"-dimension", "200", "positional_index"};
+    String[] buildArgs = new String[] {"-dimension", "200", "-luceneindexpath", "positional_index"};
     
     File termFile = new File("termvectors.bin");
     assertFalse(termFile.isFile());

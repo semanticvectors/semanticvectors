@@ -43,7 +43,6 @@ import pitt.search.semanticvectors.ObjectVector;
 import pitt.search.semanticvectors.VectorStoreReaderLucene;
 import pitt.search.semanticvectors.vectors.RealVector;
 import pitt.search.semanticvectors.vectors.Vector;
-import pitt.search.semanticvectors.vectors.VectorType;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -53,7 +52,8 @@ import java.util.NoSuchElementException;
 import junit.framework.TestCase;
 
 public class VectorStoreReaderLuceneTest extends TestCase {
-
+  private static final String[] COMMAND_LINE_ARGS = {"-vectortype", "real", "-dimension", "2"};
+  private static FlagConfig FLAG_CONFIG;
   private static double TOL = 0.0001;
   private final RAMDirectory directory = new RAMDirectory();
   private final String TEST_VECTOR_FILE = "realvectors.bin";
@@ -62,13 +62,14 @@ public class VectorStoreReaderLuceneTest extends TestCase {
 
   @Before
   public void setUp() {
-    VectorStoreRAM store = new VectorStoreRAM(VectorType.REAL, 2);
+    System.out.println("Setting up " + this.getClass().getCanonicalName());
+    FLAG_CONFIG = FlagConfig.getFlagConfig(COMMAND_LINE_ARGS);
+    VectorStoreRAM store = new VectorStoreRAM(FLAG_CONFIG);
     store.putVector("isaac", new RealVector(new float[] {1, 0}));
     store.putVector("abraham", new RealVector(new float[] {0.7f, 0.7f}));
     try {
       indexOutput = directory.createOutput(TEST_VECTOR_FILE);
-      VectorStoreWriter writer = new VectorStoreWriter();
-      writer.writeToIndexOutput(store, indexOutput);
+      VectorStoreWriter.writeToIndexOutput(store, FLAG_CONFIG, indexOutput);
       indexOutput.flush();
 
       threadLocalIndexInput = new ThreadLocal<IndexInput>() {
@@ -89,7 +90,7 @@ public class VectorStoreReaderLuceneTest extends TestCase {
 
   @Test
   public void testReadFromTestData() throws IOException {
-    VectorStoreReaderLucene reader = new VectorStoreReaderLucene(threadLocalIndexInput);
+    VectorStoreReaderLucene reader = new VectorStoreReaderLucene(threadLocalIndexInput, FLAG_CONFIG);
     assertEquals(2, reader.getNumVectors());
     Vector abraham = reader.getVector("abraham");
     assertEquals(0.707106f, abraham.measureOverlap(new RealVector(new float[] {1, 0})), TOL);
@@ -107,8 +108,8 @@ public class VectorStoreReaderLuceneTest extends TestCase {
   // same vector store file open at once, even for reads, but it's
   // good to test for this somehow.
   public void testMultipleOpensForRead() throws IOException {
-    VectorStoreReaderLucene reader = new VectorStoreReaderLucene(threadLocalIndexInput);
-    VectorStoreReaderLucene reader2 = new VectorStoreReaderLucene(threadLocalIndexInput);
+    VectorStoreReaderLucene reader = new VectorStoreReaderLucene(threadLocalIndexInput, FLAG_CONFIG);
+    VectorStoreReaderLucene reader2 = new VectorStoreReaderLucene(threadLocalIndexInput, FLAG_CONFIG);
     //reader.close();
     //reader2.close();
   }
@@ -120,7 +121,7 @@ public class VectorStoreReaderLuceneTest extends TestCase {
     // It's a bit of a dance to get a VectorStoreReaderLucene that you
     // can use inside different threads.
     VectorStoreReaderLucene vectorStoreInit = null;
-    vectorStoreInit = new VectorStoreReaderLucene(threadLocalIndexInput);
+    vectorStoreInit = new VectorStoreReaderLucene(threadLocalIndexInput, FLAG_CONFIG);
     final VectorStoreReaderLucene vectorStore = vectorStoreInit;
     ArrayList<Thread> threads = new ArrayList<Thread>();
 

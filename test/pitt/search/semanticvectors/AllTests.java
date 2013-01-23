@@ -44,7 +44,7 @@ public class AllTests {
     TestSuite suite = new TestSuite("Test for pitt.search.semanticvectors");
     //$JUnit-BEGIN$
     suite.addTestSuite(VectorUtilsTest.class);
-    suite.addTestSuite(FlagsTest.class);
+    suite.addTestSuite(FlagConfigTest.class);
     suite.addTestSuite(CompoundVectorBuilderTest.class);
     suite.addTestSuite(VectorStoreWriterTest.class);
     suite.addTestSuite(VectorStoreReaderLuceneTest.class);
