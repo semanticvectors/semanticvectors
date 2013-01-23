@@ -59,7 +59,7 @@ public class LSATest {
   public void testBuildAndSearchLSAIndex() throws IOException {
     // Cut dimension to 20; only 22 docs in test data and using more dimensions than this
     // causes ArrayIndexOutOfBoundsException for SVD library.
-    String buildCmd = "-dimension 20 -vectortype real positional_index";
+    String buildCmd = "-dimension 20 -vectortype real -luceneindexpath positional_index";
     String[] filesToBuild = new String[] {"termvectors.bin", "docvectors.bin"};
     String[] buildArgs = buildCmd.split("\\s+");
     for (String fn : filesToBuild) {

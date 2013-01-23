@@ -39,14 +39,15 @@ import org.junit.Test;
 
 import pitt.search.semanticvectors.vectors.RealVector;
 import pitt.search.semanticvectors.vectors.Vector;
-import pitt.search.semanticvectors.vectors.VectorType;
 
 public class CompoundVectorBuilderTest extends TestCase {
   
-  static double TOL = 0.0001;
+  static final String[] COMMAND_LINE_ARGS = {"-vectortype", "real", "-dimension", "2"};
+  static final FlagConfig FLAG_CONFIG = FlagConfig.getFlagConfig(COMMAND_LINE_ARGS);
+  static final double TOL = 0.0001;
 
-  private VectorStoreRAM createVectorStore() {
-    VectorStoreRAM vectorStore = new VectorStoreRAM(VectorType.REAL, 2);
+  private VectorStoreRAM createVectorStore() {  
+    VectorStoreRAM vectorStore = new VectorStoreRAM(FLAG_CONFIG);
     Vector vector1 = new RealVector(new float[] {1.0f, 0.0f});
     vectorStore.putVector("vector1", vector1);
     Vector vector2 = new RealVector(new float[] {1.0f, -1.0f});
@@ -55,8 +56,7 @@ public class CompoundVectorBuilderTest extends TestCase {
   }
 
   private VectorStoreRAM createNormalizedVectorStore() {
-    Flags.dimension = 2;
-    VectorStoreRAM vectorStore = new VectorStoreRAM(VectorType.REAL, 2);
+    VectorStoreRAM vectorStore = new VectorStoreRAM(FLAG_CONFIG);
     Vector vector1 = new RealVector(new float[] {1.0f, 0.0f});
     vector1.normalize();
     vectorStore.putVector("vector1", vector1);
@@ -70,13 +70,13 @@ public class CompoundVectorBuilderTest extends TestCase {
     public void testGetAdditiveQueryVector() {
     VectorStore vectorStore = createVectorStore();
     Vector queryVector =
-      CompoundVectorBuilder.getQueryVectorFromString(vectorStore, null, "vector1 vector2");
+      CompoundVectorBuilder.getQueryVectorFromString(vectorStore, null, FLAG_CONFIG, "vector1 vector2");
     assertEquals(2, queryVector.getDimension());
     assertEquals(0.8944272, queryVector.measureOverlap(vectorStore.getVector("vector1")), TOL);
 
     // Test again to check for side effects.
     Vector queryVector2 =
-      CompoundVectorBuilder.getQueryVectorFromString(vectorStore, null, "vector1 vector2");
+      CompoundVectorBuilder.getQueryVectorFromString(vectorStore, null, FLAG_CONFIG, "vector1 vector2");
     assertEquals(2, queryVector.getDimension());
     assertEquals(0.8944272, queryVector.measureOverlap(vectorStore.getVector("vector1")), TOL);
     assertEquals(2, queryVector2.getDimension());
@@ -87,18 +87,19 @@ public class CompoundVectorBuilderTest extends TestCase {
     public void testGetNegatedQueryVector() {
     VectorStore vectorStore = createNormalizedVectorStore();
     Vector queryVector =
-      CompoundVectorBuilder.getQueryVectorFromString(vectorStore, null, "vector1 vector2");
+      CompoundVectorBuilder.getQueryVectorFromString(vectorStore, null, FLAG_CONFIG, "vector1 vector2");
     assertEquals(queryVector.measureOverlap(vectorStore.getVector("vector1")),
 		 queryVector.measureOverlap(vectorStore.getVector("vector2")),
 		 TOL);
 
     queryVector =
-      CompoundVectorBuilder.getQueryVectorFromString(vectorStore, null, "vector1 ~NOT vector2");
+      CompoundVectorBuilder.getQueryVectorFromString(vectorStore, null, FLAG_CONFIG, "vector1 ~NOT vector2");
     assertEquals(0, queryVector.measureOverlap(vectorStore.getVector("vector2")), TOL);
 
-    Flags.suppressnegatedqueries = true;
+    String[] configForNegatedQueries = {"-vectortype", "real", "-dimension", "2", "-suppressnegatedqueries"};
+    FlagConfig flagConfig = FlagConfig.getFlagConfig(configForNegatedQueries);
     queryVector =
-      CompoundVectorBuilder.getQueryVectorFromString(vectorStore, null, "vector1 ~NOT vector2");
+      CompoundVectorBuilder.getQueryVectorFromString(vectorStore, null, flagConfig, "vector1 ~NOT vector2");
     assertEquals(queryVector.measureOverlap(vectorStore.getVector("vector1")),
 		 queryVector.measureOverlap(vectorStore.getVector("vector2")),
 		 TOL);

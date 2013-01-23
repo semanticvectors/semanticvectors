@@ -39,7 +39,7 @@ import junit.framework.TestCase;
 
 import org.junit.Test;
 
-import pitt.search.semanticvectors.Flags;
+import pitt.search.semanticvectors.FlagConfig;
 import pitt.search.semanticvectors.vectors.VectorUtils;
 
 public class VectorUtilsTest extends TestCase {
@@ -47,7 +47,8 @@ public class VectorUtilsTest extends TestCase {
 
   @Test
   public void testOrthogonalizeVectors() {
-    Flags.dimension = 3;
+    FlagConfig flagConfig = FlagConfig.getFlagConfig(null);
+    flagConfig.setDimension(3);
     Vector vec1 = new RealVector(new float[] {1, 2, 1});
     Vector vec2 = new RealVector(new float[] {2, 3, 1});
     Vector vec3 = new RealVector(new float[] {2, 1, 1});

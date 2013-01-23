@@ -37,17 +37,18 @@ import org.junit.*;
 
 import pitt.search.semanticvectors.vectors.RealVector;
 import pitt.search.semanticvectors.vectors.Vector;
-import pitt.search.semanticvectors.vectors.VectorType;
 
 import junit.framework.TestCase;
 
 public class VectorStoreRAMTest extends TestCase {
 
+  static final String[] COMMAND_LINE_ARGS = {"-vectortype", "real", "-dimension", "2"};
+  static final FlagConfig FLAG_CONFIG = FlagConfig.getFlagConfig(COMMAND_LINE_ARGS);
   static double TOL = 0.0001;
 
   @Test
   public void testCreateWriteAndRead() {
-    VectorStoreRAM vectorStore = new VectorStoreRAM(VectorType.REAL, 2);
+    VectorStoreRAM vectorStore = new VectorStoreRAM(FLAG_CONFIG);
     assertEquals(0, vectorStore.getNumVectors());
     Vector vector = new RealVector(new float[] {1.0f, 0.0f});
     vectorStore.putVector("my vector", vector);
@@ -59,7 +60,7 @@ public class VectorStoreRAMTest extends TestCase {
 
   @Test
   public void testRepeatReads() {
-    VectorStoreRAM vectorStore = new VectorStoreRAM(VectorType.REAL, 2);
+    VectorStoreRAM vectorStore = new VectorStoreRAM(FLAG_CONFIG);
     assertEquals(0, vectorStore.getNumVectors());
     Vector vector = new RealVector(new float[] {1.0f, 0.0f});
     vectorStore.putVector("my vector", vector);
