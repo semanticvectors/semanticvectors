@@ -54,168 +54,225 @@ import java.util.logging.Logger;
  *
  * @author Dominic Widdows
  */
-public class Flags {
-  private static final Logger logger = Logger.getLogger(Flags.class.getCanonicalName());
+public class FlagConfig {
+  private static final Logger logger = Logger.getLogger(FlagConfig.class.getCanonicalName());
+  
+  private FlagConfig() {
+    Field[] fields = FlagConfig.class.getDeclaredFields();
+    for (int q = 0; q < fields.length; q++)
+      fields[q].setAccessible(true);
+  }
+  
+  public String[] remainingArgs;
 
   // Add new command line flags here. By convention, please use lower case.
   //
   // DO NOT DUPLICATE NAMES HERE! YOU WILL OVERWRITE OTHER PEOPLE's FLAGS!
-  public static int dimension = 200;
+  private int dimension = 200;
+  public int getDimension() { return dimension; }
+  public void setDimension(int dimension) { this.dimension = dimension; }
   public static final String dimensionDescription = "Dimension of semantic vector space";
 
-  public static String vectortype = "real";
+  private String vectortype = "real";
+  public String getVectortype() { return vectortype; }
+  public void setVectortype(String vectortype) {this.vectortype = vectortype; }
   public static final String vectortypeDescription = "Ground field for vectors: real, binary or complex.";
   public static final String[] vectortypeValues = {"binary", "real", "complex"};
 
-  public static int seedlength = 10;
+  public int seedlength = 10;
+  public int getSeedlength() { return seedlength; }
   public static final String seedlengthDescription =
     "Number of +1 and number of -1 entries in a sparse random vector";
-
-  public static int binaryvectordecimalplaces = 2;
-  public static final String binaryvectordecimalplacesDescription =
-    "Number of decimal places to consider in weighted superpositions of binary vectors. Higher precision requires additional memory during training.";
   
+  private int minfrequency = 0;
+  public int getMinfrequency() { return minfrequency; }
+  private int maxfrequency = Integer.MAX_VALUE;
+  public int getMaxfrequency() { return maxfrequency; }
+  private int maxnonalphabetchars = Integer.MAX_VALUE;
+  public int getMaxnonalphabetchars() { return maxnonalphabetchars; }
+  private boolean filteroutnumbers = true;
+  public boolean getFilteroutnumbers() { return filteroutnumbers; }
   
-  public static int minfrequency;
-  public static int maxfrequency = Integer.MAX_VALUE;
-  public static int maxnonalphabetchars;
-  public static boolean filternumbers = false;
-
-  public static String indexRootDirectory = "";
-  public static final String indexRootDirectoryDescription = "Allow for the specification of a directory to place the lucene index in. Requires a trailing slash";
+  private String indexrootdirectory = "";
+  public String getIndexrootdirectory() { return indexrootdirectory; }
+  public String indexrootdirectoryDescription = "Allow for the specification of a directory to place the lucene index in. Requires a trailing slash";
   
-  public static int numsearchresults = 20;
-  public static double searchresultsminscore = -1.0;
+  private int numsearchresults = 20;
+  public int getNumsearchresults() { return numsearchresults; }
+  
+  private double searchresultsminscore = -1.0;
+  public double getSearchresultsminscore() { return searchresultsminscore; }
   public static final String searchresultsminscoreDescription = "Search results with similarity scores below "
     + "this value will not be included in search results.";
 
-  public static int numclusters = 5;
+  private int numclusters = 5;
+  public int getNumclusters() { return numclusters; }
+  private int trainingcycles = 0;
+  public int getTrainingcycles() { return trainingcycles; }
+  private int windowradius = 5;
+  public int getWindowradius() { return windowradius; }
 
-  public static int trainingcycles;
-  public static int windowradius = 5;
-
-  public static String searchtype = "sum";
+  private String searchtype = "sum";
+  public String getSearchtype() { return searchtype; }
   public static final String searchtypeDescription = "Method used for combining and searching vectors.";
   public static final String[] searchtypeValues =
     {"sum", "sparsesum", "subspace", "maxsim", "balanced_permutation", "permutation",
      "boundproduct", "boundproductsubspace", "analogy", "printquery"};
 
-  public static boolean fieldweight = false;
+  private boolean fieldweight = false;
+  public boolean getFieldweight() { return fieldweight; }
   public static final String fieldweightDescription =
 	  "Set to true if you want document vectors built from multiple fields to emphasize terms from shorter fields";
   
-  public static String termweight = "none";
+  private String termweight = "none";
+  public String getTermweight() { return termweight; }
   public static final String termweightDescription = "Term weighting used when constructing document vectors.";
   public static final String[] termweightValues = {"logentropy","idf", "none"};
 
-  public static boolean porterstemmer = false;
+  private boolean porterstemmer = false;
+  public boolean getPorterstemmer() { return porterstemmer; }
   public static final String porterstemmerDescription =
     "Set to true when using IndexFilePositions if you would like to stem terms";
 
-  public static boolean usetermweightsinsearch = false;
+  private boolean usetermweightsinsearch = false;
+  public boolean getUsetermweightsinsearch() { return usetermweightsinsearch; }
   public static final String usetermweightsinsearchDescription =
     "Set to true only if you want to scale each comparison score by a term weight during search.";
 
-  public static boolean stdev = false;
+  private boolean stdev = false;
+  public boolean getStdev() { return stdev; }
   public static final String stdevDescription =
     "Set to true when you would prefer results scored as SD above the mean across all search vectors";
 
-  public static boolean expandsearchspace = false;
+  private boolean expandsearchspace = false;
+  public boolean getExpandsearchspace() { return expandsearchspace; }
   public static final String expandsearchspaceDescription =
 	  "Set to true to generated bound products from each pairwise element of the search space. "+
 	  "Expands the size of the space to n-squared";
   
-  public static String indexfileformat = "lucene";
+  private String indexfileformat = "lucene";
+  public String getIndexfileformat() { return indexfileformat; }
   public static final String indexfileformatDescription =
     "Format used for serializing / deserializing vectors from disk";
   public static final String[] indexfileformatValues = {"lucene", "text"};
 
-  public static String termvectorsfile = "termvectors";
-  public static String docvectorsfile = "docvectors";
-  public static String termtermvectorsfile = "termtermvectors";
+  private String termvectorsfile = "termvectors";
+  public String getTermvectorsfile() { return termvectorsfile; }
+  private String docvectorsfile = "docvectors";
+  public String getDocvectorsfile() { return docvectorsfile; }
+  private String termtermvectorsfile = "termtermvectors";
+  public String getTermtermvectorsfile() { return termtermvectorsfile; }
   
-  public static String queryvectorfile = "termvectors";
-  public static String queryvectorfileDescription = "Principal vector store for finding query vectors.";
+  private String queryvectorfile = "termvectors";
+  public String getQueryvectorfile() { return queryvectorfile; }
+  public static final String queryvectorfileDescription = "Principal vector store for finding query vectors.";
 
-  public static String searchvectorfile = "";
-  public static String searchvectorfileDescription =
+  private String searchvectorfile = "";
+  public String getSearchvectorfile() { return searchvectorfile; }
+  public static final String searchvectorfileDescription =
       "Vector store for searching. Defaults to being the same as {@link #queryVecReader}. "
       + "May be different from queryvectorfile e.g., when using terms to search for documents.";
   
-  public static String boundvectorfile = "";
-  public static String boundvectorfileDescription =
+  private String boundvectorfile = "";
+  public String getBoundvectorfile() { return boundvectorfile; }
+  public static final String boundvectorfileDescription =
       "Auxiliary vector store used when searching for boundproducts. Used only in some searchtypes.";
 
-  public static boolean binarybindingwithpermute = false;
-  
-  public static String elementalvectorfile = "elementalvectors";
-  public static String elementalvectorfileDescription =
+  private String elementalvectorfile = "elementalvectors";
+  public String getElementalvectorfile() { return elementalvectorfile; }
+  public static final String elementalvectorfileDescription =
       "Random elemental vectors, sometimes written out, and used (e.g.) in conjunction with permuted vector file.";
   
-  public static String semanticvectorfile = "semanticvectors";
-  public static String semanticvectorfileDescription = "Semantic vectors; used so far as a name in PSI.";
+  private String semanticvectorfile = "semanticvectors";
+  public String getSemanticvectorfile() { return semanticvectorfile; }
+  public static final String semanticvectorfileDescription =
+      "Semantic vectors; used so far as a name in PSI.";
 
-  public static String predicatevectorfile = "predicatevectors";
-  public static String predicatevectorfileDescription = "Vectors used to represent predicates in PSI.";
+  private String predicatevectorfile = "predicatevectors";
+  public String getPredicatevectorfile() { return predicatevectorfile; }
+  public static final String predicatevectorfileDescription =
+      "Vectors used to represent predicates in PSI.";
   
-  public static String permutedvectorfile = "permtermvectors";
-  public static String permutedvectorfileDescription =
+  private String permutedvectorfile = "permtermvectors";
+  public String getPermutedvectorfile() { return permutedvectorfile; }
+  public static final String permutedvectorfileDescription =
       "Permuted term vectors, output by -positionalmethod permutation.";
   
-  public static String directionalvectorfile ="drxntermvectors";
-  public static String directionalvectorfileDescription =
+  private String directionalvectorfile ="drxntermvectors";
+  public String getDirectionalvectorfile() { return directionalvectorfile; }
+  public static final String directionalvectorfileDescription =
       "Permuted term vectors, output by -positionalmethod directional";
   
-  public static String permplustermvectorfile ="permplustermvectors";
-  public static String permplustermvectorfileDescription =
+  private String permplustermvectorfile ="permplustermvectors";
+  public String getPermplustermvectorfile() { return permplustermvectorfile; }
+  public static final String permplustermvectorfileDescription =
       "Permuted term vectors, output by -positionalmethod permutation_plus_basic";
   
-  public static String positionalmethod = "basic";
-  public static String positionalmethodDescription = "Method used for positional indexing.";
+  private String positionalmethod = "basic";
+  public String getPositionalmethod() { return positionalmethod; }
+  public static final String positionalmethodDescription =
+      "Method used for positional indexing.";
   public static String positionalmethodValues[] =
       {"basic", "directional", "permutation","permutation_plus_basic"};
   
-  public static String stoplistfile = "";
-  public static String startlistfile = "";
-  public static String luceneindexpath = "";
-  public static String initialtermvectors = "";
-  public static String initialtermvectorsDescription =
+  private String stoplistfile = "";
+  public String getStoplistfile() { return stoplistfile; }
+
+  private String startlistfile = "";
+  public String getStartlistfile() { return startlistfile; }
+  
+  private String luceneindexpath = "";
+  public String getLuceneindexpath() { return luceneindexpath; }
+  
+  private String initialtermvectors = "";
+  public String getInitialtermvectors() { return initialtermvectors; }
+  public static final String initialtermvectorsDescription =
     "Use the vectors in this file for initialization instead of new random vectors.";
 
-  public static String initialdocumentvectors = "";
-  public static String initialdocumentvectorsDescription =
+  public String initialdocumentvectors = "";
+  public static final String initialdocumentvectorsDescription =
     "Use the vectors in this file for initialization instead of new random vectors.";
 
-  public static String docindexing = "inmemory";
-  public static String docindexingDescription = "Memory management method used for indexing documents.";
+  private String docindexing = "inmemory";
+  public String getDocindexing() { return docindexing; }
+  public static final String docindexingDescription = "Memory management method used for indexing documents.";
   public static String docindexingValues[] = {"inmemory", "incremental", "none"};
 
-  public static String vectorlookupsyntax = "exactmatch";
+  private String vectorlookupsyntax = "exactmatch";
+  public String getVectorlookupsyntax() { return vectorlookupsyntax; }
   public static final String vectorlookupsyntaxDescription =
     "Method used for looking up vectors in a vector store";
   public static String[] vectorlookupsyntaxValues = {"exactmatch", "regex"};
 
-  public static boolean matchcase = false;
-
-  public static String vectorstorelocation = "ram";
-  public static String vectorstorelocationDescription = "Where to store vectors - in memory or on disk";
+  private boolean matchcase = false;
+  public boolean getMatchcase() { return matchcase; }
+  public static final String matchcaseDescription =
+      "If true, matching of query terms is case-sensitive; otherwise case-insensitive";
+  
+  private String vectorstorelocation = "ram";
+  public String getVectorstorelocation() { return vectorstorelocation; }
+  public static final String vectorstorelocationDescription = "Where to store vectors - in memory or on disk";
   public static String[] vectorstorelocationValues = {"ram", "disk"};
 
-  public static String batchcompareseparator = "\\|";
-  public static String batchcompareseparatorDescription = "Separator for documents on a single line in batch comparison mode.";
+  private String batchcompareseparator = "\\|";
+  public String getBatchcompareseparator() { return batchcompareseparator; }
+  public static final String batchcompareseparatorDescription = "Separator for documents on a single line in batch comparison mode.";
 
-  public static boolean suppressnegatedqueries = false;
-  public static String suppressnegatedqueriesDescription = "Suppress checking for the query negation token which indicates subsequent terms are to be negated when comparing terms. If this is set all terms are treated as positive";
+  private boolean suppressnegatedqueries = false;
+  public boolean getSuppressnegatedqueries() { return suppressnegatedqueries; }
+  public static final String suppressnegatedqueriesDescription = "Suppress checking for the query negation token which indicates subsequent terms are to be negated when comparing terms. If this is set all terms are treated as positive";
 
-  public static String[] contentsfields = {"contents"};
-  public static String docidfield = "path";
-
+  private String[] contentsfields = {"contents"};
+  public String[] getContentsfields() { return contentsfields; }
+  private String docidfield = "path";
+  public String getDocidfield() { return docidfield; }
+  
   /**
    * Parse flags from a single string.  Presumes that string contains only command line flags.
    */
-  public static void parseFlagsFromString(String header) {
+  public static FlagConfig parseFlagsFromString(String header) {
     String[] args = header.split("\\s");
-    parseCommandLineFlags(args);
+    return getFlagConfig(args);
   }
 
   /**
@@ -227,12 +284,14 @@ public class Flags {
   // and the number of command line arguments given. This is quadratic
   // and so inefficient, but in practice we only have to do it once
   // per command so it's probably negligible.
-  public static String[] parseCommandLineFlags(String[] args)
-  throws IllegalArgumentException {
-    if (args.length == 0) {
-      return new String[0];
+  public static FlagConfig getFlagConfig(String[] args) throws IllegalArgumentException {
+    FlagConfig flagConfig = new FlagConfig();
+    
+    if (args == null || args.length == 0) {
+      flagConfig.remainingArgs = new String[0];
+      return flagConfig;
     }
-
+    
     int argc = 0;
     while (args[argc].charAt(0) == '-') {
       String flagName = args[argc];
@@ -244,7 +303,7 @@ public class Flags {
       }
 
       try {
-        Field field = Flags.class.getField(flagName);
+        Field field = FlagConfig.class.getDeclaredField(flagName);
 
         // Parse String arguments.
         if (field.getType().getName().equals("java.lang.String")) {
@@ -254,11 +313,11 @@ public class Flags {
           } catch (ArrayIndexOutOfBoundsException e) {
             throw new IllegalArgumentException("option -" + flagName + " requires an argument");
           }
-          field.set(field, flagValue);
+          field.set(flagConfig, flagValue);
           // If there is an enum of accepted values, check that it's one of these.
           try {
-            Field valuesField = Flags.class.getField(flagName + "Values");
-            String[] valuesList = (String[]) valuesField.get(Flags.class);
+            Field valuesField = FlagConfig.class.getField(flagName + "Values");
+            String[] valuesList = (String[]) valuesField.get(FlagConfig.class);
             boolean found = false;
             for (int i = 0; i < valuesList.length; ++i) {
               if (flagValue.equals(valuesList[i])) {
@@ -286,12 +345,12 @@ public class Flags {
           } catch (ArrayIndexOutOfBoundsException e) {
             throw new IllegalArgumentException("option -" + flagName + " requires an argument");
           }
-          field.set(field, flagValue.split(","));
+          field.set(flagConfig, flagValue.split(","));
           argc += 2;
         } else if (field.getType().getName().equals("int")) {
           // Parse int arguments.
           try {
-            field.setInt(field, Integer.parseInt(args[argc + 1]));
+            field.setInt(flagConfig, Integer.parseInt(args[argc + 1]));
           } catch (ArrayIndexOutOfBoundsException e) {
             throw new IllegalArgumentException("option -" + flagName + " requires an argument");
           }
@@ -299,14 +358,14 @@ public class Flags {
         } else if (field.getType().getName().equals("double")) {
           // Parse double arguments.
           try {
-            field.setDouble(field, Double.parseDouble(args[argc + 1]));
+            field.setDouble(flagConfig, Double.parseDouble(args[argc + 1]));
           } catch (ArrayIndexOutOfBoundsException e) {
             throw new IllegalArgumentException("option -" + flagName + " requires an argument");
           }
           argc += 2;
         } else if (field.getType().getName().equals("boolean")) {
           // Parse boolean arguments.
-          field.setBoolean(field, true);
+          field.setBoolean(flagConfig, true);
           ++argc;
         } else {
           logger.warning("No support for fields of type: "  + field.getType().getName());
@@ -321,23 +380,44 @@ public class Flags {
 
       if (argc >= args.length) {
         logger.fine("Consumed all command line input while parsing flags");
-        makeFlagsCompatible();
-        return null;
+        flagConfig.makeFlagsCompatible();
+        return flagConfig;
       }
     }
 
     // Enforce constraints between flags.
-    makeFlagsCompatible();
+    flagConfig.makeFlagsCompatible();
 
-    // No more command line flags to parse.
-    // Trim args[] list and return.
-    String[] trimmedArgs = new String[args.length - argc];
+    // No more command line flags to parse. Trim args[] list and return.
+    flagConfig.remainingArgs = new String[args.length - argc];
     for (int i = 0; i < args.length - argc; ++i) {
-      trimmedArgs[i] = args[argc + i];
+      flagConfig.remainingArgs[i] = args[argc + i];
     }
-    return trimmedArgs;
+    return flagConfig;
   }
 
+  public static void mergeWriteableFlagsFromString(String source, FlagConfig target) {
+    FlagConfig sourceConfig = FlagConfig.parseFlagsFromString(source);
+    mergeWriteableFlags(sourceConfig, target);
+  }
+  
+  /**
+   * Sets dimension and vectortype of target to be the same as that of source.
+   */
+  public static void mergeWriteableFlags(FlagConfig source, FlagConfig target) {
+    if (target.dimension != source.dimension)
+    {
+      VerbatimLogger.info("Setting dimension of target config to: " + source.dimension + "\n");
+      target.dimension = source.dimension;
+    }
+    if (target.vectortype != source.vectortype)
+    {
+      VerbatimLogger.info("Setting vectortype of target config to: " + source.vectortype + "\n");
+      target.vectortype = source.vectortype;
+    }
+    target.makeFlagsCompatible();
+  }
+  
   /**
    * Checks some interaction between flags, and fixes them up to make them compatible.
    * 
@@ -348,7 +428,7 @@ public class Flags {
    * number.</li>
    * </ul>
    */
-  private static void makeFlagsCompatible() {
+  private void makeFlagsCompatible() {
     if (vectortype.equals("binary")) {
       // Impose "multiple-of-64" constraint, to facilitate permutation of 64-bit chunks.
       if (dimension % 64 != 0) {

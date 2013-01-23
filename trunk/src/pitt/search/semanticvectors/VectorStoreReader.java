@@ -43,12 +43,22 @@ import java.io.IOException;
  */
 public class VectorStoreReader {
 
-  public static CloseableVectorStore openVectorStore(String storeName) throws IOException {
+  /**
+   * Opens a vector store for reading, setting flags appropriately.
+   * 
+   * @param storeName The name/path of the vector store to read (doesn't need ".txt" or ".bin" suffix).
+   * @param flagConfig Supplies expected file format; vectortype and dimension will be set to the values
+   *        given in the header line of the vector store.
+   * @return Vector store object backed by the file given.
+   * @throws IOException If the file is not found, or the header line cannot be parsed.
+   */
+  public static CloseableVectorStore openVectorStore(String storeName, FlagConfig flagConfig) throws IOException {
     CloseableVectorStore vectorStore = null;
-    if (Flags.indexfileformat.equals("lucene")) {
-      vectorStore = new VectorStoreReaderLucene(VectorStoreUtils.getStoreFileName(storeName));
-    } else if (Flags.indexfileformat.equals("text")) {
-      vectorStore = new VectorStoreReaderText(VectorStoreUtils.getStoreFileName(storeName));
+    storeName = VectorStoreUtils.getStoreFileName(storeName, flagConfig);
+    if (flagConfig.getIndexfileformat().equals("lucene")) {
+      vectorStore = new VectorStoreReaderLucene(storeName, flagConfig);
+    } else if (flagConfig.getIndexfileformat().equals("text")) {
+      vectorStore = new VectorStoreReaderText(storeName, flagConfig);
     }
     return vectorStore;
   }

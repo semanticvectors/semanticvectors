@@ -70,16 +70,19 @@ public class VectorStoreTranslater {
     String infile = args[1];
     String outfile = args[2];
 
+    // Empty flag config is needed to satisfy vector store interfaces.
+    FlagConfig flagConfig = FlagConfig.getFlagConfig(null);
+    
     // Convert Lucene-style index to plain text.
     if (option == Options.LUCENE_TO_TEXT) {
       VectorStoreReaderLucene vecReader;
       try {
-        vecReader = new VectorStoreReaderLucene(infile);
+        vecReader = new VectorStoreReaderLucene(infile, flagConfig);
       } catch (IOException e) {
         throw e;
       }
       VerbatimLogger.info("Writing term vectors to " + outfile + "\n");
-      VectorStoreWriter.writeVectorsInTextFormat(outfile, vecReader);
+      VectorStoreWriter.writeVectorsInTextFormat(outfile, flagConfig, vecReader);
       vecReader.close();
     }
 
@@ -87,12 +90,12 @@ public class VectorStoreTranslater {
     if (option == Options.TEXT_TO_LUCENE) {
       VectorStoreReaderText vecReader;
       try {
-        vecReader = new VectorStoreReaderText(infile);
+        vecReader = new VectorStoreReaderText(infile, flagConfig);
       } catch (IOException e) {
         throw e;
       }
       VerbatimLogger.info("Writing term vectors to " + outfile + "\n");
-      VectorStoreWriter.writeVectorsInLuceneFormat(outfile, vecReader);
+      VectorStoreWriter.writeVectorsInLuceneFormat(outfile, flagConfig, vecReader);
       vecReader.close();
     }
   }

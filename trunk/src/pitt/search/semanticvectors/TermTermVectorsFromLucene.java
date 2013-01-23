@@ -70,6 +70,9 @@ public class TermTermVectorsFromLucene implements VectorStore {
   private static final Logger logger = Logger.getLogger(
       TermTermVectorsFromLucene.class.getCanonicalName());
 
+  // TODO: Refactor to get other fields from FlagConfig as appropriate.
+  private FlagConfig flagConfig;
+  
   private int dimension;
   private VectorType vectorType;
   private boolean retraining = false;
@@ -147,9 +150,11 @@ public class TermTermVectorsFromLucene implements VectorStore {
    * @throws IOException
    */
   public TermTermVectorsFromLucene(
+      FlagConfig flagConfig,
       String luceneIndexDir, VectorType vectorType, int dimension, int seedLength,
       int minFreq, int maxFreq, int maxNonAlphabet, boolean filterNumbers, int windowSize, String positionalmethod,
       VectorStore indexVectors, String[] fieldsToIndex) throws IOException {
+    this.flagConfig = flagConfig;
     this.luceneIndexDir = luceneIndexDir;
     this.vectorType = vectorType;
     this.dimension = dimension;
@@ -212,7 +217,7 @@ public class TermTermVectorsFromLucene implements VectorStore {
           "Term-term indexing requires a Lucene index containing TermPositionVectors."
           + "\nTry rebuilding Lucene index using pitt.search.lucene.IndexFilePositions");
     }
-    lUtils = new LuceneUtils(luceneIndexDir);
+    lUtils = new LuceneUtils(luceneIndexDir, flagConfig);
 
     // If basicTermVectors was passed in, set state accordingly.
     if (indexVectors != null) {
@@ -220,10 +225,10 @@ public class TermTermVectorsFromLucene implements VectorStore {
       VerbatimLogger.info("Reusing basic term vectors; number of terms: "
           + indexVectors.getNumVectors() + "\n");
     } else {
-      this.indexVectors = new VectorStoreRAM(vectorType, dimension);
+      this.indexVectors = new VectorStoreRAM(flagConfig);
     }
     Random random = new Random();
-    this.termVectors = new VectorStoreRAM(vectorType, dimension);
+    this.termVectors = new VectorStoreRAM(flagConfig);
 
     // Iterate through an enumeration of terms and allocate initial term vectors.
     // If not retraining, create random elemental vectors as well.
@@ -236,7 +241,7 @@ public class TermTermVectorsFromLucene implements VectorStore {
         continue;
       }
       tc++;
-      Vector termVector = VectorFactory.createZeroVector(Flags.vectortype, dimension);
+      Vector termVector = VectorFactory.createZeroVector(vectorType, dimension);
       // Place each term vector in the vector store.
       this.termVectors.putVector(term.text(), termVector);
       // Do the same for random index vectors unless retraining with trained term vectors
@@ -276,12 +281,12 @@ public class TermTermVectorsFromLucene implements VectorStore {
     // term vectors here.  We should redesign this.
     if ((positionalmethod.equals("permutation") || (positionalmethod.equals("permutation_plus_basic"))) 
         && !retraining) {
-      VerbatimLogger.info("Normalizing and writing random vectors to " + Flags.elementalvectorfile + "\n");
+      VerbatimLogger.info("Normalizing and writing random vectors to " + flagConfig.getElementalvectorfile() + "\n");
       Enumeration<ObjectVector> f = indexVectors.getAllVectors();
       while (f.hasMoreElements())	{
         f.nextElement().getVector().normalize();
       }
-      VectorStoreWriter.writeVectors(Flags.elementalvectorfile, this.indexVectors);
+      VectorStoreWriter.writeVectors(flagConfig.getElementalvectorfile(), flagConfig, this.indexVectors);
     }
   }
 
@@ -363,13 +368,13 @@ public class TermTermVectorsFromLucene implements VectorStore {
         }
         
         float globalweight = 1;
-        if (Flags.termweight.equals("logentropy")) {
+        if (flagConfig.getTermweight().equals("logentropy")) {
             //local weighting: 1+ log (local frequency)
             Term term = new Term(vex.getField(), docterms[coterm]);
             globalweight = globalweight * lUtils.getEntropy(term);
           }
           else 
-          if (Flags.termweight.equals("idf")) {
+          if (flagConfig.getTermweight().equals("idf")) {
         	  
         	  	Term term = new Term(vex.getField(), docterms[coterm]);
                 globalweight =  globalweight * lUtils.getIDF(term);

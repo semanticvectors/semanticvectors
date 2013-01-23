@@ -38,10 +38,10 @@ import java.util.logging.Logger;
 
 import java.io.IOException;
 
-import pitt.search.semanticvectors.vectors.VectorType;
-
 /**
  * Command line utility for creating bilingual semantic vector indexes.
+ * 
+ * TODO: This code has been refactored to accommodate FlagConfig changes: needs testing.
  */
 public class BuildBilingualIndex{
   public static Logger logger = Logger.getLogger("pitt.search.semanticvectors");
@@ -57,8 +57,7 @@ public class BuildBilingualIndex{
    */
   public static void usage() {
     String usageMessage = "\nBuildBilingualIndex class in package pitt.search.semanticvectors"
-      + "\nUsage: java pitt.search.semanticvectors.BuildBilingualIndex "
-      + "PATH_TO_LUCENE_INDEX LANG1 LANG2"
+      + "\nUsage: java pitt.search.semanticvectors.BuildBilingualIndex -luceneindexpath LANG1 LANG2."
       + "\nBuildBilingualIndex creates files termvectors_LANGn.bin and docvectors_LANGn.bin,"
       + "\nin local directory, where LANG1 and LANG2 are obtained from fields in index.";
     System.out.println(usageMessage);
@@ -70,67 +69,70 @@ public class BuildBilingualIndex{
    * @see BuildBilingualIndex#usage
    */
   public static void main (String[] args) throws IllegalArgumentException {
-    Flags.docidfield = "filename";
-
+    // Internal hack to set the expectation that -docidfield is set to "filename".
+    // This is consistent with pitt.search.lucene.IndexBilingualFiles.
+    // Of course, we could make an explicit setter for this flag, but I'd rather keep the
+    // hack isolated near the outside of the system.
+    String[] argsWithDocIdField = new String[2 + args.length];
+    argsWithDocIdField[0] = "-docidfield";
+    argsWithDocIdField[1] = "filename";
+    System.arraycopy(args, 0, argsWithDocIdField, 2, args.length);
+    
+    // This is actually just a test; the "real" configs will be created below.
+    FlagConfig flagConfig;
     try {
-      args = Flags.parseCommandLineFlags(args);
+      flagConfig = FlagConfig.getFlagConfig(args);
     } catch (IllegalArgumentException e) {
       usage();
       throw e;
     }
 
-    if (!Flags.docidfield.equals("filename")) {
+    if (!flagConfig.getDocidfield().equals("filename")) {
       logger.log(Level.WARNING, "Docid field is normally 'filename' for bilingual indexes." + 
       " Are you sure you wanted to change this?");
     }
 
-    // Only three arguments should remain, the path to Lucene index and the language pair.
-    if (args.length != 3) {
+    // Only two arguments should remain, the identification strings for each language.
+    if (args.length != 2) {
       usage();
-      throw (new IllegalArgumentException("After parsing command line flags, there were " + args.length
-          + " arguments, instead of the expected 3."));
+      throw (new IllegalArgumentException("After parsing command line flags, there were " +
+          args.length + " arguments, instead of the expected 2."));
     }
 
-    String luceneIndex = args[args.length - 3];
     String lang1 = args[args.length - 2];
     String lang2 = args[args.length - 1];
     String termFile1 = "termvectors_" + lang1 + ".bin";
     String termFile2 = "termvectors_" + lang2 + ".bin";
     String docFile1 = "docvectors_" + lang1 + ".bin";
     String docFile2 = "docvectors_" + lang2 + ".bin";
-    String[] fields1 = new String[] {"contents_" + lang1};
-    String[] fields2 = new String[] {"contents_" + lang2};
+    
+    String[] argsWithDocIdAndContentsField = new String[2 + argsWithDocIdField.length];
+    System.arraycopy(argsWithDocIdField, 0, argsWithDocIdAndContentsField, 0, argsWithDocIdField.length);
+    argsWithDocIdAndContentsField[args.length + 2] = "-contentsfield";
+    argsWithDocIdAndContentsField[args.length + 3] = "contents_" + lang1;
+    FlagConfig actualConfigLang1 = FlagConfig.getFlagConfig(argsWithDocIdAndContentsField);
+    argsWithDocIdAndContentsField[args.length + 3] = "contents_" + lang2;
+    FlagConfig actualConfigLang2 = FlagConfig.getFlagConfig(argsWithDocIdAndContentsField);
 
-    logger.info("seedLength = " + Flags.seedlength);
-    logger.info("Vector length = " + Flags.dimension);
-    logger.info("Non-alphabet characters = " + Flags.maxnonalphabetchars);
-    logger.info("Minimum frequency = " + Flags.minfrequency);
-    logger.info("Filter out numbers: " + (Flags.filternumbers ? "yes" : "no"));
+    VerbatimLogger.info("Creating bilingual indexes ...");
     try{
       TermVectorsFromLucene vecStore1 =
-        TermVectorsFromLucene.createTermVectorsFromLucene(
-            luceneIndex, VectorType.valueOf(Flags.vectortype), Flags.dimension,
-            Flags.seedlength, Flags.minfrequency, Flags.maxfrequency,
-            Flags.maxnonalphabetchars, Flags.filternumbers, null, fields1);
-      VectorStoreWriter vecWriter = new VectorStoreWriter();
+        TermVectorsFromLucene.createTermVectorsFromLucene(actualConfigLang1, null);
       logger.info("Writing term vectors to " + termFile1);
-      vecWriter.writeVectors(termFile1, vecStore1);
-      DocVectors docVectors = new DocVectors(vecStore1);
+      VectorStoreWriter.writeVectors(termFile1, actualConfigLang1, vecStore1);
+      DocVectors docVectors = new DocVectors(vecStore1, actualConfigLang1);
       logger.info("Writing doc vectors to " + docFile1);
-      vecWriter.writeVectors(docFile1, docVectors.makeWriteableVectorStore());
+      VectorStoreWriter.writeVectors(docFile1, actualConfigLang1, docVectors.makeWriteableVectorStore());
 
       VectorStore basicDocVectors = vecStore1.getBasicDocVectors();
       System.out.println("Keeping basic doc vectors, number: " + basicDocVectors.getNumVectors());
       TermVectorsFromLucene vecStore2 =
-        TermVectorsFromLucene.createTermVectorsFromLucene(
-            luceneIndex, VectorType.valueOf(Flags.vectortype), Flags.dimension,
-            Flags.seedlength, Flags.minfrequency, Flags.maxfrequency,
-            Flags.maxnonalphabetchars, Flags.filternumbers, basicDocVectors, fields2);
+        TermVectorsFromLucene.createTermVectorsFromLucene(actualConfigLang2, basicDocVectors);
       logger.info("Writing term vectors to " + termFile2);
-      vecWriter.writeVectors(termFile2, vecStore2);
-      docVectors = new DocVectors(vecStore2);
+      VectorStoreWriter.writeVectors(termFile2, actualConfigLang2, vecStore2);
+      docVectors = new DocVectors(vecStore2, actualConfigLang2);
       logger.info("Writing doc vectors to " + docFile2);
-      vecWriter.writeVectors(docFile2, docVectors.makeWriteableVectorStore());
+      VectorStoreWriter.writeVectors(docFile2, actualConfigLang2, docVectors.makeWriteableVectorStore());
     }
     catch (IOException e) {
       e.printStackTrace();

@@ -56,6 +56,7 @@ import java.util.logging.Logger;
  */
 public class DocVectors implements VectorStore {
   private static final Logger logger = Logger.getLogger(DocVectors.class.getCanonicalName());
+  private FlagConfig flagConfig;
   private VectorType vectorType;
   private int dimension;  
   private VectorStoreRAM docVectors;
@@ -65,26 +66,27 @@ public class DocVectors implements VectorStore {
 
   @Override
   public VectorType getVectorType() { return vectorType; }
-  
+
   @Override
   public int getDimension() { return dimension; }
-  
+
   /**
    * Constructor that gets everything it needs from a
-   * TermVectorsFromLucene object.
+   * TermVectorsFromLucene object and its corresponding FlagConfig.
    */
-  public DocVectors (TermVectorsFromLucene termVectorData) throws IOException {
+  public DocVectors (TermVectorsFromLucene termVectorData, FlagConfig flagConfig) throws IOException {
+    this.flagConfig = flagConfig;
     this.termVectorData = termVectorData;
     this.vectorType = termVectorData.getVectorType();
     this.dimension = termVectorData.getDimension();
     this.indexReader = termVectorData.getIndexReader();
-    this.docVectors = new VectorStoreRAM(vectorType, dimension);
-    
+    this.docVectors = new VectorStoreRAM(flagConfig);
+
     if (this.lUtils == null) {
       String indexReaderDir = termVectorData.getIndexReader().directory().toString();
       indexReaderDir = indexReaderDir.replaceAll("^[^@]+@","");
       indexReaderDir = indexReaderDir.replaceAll(" lockFactory=.+$","");
-      this.lUtils = new LuceneUtils(indexReaderDir);
+      this.lUtils = new LuceneUtils(indexReaderDir, flagConfig);
     }
 
     initializeDocVectors();
@@ -110,48 +112,43 @@ public class DocVectors implements VectorStore {
         Vector termVector = termVectorObject.getVector();
         String word = (String) termVectorObject.getObject();
 
-
         // Go through checking terms for each fieldName.
         for (String fieldName: termVectorData.getFieldsToIndex()) {
           Term term = new Term(fieldName, word);
           float globalweight = 1;
           float fieldweight = 1;
-          
-          
-       
-          
-          if (Flags.termweight.equals("logentropy")) { 
+
+          if (flagConfig.getTermweight().equals("logentropy")) { 
             //global entropy weighting
             globalweight = globalweight * lUtils.getEntropy(term);
           }
-          else if (Flags.termweight.equals("idf")) {
-        	  
-        	  int docFreq = indexReader.docFreq(term);
-        	  if (docFreq > 0)
+          else if (flagConfig.getTermweight().equals("idf")) {
+            int docFreq = indexReader.docFreq(term);
+            if (docFreq > 0)
               globalweight =  globalweight * (float) Math.log10(indexReader.numDocs()/docFreq);
-        	  }	
-        
+          }	
+
           // Get any docs for this term.
           TermDocs td = this.indexReader.termDocs(term);
-          
+
           while (td.next()) {
             String docID = Integer.toString(td.doc());
             // Add vector from this term, taking freq into account.
             Vector docVector = this.docVectors.getVector(docID);
             float localweight = td.freq();
 
-            if (Flags.fieldweight) {
-            	//field weight: 1/sqrt(number of terms in field)
-            	  String[] terms = indexReader.getTermFreqVector(td.doc(), fieldName).getTerms();
-                  fieldweight = (float) (1/Math.sqrt(terms.length));
-              }
-            
-            if (Flags.termweight.equals("logentropy"))
+            if (flagConfig.getFieldweight()) {
+              //field weight: 1/sqrt(number of terms in field)
+              String[] terms = indexReader.getTermFreqVector(td.doc(), fieldName).getTerms();
+              fieldweight = (float) (1/Math.sqrt(terms.length));
+            }
+
+            if (flagConfig.getTermweight().equals("logentropy"))
             {
               //local weighting: 1+ log (local frequency)
               localweight = new Double(1 + Math.log(localweight)).floatValue();    	
             }
-          
+
 
             docVector.superpose(termVector, localweight * globalweight * fieldweight, null);
           }
@@ -167,7 +164,7 @@ public class DocVectors implements VectorStore {
       docVectors.getVector(Integer.toString(i)).normalize();
     }
   }
-  
+
   /**
    * Allocate doc vectors to zero vectors.
    */
@@ -183,7 +180,7 @@ public class DocVectors implements VectorStore {
    * Create a version of the vector store indexes by path / filename rather than Lucene ID.
    */
   public VectorStore makeWriteableVectorStore() {
-    VectorStoreRAM outputVectors = new VectorStoreRAM(vectorType, dimension);
+    VectorStoreRAM outputVectors = new VectorStoreRAM(flagConfig);
 
     for (int i = 0; i < this.indexReader.numDocs(); ++i) {
       String docName = "";
@@ -192,8 +189,8 @@ public class DocVectors implements VectorStore {
         // reconfigured.  For bilingual docs, we index "filename" not
         // "path", since there are two system paths, one for each
         // language.
-        if (this.indexReader.document(i).getField(Flags.docidfield) != null) {
-          docName = this.indexReader.document(i).getField(Flags.docidfield).stringValue();
+        if (this.indexReader.document(i).getField(flagConfig.getDocidfield()) != null) {
+          docName = this.indexReader.document(i).getField(flagConfig.getDocidfield()).stringValue();
           if (docName.length() == 0) {
             logger.warning("Empty document name!!! This will cause problems ...");
             logger.warning("Please set -docidfield to a nonempty field in your Lucene index.");

@@ -101,7 +101,6 @@ public interface Vector {
    */
   public abstract void bind(Vector other, int direction);
   
-  
   /**
    * Releases the other vector from this one. 
    * 
@@ -109,21 +108,15 @@ public interface Vector {
    */
   public abstract void release(Vector other, int direction);
 
-  
-  
   /**
    * Binds the other vector to this one.
-   * 
    */
   public abstract void bind(Vector other);
  
   /**
    * Inverse of the binding operator
-   * 
    */
   public abstract void release(Vector other);
- 
-  
   
   /**
    * Transforms vector to a normalized representation.  A normalized representation should

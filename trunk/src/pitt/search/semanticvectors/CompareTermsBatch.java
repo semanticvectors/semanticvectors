@@ -95,8 +95,10 @@ public class CompareTermsBatch {
    * @param args See {@link #usageMessage}.
    */
   public static void main (String[] args) throws IllegalArgumentException {
+    FlagConfig flagConfig;
     try {
-      args = Flags.parseCommandLineFlags(args);
+      flagConfig = FlagConfig.getFlagConfig(args);
+      args = flagConfig.remainingArgs;
     }
     catch (java.lang.IllegalArgumentException e) {
       System.err.println(usageMessage);
@@ -104,28 +106,27 @@ public class CompareTermsBatch {
     }
 
     LuceneUtils luceneUtils = null;
-    String separator = Flags.batchcompareseparator;
-    boolean ramCache = (Flags.vectorstorelocation.equals("ram"));
+    String separator = flagConfig.getBatchcompareseparator();
+    boolean ramCache = (flagConfig.getVectorstorelocation().equals("ram"));
 
     /* reading and searching test */
     try {
       VectorStore vecReader;
       if (ramCache) {
-        VectorStoreRAM ramReader = new VectorStoreRAM(
-            VectorType.valueOf(Flags.vectortype), Flags.dimension);
-        ramReader.initFromFile(Flags.queryvectorfile);
+        VectorStoreRAM ramReader = new VectorStoreRAM(flagConfig);
+        ramReader.initFromFile(flagConfig.getQueryvectorfile());
         vecReader = ramReader;
         logger.info("Using RAM cache of vectors");
       } else {
-        vecReader = new VectorStoreReaderLucene(Flags.queryvectorfile);
+        vecReader = new VectorStoreReaderLucene(flagConfig.getQueryvectorfile(), flagConfig);
         logger.info("Reading vectors directly off disk");
       }
 
-      if (Flags.luceneindexpath != null) {
+      if (flagConfig.getLuceneindexpath() != null) {
         try {
-          luceneUtils = new LuceneUtils(Flags.luceneindexpath);
+          luceneUtils = new LuceneUtils(flagConfig.getLuceneindexpath(), flagConfig);
         } catch (IOException e) {
-          logger.info("Couldn't open Lucene index at " + Flags.luceneindexpath);
+          logger.info("Couldn't open Lucene index at " + flagConfig.getLuceneindexpath());
         }
       }
       if (luceneUtils == null) {
@@ -143,9 +144,9 @@ public class CompareTermsBatch {
             "' must occur exactly once (found " + (elems.length - 1) + " occurrences)");
         }
         Vector vec1 = CompoundVectorBuilder.getQueryVectorFromString(
-            vecReader, luceneUtils, elems[0]);
+            vecReader, luceneUtils, flagConfig, elems[0]);
         Vector vec2 = CompoundVectorBuilder.getQueryVectorFromString(
-            vecReader, luceneUtils, elems[1]);
+            vecReader, luceneUtils, flagConfig, elems[1]);
         if (vecReader instanceof VectorStoreReaderLucene) {
           ((VectorStoreReaderLucene)vecReader).close();
         }

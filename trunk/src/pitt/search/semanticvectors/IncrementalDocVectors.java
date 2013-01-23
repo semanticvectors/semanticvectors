@@ -57,6 +57,10 @@ import pitt.search.semanticvectors.vectors.VectorType;
 public class IncrementalDocVectors {
   private static final Logger logger = Logger.getLogger(
       IncrementalDocVectors.class.getCanonicalName());
+
+  // TODO: Refactor to make more depend on flag config as appropriate.
+  private FlagConfig flagConfig;
+  
   private VectorType vectorType;
   private int dimension;
 
@@ -73,22 +77,24 @@ public class IncrementalDocVectors {
    * TermVectorsFromLucene object and a Lucene Index directory, and writing to a named file.
    * 
    * @param termVectorData Has all the information needed to create doc vectors.
+   * @param flagConfig Any extra flag configurations
    * @param indexDir Directory of the Lucene Index used to generate termVectorData
    * @param fieldsToIndex String[] containing fields indexed when generating termVectorData
    * @param vectorStoreName Filename for the document vectors
    */
   public static void createIncrementalDocVectors(
-      VectorStore termVectorData, String indexDir,
+      VectorStore termVectorData, FlagConfig flagConfig, String indexDir,
       String[] fieldsToIndex, String vectorStoreName) throws IOException {
     IncrementalDocVectors incrementalDocVectors = new IncrementalDocVectors();
+    incrementalDocVectors.flagConfig = flagConfig;
     incrementalDocVectors.dimension = termVectorData.getDimension();
     incrementalDocVectors.vectorType = termVectorData.getVectorType();
     incrementalDocVectors.termVectorData = termVectorData;
     incrementalDocVectors.indexReader = IndexReader.open(FSDirectory.open(new File(indexDir)));
     incrementalDocVectors.fieldsToIndex = fieldsToIndex;
-    incrementalDocVectors.vectorFileName = VectorStoreUtils.getStoreFileName(vectorStoreName);
+    incrementalDocVectors.vectorFileName = VectorStoreUtils.getStoreFileName(vectorStoreName, flagConfig);
     if (incrementalDocVectors.lUtils == null) {
-      incrementalDocVectors.lUtils = new LuceneUtils(indexDir);
+      incrementalDocVectors.lUtils = new LuceneUtils(indexDir, flagConfig);
     }
     incrementalDocVectors.trainIncrementalDocVectors();
   }
@@ -106,7 +112,7 @@ public class IncrementalDocVectors {
     VerbatimLogger.info("Writing vectors incrementally to file " + vectorFile + " ... ");
 
     // Write header giving number of dimension for all vectors.
-    outputStream.writeString(VectorStoreWriter.generateHeaderString());
+    outputStream.writeString(VectorStoreWriter.generateHeaderString(flagConfig));
 
     // Iterate through documents.
     for (int dc = 0; dc < numdocs; dc++) {
@@ -117,8 +123,8 @@ public class IncrementalDocVectors {
 
       String docID = Integer.toString(dc); 
       // Use filename and path rather than Lucene index number for document vector.
-      if (this.indexReader.document(dc).getField(Flags.docidfield) != null) {
-        docID = this.indexReader.document(dc).getField(Flags.docidfield).stringValue();
+      if (this.indexReader.document(dc).getField(flagConfig.getDocidfield()) != null) {
+        docID = this.indexReader.document(dc).getField(flagConfig.getDocidfield()).stringValue();
         if (docID.length() == 0) {
           logger.warning("Empty document name!!! This will cause problems ...");
           logger.warning("Please set -docidfield to a nonempty field in your Lucene index.");
@@ -144,19 +150,19 @@ public class IncrementalDocVectors {
             float fieldweight = 1;
 
 
-            if (Flags.fieldweight) {
+            if (flagConfig.getFieldweight()) {
               //field weight: 1/sqrt(number of terms in field)
               fieldweight = (float) (1/Math.sqrt(terms.length));
             }
 
-            if (Flags.termweight.equals("logentropy")) {
+            if (flagConfig.getTermweight().equals("logentropy")) {
               //local weighting: 1+ log (local frequency)
               localweight = new Double(1 + Math.log(localweight)).floatValue();
               Term term = new Term(fieldName, termString);
               globalweight = globalweight * lUtils.getEntropy(term);
             }
             else 
-              if (Flags.termweight.equals("idf")) {
+              if (flagConfig.getTermweight().equals("idf")) {
                 Term term = new Term(fieldName, termString);
                 globalweight = lUtils.getIDF(term);
               }	
@@ -190,11 +196,8 @@ public class IncrementalDocVectors {
   }
 
   public static void main(String[] args) throws Exception {
-    try {
-      args = Flags.parseCommandLineFlags(args);
-    } catch (IllegalArgumentException e) {
-      throw e;
-    }
+    FlagConfig flagConfig = FlagConfig.getFlagConfig(args);
+    args = flagConfig.remainingArgs;
 
     // Only two arguments should remain, the path to the Lucene index.
     if (args.length != 2) {
@@ -203,14 +206,14 @@ public class IncrementalDocVectors {
     }
 
     String vectorFile = args[0].replaceAll("\\.bin","")+"_docvectors.bin";
-    VectorStoreRAM vsr = new VectorStoreRAM(VectorType.valueOf(Flags.vectortype.toUpperCase()), Flags.dimension);
+    VectorStoreRAM vsr = new VectorStoreRAM(flagConfig);
     vsr.initFromFile(args[0]);
 
-    logger.info("Minimum frequency = " + Flags.minfrequency);
-    logger.info("Maximum frequency = " + Flags.maxfrequency);
-    logger.info("Number non-alphabet characters = " + Flags.maxnonalphabetchars);
-    logger.info("Contents fields are: " + Arrays.toString(Flags.contentsfields));
+    logger.info("Minimum frequency = " + flagConfig.getMinfrequency());
+    logger.info("Maximum frequency = " + flagConfig.getMaxfrequency());
+    logger.info("Number non-alphabet characters = " + flagConfig.getMaxnonalphabetchars());
+    logger.info("Contents fields are: " + Arrays.toString(flagConfig.getContentsfields()));
 
-    createIncrementalDocVectors(vsr, args[1], Flags.contentsfields, vectorFile);
+    createIncrementalDocVectors(vsr, flagConfig, args[1], flagConfig.getContentsfields(), vectorFile);
   }
 }

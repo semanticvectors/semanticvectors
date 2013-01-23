@@ -37,78 +37,80 @@ import pitt.search.semanticvectors.vectors.VectorType;
  * @see ObjectVector
  **/
 public class VectorStoreDeterministic implements VectorStore {
-    private Hashtable<Object, ObjectVector> objectVectors;
-    private Random random = new Random();
-    private VectorType vectorType;
-    private int dimension;
-    private boolean cacheVectors = true;
+  private FlagConfig flagConfig;
+  private Hashtable<Object, ObjectVector> objectVectors;
+  private Random random = new Random();
+  private VectorType vectorType;
+  private int dimension;
+  private boolean cacheVectors = true;
 
-    public VectorStoreDeterministic(VectorType vectorType, int dimension) {
-        this.objectVectors = new Hashtable<Object, ObjectVector>();
-        this.vectorType = vectorType;
-        this.dimension = dimension;
-    }
+  public VectorStoreDeterministic(FlagConfig flagConfig) {
+    this.flagConfig = flagConfig;
+    this.objectVectors = new Hashtable<Object, ObjectVector>();
+    this.vectorType = VectorType.valueOf(flagConfig.getVectortype().toUpperCase());
+    this.dimension = flagConfig.getDimension();
+  }
 
-    @Override
-    public VectorType getVectorType() {
-        return vectorType;
-    }
+  @Override
+  public VectorType getVectorType() {
+    return vectorType;
+  }
 
-    @Override
-    public int getDimension() {
-        return dimension;
-    }
+  @Override
+  public int getDimension() {
+    return dimension;
+  }
 
-    public Enumeration<ObjectVector> getAllVectors() {
-        return this.objectVectors.elements();
-    }
+  public Enumeration<ObjectVector> getAllVectors() {
+    return this.objectVectors.elements();
+  }
 
-    @Override
-    public int getNumVectors() {
-        return this.objectVectors.size();
-    }
+  @Override
+  public int getNumVectors() {
+    return this.objectVectors.size();
+  }
 
-    /**
-     * Clear the vector cache.
-     */
-    public void clear() {
-        objectVectors.clear();
-    }
+  /**
+   * Clear the vector cache.
+   */
+   public void clear() {
+     objectVectors.clear();
+   }
 
-    /**
-     * Enable or disable vector caching. Enabled cache speeds up repeated
-     * querying of the same vector, but increases memory footprint. Cache can be
-     * cleared with {@link #clear()}. By default the cache is enabled.
-     * 
-     * @param cacheVectors <code>true</code> to enable the cache,
-     *        <code>false</code> otherwise
-     */
-    public void enableVectorCache(boolean cacheVectors) {
-        this.cacheVectors = cacheVectors;
-    }
+   /**
+    * Enable or disable vector caching. Enabled cache speeds up repeated
+    * querying of the same vector, but increases memory footprint. Cache can be
+    * cleared with {@link #clear()}. By default the cache is enabled.
+    * 
+    * @param cacheVectors <code>true</code> to enable the cache,
+    *        <code>false</code> otherwise
+    */
+   public void enableVectorCache(boolean cacheVectors) {
+     this.cacheVectors = cacheVectors;
+   }
 
-    /**
-     * Given an object, get its corresponding vector.
-     * <p>
-     * This implementation only works for string objects so far.
-     * 
-     * @param desiredObject, the string you're searching for
-     * @return vector from the VectorStore, or null if not found.
-     * @throws NullPointerException if desiredObject or vector is
-     *         <code>null</code>
-     */
-    public Vector getVector(Object desiredObject) throws NullPointerException {
-        ObjectVector objectVector = this.objectVectors.get(desiredObject);
-        if (objectVector != null) {
-            return objectVector.getVector();
-        } else {
-            random.setSeed(Bobcat.asLong(desiredObject.toString()));
-            Vector v = VectorFactory.generateRandomVector(vectorType,
-                    dimension, Flags.seedlength, random);
-            if (cacheVectors)
-                objectVectors.put(desiredObject, new ObjectVector(
-                        desiredObject, v));
-            return v;
-        }
-    }
+   /**
+    * Given an object, get its corresponding vector.
+    * <p>
+    * This implementation only works for string objects so far.
+    * 
+    * @param desiredObject, the string you're searching for
+    * @return vector from the VectorStore, or null if not found.
+    * @throws NullPointerException if desiredObject or vector is
+    *         <code>null</code>
+    */
+   public Vector getVector(Object desiredObject) throws NullPointerException {
+     ObjectVector objectVector = this.objectVectors.get(desiredObject);
+     if (objectVector != null) {
+       return objectVector.getVector();
+     } else {
+       random.setSeed(Bobcat.asLong(desiredObject.toString()));
+       Vector v = VectorFactory.generateRandomVector(vectorType,
+           dimension, flagConfig.getSeedlength(), random);
+       if (cacheVectors)
+         objectVectors.put(desiredObject, new ObjectVector(
+             desiredObject, v));
+       return v;
+     }
+   }
 }

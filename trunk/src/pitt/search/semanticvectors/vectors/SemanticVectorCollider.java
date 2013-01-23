@@ -3,14 +3,15 @@ package pitt.search.semanticvectors.vectors;
 import java.util.ArrayList;
 import java.util.Random;
 
-import pitt.search.semanticvectors.Flags;
+import pitt.search.semanticvectors.FlagConfig;
 import pitt.search.semanticvectors.vectors.ComplexVector.Mode;
 
 public class SemanticVectorCollider {
 
 	public static void main(String[] args)
 	{
-		Flags.parseCommandLineFlags(args);
+		FlagConfig flagConfig = FlagConfig.getFlagConfig(args);
+	  args = flagConfig.remainingArgs;
 		
 		ComplexVector.setDominantMode(Mode.CARTESIAN);
 		
@@ -24,9 +25,9 @@ public class SemanticVectorCollider {
 		
 		System.out.println("Number of iterations "+iterations);
 		System.out.println("Number of superpositions per iteration (if no collision occurs) "+superpositions);
-		System.out.println("Vector type "+Flags.vectortype);
-		System.out.println("Dimension "+Flags.dimension);
-		System.out.println("Seed length "+Flags.seedlength);
+		System.out.println("Vector type "+flagConfig.getVectortype());
+		System.out.println("Dimension "+flagConfig.getDimension());
+		System.out.println("Seed length "+flagConfig.getSeedlength());
 		
 		int overlapcnt = 0;
 		int overlaprank = 0;
@@ -42,16 +43,17 @@ public class SemanticVectorCollider {
 			System.err.println("\nIteration "+cnt);
 			
 		
-		Vector originalVector = VectorFactory.generateRandomVector(VectorType.valueOf(Flags.vectortype.toUpperCase()),Flags.dimension, Flags.seedlength, random);
+		Vector originalVector = VectorFactory.generateRandomVector(
+		    VectorType.valueOf(flagConfig.getVectortype().toUpperCase()), flagConfig.getDimension(), flagConfig.getSeedlength(), random);
 		
-		Vector superPosition = VectorFactory.createZeroVector(VectorType.valueOf(Flags.vectortype.toUpperCase()), Flags.dimension);
+		Vector superPosition = VectorFactory.createZeroVector(VectorType.valueOf(flagConfig.getVectortype().toUpperCase()), flagConfig.getDimension());
 		
 		superPosition.superpose(originalVector, 1, null);
-		if (Flags.vectortype.equalsIgnoreCase("binary"))
+		if (flagConfig.getVectortype().equalsIgnoreCase("binary"))
 		{ superPosition.normalize(); 	}
 		
-		
-		Vector additionalVector = VectorFactory.generateRandomVector(VectorType.valueOf(Flags.vectortype.toUpperCase()),Flags.dimension, Flags.seedlength, random);
+		Vector additionalVector = VectorFactory.generateRandomVector(
+        VectorType.valueOf(flagConfig.getVectortype().toUpperCase()), flagConfig.getDimension(), flagConfig.getSeedlength(), random);
 		
 		for (int x =0; x < superpositions; x++)
 		{
@@ -61,7 +63,8 @@ public class SemanticVectorCollider {
 			double overlapWithOrigin = superPosition.measureOverlap(originalVector); 
 		
 			//generate another random vector
-			Vector randomVector = VectorFactory.generateRandomVector(VectorType.valueOf(Flags.vectortype.toUpperCase()),Flags.dimension, Flags.seedlength, random);
+			Vector randomVector = VectorFactory.generateRandomVector(
+	        VectorType.valueOf(flagConfig.getVectortype().toUpperCase()), flagConfig.getDimension(), flagConfig.getSeedlength(), random);
 			double overlapWithRandom = superPosition.measureOverlap(randomVector); 
 			
 			
@@ -84,11 +87,12 @@ public class SemanticVectorCollider {
 				x = 999999999;
 			}
 			
-			additionalVector = VectorFactory.generateRandomVector(VectorType.valueOf(Flags.vectortype.toUpperCase()),Flags.dimension, Flags.seedlength, random);
+			additionalVector = VectorFactory.generateRandomVector(
+	        VectorType.valueOf(flagConfig.getVectortype().toUpperCase()), flagConfig.getDimension(), flagConfig.getSeedlength(), random);
 			
 			superPosition.superpose(additionalVector, 1, null);
 			
-			if (Flags.vectortype.equalsIgnoreCase("binary"))
+			if (flagConfig.getVectortype().equalsIgnoreCase("binary"))
 			{ superPosition.normalize(); 	}
 			
 		

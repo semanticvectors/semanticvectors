@@ -52,10 +52,10 @@ public class BuildPositionalIndex {
 
   public static String usageMessage =
     "BuildPositionalIndex class in package pitt.search.semanticvectors"
-    + "\nUsage: java pitt.search.semanticvectors.BuildPositionalIndex PATH_TO_LUCENE_INDEX"
+    + "\nUsage: java pitt.search.semanticvectors.BuildPositionalIndex -luceneindexpath PATH_TO_LUCENE_INDEX"
     + "\nBuildPositionalIndex creates file termtermvectors.bin in local directory."
-    + "\nOther parameters that can be changed include dimension,"
-    + "\n windowlength (size of sliding context window),"
+    + "\nOther parameters that can be changed include"
+    + "\n    windowlength (size of sliding context window),"
     + "\n    dimension (number of dimensions), vectortype (real, complex, binary)"
     + "\n    seedlength (number of non-zero entries in basic vectors),"
     + "\n    minimum term frequency.\n"
@@ -74,85 +74,82 @@ public class BuildPositionalIndex {
    * @param args
    */
   public static void main (String[] args) throws IllegalArgumentException {
+    FlagConfig flagConfig;
     try {
-      args = Flags.parseCommandLineFlags(args);
+      flagConfig = FlagConfig.getFlagConfig(args);
+      args = flagConfig.remainingArgs;
     } catch (IllegalArgumentException e) {
       System.out.println(usageMessage);
       throw e;
     }
 
-    // Only one argument should remain, the path to the Lucene index.
-    if (args.length != 1) {
-      System.out.println(usageMessage);
-      throw (new IllegalArgumentException("After parsing command line flags, there were "
-          + args.length
-          + " arguments, instead of the expected 1."));
+    if (flagConfig.getLuceneindexpath().isEmpty()) {
+      throw (new IllegalArgumentException("-luceneindexpath must be set."));
     }
-    String luceneIndex = args[0];
+    String luceneIndex = flagConfig.getLuceneindexpath();
 
     // If initialtermvectors is defined, read these vectors.
-    if (!Flags.initialtermvectors.equals("")) {
+    if (!flagConfig.getInitialtermvectors().isEmpty()) {
       try {
-        VectorStoreRAM vsr = new VectorStoreRAM(
-            VectorType.valueOf(Flags.vectortype.toUpperCase()), Flags.dimension);
-        vsr.initFromFile(Flags.initialtermvectors);
+        VectorStoreRAM vsr = new VectorStoreRAM(flagConfig);
+        vsr.initFromFile(flagConfig.getInitialtermvectors());
         newBasicTermVectors = vsr;
-        VerbatimLogger.info("Using trained index vectors from vector store " + Flags.initialtermvectors);
+        VerbatimLogger.info("Using trained index vectors from vector store " + flagConfig.getInitialtermvectors());
       } catch (IOException e) {
-        logger.info("Could not read from vector store " + Flags.initialtermvectors);
+        logger.info("Could not read from vector store " + flagConfig.getInitialtermvectors());
         System.out.println(usageMessage);
         throw new IllegalArgumentException();
       }
     }
 
-    String termFile = Flags.termtermvectorsfile;
-    String docFile = Flags.docvectorsfile;
+    String termFile = flagConfig.getTermtermvectorsfile();
+    String docFile = flagConfig.getDocvectorsfile();
 
-    if (Flags.positionalmethod.equals("permutation")) termFile = Flags.permutedvectorfile;
-    else if (Flags.positionalmethod.equals("permutation_plus_basic")) termFile = Flags.permplustermvectorfile;
-    else if (Flags.positionalmethod.equals("directional")) termFile = Flags.directionalvectorfile;
+    if (flagConfig.getPositionalmethod().equals("permutation")) termFile = flagConfig.getPermutedvectorfile();
+    else if (flagConfig.getPositionalmethod().equals("permutation_plus_basic")) termFile = flagConfig.getPermplustermvectorfile();
+    else if (flagConfig.getPositionalmethod().equals("directional")) termFile = flagConfig.getDirectionalvectorfile();
 
     VerbatimLogger.info("Building positional index, Lucene index: " + luceneIndex
-        + ", Seedlength: " + Flags.seedlength
-        + ", Vector length: " + Flags.dimension
-        + ", Vector type: " + Flags.vectortype
-        + ", Minimum term frequency: " + Flags.minfrequency
-        + ", Maximum term frequency: " + Flags.maxfrequency
-        + ", Number non-alphabet characters: " + Flags.maxnonalphabetchars
-        + ", Filter out numbers: " + (Flags.filternumbers ? "yes" : "no")
-        + ", Window radius: " + Flags.windowradius
-        + ", Fields to index: " + Arrays.toString(Flags.contentsfields)
+        + ", Seedlength: " + flagConfig.getSeedlength()
+        + ", Vector length: " + flagConfig.getDimension()
+        + ", Vector type: " + flagConfig.getVectortype()
+        + ", Minimum term frequency: " + flagConfig.getMinfrequency()
+        + ", Maximum term frequency: " + flagConfig.getMaxfrequency()
+        + ", Number non-alphabet characters: " + flagConfig.getMaxnonalphabetchars()
+        + ", Window radius: " + flagConfig.getWindowradius()
+        + ", Fields to index: " + Arrays.toString(flagConfig.getContentsfields())
         + "\n");
 
     try {
       TermTermVectorsFromLucene vecStore = new TermTermVectorsFromLucene(
-          luceneIndex,  VectorType.valueOf(Flags.vectortype.toUpperCase()),
-          Flags.dimension, Flags.seedlength, Flags.minfrequency, Flags.maxfrequency,
-          Flags.maxnonalphabetchars, Flags.filternumbers, 2 * Flags.windowradius + 1,
-          Flags.positionalmethod, newBasicTermVectors, Flags.contentsfields);
+          flagConfig,
+          luceneIndex,  VectorType.valueOf(flagConfig.getVectortype().toUpperCase()),
+          flagConfig.getDimension(), flagConfig.getSeedlength(), flagConfig.getMinfrequency(), flagConfig.getMaxfrequency(),
+          flagConfig.getMaxnonalphabetchars(), flagConfig.getFilteroutnumbers(), 2 * flagConfig.getWindowradius() + 1, flagConfig.getPositionalmethod(),
+          newBasicTermVectors, flagConfig.getContentsfields());
       
-      VectorStoreWriter.writeVectors(termFile, vecStore);
+      VectorStoreWriter.writeVectors(termFile, flagConfig, vecStore);
 
-      for (int i = 1; i < Flags.trainingcycles; ++i) {
+      for (int i = 1; i < flagConfig.getTrainingcycles(); ++i) {
         newBasicTermVectors = vecStore.getBasicTermVectors();
         VerbatimLogger.info("\nRetraining with learned term vectors ...");
         vecStore = new TermTermVectorsFromLucene(
-            luceneIndex,  VectorType.valueOf(Flags.vectortype.toUpperCase()),
-            Flags.dimension, Flags.seedlength, Flags.minfrequency, Flags.maxfrequency,
-            Flags.maxnonalphabetchars, Flags.filternumbers, 2 * Flags.windowradius + 1,
-            Flags.positionalmethod, newBasicTermVectors, Flags.contentsfields);
+            flagConfig,
+            luceneIndex,  VectorType.valueOf(flagConfig.getVectortype().toUpperCase()),
+            flagConfig.getDimension(), flagConfig.getSeedlength(), flagConfig.getMinfrequency(), flagConfig.getMaxfrequency(),
+            flagConfig.getMaxnonalphabetchars(), flagConfig.getFilteroutnumbers(), 2 * flagConfig.getWindowradius() + 1, flagConfig.getPositionalmethod(),
+            newBasicTermVectors, flagConfig.getContentsfields());
       }
 
-      if (Flags.trainingcycles > 1) {
-        termFile = termFile.replaceAll("\\..*", "") + Flags.trainingcycles + ".bin";
-        docFile = "docvectors" + Flags.trainingcycles + ".bin";
-        VectorStoreWriter.writeVectors(termFile, vecStore);
+      if (flagConfig.getTrainingcycles() > 1) {
+        termFile = termFile.replaceAll("\\..*", "") + flagConfig.getTrainingcycles() + ".bin";
+        docFile = "docvectors" + flagConfig.getTrainingcycles() + ".bin";
+        VectorStoreWriter.writeVectors(termFile, flagConfig, vecStore);
       }
 
-      if (!Flags.docindexing.equals("none")) {
+      if (!flagConfig.getDocindexing().equals("none")) {
         IncrementalDocVectors.createIncrementalDocVectors(
-            vecStore, luceneIndex, Flags.contentsfields, docFile);
-        //System.exit(0);
+            vecStore, flagConfig, luceneIndex, flagConfig.getContentsfields(), docFile);
       }
     }
     catch (IOException e) {
