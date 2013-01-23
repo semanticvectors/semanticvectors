@@ -252,27 +252,27 @@ public class ComplexVector implements Vector {
    * Note that this is different from the Hermitian scalar product.
    */
   protected double measureCartesianOverlap(ComplexVector other) {
-	    toCartesian();
-	    other.toCartesian();
-	   
-	    double cumulativeCosine = 0;	   
-	    for (int i = 0; i < dimension*2; i+=2) { 	
-	      double resultThisPair= coordinates[i] * other.coordinates[i];
-	      resultThisPair += coordinates[i+1] * other.coordinates[i+1];
-	      
-	      double norm1 = coordinates[i] * coordinates[i];
-	      norm1 += coordinates[i+1] * coordinates[i+1];
-	      
-	      double norm2 = other.coordinates[i] * other.coordinates[i];
-	      norm2  += other.coordinates[i+1] * other.coordinates[i+1];
-	      
-	      norm1 = Math.sqrt(norm1);
-	      norm2 = Math.sqrt(norm2);
-	      		
-	      cumulativeCosine += resultThisPair / (norm1 * norm2);	      		
-	    }
-	    return cumulativeCosine/dimension;
-	  }
+      toCartesian();
+      other.toCartesian();
+     
+      double cumulativeCosine = 0;     
+      for (int i = 0; i < dimension*2; i+=2) {  
+        double resultThisPair= coordinates[i] * other.coordinates[i];
+        resultThisPair += coordinates[i+1] * other.coordinates[i+1];
+        
+        double norm1 = coordinates[i] * coordinates[i];
+        norm1 += coordinates[i+1] * coordinates[i+1];
+        
+        double norm2 = other.coordinates[i] * other.coordinates[i];
+        norm2  += other.coordinates[i+1] * other.coordinates[i+1];
+        
+        norm1 = Math.sqrt(norm1);
+        norm2 = Math.sqrt(norm2);
+            
+        cumulativeCosine += resultThisPair / (norm1 * norm2);           
+      }
+      return cumulativeCosine/dimension;
+    }
   
   
   /**
@@ -284,14 +284,14 @@ public class ComplexVector implements Vector {
   protected double measurePolarDenseOverlap(ComplexVector other) {
     toDensePolar();
     other.toDensePolar();
-	short[] phaseAnglesOther = other.getPhaseAngles();
-	float sum = 0.0f;
-	for (short i=0; i < dimension; i++) {
-	  if (phaseAngles[i] == CircleLookupTable.ZERO_INDEX
-	      || phaseAnglesOther[i] == CircleLookupTable.ZERO_INDEX) continue;
-	  sum += CircleLookupTable.getRealEntry((short) Math.abs(phaseAngles[i] - phaseAnglesOther[i]));
-	}
-	return sum / dimension;
+  short[] phaseAnglesOther = other.getPhaseAngles();
+  float sum = 0.0f;
+  for (short i=0; i < dimension; i++) {
+    if (phaseAngles[i] == CircleLookupTable.ZERO_INDEX
+        || phaseAnglesOther[i] == CircleLookupTable.ZERO_INDEX) continue;
+    sum += CircleLookupTable.getRealEntry((short) Math.abs(phaseAngles[i] - phaseAnglesOther[i]));
+  }
+  return sum / dimension;
   }
 
   @Override
@@ -322,9 +322,9 @@ public class ComplexVector implements Vector {
   
   
   protected void normalizeCartesian() {
-	    toDensePolar();
-	  	toCartesian();
-	  }
+      toDensePolar();
+      toCartesian();
+    }
   
   @Override
   /**
@@ -443,7 +443,7 @@ public class ComplexVector implements Vector {
    * Implements release using the {@link #bind} method.
    */
   public void bind(Vector other) {
-	 this.bind(other, 1);
+   this.bind(other, 1);
   }
 
   @Override
@@ -451,7 +451,7 @@ public class ComplexVector implements Vector {
    * Implements release using the {@link #bind} method.
    */
   public void release(Vector other) {
-		 this.bind(other, -1);
+     this.bind(other, -1);
   }
 
   /**
@@ -463,22 +463,22 @@ public class ComplexVector implements Vector {
     toDensePolar();
     ComplexVector otherCopy = other.copy();
     otherCopy.toDensePolar();
-	short[] otherAngles = otherCopy.getPhaseAngles();
+  short[] otherAngles = otherCopy.getPhaseAngles();
 
-	for (int i=0; i < dimension; i++) {
-	  if (otherAngles[i] == CircleLookupTable.ZERO_INDEX) {
-	    continue;
-	  }
-	  if (phaseAngles[i] == CircleLookupTable.ZERO_INDEX) {
-	    phaseAngles[i] = otherAngles[i];
-	    continue;
-	  }
-	  short angleToAdd = otherAngles[i];
-	  if (direction <= 0) {
-	    angleToAdd = (short) (CircleLookupTable.PHASE_RESOLUTION - angleToAdd);
-	  }
-	  phaseAngles[i] = (short) ((phaseAngles[i] + angleToAdd) % CircleLookupTable.PHASE_RESOLUTION);
-	}
+  for (int i=0; i < dimension; i++) {
+    if (otherAngles[i] == CircleLookupTable.ZERO_INDEX) {
+      continue;
+    }
+    if (phaseAngles[i] == CircleLookupTable.ZERO_INDEX) {
+      phaseAngles[i] = otherAngles[i];
+      continue;
+    }
+    short angleToAdd = otherAngles[i];
+    if (direction <= 0) {
+      angleToAdd = (short) (CircleLookupTable.PHASE_RESOLUTION - angleToAdd);
+    }
+    phaseAngles[i] = (short) ((phaseAngles[i] + angleToAdd) % CircleLookupTable.PHASE_RESOLUTION);
+  }
   }
 
   /**
@@ -631,7 +631,7 @@ public class ComplexVector implements Vector {
       }
       if (phaseAngles == null || phaseAngles.length==0) phaseAngles = new short[dimension];
       for (int i = 0; i < phaseAngles.length; ++i) {
-    	phaseAngles[i] = (short)Integer.parseInt(entries[i]);
+      phaseAngles[i] = (short)Integer.parseInt(entries[i]);
       }
       break;
     case POLAR_SPARSE :
@@ -690,7 +690,3 @@ public class ComplexVector implements Vector {
     this.opMode = opMode;
   }
 }
-
-
-
-

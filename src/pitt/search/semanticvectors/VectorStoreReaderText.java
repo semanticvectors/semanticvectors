@@ -88,15 +88,15 @@ public class VectorStoreReaderText implements CloseableVectorStore {
    * 
    * @throws IOException
    */
-  public VectorStoreReaderText(String vectorFileText) throws IOException {
+  public VectorStoreReaderText(String vectorFileText, FlagConfig flagConfig) throws IOException {
     this.vectorFileText = vectorFileText;
     this.inBuf = new BufferedReader(new FileReader(vectorFileText));
     try {
       // Read number of dimension from header information.
       String firstLine = inBuf.readLine();
-      Flags.parseFlagsFromString(firstLine);
-      this.dimension = Flags.dimension;
-      this.vectorType = VectorType.valueOf(Flags.vectortype.toUpperCase());
+      FlagConfig.mergeWriteableFlagsFromString(firstLine, flagConfig);
+      this.dimension = flagConfig.getDimension();
+      this.vectorType = VectorType.valueOf(flagConfig.getVectortype().toUpperCase());
     } catch (IOException e) {
       System.out.println("Cannot read file: " + vectorFileText + "\n" + e.getMessage());
     }
@@ -133,7 +133,7 @@ public class VectorStoreReaderText implements CloseableVectorStore {
   public ObjectVector parseVectorLine(String line) throws IOException {
     int firstSplitPoint = line.indexOf("|");
     String objectName = new String(line.substring(0, firstSplitPoint));
-    Vector tmpVector = VectorFactory.createZeroVector(Flags.vectortype, Flags.dimension);
+    Vector tmpVector = VectorFactory.createZeroVector(vectorType, dimension);
     tmpVector.readFromString(line.substring(firstSplitPoint + 1, line.length()));
     return new ObjectVector(objectName, tmpVector);
   }

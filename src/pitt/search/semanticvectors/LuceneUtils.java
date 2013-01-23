@@ -62,7 +62,7 @@ import org.apache.lucene.util.Version;
  */
 public class LuceneUtils{
   private static final Logger logger = Logger.getLogger(DocVectors.class.getCanonicalName());
-
+  private FlagConfig flagConfig;
   private IndexReader indexReader;
   private Hashtable<Term, Float> termEntropy = new Hashtable<Term, Float>();
   private Hashtable<Term, Float> termIDF = new Hashtable<Term, Float>();
@@ -74,10 +74,11 @@ public class LuceneUtils{
   /**
    * @param path - path to lucene index
    */
-  public LuceneUtils (String path) throws IOException {
+  public LuceneUtils(String path, FlagConfig flagConfig) throws IOException {
     this.indexReader = IndexReader.open(FSDirectory.open(new File(path)));
-    if (Flags.stoplistfile.length() > 0)
-      loadStopWords(Flags.stoplistfile);
+    this.flagConfig = flagConfig;
+    if (!flagConfig.getStoplistfile().isEmpty())
+      loadStopWords(flagConfig.getStoplistfile());
   }
 
 
@@ -86,8 +87,8 @@ public class LuceneUtils{
    * @param stoppath Path to stopword file.
    * @throws IOException If stopword file cannot be read.
    */
-  public void loadStopWords(String stoppath) throws IOException {
-    logger.info("Using stopword file: " + stoppath);
+  public void loadStopWords(String stoppath) throws IOException  {
+    logger.info("Using stopword file: "+stoppath);
     stopwords = new TreeSet<String>();
     try {
       BufferedReader readIn = new BufferedReader(new FileReader(stoppath));
@@ -98,18 +99,17 @@ public class LuceneUtils{
       }
     }
     catch (IOException e) {
-      throw new IOException("Couldn't read stopwords from file "+stoppath);
+      throw new IOException("Couldn't open file "+stoppath);
     }
   }
-
 
   /**
    * Loads the startword file into the {@link #startwords} data structure.
    * @param startpath Path to startword file
    * @throws IOException If startword file cannot be read.
    */
-  public void loadStartWords(String startpath) throws IOException {
-    System.err.println("Using startword file: "+startpath);
+  public void loadStartWords(String startpath) throws IOException  {
+    System.err.println("Using startword file: " + startpath);
     startwords = new TreeSet<String>();
     try {
       BufferedReader readIn = new BufferedReader(new FileReader(startpath));
@@ -165,7 +165,7 @@ public class LuceneUtils{
   public float getGlobalTermWeightFromString(String termString) {
     try {
       int freq = 0;
-      for (String field: Flags.contentsfields)
+      for (String field: flagConfig.getContentsfields())
         freq += indexReader.docFreq(new Term(field, termString));
       return (float) Math.pow(freq, -0.05);
     } catch (IOException e) {
@@ -195,9 +195,9 @@ public class LuceneUtils{
   public int getNumDocs() { return indexReader.numDocs(); }
 
   /**
-   * Returns the IDF (i.e. log10(numdocs/doc frequency)) of a term, and caches for future use.
-   * @param term the term whose IDF you would like
-   */  
+   * Gets the IDF (i.e. log10(numdocs/doc frequency)) of a term
+   *	@param term the term whose IDF you would like
+   */
   public float getIDF(Term term) {
     if (termIDF.containsKey(term)) {
       return termIDF.get(term);

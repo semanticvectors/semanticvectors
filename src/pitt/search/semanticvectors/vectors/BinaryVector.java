@@ -9,7 +9,7 @@ import org.apache.lucene.store.IndexInput;
 import org.apache.lucene.store.IndexOutput;
 import org.apache.lucene.util.OpenBitSet;
 
-import pitt.search.semanticvectors.Flags;
+import pitt.search.semanticvectors.FlagConfig;
 
 /**
  * Binary implementation of Vector.
@@ -26,6 +26,16 @@ import pitt.search.semanticvectors.Flags;
  */
 public class BinaryVector implements Vector {
   public static final Logger logger = Logger.getLogger(BinaryVector.class.getCanonicalName());
+
+  // TODO: Determing proper interface for default constants.
+  /**
+   * Number of decimal places to consider in weighted superpositions of binary vectors.
+   * Higher precision requires additional memory during training.
+   */
+  public static final int BINARY_VECTOR_DECIMAL_PLACES = 2;
+  public static final boolean BINARY_BINDING_WITH_PERMUTE = false;
+
+  
   private static final int DEBUG_PRINT_LENGTH = 64;
 
   private final int dimension;
@@ -221,7 +231,7 @@ public class BinaryVector implements Vector {
     BinaryVector binaryOther = (BinaryVector) other;
     if (isSparse) {
       if (Math.round(weight) != weight) {
-        decimalPlaces = Flags.binaryvectordecimalplaces; 
+        decimalPlaces = BINARY_VECTOR_DECIMAL_PLACES; 
       }
       elementalToSemantic();
     }
@@ -543,7 +553,7 @@ public class BinaryVector implements Vector {
    * Implements inverse of binding using permutations and XOR. 
    */
   public void release(Vector other, int direction) {
-	  if (!Flags.binarybindingwithpermute)
+    if (!BINARY_BINDING_WITH_PERMUTE)
 	   bind(other);
 	  else
 		  bind (other, direction);
@@ -555,12 +565,12 @@ public class BinaryVector implements Vector {
    */
   public void bind(Vector other) {
     IncompatibleVectorsException.checkVectorsCompatible(this, other);
-    if (!Flags.binarybindingwithpermute)
-    {BinaryVector binaryOther = (BinaryVector) other;
-     this.bitSet.xor(binaryOther.bitSet);
-    }
-    else
+    if (!BINARY_BINDING_WITH_PERMUTE) {
+      BinaryVector binaryOther = (BinaryVector) other;
+      this.bitSet.xor(binaryOther.bitSet);
+    } else {
     	bind(other, 1);
+    }
   }
   
   @Override
@@ -569,11 +579,10 @@ public class BinaryVector implements Vector {
    */
   public void release(Vector other) {
 	 
-	 if (!Flags.binarybindingwithpermute)
-	  bind(other);
-	  else
-		  bind(other, -1);
-	  
+	 if (!BINARY_BINDING_WITH_PERMUTE)
+	   bind(other);
+	 else
+		 bind(other, -1);
   }
 
   @Override

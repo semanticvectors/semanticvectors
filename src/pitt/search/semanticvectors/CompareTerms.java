@@ -81,7 +81,8 @@ public class CompareTerms{
    * @throws IOException 
    */
   public static void main (String[] args) throws IllegalArgumentException, IOException {
-    args = Flags.parseCommandLineFlags(args);
+    FlagConfig flagConfig = FlagConfig.getFlagConfig(args);
+    args = flagConfig.remainingArgs;
 
     LuceneUtils luceneUtils = null;
 
@@ -92,14 +93,21 @@ public class CompareTerms{
       throw new IllegalArgumentException();
     }
 
-    VerbatimLogger.info("Opening vector store from file: " + Flags.queryvectorfile + "\n");
-    CloseableVectorStore vecReader = VectorStoreReader.openVectorStore(Flags.queryvectorfile);
+    CloseableVectorStore vecReader;
+    try {
+      vecReader = new VectorStoreReaderLucene(flagConfig.getQueryvectorfile(), flagConfig);
+    } catch (IOException e) {
+      logger.warning("Failed to open vector store from file: " + flagConfig.getQueryvectorfile());
+      throw e;
+    }
 
-    if (!Flags.luceneindexpath.isEmpty()) {
+    logger.info("Opened query vector store from file: " + flagConfig.getQueryvectorfile());
+
+    if (flagConfig.getLuceneindexpath() != null) {
       try {
-        luceneUtils = new LuceneUtils(Flags.luceneindexpath);
+        luceneUtils = new LuceneUtils(flagConfig.getLuceneindexpath(), flagConfig);
       } catch (IOException e) {
-        VerbatimLogger.info("Couldn't open Lucene index at " + Flags.luceneindexpath);
+        VerbatimLogger.info("Couldn't open Lucene index at " + flagConfig.getLuceneindexpath());
       }
     }
     if (luceneUtils == null) {
@@ -108,9 +116,9 @@ public class CompareTerms{
     }
 
     Vector vec1 = CompoundVectorBuilder.getQueryVectorFromString(
-        vecReader, luceneUtils, args[0]);
+        vecReader, luceneUtils, flagConfig, args[0]);
     Vector vec2 = CompoundVectorBuilder.getQueryVectorFromString(
-        vecReader, luceneUtils, args[1]);
+        vecReader, luceneUtils, flagConfig, args[1]);
     vecReader.close();
     double simScore = vec1.measureOverlap(vec2);
     // Logging prompt and printing score to stdout, this should enable

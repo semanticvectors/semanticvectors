@@ -36,21 +36,21 @@
 public class VectorStoreUtils {
 
   /**
-   * Returns "$storeName.bin" if {@link Flags#indexfileformat} is "lucene".
-   * Returns "$storeName.txt" if {@link Flags#indexfileformat} is "text".
+   * Returns "$storeName.bin" if {@link FlagConfig#indexfileformat} is "lucene".
+   * Returns "$storeName.txt" if {@link FlagConfig#indexfileformat} is "text".
    * 
    * Method is idempotent: if file already ends with ".bin" or ".txt" as appropriate, input
    * is returned unchanged.
    */
-  public static String getStoreFileName(String storeName) {
-    if (Flags.indexfileformat.equals("lucene")) {
+  public static String getStoreFileName(String storeName, FlagConfig flagConfig) {
+    if (flagConfig.getIndexfileformat() == "lucene") {
       if (storeName.endsWith(".bin")) {
         return storeName;
       }
       else {
         return storeName + ".bin";
       }
-    } else if (Flags.indexfileformat.equals("text")) {
+    } else if (flagConfig.getIndexfileformat() == "text") {
       if (storeName.endsWith(".txt")) {
         return storeName;
       }
@@ -58,6 +58,6 @@ public class VectorStoreUtils {
         return storeName + ".txt";
       }
     }
-    throw new IllegalStateException("Looks like an illegal indexfileformat: " + Flags.indexfileformat);
+    throw new IllegalStateException("Looks like an illegal indexfileformat: " + flagConfig.getIndexfileformat());
   }
 }

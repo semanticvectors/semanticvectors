@@ -62,6 +62,7 @@ import pitt.search.semanticvectors.vectors.VectorType;
 public class VectorStoreRAM implements VectorStore {
   private static final Logger logger =
     Logger.getLogger(VectorStoreRAM.class.getCanonicalName());
+  private FlagConfig flagConfig;
   private Hashtable<Object, ObjectVector> objectVectors;
   private VectorType vectorType;
   private int dimension;
@@ -74,16 +75,17 @@ public class VectorStoreRAM implements VectorStore {
   @Override
   public int getDimension() { return dimension; }
   
-  public VectorStoreRAM(VectorType vectorType, int dimension) {
+  public VectorStoreRAM(FlagConfig flagConfig) {
     this.objectVectors = new Hashtable<Object, ObjectVector>();
-    this.vectorType = vectorType;
-    this.dimension = dimension;
+    this.flagConfig = flagConfig;
+    this.vectorType = VectorType.valueOf(flagConfig.getVectortype().toUpperCase());
+    this.dimension = flagConfig.getDimension();
     zeroVector = VectorFactory.createZeroVector(vectorType, dimension);
   }
   
   // Initialization routine.
   public void initFromFile (String vectorFile) throws IOException {
-    CloseableVectorStore vectorReaderDisk = VectorStoreReader.openVectorStore(vectorFile);
+    CloseableVectorStore vectorReaderDisk = VectorStoreReader.openVectorStore(vectorFile, flagConfig);
     Enumeration<ObjectVector> vectorEnumeration = vectorReaderDisk.getAllVectors();
 		
     logger.fine("Reading vectors from store on disk into memory cache  ...");

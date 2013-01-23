@@ -84,7 +84,7 @@ public class VectorStoreReaderLucene implements CloseableVectorStore {
     return threadLocalIndexInput.get();
   }
   
-  public VectorStoreReaderLucene(String vectorFileName) throws IOException {
+  public VectorStoreReaderLucene(String vectorFileName, FlagConfig flagConfig) throws IOException {
     this.vectorFileName = vectorFileName;
     this.vectorFile = new File(vectorFileName);
     try {
@@ -102,7 +102,7 @@ public class VectorStoreReaderLucene implements CloseableVectorStore {
           }
         }
       };
-      readHeadersFromIndexInput();
+      readHeadersFromIndexInput(flagConfig);
     } catch (IOException e) {
       logger.warning("Cannot open file: " + this.vectorFileName + "\n" + e.getMessage());
       throw e;
@@ -113,22 +113,22 @@ public class VectorStoreReaderLucene implements CloseableVectorStore {
    * Only for testing!  This does not create an FSDirectory so calling "close()" gives NPE.
    * TODO(widdows): Fix this, and ownership of FSDirectory or RAMDirectory!
    */
-  protected VectorStoreReaderLucene(ThreadLocal<IndexInput> threadLocalIndexInput)
+  protected VectorStoreReaderLucene(ThreadLocal<IndexInput> threadLocalIndexInput, FlagConfig flagConfig)
       throws IOException {
     this.threadLocalIndexInput = threadLocalIndexInput;
-    readHeadersFromIndexInput();
+    readHeadersFromIndexInput(flagConfig);
   }
 
   /**
-   * Sets internal dimension and vector type, and public flags to match.
+   * Sets internal dimension and vector type, and flags in flagConfig to match.
    * 
    * @throws IOException
    */
-  public void readHeadersFromIndexInput() throws IOException {
+  public void readHeadersFromIndexInput(FlagConfig flagConfig) throws IOException {
     String header = threadLocalIndexInput.get().readString();
-    Flags.parseFlagsFromString(header);
-    this.dimension = Flags.dimension;
-    this.vectorType = VectorType.valueOf(Flags.vectortype.toUpperCase());
+    FlagConfig.mergeWriteableFlagsFromString(header, flagConfig);
+    this.dimension = flagConfig.getDimension();
+    this.vectorType = VectorType.valueOf(flagConfig.getVectortype().toUpperCase());
   }
 
   public void close() {
@@ -179,7 +179,7 @@ public class VectorStoreReaderLucene implements CloseableVectorStore {
         String objectString = getIndexInput().readString();
         if (objectString.equals(stringTarget)) {
           VerbatimLogger.info("Found vector for '" + stringTarget + "'\n");
-          Vector vector = VectorFactory.createZeroVector(Flags.vectortype, Flags.dimension);
+          Vector vector = VectorFactory.createZeroVector(vectorType, dimension);
           vector.readFromLuceneStream(getIndexInput());
           return vector;
         }

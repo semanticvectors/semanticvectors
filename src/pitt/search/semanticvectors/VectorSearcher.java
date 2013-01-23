@@ -61,16 +61,15 @@ import pitt.search.semanticvectors.vectors.VectorUtils;
 abstract public class VectorSearcher {
   private static final Logger logger = Logger.getLogger(VectorSearcher.class.getCanonicalName());
 
+  private FlagConfig flagConfig;
   private VectorStore searchVecStore;
   private LuceneUtils luceneUtils;
 
   /**
    * Expand search space for dual-predicate searches
-   */
-
-  public static VectorStore expandSearchSpace(VectorStore searchVecStore)
-  {
-	    VectorStoreRAM nusearchspace = new VectorStoreRAM(searchVecStore.getVectorType(), searchVecStore.getDimension());
+   */  
+  public static VectorStore expandSearchSpace(VectorStore searchVecStore, FlagConfig flagConfig) {
+	    VectorStoreRAM nusearchspace = new VectorStoreRAM(flagConfig);
 	    Enumeration<ObjectVector> allVectors = searchVecStore.getAllVectors();
 	    ArrayList<ObjectVector> storeVectors = new ArrayList<ObjectVector>();
 
@@ -81,9 +80,8 @@ abstract public class VectorSearcher {
 	    	storeVectors.add(nextObjectVector);
 	    }
 
-	    for (int x=0; x < storeVectors.size()-1; x++)
-	    	for (int y=x; y < storeVectors.size(); y++)
-	    	{
+	    for (int x=0; x < storeVectors.size()-1; x++) {
+	    	for (int y=x; y < storeVectors.size(); y++) {
 	    		Vector vec1 = storeVectors.get(x).getVector().copy();
 	    		Vector vec2 = storeVectors.get(y).getVector().copy();
 	    		String obj1 = storeVectors.get(x).getObject().toString();
@@ -98,15 +96,11 @@ abstract public class VectorSearcher {
 	    			vec2.release(storeVectors.get(x).getVector().copy());
 	    			nusearchspace.putVector(obj1+":"+obj2, vec2);
 	    		}
-
-
 	    	}
-
-
+	    }
 	    System.err.println("Expanding search space from "+storeVectors.size()+" to "+nusearchspace.getNumVectors());
 	    return nusearchspace;
   }
-
 
   /**
    * This needs to be filled in for each subclass. It takes an individual
@@ -114,19 +108,20 @@ abstract public class VectorSearcher {
    */
   public abstract double getScore(Vector testVector);
 
-
   /**
    * Performs basic initialization; subclasses should normally call super() to use this.
    * @param queryVecStore Vector store to use for query generation.
    * @param searchVecStore The vector store to search.
    * @param luceneUtils LuceneUtils object to use for query weighting. (May be null.)
    */
-  public VectorSearcher(VectorStore queryVecStore,
-      VectorStore searchVecStore,
-      LuceneUtils luceneUtils) {
+  public VectorSearcher(VectorStore queryVecStore,  VectorStore searchVecStore,
+      LuceneUtils luceneUtils, FlagConfig flagConfig) {
+    this.flagConfig = flagConfig;
     this.searchVecStore = searchVecStore;
     this.luceneUtils = luceneUtils;
-    if (Flags.expandsearchspace) this.searchVecStore = expandSearchSpace(searchVecStore);
+    if (flagConfig.getExpandsearchspace()) {
+      this.searchVecStore = expandSearchSpace(searchVecStore, flagConfig);
+    }
   }
 
   /**
@@ -145,8 +140,8 @@ public LinkedList<SearchResult> getNearestNeighbors(int numResults) {
     LinkedList<SearchResult> results = new LinkedList<SearchResult>();
     List<SearchResult> tmpResults = new ArrayList<SearchResult>(indexSize);
     double score = -1;
-    double threshold = Flags.searchresultsminscore;
-    if (Flags.stdev) threshold = 0;
+    double threshold = flagConfig.getSearchresultsminscore();
+    if (flagConfig.getStdev()) threshold = 0;
     //Counters for statistics to calculate standard deviation
     double sum=0, sumsquared=0;
     int count=0;
@@ -167,12 +162,12 @@ public LinkedList<SearchResult> getNearestNeighbors(int numResults) {
       // seems to be good at moving excessively common terms further
       // down the results. Note that using this means that scores
       // returned are no longer just cosine similarities.
-      if (this.luceneUtils != null && Flags.usetermweightsinsearch) {
+      if (this.luceneUtils != null && flagConfig.getUsetermweightsinsearch()) {
         score = score *
             luceneUtils.getGlobalTermWeightFromString((String) testElement.getObject());
       }
 
-      if (Flags.stdev) {
+      if (flagConfig.getStdev()) {
         count++;
         sum += score;
         sumsquared += Math.pow(score, 2);
@@ -190,6 +185,7 @@ public LinkedList<SearchResult> getNearestNeighbors(int numResults) {
     	  threshold = tmpResults.get(indexSize - 1).getScore();
       }
     }
+    if (flagConfig.getStdev()) results = transformToStats(results, count, sum, sumsquared);
 
     Collections.sort(tmpResults);
     for(int i = 0; i < numResults; i++)
@@ -201,8 +197,6 @@ public LinkedList<SearchResult> getNearestNeighbors(int numResults) {
     	}
     	results.add(sr);
     }
-
-    if (Flags.stdev) results = transformToStats(results, count, sum, sumsquared);
     return results;
   }
 
@@ -263,11 +257,11 @@ public LinkedList<SearchResult> getAllAboveThreshold(float threshold) {
      */
     public VectorSearcherCosine(
         VectorStore queryVecStore, VectorStore searchVecStore,
-        LuceneUtils luceneUtils, String[] queryTerms)
+        LuceneUtils luceneUtils, FlagConfig flagConfig, String[] queryTerms)
             throws ZeroVectorException {
-      super(queryVecStore, searchVecStore, luceneUtils);
+      super(queryVecStore, searchVecStore, luceneUtils, flagConfig);
       this.queryVector = CompoundVectorBuilder.getQueryVector(
-          queryVecStore, luceneUtils, queryTerms);
+          queryVecStore, luceneUtils, flagConfig, queryTerms);
       if (this.queryVector.isZeroVector()) {
         throw new ZeroVectorException("Query vector is zero ... no results.");
       }
@@ -282,9 +276,9 @@ public LinkedList<SearchResult> getAllAboveThreshold(float threshold) {
      */
     public VectorSearcherCosine(
         VectorStore queryVecStore, VectorStore searchVecStore,
-        LuceneUtils luceneUtils, Vector queryVector)
+        LuceneUtils luceneUtils, FlagConfig flagConfig, Vector queryVector)
             throws ZeroVectorException {
-      super(queryVecStore, searchVecStore, luceneUtils);
+      super(queryVecStore, searchVecStore, luceneUtils, flagConfig);
       this.queryVector = queryVector;
       Vector testVector = searchVecStore.getAllVectors().nextElement().getVector();
       IncompatibleVectorsException.checkVectorsCompatible(queryVector, testVector);
@@ -306,12 +300,11 @@ public LinkedList<SearchResult> getAllAboveThreshold(float threshold) {
     Vector queryVector;
 
     public VectorSearcherBoundProduct(VectorStore queryVecStore, VectorStore boundVecStore,
-        VectorStore searchVecStore, LuceneUtils luceneUtils, String term1, String term2)
+        VectorStore searchVecStore, LuceneUtils luceneUtils, FlagConfig flagConfig, String term1, String term2)
             throws ZeroVectorException {
-      super(queryVecStore, searchVecStore, luceneUtils);
+      super(queryVecStore, searchVecStore, luceneUtils, flagConfig);
 
-      this.queryVector = CompoundVectorBuilder.getQueryVectorFromString(queryVecStore, null, term1);
-
+      this.queryVector = CompoundVectorBuilder.getQueryVectorFromString(queryVecStore, null, flagConfig, term1);
 
       queryVector.release(CompoundVectorBuilder.getBoundProductQueryVectorFromString(boundVecStore, term2));
 
@@ -321,9 +314,9 @@ public LinkedList<SearchResult> getAllAboveThreshold(float threshold) {
     }
 
     public VectorSearcherBoundProduct(VectorStore queryVecStore, VectorStore boundVecStore,
-        VectorStore searchVecStore, LuceneUtils luceneUtils, String term1)
+        VectorStore searchVecStore, LuceneUtils luceneUtils, FlagConfig flagConfig, String term1)
             throws ZeroVectorException {
-      super(queryVecStore, searchVecStore, luceneUtils);
+      super(queryVecStore, searchVecStore, luceneUtils, flagConfig);
 
       this.queryVector = CompoundVectorBuilder.getBoundProductQueryVectorFromString(queryVecStore, boundVecStore, term1);
 
@@ -333,9 +326,9 @@ public LinkedList<SearchResult> getAllAboveThreshold(float threshold) {
     }
 
     public VectorSearcherBoundProduct(VectorStore queryVecStore, VectorStore boundVecStore,
-            VectorStore searchVecStore, LuceneUtils luceneUtils, ArrayList<Vector> incomingVectors)
+            VectorStore searchVecStore, LuceneUtils luceneUtils, FlagConfig flagConfig, ArrayList<Vector> incomingVectors)
                 throws ZeroVectorException {
-          super(queryVecStore, searchVecStore, luceneUtils);
+          super(queryVecStore, searchVecStore, luceneUtils, flagConfig);
 
           Vector theSuperposition = VectorFactory.createZeroVector(queryVecStore.getVectorType(), queryVecStore.getDimension());
 
@@ -361,9 +354,10 @@ public LinkedList<SearchResult> getAllAboveThreshold(float threshold) {
     public VectorSearcherBoundProduct(VectorStore queryVecStore,
         VectorStore searchVecStore,
         LuceneUtils luceneUtils,
+        FlagConfig flagConfig,
         Vector queryVector)
             throws ZeroVectorException {
-      super(queryVecStore, searchVecStore, luceneUtils);
+      super(queryVecStore, searchVecStore, luceneUtils, flagConfig);
       this.queryVector = queryVector;
       Vector testVector = searchVecStore.getAllVectors().nextElement().getVector();
       IncompatibleVectorsException.checkVectorsCompatible(queryVector, testVector);
@@ -387,9 +381,9 @@ public LinkedList<SearchResult> getAllAboveThreshold(float threshold) {
     VectorType vectorType;
 
     public VectorSearcherBoundProductSubSpace(VectorStore queryVecStore, VectorStore boundVecStore,
-        VectorStore searchVecStore, LuceneUtils luceneUtils, String term1, String term2)
+        VectorStore searchVecStore, LuceneUtils luceneUtils, FlagConfig flagConfig, String term1, String term2)
             throws ZeroVectorException {
-      super(queryVecStore, searchVecStore, luceneUtils);
+      super(queryVecStore, searchVecStore, luceneUtils, flagConfig);
 
       disjunctSpace = new ArrayList<Vector>();
       vectorType = queryVecStore.getVectorType();
@@ -405,9 +399,9 @@ public LinkedList<SearchResult> getAllAboveThreshold(float threshold) {
     }
 
     public VectorSearcherBoundProductSubSpace(VectorStore queryVecStore, VectorStore boundVecStore,
-            VectorStore searchVecStore, LuceneUtils luceneUtils, String term1)
+            VectorStore searchVecStore, LuceneUtils luceneUtils, FlagConfig flagConfig, String term1)
                 throws ZeroVectorException {
-          super(queryVecStore, searchVecStore, luceneUtils);
+          super(queryVecStore, searchVecStore, luceneUtils, flagConfig);
 
           disjunctSpace = new ArrayList<Vector>();
           vectorType = queryVecStore.getVectorType();
@@ -418,9 +412,9 @@ public LinkedList<SearchResult> getAllAboveThreshold(float threshold) {
         }
 
     public VectorSearcherBoundProductSubSpace(VectorStore queryVecStore, VectorStore boundVecStore,
-            VectorStore searchVecStore, LuceneUtils luceneUtils, ArrayList<Vector> incomingDisjunctSpace)
+            VectorStore searchVecStore, LuceneUtils luceneUtils, FlagConfig flagConfig, ArrayList<Vector> incomingDisjunctSpace)
                 throws ZeroVectorException {
-          super(queryVecStore, searchVecStore, luceneUtils);
+          super(queryVecStore, searchVecStore, luceneUtils, flagConfig);
 
           this.disjunctSpace = incomingDisjunctSpace;
           vectorType = queryVecStore.getVectorType();
@@ -455,9 +449,10 @@ public LinkedList<SearchResult> getAllAboveThreshold(float threshold) {
     public VectorSearcherSubspaceSim(VectorStore queryVecStore,
         VectorStore searchVecStore,
         LuceneUtils luceneUtils,
+        FlagConfig flagConfig,
         String[] queryTerms)
             throws ZeroVectorException {
-      super(queryVecStore, searchVecStore, luceneUtils);
+      super(queryVecStore, searchVecStore, luceneUtils, flagConfig);
       this.disjunctSpace = new ArrayList<Vector>();
       this.vectorType = queryVecStore.getVectorType();
 
@@ -466,7 +461,7 @@ public LinkedList<SearchResult> getAllAboveThreshold(float threshold) {
         // There may be compound disjuncts, e.g., "A NOT B" as a single argument.
         String[] tmpTerms = queryTerms[i].split("\\s");
         Vector tmpVector = CompoundVectorBuilder.getQueryVector(
-            queryVecStore, luceneUtils, tmpTerms);
+            queryVecStore, luceneUtils, flagConfig, tmpTerms);
         if (tmpVector != null) {
           this.disjunctSpace.add(tmpVector);
         }
@@ -506,16 +501,17 @@ public LinkedList<SearchResult> getAllAboveThreshold(float threshold) {
     public VectorSearcherMaxSim(VectorStore queryVecStore,
         VectorStore searchVecStore,
         LuceneUtils luceneUtils,
+        FlagConfig flagConfig,
         String[] queryTerms)
             throws ZeroVectorException {
-      super(queryVecStore, searchVecStore, luceneUtils);
+      super(queryVecStore, searchVecStore, luceneUtils, flagConfig);
       this.disjunctVectors = new ArrayList<Vector>();
 
       for (int i = 0; i < queryTerms.length; ++i) {
         // There may be compound disjuncts, e.g., "A NOT B" as a single argument.
         String[] tmpTerms = queryTerms[i].split("\\s");
         Vector tmpVector = CompoundVectorBuilder.getQueryVector(
-            queryVecStore, luceneUtils, tmpTerms);
+            queryVecStore, luceneUtils, flagConfig, tmpTerms);
 
         if (tmpVector != null) {
           this.disjunctVectors.add(tmpVector);
@@ -535,9 +531,10 @@ public LinkedList<SearchResult> getAllAboveThreshold(float threshold) {
     public VectorSearcherMaxSim(VectorStore queryVecStore,
         VectorStore searchVecStore,
         LuceneUtils luceneUtils,
+        FlagConfig flagConfig,
         Vector[] queryTerms)
             throws ZeroVectorException {
-      super(queryVecStore, searchVecStore, luceneUtils);
+      super(queryVecStore, searchVecStore, luceneUtils, flagConfig);
       this.disjunctVectors = new ArrayList<Vector>();
 
       for (int i = 0; i < queryTerms.length; ++i) {
@@ -580,7 +577,7 @@ public LinkedList<SearchResult> getAllAboveThreshold(float threshold) {
    * Should find the term that appears frequently in the position p relative to the
    * index term (i.e. sat +1 would find a term occurring frequently immediately after "sat"
    */
-  static public class VectorSearcherPerm extends VectorSearcher {
+  public static class VectorSearcherPerm extends VectorSearcher {
     Vector theAvg;
 
     /**
@@ -593,13 +590,14 @@ public LinkedList<SearchResult> getAllAboveThreshold(float threshold) {
     public VectorSearcherPerm(VectorStore queryVecStore,
         VectorStore searchVecStore,
         LuceneUtils luceneUtils,
+        FlagConfig flagConfig,
         String[] queryTerms)
             throws IllegalArgumentException, ZeroVectorException {
-      super(queryVecStore, searchVecStore, luceneUtils);
+      super(queryVecStore, searchVecStore, luceneUtils, flagConfig);
 
       try {
         theAvg = pitt.search.semanticvectors.CompoundVectorBuilder.
-            getPermutedQueryVector(queryVecStore, luceneUtils, queryTerms);
+            getPermutedQueryVector(queryVecStore, luceneUtils, flagConfig, queryTerms);
       } catch (IllegalArgumentException e) {
         logger.info("Couldn't create permutation VectorSearcher ...");
         throw e;
@@ -628,11 +626,11 @@ public LinkedList<SearchResult> getAllAboveThreshold(float threshold) {
 
     public AnalogySearcher(
         VectorStore queryVecStore, VectorStore searchVecStore,
-        LuceneUtils luceneUtils, String[] queryTriple) {
-      super(queryVecStore, searchVecStore, luceneUtils);
-      Vector term0 = CompoundVectorBuilder.getQueryVectorFromString(queryVecStore, luceneUtils, queryTriple[0]);
-      Vector term1 = CompoundVectorBuilder.getQueryVectorFromString(queryVecStore, luceneUtils, queryTriple[1]);
-      Vector term2 = CompoundVectorBuilder.getQueryVectorFromString(queryVecStore, luceneUtils, queryTriple[2]);
+        LuceneUtils luceneUtils, FlagConfig flagConfig, String[] queryTriple) {
+      super(queryVecStore, searchVecStore, luceneUtils, flagConfig);
+      Vector term0 = CompoundVectorBuilder.getQueryVectorFromString(queryVecStore, luceneUtils, flagConfig, queryTriple[0]);
+      Vector term1 = CompoundVectorBuilder.getQueryVectorFromString(queryVecStore, luceneUtils, flagConfig, queryTriple[1]);
+      Vector term2 = CompoundVectorBuilder.getQueryVectorFromString(queryVecStore, luceneUtils, flagConfig, queryTriple[2]);
       Vector relationVec = term0.copy();
       relationVec.bind(term1);
       this.queryVector = term2.copy();
@@ -654,11 +652,15 @@ public LinkedList<SearchResult> getAllAboveThreshold(float threshold) {
    * permuted or random index vectors as the cue terms, by taking the mean of the results
    * obtained with each of these options.
    */
-  static public class BalancedVectorSearcherPerm extends VectorSearcher {
+   static public class BalancedVectorSearcherPerm extends VectorSearcher {
     Vector oneDirection;
     Vector otherDirection;
     VectorStore searchVecStore, queryVecStore;
-    LuceneUtils luceneUtils;
+    // These "special" fields are here to enable non-static construction of these
+    // static inherited classes. It suggests that the inheritance pattern for VectorSearcher
+    // needs to be reconsidered.
+    LuceneUtils specialLuceneUtils;
+    FlagConfig specialFlagConfig;
     String[] queryTerms;
 
     /**
@@ -668,19 +670,18 @@ public LinkedList<SearchResult> getAllAboveThreshold(float threshold) {
      * @param queryTerms Terms that will be parsed into a query
      * expression. If the string "?" appears, terms best fitting into this position will be returned
      */
-
-    public BalancedVectorSearcherPerm(VectorStore queryVecStore, VectorStore searchVecStore, LuceneUtils luceneUtils,   String[] queryTerms)
+    public BalancedVectorSearcherPerm(
+        VectorStore queryVecStore, VectorStore searchVecStore, LuceneUtils luceneUtils,
+        FlagConfig flagConfig, String[] queryTerms)
         throws IllegalArgumentException, ZeroVectorException {
-      super(queryVecStore, searchVecStore, luceneUtils);
-      this.queryVecStore = queryVecStore;
-      this.searchVecStore = searchVecStore;
-      this.luceneUtils = luceneUtils;
-
+      super(queryVecStore, searchVecStore, luceneUtils, flagConfig);
+      specialFlagConfig = flagConfig;
+      specialLuceneUtils = luceneUtils;
       try {
         oneDirection = pitt.search.semanticvectors.CompoundVectorBuilder.
-            getPermutedQueryVector(queryVecStore,luceneUtils,queryTerms);
+            getPermutedQueryVector(queryVecStore, luceneUtils, flagConfig, queryTerms);
         otherDirection = pitt.search.semanticvectors.CompoundVectorBuilder.
-            getPermutedQueryVector(searchVecStore,luceneUtils,queryTerms);
+            getPermutedQueryVector(searchVecStore, luceneUtils, flagConfig, queryTerms);
       } catch (IllegalArgumentException e) {
         logger.info("Couldn't create balanced permutation VectorSearcher ...");
         throw e;
@@ -692,7 +693,7 @@ public LinkedList<SearchResult> getAllAboveThreshold(float threshold) {
     }
 
     /**
-     * This overides the nearest neighbor class implemented in the abstract
+     * This overrides the nearest neighbor class implemented in the abstract
      * {@code VectorSearcher} class.
      *
      * WARNING: This implementation fails to respect flags used by the
@@ -704,10 +705,11 @@ public LinkedList<SearchResult> getAllAboveThreshold(float threshold) {
     public LinkedList<SearchResult> getNearestNeighbors(int numResults) {
       LinkedList<SearchResult> results = new LinkedList<SearchResult>();
       double score, score1, score2 = -1;
-      double threshold = Flags.searchresultsminscore;
-      if (Flags.stdev) threshold = 0;
+      double threshold = specialFlagConfig.getSearchresultsminscore();
+      if (specialFlagConfig.getStdev())
+        threshold = 0;
 
-      //Counters for statistics to calculate standard deviation
+      // Counters for statistics to calculate standard deviation
       double sum=0, sumsquared=0;
       int count=0;
 
@@ -726,11 +728,11 @@ public LinkedList<SearchResult> getAllAboveThreshold(float threshold) {
         // seems to be good at moving excessively common terms further
         // down the results. Note that using this means that scores
         // returned are no longer just cosine similarities.
-        if ((this.luceneUtils != null) && Flags.usetermweightsinsearch) {
-          score = score * luceneUtils.getGlobalTermWeightFromString((String) testElement.getObject());
+        if ((specialLuceneUtils != null) && specialFlagConfig.getUsetermweightsinsearch()) {
+          score = score * specialLuceneUtils.getGlobalTermWeightFromString((String) testElement.getObject());
         }
 
-        if (Flags.stdev) {
+        if (specialFlagConfig.getStdev()) {
           count++;
           sum += score;
           sumsquared += Math.pow(score, 2);
@@ -756,7 +758,7 @@ public LinkedList<SearchResult> getAllAboveThreshold(float threshold) {
           }
         }
       }
-      if (Flags.stdev) results = transformToStats(results, count, sum, sumsquared);
+      if (specialFlagConfig.getStdev()) results = transformToStats(results, count, sum, sumsquared);
       return results;
     }
 
@@ -777,7 +779,7 @@ public LinkedList<SearchResult> getAllAboveThreshold(float threshold) {
    *
    * @return list of results with scores as number of standard deviations from mean
    */
-  public static LinkedList<SearchResult> transformToStats(
+  public LinkedList<SearchResult> transformToStats(
       LinkedList<SearchResult> rawResults,int count, double sum, double sumsq) {
     LinkedList<SearchResult> transformedResults = new LinkedList<SearchResult>();
     double variancesquared = sumsq - (Math.pow(sum,2)/count);
@@ -789,7 +791,7 @@ public LinkedList<SearchResult> getAllAboveThreshold(float threshold) {
       SearchResult temp = iterator.next();
       double score = temp.getScore();
       score = new Double((score-mean)/stdev).floatValue();
-      if (score > Flags.searchresultsminscore)
+      if (score > flagConfig.getSearchresultsminscore())
         transformedResults.add(new SearchResult(score, temp.getObjectVector()));
     }
     return transformedResults;

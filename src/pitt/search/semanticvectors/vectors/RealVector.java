@@ -42,8 +42,6 @@ import java.util.logging.Logger;
 import org.apache.lucene.store.IndexInput;
 import org.apache.lucene.store.IndexOutput;
 
-import pitt.search.semanticvectors.Flags;
-
 /**
  * Real number implementation of Vector.
  * 
@@ -156,7 +154,7 @@ public class RealVector implements Vector {
      RealVector randomVector = new RealVector(dimension);
     
      //allow for dense random vectors, with each value initalized at random between -1 and 1
-     if (Flags.seedlength == Flags.dimension)
+     if (seedLength == dimension)
     	return generateDenseRandomVector(dimension, seedLength, random);
     
     boolean[] occupiedPositions = new boolean[dimension];

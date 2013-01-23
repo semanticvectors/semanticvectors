@@ -83,10 +83,10 @@ public class ClusterResults {
    * @return Integer array parallel to objectVectors saying which
    * cluster each vector belongs to.
    */
-  public static Clusters kMeansCluster (ObjectVector[] objectVectors, int numClusters) {
+  public static Clusters kMeansCluster (ObjectVector[] objectVectors, FlagConfig flagConfig) {
     Clusters clusters = new Clusters();
     clusters.clusterMappings = new int[objectVectors.length];
-    clusters.centroids = new Vector[numClusters];
+    clusters.centroids = new Vector[flagConfig.getNumclusters()];
     Random rand = new Random();
 
     logger.info("Initializing clusters ...");
@@ -98,7 +98,7 @@ public class ClusterResults {
         //fix strange result where abs(MIN_VALUE) returns a negative number
         randInt = rand.nextInt();
       }
-      clusters.clusterMappings[i] = Math.abs(randInt) % numClusters;
+      clusters.clusterMappings[i] = Math.abs(randInt) % flagConfig.getNumclusters();
     }
 
     logger.info("Iterating k-means assignment ...");
@@ -107,13 +107,13 @@ public class ClusterResults {
     while (true) {
       // Clear centroid register.
       for (int i = 0; i < clusters.centroids.length; ++i) {
-        clusters.centroids[i] = VectorFactory.createZeroVector(Flags.vectortype, Flags.dimension); 
+        clusters.centroids[i] = VectorFactory.createZeroVector(flagConfig.getVectortype(), flagConfig.getDimension()); 
       }
       // Generate new cluster centroids.
       for (int i = 0; i < objectVectors.length; ++i) {
         clusters.centroids[clusters.clusterMappings[i]].superpose(objectVectors[i].getVector(), 1, null);
       }
-      for (int i = 0; i < numClusters; ++i) {
+      for (int i = 0; i < flagConfig.getNumclusters(); ++i) {
         clusters.centroids[i].normalize();
       }
 
@@ -147,14 +147,13 @@ public class ClusterResults {
   /**
    * Utility method that writes cluster centroids to a file called "cluster_centroids.bin".
    */
-  public static void writeCentroidsToFile(Clusters clusters) {
-    VectorStoreRAM centroidsOutput = new VectorStoreRAM(
-        VectorType.valueOf(Flags.vectortype.toUpperCase()), Flags.dimension);
+  public static void writeCentroidsToFile(Clusters clusters, FlagConfig flagConfig) {
+    VectorStoreRAM centroidsOutput = new VectorStoreRAM(flagConfig);
     for (int i = 0; i < clusters.centroids.length; ++i) {
       centroidsOutput.putVector(Integer.toString(i), clusters.centroids[i]);
     }
     try {
-      VectorStoreWriter.writeVectors("cluster_centroids.bin", centroidsOutput);
+      VectorStoreWriter.writeVectors("cluster_centroids.bin", flagConfig, centroidsOutput);
     } catch (IOException e) {
       e.printStackTrace();
     }
@@ -167,12 +166,13 @@ public class ClusterResults {
    * @see ClusterResults#usage
    */
   public static void main (String[] args) throws IllegalArgumentException {
-    args = Flags.parseCommandLineFlags(args);
+    FlagConfig flagConfig = FlagConfig.getFlagConfig(args);
+    args = flagConfig.remainingArgs;
 
     // Get search results, perform clustering, and print out results.		
-    ObjectVector[] resultsVectors = Search.getSearchResultVectors(args, Flags.numsearchresults);
-    Clusters clusters = kMeansCluster(resultsVectors, Flags.numclusters);
-    for (int i = 0; i < Flags.numclusters; ++i) {
+    ObjectVector[] resultsVectors = Search.getSearchResultVectors(flagConfig, args, flagConfig.getNumsearchresults());
+    Clusters clusters = kMeansCluster(resultsVectors, flagConfig);
+    for (int i = 0; i < flagConfig.getNumclusters(); ++i) {
       System.out.println("Cluster " + i);
       for (int j = 0; j < clusters.clusterMappings.length; ++j) {
         if (clusters.clusterMappings[j] == i) {
@@ -182,6 +182,6 @@ public class ClusterResults {
       System.out.println();
     }
 
-    writeCentroidsToFile(clusters);
+    writeCentroidsToFile(clusters, flagConfig);
   }
 }

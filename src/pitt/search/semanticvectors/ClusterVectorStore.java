@@ -39,6 +39,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.logging.Logger;
 
@@ -52,6 +53,12 @@ import java.util.logging.Logger;
 public class ClusterVectorStore {
   private static final Logger logger = Logger.getLogger(
       ClusterVectorStore.class.getCanonicalName());
+
+  /**
+   * Number of clustering runs used for overlap measure to mitigate skewed results from
+   * random initialization.
+   */
+  public static final int numRunsForOverlap = 1000;
 
   /**
    * Prints the following usage message:
@@ -68,15 +75,6 @@ public class ClusterVectorStore {
     message += "\nDo not try this for large vector stores, it will not scale well!";
     System.out.println(message);
     return;
-  }
-
-  /**
-   * Small utility for work with the Bible.
-   * Assumes input like "bible_chapters/Matthew/Chapter_9".
-   */
-  private static String getBookFromPath(String path) {
-    // Change this delimiter on other operating systems.
-    return (new File(path)).getParent();
   }
 
   private static int getMaxValue(int[] values) {
@@ -106,11 +104,11 @@ public class ClusterVectorStore {
   /**
    * Measures the overlap between clusters; configured for the KJB corpus and not very general.
    */
-  public static void clusterOverlapMeasure(int[] clusterIDs, ObjectVector[] vectors) {
+  public static Hashtable<String, int[]> clusterOverlapMeasure(int[] clusterIDs, ObjectVector[] vectors) {
     String[] names = new String[vectors.length];
     Hashtable<String, int[]> internalResults = new Hashtable<String, int[]>();
     for (int i = 0; i < vectors.length; ++i) {
-      names[i] = getBookFromPath(vectors[i].getObject().toString());
+      names[i] = (new File(vectors[i].getObject().toString())).getParent();
       int[] matchAndTotal = {0, 0};
       internalResults.put(names[i], matchAndTotal);
     }
@@ -133,10 +131,20 @@ public class ClusterVectorStore {
         }
       }
     }
-    for (Enumeration<String> keys = internalResults.keys(); keys.hasMoreElements();) {
-      String key = keys.nextElement(); 
-      int[] matchAndTotal = internalResults.get(key);
-      System.out.println(key + "\t" + (float) matchAndTotal[0] / (float) matchAndTotal[1]);
+    return internalResults;
+  }
+
+  /**
+   * Adds the totals of newTable into mainTable. Presumes keys are identical.
+   */
+  private static void mergeTables(
+      Hashtable<String, int[]> newTable, Hashtable<String, int[]> mainTable) {
+    for (String key : mainTable.keySet()) {
+      int[] values = mainTable.get(key);
+      int[] newValues = newTable.get(key);
+      for (int i = 0; i < mainTable.get(key).length; ++i) {
+        values[i] += newValues[i];
+      }
     }
   }
 
@@ -145,7 +153,8 @@ public class ClusterVectorStore {
    * text format) as arguments and prints out clusters.
    */
   public static void main(String[] args) throws IllegalArgumentException {
-    args = Flags.parseCommandLineFlags(args);
+    FlagConfig flagConfig = FlagConfig.getFlagConfig(args);
+    args = flagConfig.remainingArgs;
     if (args.length != 1) {
       System.out.println("Wrong number of arguments.");
       usage();
@@ -154,44 +163,60 @@ public class ClusterVectorStore {
 
     CloseableVectorStore vecReader;
     try {
-      vecReader = VectorStoreReader.openVectorStore(args[0]);
+      vecReader = VectorStoreReader.openVectorStore(args[0], flagConfig);
     } catch (IOException e) {
       System.out.println("Failed to open vector store from file: '" + args[0] + "'");
       logger.info(e.getMessage());
       throw new IllegalArgumentException("Failed to parse arguments for ClusterVectorStore");
     }
 
-    // Figure out how many vectors we need.
-    logger.info("Counting vectors in store ...");
-    int numVectors = vecReader.getNumVectors();
-
     // Allocate vector memory and read vectors from store.
     logger.info("Reading vectors into memory ...");
+    int numVectors = vecReader.getNumVectors();
     ObjectVector[] resultsVectors = new ObjectVector[numVectors];
     Enumeration<ObjectVector> vecEnum = vecReader.getAllVectors();
     int offset = 0;
     while (vecEnum.hasMoreElements()) {
       resultsVectors[offset] = vecEnum.nextElement();
-      // VectorUtils.printVector(resultsVectors[offset].getVector());
       ++offset;
     }
     vecReader.close();
 
-    // Perform clustering and print out results.
-    logger.info("Clustering vectors ...");
-    ClusterResults.Clusters clusters = ClusterResults.kMeansCluster(resultsVectors, Flags.numclusters);
-    for (int i = 0; i < Flags.numclusters; ++i) {
-      System.out.println("Cluster " + i);
-      for (int j = 0; j < clusters.clusterMappings.length; ++j) {
-        if (clusters.clusterMappings[j] == i) {
-          System.out.println(resultsVectors[j].getObject());
+    Hashtable<String, int[]> mainOverlapResults = null;
+    
+    for (int runNumber = 0; runNumber < numRunsForOverlap; ++runNumber) {
+      // Perform clustering and print out results.
+      logger.info("Clustering vectors ...");
+      ClusterResults.Clusters clusters = ClusterResults.kMeansCluster(resultsVectors, flagConfig);
+      
+      /*
+      for (int i = 0; i < Flags.numclusters; ++i) {
+        System.out.println("Cluster " + i);
+        for (int j = 0; j < clusters.clusterMappings.length; ++j) {
+          if (clusters.clusterMappings[j] == i) {
+            System.out.println(resultsVectors[j].getObject());
+          }
         }
+        System.out.println("\n*********\n");
       }
-      System.out.println("\n*********\n");
+  */
+
+      //ClusterResults.writeCentroidsToFile(clusters);
+
+      Hashtable<String, int[]> newOverlapResults = clusterOverlapMeasure(
+          clusters.clusterMappings, resultsVectors);
+      
+      if (mainOverlapResults == null) {
+        mainOverlapResults = newOverlapResults;
+      } else {
+        mergeTables(newOverlapResults, mainOverlapResults);
+      }
     }
-
-    //ClusterResults.writeCentroidsToFile(clusters);
-
-    clusterOverlapMeasure(clusters.clusterMappings, resultsVectors);
+    
+    for (Enumeration<String> keys = mainOverlapResults.keys(); keys.hasMoreElements();) {
+      String key = keys.nextElement(); 
+      int[] matchAndTotal = mainOverlapResults.get(key);
+      System.out.println(key + "\t" + (float) matchAndTotal[0] / (float) matchAndTotal[1]);
+    }
   }
 }

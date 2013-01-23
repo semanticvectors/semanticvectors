@@ -88,6 +88,7 @@ public class CompoundVectorBuilder {
    */
   public static Vector getPermutedQueryVector(VectorStore vecReader,
       LuceneUtils lUtils,
+      FlagConfig flagConfig,
       String[] queryTerms) throws IllegalArgumentException {
 
     // Check basic invariant that there must be one and only one "?" in input.
@@ -329,9 +330,9 @@ public class CompoundVectorBuilder {
    * space-separated list of queryterms.
    */
   public static Vector getQueryVectorFromString(
-      VectorStore vecReader, LuceneUtils lUtils, String queryString) {
+      VectorStore vecReader, LuceneUtils lUtils, FlagConfig flagConfig, String queryString) {
     String[] queryTerms = queryString.split("\\s");
-    return getQueryVector(vecReader, lUtils, queryTerms);
+    return getQueryVector(vecReader, lUtils, flagConfig, queryTerms);
   }
 
   /**
@@ -343,18 +344,20 @@ public class CompoundVectorBuilder {
    * 
    * @param vecReader The vector store reader to use.
    * @param lUtils Lucene utilities for getting term weights.
+   * @param flagConfig FlagConfig containing any other configuration information,
+   *    including vectorlookupsyntax and suppressnegatedqueries.
    * @param queryTerms Query expression, e.g., from command line.  If
    *        the term NOT appears in queryTerms, terms after that will
    *        be negated.
    * @return queryVector, a vector representing the user's query.
    */
   public static Vector getQueryVector(
-      VectorStore vecReader, LuceneUtils lUtils, String[] queryTerms) {
+      VectorStore vecReader, LuceneUtils lUtils, FlagConfig flagConfig, String[] queryTerms) {
     CompoundVectorBuilder builder = new CompoundVectorBuilder(vecReader, lUtils);
     Vector returnVector = VectorFactory.createZeroVector(
         vecReader.getVectorType(), vecReader.getDimension());
     // Check through args to see if we need to do negation.
-    if (!Flags.suppressnegatedqueries) {
+    if (!flagConfig.getSuppressnegatedqueries()) {
       for (int i = 0; i < queryTerms.length; ++i) {
         if (queryTerms[i].equalsIgnoreCase(NEGATION_TOKEN)) {
           // If, so build negated query and return.
@@ -362,8 +365,8 @@ public class CompoundVectorBuilder {
         }
       }
     }
-    if (Flags.vectorlookupsyntax.equals("regex")) {
-      returnVector = builder.getAdditiveQueryVectorRegex(queryTerms);
+    if (flagConfig.getVectorlookupsyntax().equals("regex")) {
+      returnVector = builder.getAdditiveQueryVectorRegex(flagConfig, queryTerms);
     } else {
       returnVector = builder.getAdditiveQueryVector(queryTerms);
     }
@@ -405,10 +408,11 @@ public class CompoundVectorBuilder {
    * adding together all vectors retrieved from vector store whose
    * objects match a particular regular expression.
    * 
+   * @param flagConfig Used for (at least) vector type and dimension.
    * @param queryTerms String array of query terms to look up.
    */
-  protected Vector getAdditiveQueryVectorRegex (String[] queryTerms) {
-    Vector queryVec = VectorFactory.createZeroVector(Flags.vectortype, Flags.dimension);
+  protected Vector getAdditiveQueryVectorRegex (FlagConfig flagConfig, String[] queryTerms) {
+    Vector queryVec = VectorFactory.createZeroVector(flagConfig.getVectortype(), flagConfig.getDimension());
     float weight = 1;
 
     for (int j = 0; j < queryTerms.length; ++j) {
