@@ -1,7 +1,7 @@
 package qut.beagle;
 
 import pitt.search.semanticvectors.CloseableVectorStore;
-import pitt.search.semanticvectors.Flags;
+import pitt.search.semanticvectors.FlagConfig;
 import pitt.search.semanticvectors.LuceneUtils;
 import pitt.search.semanticvectors.ObjectVector;
 import pitt.search.semanticvectors.SearchResult;
@@ -16,7 +16,7 @@ import java.util.LinkedList;
 public class BeagleTest
 {
 	// Method for querying a BeagleNGramVectors store.
-	public void testQuery( String searchfile, String indexfile, String query )
+	public void testQuery(FlagConfig flagConfig, String searchfile, String indexfile, String query )
 	{
 		VectorSearcher vs;
 		LuceneUtils lUtils = null;
@@ -29,15 +29,15 @@ public class BeagleTest
 
 		try
 		{
-			queryVecReader = VectorStoreReader.openVectorStore(indexfile);
-			searchVecReader = VectorStoreReader.openVectorStore(searchfile);
+			queryVecReader = VectorStoreReader.openVectorStore(indexfile, flagConfig);
+			searchVecReader = VectorStoreReader.openVectorStore(searchfile, flagConfig);
 
-			BeagleCompoundVecBuilder bcb = new BeagleCompoundVecBuilder ();
+			//BeagleCompoundVecBuilder bcb = new BeagleCompoundVecBuilder ();
 
 			String[] queryTerms = query.split(" ");
 
 			// Create VectorSearcher and search for nearest neighbors.
-			vs = new BeagleVectorSearcher( queryVecReader, searchVecReader, lUtils, queryTerms);
+			vs = new BeagleVectorSearcher( queryVecReader, searchVecReader, lUtils, flagConfig, queryTerms);
 			System.err.print("Searching term vectors, searchtype BEAGLE ... ");
 			queryVecReader.close();
 			searchVecReader.close();
@@ -64,9 +64,8 @@ public class BeagleTest
 	}
 
 	// Method for generating a BeagleNGramVectors store.
-	public void createNGrams( String fileOut, int vecLength, int numGrams )
+	public void createNGrams(String fileOut, FlagConfig flagConfig, int numGrams )
 	{
-		VectorStoreWriter vecWriter;
 		BeagleNGramVectors bngv;
 		BeagleUtils utils = BeagleUtils.getInstance();
 
@@ -74,23 +73,22 @@ public class BeagleTest
 
 		try
 		{
-			Flags.dimension = vecLength;
-
 			time = System.currentTimeMillis();
 
-			bngv = new BeagleNGramVectors( "index", 5, 2, new String[] {"contents"}, numGrams, "stoplist.txt" );
+			bngv = new BeagleNGramVectors(
+			    flagConfig, "index", 5, 2, new String[] {"contents"}, numGrams, "stoplist.txt");
 
 			time = System.currentTimeMillis() - time;
 
 			System.out.println("\nTime to process: " + time/1000 + " secs.");
 			System.out.println("\nNumber of convolutions: " + utils.getNumConvolutions());
 
-			vecWriter = new VectorStoreWriter();
-			vecWriter.writeVectors(fileOut + "_" + vecLength + "_" + numGrams + ".bin", bngv);
+			VectorStoreWriter.writeVectors(
+			    fileOut + "_" + flagConfig.getDimension() + "_" + numGrams + ".bin", flagConfig, bngv);
 
 			VectorStore indexVectors = bngv.getIndexVectors();
-			vecWriter = new VectorStoreWriter();
-			vecWriter.writeVectors( fileOut + "_" + vecLength + "_" + numGrams + "_index.bin", indexVectors);
+			VectorStoreWriter.writeVectors(
+			    fileOut + "_" + flagConfig.getDimension() + "_" + numGrams + "_index.bin", flagConfig, indexVectors);
 
 			bngv = null;
 			System.gc();
@@ -107,11 +105,13 @@ public class BeagleTest
 	public static void main(String[] args)
 	{
 		BeagleTest bt = new BeagleTest();
+	  FlagConfig flagConfig = FlagConfig.getFlagConfig(
+	      new String[] {"-vectortype", "real", "-dimension", "512"});
 
 		// Some example method calls
-		bt.createNGrams( "KJB", 512, 3 );
+		bt.createNGrams("KJB", flagConfig, 3 );
 
-		bt.testQuery( "KJB_512_3.bin", "KJB_512_3_index.bin", "king ?" );
+		bt.testQuery(flagConfig, "KJB_512_3.bin", "KJB_512_3_index.bin", "king ?" );
 	}
 
 }

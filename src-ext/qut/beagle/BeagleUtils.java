@@ -37,7 +37,7 @@ package qut.beagle;
 
 import java.util.ArrayList;
 
-import pitt.search.semanticvectors.Flags;
+import pitt.search.semanticvectors.FlagConfig;
 
 import cern.colt.matrix.tfcomplex.impl.DenseFComplexMatrix1D;
 import cern.colt.matrix.tfloat.impl.DenseFloatMatrix1D;
@@ -138,11 +138,10 @@ public class BeagleUtils
 		}
 	}
 
-	public DenseFloatMatrix1D generateColtRandomVector()
+	public DenseFloatMatrix1D generateColtRandomVector(int dimension)
 	{
-		DenseFloatMatrix1D vec = new DenseFloatMatrix1D( Flags.dimension);
+		DenseFloatMatrix1D vec = new DenseFloatMatrix1D(dimension);
 
-		this.mu = mu; this.sigma = sigma;
 		normal.setState( mu, sigma );
 		for (int i=0; i<vec.size(); i++)
 		{
@@ -152,9 +151,9 @@ public class BeagleUtils
 		return vec;
 	}
 
-	public float[] generateNormalizedRandomVector()
+	public float[] generateNormalizedRandomVector(int dimension)
 	{
-		float[] vec = new float[Flags.dimension];
+		float[] vec = new float[dimension];
 
 		for (int i=0; i<vec.length; i++)
 		{
