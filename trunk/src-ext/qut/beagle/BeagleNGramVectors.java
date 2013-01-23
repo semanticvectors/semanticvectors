@@ -51,7 +51,7 @@ import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.util.ReaderUtil;
 import org.apache.lucene.util.Version;
 
-import pitt.search.semanticvectors.Flags;
+import pitt.search.semanticvectors.FlagConfig;
 import pitt.search.semanticvectors.ObjectVector;
 import pitt.search.semanticvectors.VectorStore;
 import pitt.search.semanticvectors.VectorStoreRAM;
@@ -76,11 +76,13 @@ import cern.colt.matrix.tfloat.impl.DenseFloatMatrix1D;
  * @author Lance De Vine
  */
 public class BeagleNGramVectors implements VectorStore {
+  private FlagConfig flagConfig;
   private VectorStoreRAM termVectors;
   private VectorStoreRAM indexVectors;
   private IndexReader indexReader;
   private String[] fieldsToIndex;
   
+  // TODO: Get these parameters from flagConfig.
   // The minimum required frequency of a term for it to be considered as a focus
   // term when constructing term vectors.
   private int minFreqTerm;
@@ -125,11 +127,11 @@ public class BeagleNGramVectors implements VectorStore {
    * @param fieldsToIndex These fields will be indexed. If null, all fields will be indexed.
    * @param numGrams The max number of terms in generated ngrams.
    */
-  public BeagleNGramVectors(String indexDir, int minFreqTerm, int minFreqIndex,
+  public BeagleNGramVectors(FlagConfig flagConfig, String indexDir, int minFreqTerm, int minFreqIndex,
                             String[] fieldsToIndex, int numGrams, String stopwords )
       throws IOException, RuntimeException
   {
-
+    this.flagConfig = flagConfig;
     this.minFreqTerm = minFreqTerm;
     this.minFreqIndex = minFreqIndex;
     this.fieldsToIndex = fieldsToIndex;
@@ -139,7 +141,7 @@ public class BeagleNGramVectors implements VectorStore {
     // Get Beagle Utils and set fft cache size
     utils = BeagleUtils.getInstance();
 
-    ngBuilder = BeagleNGramBuilder.getInstance();
+    ngBuilder = BeagleNGramBuilder.getInstance(flagConfig);
     ngBuilder.initialise();
     ngBuilder.setFFTCacheSize(FFTCacheSize);
 
@@ -170,8 +172,8 @@ public class BeagleNGramVectors implements VectorStore {
           + "\nTry rebuilding Lucene index using pitt.search.lucene.IndexFilePositions");
     }
 
-    this.indexVectors = new VectorStoreRAM(VectorType.REAL, Flags.dimension);
-    this.termVectors = new VectorStoreRAM(VectorType.REAL, Flags.dimension);
+    this.indexVectors = new VectorStoreRAM(flagConfig);
+    this.termVectors = new VectorStoreRAM(flagConfig);
 
     // Iterate through an enumeration of terms and create term vectors.
     System.out.println("Creating term vectors ...");
@@ -185,14 +187,14 @@ public class BeagleNGramVectors implements VectorStore {
 
       // Create random index vectors for terms that pass filter
       if (iFilter.filter(term)) {
-        float[] indexVector =  utils.generateNormalizedRandomVector();
+        float[] indexVector =  utils.generateNormalizedRandomVector(flagConfig.getDimension());
         this.indexVectors.putVector(term.text(), new RealVector(indexVector));
       }
 
       // Create zero term vectors for terms that pass filter
       if (tFilter.filter(term))
       {
-        float[] termVector = new float[Flags.dimension];
+        float[] termVector = new float[flagConfig.getDimension()];
         this.termVectors.putVector(term.text(), new RealVector(termVector));
       }
     }
@@ -262,7 +264,7 @@ public class BeagleNGramVectors implements VectorStore {
           // Create local term vectors
           if (this.termVectors.getVector(docterms[tcn]) != null) {
             /** retrieve the relevant term vectors**/
-            localtermvectors[tcn] = utils.createZeroVector( Flags.dimension );
+            localtermvectors[tcn] = utils.createZeroVector(flagConfig.getDimension());
           }
         }
 
@@ -391,7 +393,7 @@ public class BeagleNGramVectors implements VectorStore {
   }
 
   public int getDimension() {
-    return Flags.dimension;
+    return flagConfig.getDimension();
   }
   
   @Override

@@ -110,11 +110,11 @@ public class PrincipalComponents {
    */
   public static void main (String[] args) throws ZeroVectorException {
     // Stage i. Assemble command line options.
-    args = Flags.parseCommandLineFlags(args);
+    FlagConfig flagConfig = FlagConfig.getFlagConfig(args);
+    args = flagConfig.remainingArgs;
 
     // Get search results, perform clustering, and print out results.
-    ObjectVector[] resultsVectors = Search.getSearchResultVectors(
-        args, Flags.numsearchresults);
+    ObjectVector[] resultsVectors = Search.getSearchResultVectors(flagConfig, args, flagConfig.getNumsearchresults());
     PrincipalComponents pcs = new PrincipalComponents(resultsVectors);
     pcs.plotVectors();
   }

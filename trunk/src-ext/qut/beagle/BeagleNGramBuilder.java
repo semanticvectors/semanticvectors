@@ -37,7 +37,7 @@ package qut.beagle;
 
 import java.util.ArrayList;
 
-import pitt.search.semanticvectors.Flags;
+import pitt.search.semanticvectors.FlagConfig;
 
 import cern.colt.matrix.tfloat.impl.DenseFloatMatrix1D;
 import cern.jet.random.tdouble.Normal;
@@ -63,7 +63,7 @@ import cern.jet.random.tdouble.engine.DoubleMersenneTwister;
  */
 public class BeagleNGramBuilder
 {
-
+  private FlagConfig flagConfig;
 	private static BeagleNGramBuilder instance = null;
 	private BeagleUtils utils;
 
@@ -79,20 +79,24 @@ public class BeagleNGramBuilder
 	private ArrayList<DenseFloatMatrix1D> ngrams4 = new ArrayList<DenseFloatMatrix1D>();
 
 
-	protected BeagleNGramBuilder()
+	protected BeagleNGramBuilder(FlagConfig flagConfig)
 	{
+	  this.flagConfig = flagConfig;
 		utils = BeagleUtils.getInstance();
-		utils.setNormal( 0.0f, (float)(Math.sqrt(1.0/(double)Flags.dimension)));
+		utils.setNormal( 0.0f, (float)(Math.sqrt(1.0/(double)flagConfig.getDimension())));
 
-		phi = utils.generateColtRandomVector();
-		Permute1 = utils.makeScrambledIntArray(Flags.dimension);
-		Permute2 = utils.makeScrambledIntArray(Flags.dimension);
+		phi = utils.generateColtRandomVector(flagConfig.getDimension());
+		Permute1 = utils.makeScrambledIntArray(flagConfig.getDimension());
+		Permute2 = utils.makeScrambledIntArray(flagConfig.getDimension());
 	}
 
-	public static BeagleNGramBuilder getInstance()
+	public static BeagleNGramBuilder getInstance(FlagConfig flagConfig)
 	{
       if(instance == null) {
-         instance = new BeagleNGramBuilder();
+         instance = new BeagleNGramBuilder(flagConfig);
+      } else if (instance.flagConfig != flagConfig) {
+        throw new IllegalArgumentException(
+            "Trying to create instances with two different FlagConfig objects. This is not supported.");
       }
       return instance;
 	}
