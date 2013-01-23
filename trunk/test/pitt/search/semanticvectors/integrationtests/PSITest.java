@@ -52,13 +52,13 @@ import static org.junit.Assert.*;
 public class PSITest {
   @Before
   public void setUp() {
-   assertTrue(RunTests.prepareTestData());
+    assertTrue(RunTests.prepareTestData());
   }
 
   @Test
   public void testBuildAndSearchPSIIndex() throws IOException, IllegalArgumentException, Exception {
     // binary edition
-    String buildCmd = "-dimension 1000 -maxnonalphabetchars 20 -vectortype binary predication_index";
+    String buildCmd = "-dimension 1000 -maxnonalphabetchars 20 -vectortype binary -luceneindexpath predication_index";
     String[] filesToBuild = new String[] {"elementalvectors.bin", "predicatevectors.bin", "semanticvectors.bin"};
     String[] buildArgs = buildCmd.split("\\s+");
     for (String fn : filesToBuild) {
@@ -89,10 +89,10 @@ public class PSITest {
       System.err.println("Deleting file: " + fn);
       assertTrue("Failed to delete file: " + fn, (new File(fn)).delete());
     }
-    
+
     // complex edition
-    buildCmd = "-dimension 1000 -maxnonalphabetchars 20 -vectortype complex -seedlength 1000 predication_index";
-   buildArgs = buildCmd.split("\\s+");
+    buildCmd = "-dimension 1000 -maxnonalphabetchars 20 -vectortype complex -seedlength 1000 -luceneindexpath predication_index";
+    buildArgs = buildCmd.split("\\s+");
     for (String fn : filesToBuild) {
       if (new File(fn).isFile()) {
         new File(fn).delete();
@@ -118,6 +118,6 @@ public class PSITest {
     assertTrue(rank < 2);
 
     for (String fn: filesToBuild) assertTrue((new File(fn)).delete());
-    
+
   }
 }
