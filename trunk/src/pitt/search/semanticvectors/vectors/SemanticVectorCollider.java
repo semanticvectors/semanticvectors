@@ -44,16 +44,17 @@ public class SemanticVectorCollider {
 			
 		
 		Vector originalVector = VectorFactory.generateRandomVector(
-		    VectorType.valueOf(flagConfig.getVectortype().toUpperCase()), flagConfig.getDimension(), flagConfig.getSeedlength(), random);
+		    flagConfig.getVectortype(), flagConfig.getDimension(), flagConfig.getSeedlength(), random);
 		
-		Vector superPosition = VectorFactory.createZeroVector(VectorType.valueOf(flagConfig.getVectortype().toUpperCase()), flagConfig.getDimension());
+		Vector superPosition = VectorFactory.createZeroVector(flagConfig.getVectortype(), flagConfig.getDimension());
 		
 		superPosition.superpose(originalVector, 1, null);
-		if (flagConfig.getVectortype().equalsIgnoreCase("binary"))
-		{ superPosition.normalize(); 	}
+		if (flagConfig.getVectortype() == VectorType.BINARY) {
+		  superPosition.normalize();
+		}
 		
 		Vector additionalVector = VectorFactory.generateRandomVector(
-        VectorType.valueOf(flagConfig.getVectortype().toUpperCase()), flagConfig.getDimension(), flagConfig.getSeedlength(), random);
+        flagConfig.getVectortype(), flagConfig.getDimension(), flagConfig.getSeedlength(), random);
 		
 		for (int x =0; x < superpositions; x++)
 		{
@@ -64,7 +65,7 @@ public class SemanticVectorCollider {
 		
 			//generate another random vector
 			Vector randomVector = VectorFactory.generateRandomVector(
-	        VectorType.valueOf(flagConfig.getVectortype().toUpperCase()), flagConfig.getDimension(), flagConfig.getSeedlength(), random);
+	        flagConfig.getVectortype(), flagConfig.getDimension(), flagConfig.getSeedlength(), random);
 			double overlapWithRandom = superPosition.measureOverlap(randomVector); 
 			
 			
@@ -88,15 +89,13 @@ public class SemanticVectorCollider {
 			}
 			
 			additionalVector = VectorFactory.generateRandomVector(
-	        VectorType.valueOf(flagConfig.getVectortype().toUpperCase()), flagConfig.getDimension(), flagConfig.getSeedlength(), random);
+			    flagConfig.getVectortype(), flagConfig.getDimension(), flagConfig.getSeedlength(), random);
 			
 			superPosition.superpose(additionalVector, 1, null);
 			
-			if (flagConfig.getVectortype().equalsIgnoreCase("binary"))
-			{ superPosition.normalize(); 	}
-			
-		
-			
+			if (flagConfig.getVectortype() == VectorType.BINARY) {
+			  superPosition.normalize();
+			}
 		}
 		
 		}

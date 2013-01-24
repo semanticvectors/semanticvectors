@@ -39,6 +39,8 @@ import junit.framework.TestCase;
 
 import org.junit.*;
 
+import pitt.search.semanticvectors.vectors.VectorType;
+
 public class FlagConfigTest extends TestCase {
 
   @Test
@@ -65,12 +67,24 @@ public class FlagConfigTest extends TestCase {
   }
 
   @Test
+  public void testParseEnumFlag() {
+    FlagConfig config = FlagConfig.getFlagConfig(new String[] {"-vectortype", "complex" });
+    assertEquals(VectorType.COMPLEX, config.getVectortype());
+    
+    try {
+      FlagConfig.getFlagConfig(new String[] {"-vectortype", "banana" });
+      fail();
+    } catch (IllegalArgumentException e) {
+      System.out.println(e.getMessage());
+    }
+  }
+  
+  @Test
   public void testParseFlagsFromString() {    
     FlagConfig flagConfig = FlagConfig.parseFlagsFromString("-vectortype complex -dimension 2");
     assertEquals(2, flagConfig.getDimension());
-    assertEquals("complex", flagConfig.getVectortype());
+    assertEquals(VectorType.COMPLEX, flagConfig.getVectortype());
   }
-
 
   @Test
   public void testParseStringListFlag() {

@@ -128,7 +128,7 @@ public class VectorStoreReaderLucene implements CloseableVectorStore {
     String header = threadLocalIndexInput.get().readString();
     FlagConfig.mergeWriteableFlagsFromString(header, flagConfig);
     this.dimension = flagConfig.getDimension();
-    this.vectorType = VectorType.valueOf(flagConfig.getVectortype().toUpperCase());
+    this.vectorType = flagConfig.getVectortype();
   }
 
   public void close() {

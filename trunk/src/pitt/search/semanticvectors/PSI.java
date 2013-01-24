@@ -108,9 +108,9 @@ public class PSI {
         if (!addedConcepts.contains(term.text())) {
           addedConcepts.add(term.text());
           Vector semanticVector = VectorFactory.createZeroVector(
-              VectorType.valueOf(flagConfig.getVectortype().toUpperCase()), flagConfig.getDimension());
+              flagConfig.getVectortype(), flagConfig.getDimension());
           Vector elementalVector = VectorFactory.generateRandomVector(
-              VectorType.valueOf(flagConfig.getVectortype().toUpperCase()), flagConfig.getDimension(),
+              flagConfig.getVectortype(), flagConfig.getDimension(),
               flagConfig.getSeedlength(), random);
 
           semanticVectors.putVector(term.text(), semanticVector);
@@ -127,10 +127,10 @@ public class PSI {
         }
 
         Vector elementalVector = VectorFactory.generateRandomVector(
-            VectorType.valueOf(flagConfig.getVectortype().toUpperCase()), flagConfig.getDimension(),
+            flagConfig.getVectortype(), flagConfig.getDimension(),
             flagConfig.getSeedlength(), random);
         Vector inverseElementalVector = VectorFactory.generateRandomVector(
-            VectorType.valueOf(flagConfig.getVectortype().toUpperCase()), flagConfig.getDimension(),
+            flagConfig.getVectortype(), flagConfig.getDimension(),
             flagConfig.getSeedlength(), random);
         predicateVectors.putVector(term.text().trim(), elementalVector);
         predicateVectors.putVector(term.text().trim()+"-INV", inverseElementalVector);
@@ -214,8 +214,7 @@ public class PSI {
     args = flagConfig.remainingArgs;
 
     // Currently implemented for complex and binary vectors only
-    if (flagConfig.getVectortype() == "real")
-    {
+    if (flagConfig.getVectortype() == VectorType.REAL) {
       throw new IllegalArgumentException(
           "PSI is currently implemented for complex and binary vectors only. " +
           "Try rerunning using -vectortype complex or binary with appropriate -dimension and -seedlength");

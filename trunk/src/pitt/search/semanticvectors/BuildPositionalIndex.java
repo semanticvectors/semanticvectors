@@ -123,7 +123,7 @@ public class BuildPositionalIndex {
     try {
       TermTermVectorsFromLucene vecStore = new TermTermVectorsFromLucene(
           flagConfig,
-          luceneIndex,  VectorType.valueOf(flagConfig.getVectortype().toUpperCase()),
+          luceneIndex,  flagConfig.getVectortype(),
           flagConfig.getDimension(), flagConfig.getSeedlength(), flagConfig.getMinfrequency(), flagConfig.getMaxfrequency(),
           flagConfig.getMaxnonalphabetchars(), flagConfig.getFilteroutnumbers(), 2 * flagConfig.getWindowradius() + 1, flagConfig.getPositionalmethod(),
           newBasicTermVectors, flagConfig.getContentsfields());
@@ -135,7 +135,7 @@ public class BuildPositionalIndex {
         VerbatimLogger.info("\nRetraining with learned term vectors ...");
         vecStore = new TermTermVectorsFromLucene(
             flagConfig,
-            luceneIndex,  VectorType.valueOf(flagConfig.getVectortype().toUpperCase()),
+            luceneIndex,  flagConfig.getVectortype(),
             flagConfig.getDimension(), flagConfig.getSeedlength(), flagConfig.getMinfrequency(), flagConfig.getMaxfrequency(),
             flagConfig.getMaxnonalphabetchars(), flagConfig.getFilteroutnumbers(), 2 * flagConfig.getWindowradius() + 1, flagConfig.getPositionalmethod(),
             newBasicTermVectors, flagConfig.getContentsfields());

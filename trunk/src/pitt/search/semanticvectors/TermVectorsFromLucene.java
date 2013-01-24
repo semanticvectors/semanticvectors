@@ -77,7 +77,7 @@ public class TermVectorsFromLucene implements VectorStore {
   // Basic accessor methods.
   @Override
   public VectorType getVectorType() {
-    return VectorType.valueOf(flagConfig.getVectortype().toUpperCase());
+    return flagConfig.getVectortype();
   }
   
   @Override
@@ -243,7 +243,7 @@ public class TermVectorsFromLucene implements VectorStore {
           continue;
         }
         Vector indexVector = VectorFactory.generateRandomVector(
-            VectorType.valueOf(flagConfig.getVectortype()), flagConfig.getDimension(),
+            flagConfig.getVectortype(), flagConfig.getDimension(),
             flagConfig.getSeedlength(), random);
         // Place each term vector in the vector store.
         this.termVectors.put(term.text(), new ObjectVector(term.text(), indexVector));

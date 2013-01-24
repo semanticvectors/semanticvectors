@@ -69,7 +69,8 @@ public class VectorStoreWriter {
    * "-vectortype real -dimension 100".
    */
   public static String generateHeaderString(FlagConfig flagConfig) {
-    return "-vectortype " + flagConfig.getVectortype() + " -dimension " + Integer.toString(flagConfig.getDimension());
+    return "-vectortype " + flagConfig.getVectortype().toString()
+        + " -dimension " + Integer.toString(flagConfig.getDimension());
   }
 
   /**

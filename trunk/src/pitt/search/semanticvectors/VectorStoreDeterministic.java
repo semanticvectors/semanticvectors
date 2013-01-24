@@ -47,7 +47,7 @@ public class VectorStoreDeterministic implements VectorStore {
   public VectorStoreDeterministic(FlagConfig flagConfig) {
     this.flagConfig = flagConfig;
     this.objectVectors = new Hashtable<Object, ObjectVector>();
-    this.vectorType = VectorType.valueOf(flagConfig.getVectortype().toUpperCase());
+    this.vectorType = flagConfig.getVectortype();
     this.dimension = flagConfig.getDimension();
   }
 

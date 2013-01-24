@@ -9,6 +9,7 @@ import org.apache.lucene.store.FSDirectory;
 import pitt.search.semanticvectors.vectors.RealVector;
 import pitt.search.semanticvectors.vectors.Vector;
 import pitt.search.semanticvectors.vectors.VectorFactory;
+import pitt.search.semanticvectors.vectors.VectorType;
 
 import java.io.File;
 import java.io.IOException;
@@ -190,7 +191,7 @@ public class LSA {
       System.out.println(usageMessage);
       throw e;
     }
-    if (!flagConfig.getVectortype().equalsIgnoreCase("real")) {
+    if (flagConfig.getVectortype() != VectorType.REAL) {
       logger.warning("LSA is only supported for real vectors ... setting vectortype to 'real'."); 
     }
     

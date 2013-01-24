@@ -118,7 +118,7 @@ public class BuildIndex {
         
         for (int i = 1; i < flagConfig.getTrainingcycles(); ++i) {
           itermVectors = new IncrementalTermVectors(flagConfig,
-              luceneIndex, VectorType.valueOf(flagConfig.getVectortype().toUpperCase()),
+              luceneIndex, flagConfig.getVectortype(),
               flagConfig.getDimension(), flagConfig.getContentsfields(), docFile);
 
           VectorStoreWriter.writeVectors(

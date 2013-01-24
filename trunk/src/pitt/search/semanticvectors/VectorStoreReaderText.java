@@ -96,7 +96,7 @@ public class VectorStoreReaderText implements CloseableVectorStore {
       String firstLine = inBuf.readLine();
       FlagConfig.mergeWriteableFlagsFromString(firstLine, flagConfig);
       this.dimension = flagConfig.getDimension();
-      this.vectorType = VectorType.valueOf(flagConfig.getVectortype().toUpperCase());
+      this.vectorType = flagConfig.getVectortype();
     } catch (IOException e) {
       System.out.println("Cannot read file: " + vectorFileText + "\n" + e.getMessage());
     }
