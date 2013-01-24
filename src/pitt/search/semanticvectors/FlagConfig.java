@@ -35,10 +35,13 @@
 
 package pitt.search.semanticvectors;
 
+import java.lang.Enum;
 import java.lang.IllegalArgumentException;
 import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.logging.Logger;
+
+import pitt.search.semanticvectors.vectors.VectorType;
 
 /**
  * Class for representing and parsing global command line flags.
@@ -73,9 +76,9 @@ public class FlagConfig {
   public void setDimension(int dimension) { this.dimension = dimension; }
   public static final String dimensionDescription = "Dimension of semantic vector space";
 
-  private String vectortype = "real";
-  public String getVectortype() { return vectortype; }
-  public void setVectortype(String vectortype) {this.vectortype = vectortype; }
+  private VectorType vectortype = VectorType.REAL;
+  public VectorType getVectortype() { return vectortype; }
+  public void setVectortype(VectorType vectortype) {this.vectortype = vectortype; }
   public static final String vectortypeDescription = "Ground field for vectors: real, binary or complex.";
   public static final String[] vectortypeValues = {"binary", "real", "complex"};
 
@@ -363,6 +366,15 @@ public class FlagConfig {
             throw new IllegalArgumentException("option -" + flagName + " requires an argument");
           }
           argc += 2;
+        } else if (field.getType().isEnum()) {
+          // Parse enum arguments.
+          try {
+            Class<Enum> className = (Class<Enum>) field.getType();
+            field.set(flagConfig, Enum.valueOf(className, args[argc + 1].toUpperCase()));
+          } catch (ArrayIndexOutOfBoundsException e) {
+            throw new IllegalArgumentException("option -" + flagName + " requires an argument");
+          }
+          argc += 2;
         } else if (field.getType().getName().equals("boolean")) {
           // Parse boolean arguments.
           field.setBoolean(flagConfig, true);
@@ -429,7 +441,7 @@ public class FlagConfig {
    * </ul>
    */
   private void makeFlagsCompatible() {
-    if (vectortype.equals("binary")) {
+    if (vectortype == VectorType.BINARY) {
       // Impose "multiple-of-64" constraint, to facilitate permutation of 64-bit chunks.
       if (dimension % 64 != 0) {
         dimension = (1 + (dimension / 64)) * 64;

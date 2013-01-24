@@ -42,6 +42,7 @@ import org.junit.*;
 
 import pitt.search.semanticvectors.vectors.RealVector;
 import pitt.search.semanticvectors.vectors.Vector;
+import pitt.search.semanticvectors.vectors.VectorType;
 
 import junit.framework.TestCase;
 
@@ -62,8 +63,8 @@ public class VectorStoreWriterTest extends TestCase {
   public void testGenerateHeaderString() {
     FlagConfig flagConfig = FlagConfig.getFlagConfig(new String[] {});
     flagConfig.setDimension(2);
-    flagConfig.setVectortype("binary");
-    assertEquals( "-vectortype binary -dimension 2", VectorStoreWriter.generateHeaderString(flagConfig));
+    flagConfig.setVectortype(VectorType.BINARY);
+    assertEquals("-vectortype BINARY -dimension 2", VectorStoreWriter.generateHeaderString(flagConfig));
   }
 
   @Test

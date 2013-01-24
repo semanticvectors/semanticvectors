@@ -78,7 +78,7 @@ public class VectorStoreRAM implements VectorStore {
   public VectorStoreRAM(FlagConfig flagConfig) {
     this.objectVectors = new Hashtable<Object, ObjectVector>();
     this.flagConfig = flagConfig;
-    this.vectorType = VectorType.valueOf(flagConfig.getVectortype().toUpperCase());
+    this.vectorType = flagConfig.getVectortype();
     this.dimension = flagConfig.getDimension();
     zeroVector = VectorFactory.createZeroVector(vectorType, dimension);
   }
