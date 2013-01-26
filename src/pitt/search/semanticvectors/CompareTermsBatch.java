@@ -124,7 +124,7 @@ public class CompareTermsBatch {
 
       if (flagConfig.getLuceneindexpath() != null) {
         try {
-          luceneUtils = new LuceneUtils(flagConfig.getLuceneindexpath(), flagConfig);
+          luceneUtils = new LuceneUtils(flagConfig);
         } catch (IOException e) {
           logger.info("Couldn't open Lucene index at " + flagConfig.getLuceneindexpath());
         }

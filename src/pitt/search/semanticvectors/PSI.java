@@ -78,7 +78,7 @@ public class PSI {
         FSDirectory.open(new File(flagConfig.getLuceneindexpath())));
 
     if (incrementalPSIVectors.lUtils == null) {
-      incrementalPSIVectors.lUtils = new LuceneUtils(flagConfig.getLuceneindexpath(), flagConfig);
+      incrementalPSIVectors.lUtils = new LuceneUtils(flagConfig);
     }
     incrementalPSIVectors.trainIncrementalPSIVectors();
   }

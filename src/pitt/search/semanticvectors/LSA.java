@@ -58,7 +58,7 @@ public class LSA {
     
     try {
       this.indexReader = IndexReader.open(FSDirectory.open(new File(luceneIndexDir)));
-      this.lUtils = new LuceneUtils(luceneIndexDir, flagConfig);
+      this.lUtils = new LuceneUtils(flagConfig);
     } catch (IOException e) {
       e.printStackTrace();
     }
