@@ -72,10 +72,15 @@ public class LuceneUtils{
 
 
   /**
-   * @param path - path to lucene index
+   * @param flagConfig Contains all information necessary for configuring LuceneUtils.
+   *        {@see FlagConfig#luceneindexpath} must be set. 
    */
-  public LuceneUtils(String path, FlagConfig flagConfig) throws IOException {
-    this.indexReader = IndexReader.open(FSDirectory.open(new File(path)));
+  public LuceneUtils(FlagConfig flagConfig) throws IOException {
+    if (flagConfig.getLuceneindexpath().isEmpty()) {
+      throw new IllegalArgumentException(
+          "-luceneindexpath is a required argument for initializing LuceneUtils instance.");
+    }
+    this.indexReader = IndexReader.open(FSDirectory.open(new File(flagConfig.getLuceneindexpath())));
     this.flagConfig = flagConfig;
     if (!flagConfig.getStoplistfile().isEmpty())
       loadStopWords(flagConfig.getStoplistfile());

@@ -94,7 +94,7 @@ public class IncrementalDocVectors {
     incrementalDocVectors.fieldsToIndex = fieldsToIndex;
     incrementalDocVectors.vectorFileName = VectorStoreUtils.getStoreFileName(vectorStoreName, flagConfig);
     if (incrementalDocVectors.lUtils == null) {
-      incrementalDocVectors.lUtils = new LuceneUtils(indexDir, flagConfig);
+      incrementalDocVectors.lUtils = new LuceneUtils(flagConfig);
     }
     incrementalDocVectors.trainIncrementalDocVectors();
   }

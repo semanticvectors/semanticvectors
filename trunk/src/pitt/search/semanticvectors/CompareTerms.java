@@ -105,7 +105,7 @@ public class CompareTerms{
 
     if (flagConfig.getLuceneindexpath() != null) {
       try {
-        luceneUtils = new LuceneUtils(flagConfig.getLuceneindexpath(), flagConfig);
+        luceneUtils = new LuceneUtils(flagConfig);
       } catch (IOException e) {
         VerbatimLogger.info("Couldn't open Lucene index at " + flagConfig.getLuceneindexpath());
       }

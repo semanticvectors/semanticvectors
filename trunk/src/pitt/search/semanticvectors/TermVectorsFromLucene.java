@@ -133,7 +133,7 @@ public class TermVectorsFromLucene implements VectorStore {
   private void createTemVectorsFromLuceneImpl() throws IOException {
     LuceneUtils.compressIndex(flagConfig.getLuceneindexpath());
     // Create LuceneUtils Class to filter terms.
-    lUtils = new LuceneUtils(flagConfig.getLuceneindexpath(), flagConfig);
+    lUtils = new LuceneUtils(flagConfig);
     indexReader = IndexReader.open(FSDirectory.open(new File(flagConfig.getLuceneindexpath())));
 
     // Check that basicDocVectors is the right size.
@@ -223,7 +223,7 @@ public class TermVectorsFromLucene implements VectorStore {
     LuceneUtils.compressIndex(flagConfig.getLuceneindexpath());
 
     // Create LuceneUtils Class to filter terms.
-    lUtils = new LuceneUtils(flagConfig.getLuceneindexpath(), flagConfig);
+    lUtils = new LuceneUtils(flagConfig);
 
     indexReader = IndexReader.open(FSDirectory.open(new File(flagConfig.getLuceneindexpath())));
     Random random = new Random();

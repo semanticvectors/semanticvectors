@@ -217,7 +217,7 @@ public class TermTermVectorsFromLucene implements VectorStore {
           "Term-term indexing requires a Lucene index containing TermPositionVectors."
           + "\nTry rebuilding Lucene index using pitt.search.lucene.IndexFilePositions");
     }
-    lUtils = new LuceneUtils(luceneIndexDir, flagConfig);
+    lUtils = new LuceneUtils(flagConfig);
 
     // If basicTermVectors was passed in, set state accordingly.
     if (indexVectors != null) {

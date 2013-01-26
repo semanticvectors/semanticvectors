@@ -114,7 +114,7 @@ public class IncrementalTermVectors implements VectorStore {
     this.luceneIndexDir = luceneIndexDir;
     this.docVectorFileName = docVectorFileName;
     if (this.lUtils == null)
-      this.lUtils = new LuceneUtils(luceneIndexDir, flagConfig);
+      this.lUtils = new LuceneUtils(flagConfig);
     createIncrementalTermVectorsFromLucene();
   }
 

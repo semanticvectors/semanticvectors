@@ -173,7 +173,7 @@ public class Search {
 
       if (!flagConfig.getLuceneindexpath().isEmpty()) {
         try {
-          luceneUtils = new LuceneUtils(flagConfig.getLuceneindexpath(), flagConfig);
+          luceneUtils = new LuceneUtils(flagConfig);
         } catch (IOException e) {
           logger.warning("Couldn't open Lucene index at " + flagConfig.getLuceneindexpath()
               + ". Will continue without term weighting.");
