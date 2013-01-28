@@ -112,7 +112,7 @@ public class IncrementalTermVectors implements VectorStore {
     this.indexReader = IndexReader.open(FSDirectory.open(new File(luceneIndexDir)));
     this.fieldsToIndex = fieldsToIndex;
     this.luceneIndexDir = luceneIndexDir;
-    this.docVectorFileName = docVectorFileName;
+    this.docVectorFileName = "incremental_"+docVectorFileName;
     if (this.lUtils == null)
       this.lUtils = new LuceneUtils(flagConfig);
     createIncrementalTermVectorsFromLucene();
@@ -126,7 +126,7 @@ public class IncrementalTermVectors implements VectorStore {
     String parentPath = vectorFile.getParent();
     if (parentPath == null) parentPath = "";
     FSDirectory fsDirectory = FSDirectory.open(new File(parentPath));
-    IndexInput inputStream = fsDirectory.openInput(docVectorFileName.replaceAll(".*/", ""));
+    IndexInput inputStream = fsDirectory.openInput(docVectorFileName.replaceAll(".*/", "")+".bin");
 
     logger.info("Read vectors incrementally from file " + vectorFile);
 
