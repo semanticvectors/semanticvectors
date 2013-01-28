@@ -230,7 +230,7 @@ public class TermVectorsFromLucene implements VectorStore {
     this.termVectors = new Hashtable<String,ObjectVector>();
 
     // For each term in the index
-    if (flagConfig.getInitialtermvectors().isEmpty()) {
+    if (flagConfig.getInitialtermvectors().equals("random")) {
       logger.info("Creating random term vectors");
       TermEnum terms = indexReader.terms();
       while(terms.next()){
