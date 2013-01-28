@@ -95,6 +95,9 @@ public class FlagConfig {
   public int getMaxnonalphabetchars() { return maxnonalphabetchars; }
   private boolean filteroutnumbers = true;
   public boolean getFilteroutnumbers() { return filteroutnumbers; }
+  private boolean deterministicvectors = false;
+  public boolean getDeterministicvectors() { return deterministicvectors; }
+  
   
   private String indexrootdirectory = "";
   public String getIndexrootdirectory() { return indexrootdirectory; }

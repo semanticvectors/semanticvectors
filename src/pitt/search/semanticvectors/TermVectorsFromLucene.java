@@ -48,6 +48,7 @@ import org.apache.lucene.index.TermDocs;
 import org.apache.lucene.index.TermEnum;
 import org.apache.lucene.store.FSDirectory;
 
+import pitt.search.semanticvectors.hashing.Bobcat;
 import pitt.search.semanticvectors.vectors.Vector;
 import pitt.search.semanticvectors.vectors.VectorFactory;
 import pitt.search.semanticvectors.vectors.VectorType;
@@ -242,6 +243,10 @@ public class TermVectorsFromLucene implements VectorStore {
             flagConfig.getMaxnonalphabetchars()))  {
           continue;
         }
+        
+    	if (flagConfig.getDeterministicvectors())
+      	  random.setSeed(Bobcat.asLong(term.text()));
+         
         Vector indexVector = VectorFactory.generateRandomVector(
             flagConfig.getVectortype(), flagConfig.getDimension(),
             flagConfig.getSeedlength(), random);
