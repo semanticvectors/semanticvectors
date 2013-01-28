@@ -46,6 +46,7 @@ import org.apache.lucene.document.Document;
 import org.apache.lucene.index.*;
 import org.apache.lucene.store.FSDirectory;
 
+import pitt.search.semanticvectors.hashing.Bobcat;
 import pitt.search.semanticvectors.vectors.Vector;
 import pitt.search.semanticvectors.vectors.VectorFactory;
 import pitt.search.semanticvectors.vectors.VectorType;
@@ -109,6 +110,10 @@ public class PSI {
           addedConcepts.add(term.text());
           Vector semanticVector = VectorFactory.createZeroVector(
               flagConfig.getVectortype(), flagConfig.getDimension());
+          
+      	if (flagConfig.getDeterministicvectors())
+      	  random.setSeed(Bobcat.asLong(term.text()));
+        
           Vector elementalVector = VectorFactory.generateRandomVector(
               flagConfig.getVectortype(), flagConfig.getDimension(),
               flagConfig.getSeedlength(), random);
@@ -126,13 +131,20 @@ public class PSI {
           continue;
         }
 
+    	if (flagConfig.getDeterministicvectors())
+      	  random.setSeed(Bobcat.asLong(term.text().trim()));
+      
         Vector elementalVector = VectorFactory.generateRandomVector(
             flagConfig.getVectortype(), flagConfig.getDimension(),
             flagConfig.getSeedlength(), random);
+        predicateVectors.putVector(term.text().trim(), elementalVector);
+        
+    	if (flagConfig.getDeterministicvectors())
+      	  random.setSeed(Bobcat.asLong(term.text().trim()+"-INV"));
+          
         Vector inverseElementalVector = VectorFactory.generateRandomVector(
             flagConfig.getVectortype(), flagConfig.getDimension(),
             flagConfig.getSeedlength(), random);
-        predicateVectors.putVector(term.text().trim(), elementalVector);
         predicateVectors.putVector(term.text().trim()+"-INV", inverseElementalVector);
       }
     }

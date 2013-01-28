@@ -50,6 +50,7 @@ import org.apache.lucene.index.TermPositionVector;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.util.ReaderUtil;
 
+import pitt.search.semanticvectors.hashing.Bobcat;
 import pitt.search.semanticvectors.vectors.PermutationUtils;
 import pitt.search.semanticvectors.vectors.Vector;
 import pitt.search.semanticvectors.vectors.VectorFactory;
@@ -246,6 +247,10 @@ public class TermTermVectorsFromLucene implements VectorStore {
       this.termVectors.putVector(term.text(), termVector);
       // Do the same for random index vectors unless retraining with trained term vectors
       if (!retraining) {
+    	  
+    	if (flagConfig.getDeterministicvectors())
+    	  random.setSeed(Bobcat.asLong(term.text()));
+    		
         Vector indexVector =  VectorFactory.generateRandomVector(
             vectorType, dimension, seedLength, random);
         ((VectorStoreRAM) this.indexVectors).putVector(term.text(), indexVector);
