@@ -143,8 +143,7 @@ public class IncrementalTermVectors implements VectorStore {
       Term term = terms.term();
 
       // Skip terms that don't pass the filter.
-      if (!lUtils.termFilter(terms.term(), fieldsToIndex,
-          flagConfig.minfrequency(), flagConfig.maxfrequency(), flagConfig.maxnonalphabetchars()))
+      if (!lUtils.termFilter(terms.term()))
         continue;
       tc++;
       Vector termVector = VectorFactory.createZeroVector(vectorType, dimension);

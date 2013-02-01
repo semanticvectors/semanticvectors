@@ -146,7 +146,7 @@ public class FlagConfig {
   public static final String[] termweightValues = {"logentropy","idf", "none"};
 
   private boolean porterstemmer = false;
-  /** Tells {@link IndexFilePositions} to stem terms using Porter Stemmer, default value false. */
+  /** Tells {@link pitt.search.lucene.IndexFilePositions} to stem terms using Porter Stemmer, default value false. */
   public boolean porterstemmer() { return porterstemmer; }
 
   private boolean usetermweightsinsearch = false;

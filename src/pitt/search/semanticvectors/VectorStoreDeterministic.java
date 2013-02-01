@@ -94,7 +94,7 @@ public class VectorStoreDeterministic implements VectorStore {
     * <p>
     * This implementation only works for string objects so far.
     * 
-    * @param desiredObject, the string you're searching for
+    * @param desiredObject the string you're searching for
     * @return vector from the VectorStore, or null if not found.
     * @throws NullPointerException if desiredObject or vector is
     *         <code>null</code>

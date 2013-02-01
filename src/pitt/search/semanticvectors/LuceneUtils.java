@@ -254,6 +254,21 @@ public class LuceneUtils{
     termEntropy.put(term, 1+(float)entropy);
     return (float) (1 + entropy);
   }
+  
+  /**
+   * Public version of {@link #termFilter} that gets all its inputs from the
+   * {@link #flagConfig} and the provided term.
+   * 
+   * External callers should normally use this method, so that new filters are
+   * available through different codepaths provided they pass a {@code FlagConfig}.
+   * 
+   * @param term Term to be filtered in or out, depending on Lucene index and flag configs.
+   */
+  public boolean termFilter(Term term) {
+    return termFilter(term, flagConfig.contentsfields(),
+        flagConfig.minfrequency(), flagConfig.maxfrequency(),
+        flagConfig.maxnonalphabetchars(), flagConfig.filteroutnumbers());
+  }  
 
   /**
    * Filters out non-alphabetic terms and those of low frequency.
@@ -316,21 +331,21 @@ public class LuceneUtils{
    * @param maxNonAlphabet reject terms with more than this number of non-alphabetic characters
    * @param filterNumbers if true, filters out tokens that represent a number
    */
-  protected boolean termFilter(
-    Term term, String[] desiredFields, int minFreq, int maxFreq, int maxNonAlphabet, boolean filterNumbers) {
-      // number filter
+  private boolean termFilter(
+      Term term, String[] desiredFields, int minFreq, int maxFreq, int maxNonAlphabet, boolean filterNumbers) {
+    // number filter
     if (filterNumbers) {
       try {
-	// if the token can be parsed as a floating point number, no exception is thrown and false is returned
-	// if not, an exception is thrown and we continue with the other termFilter method.
-	// remark: this does not filter out e.g. Java or C++ formatted numbers like "1f" or "1.0d"
-	Double.parseDouble( term.text() );
-	return false;
+        // if the token can be parsed as a floating point number, no exception is thrown and false is returned
+        // if not, an exception is thrown and we continue with the other termFilter method.
+        // remark: this does not filter out e.g. Java or C++ formatted numbers like "1f" or "1.0d"
+        Double.parseDouble( term.text() );
+        return false;
       } catch (Exception e) {}
     }
     return termFilter(term, desiredFields, minFreq, maxFreq, maxNonAlphabet);
   }
-  
+
   /**
    * Static method for compressing an index.
    *

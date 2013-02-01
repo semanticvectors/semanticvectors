@@ -182,8 +182,7 @@ public class TermVectorsFromLucene implements VectorStore {
 
       Term term = terms.term();
       // Skip terms that don't pass the filter.
-      if (!lUtils.termFilter(terms.term(), getFieldsToIndex(), flagConfig.minfrequency(),
-                             flagConfig.maxfrequency(), flagConfig.maxnonalphabetchars())) {
+      if (!lUtils.termFilter(terms.term())) {
         continue;
       }
 
@@ -237,10 +236,7 @@ public class TermVectorsFromLucene implements VectorStore {
       while(terms.next()){
         Term term = terms.term();
         // Skip terms that don't pass the filter.
-        if (!lUtils.termFilter(
-            terms.term(), getFieldsToIndex(),
-            flagConfig.minfrequency(), flagConfig.maxfrequency(),
-            flagConfig.maxnonalphabetchars()))  {
+        if (!lUtils.termFilter(terms.term()))  {
           continue;
         }
         
