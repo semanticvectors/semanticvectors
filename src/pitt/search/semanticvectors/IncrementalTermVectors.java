@@ -79,39 +79,28 @@ public class IncrementalTermVectors implements VectorStore {
   // TODO: Refactor to use more of this.
   private FlagConfig flagConfig;
   
-  private VectorType vectorType;
-  private int dimension;
-  
   private VectorStoreRAM termVectorData;
   private IndexReader indexReader;
-  private String[] fieldsToIndex = null;
-  private String luceneIndexDir;
   private LuceneUtils lUtils = null;
   private String docVectorFileName;
   
   @Override
-  public VectorType getVectorType() { return vectorType; }
+  public VectorType getVectorType() { return flagConfig.vectortype(); }
   
   @Override
-  public int getDimension() { return dimension; }
+  public int getDimension() { return flagConfig.dimension(); }
   
   /**
    * Constructor that gets everything it needs from a
    * TermVectorsFromLucene object and writes to a named file.
    * @param luceneIndexDir Directory of the Lucene Index used to generate termVectorData
-   * @param fieldsToIndex String[] containing fields indexed when generating termVectorData
    * @param docVectorFileName Filename containing the input document vectors
    */
   public IncrementalTermVectors(FlagConfig flagConfig,
-      String luceneIndexDir, VectorType vectorType, int dimension,
-      String[] fieldsToIndex, String docVectorFileName)
+      String luceneIndexDir, String docVectorFileName)
       throws IOException {
     this.flagConfig = flagConfig;
-    this.vectorType = vectorType;
-    this.dimension = dimension;
     this.indexReader = IndexReader.open(FSDirectory.open(new File(luceneIndexDir)));
-    this.fieldsToIndex = fieldsToIndex;
-    this.luceneIndexDir = luceneIndexDir;
     this.docVectorFileName = "incremental_"+docVectorFileName;
     if (this.lUtils == null)
       this.lUtils = new LuceneUtils(flagConfig);
@@ -134,7 +123,6 @@ public class IncrementalTermVectors implements VectorStore {
     String header = inputStream.readString();
     FlagConfig.mergeWriteableFlagsFromString(header, flagConfig);
 
-    logger.info("Opening index at " + luceneIndexDir);
     termVectorData = new VectorStoreRAM(flagConfig);
     TermEnum terms = this.indexReader.terms();
     int tc = 0;
@@ -146,7 +134,7 @@ public class IncrementalTermVectors implements VectorStore {
       if (!lUtils.termFilter(terms.term()))
         continue;
       tc++;
-      Vector termVector = VectorFactory.createZeroVector(vectorType, dimension);
+      Vector termVector = VectorFactory.createZeroVector(flagConfig.vectortype(), flagConfig.dimension());
 
       // Place each term vector in the vector store.
       termVectorData.putVector(term.text(), termVector);
@@ -161,7 +149,7 @@ public class IncrementalTermVectors implements VectorStore {
       }
 
       int dcount = dc;
-      Vector docVector = VectorFactory.createZeroVector(vectorType, dimension);
+      Vector docVector = VectorFactory.createZeroVector(flagConfig.vectortype(), flagConfig.dimension());
 
       try {
     	 /**
@@ -176,7 +164,7 @@ public class IncrementalTermVectors implements VectorStore {
         continue;
       }
 
-      for (String fieldName: fieldsToIndex) {
+      for (String fieldName: flagConfig.contentsfields()) {
         TermFreqVector vex = indexReader.getTermFreqVector(dcount, fieldName);
 
         if (vex !=null) {
@@ -254,8 +242,7 @@ public class IncrementalTermVectors implements VectorStore {
 
     VectorStore termVectors = new IncrementalTermVectors(
         flagConfig,
-        luceneIndex, flagConfig.vectortype(), flagConfig.dimension(),
-        flagConfig.contentsfields(), vectorFile);
+        luceneIndex, vectorFile);
     VectorStoreWriter.writeVectors("incremental_termvectors.bin", flagConfig, termVectors);
   }
 }

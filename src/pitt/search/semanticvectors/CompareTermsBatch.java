@@ -41,7 +41,6 @@ import java.io.InputStreamReader;
 import java.util.logging.Logger;
 
 import pitt.search.semanticvectors.vectors.Vector;
-import pitt.search.semanticvectors.vectors.VectorType;
 
 /**
  * Command line term vector comparison utility designed to be run in
