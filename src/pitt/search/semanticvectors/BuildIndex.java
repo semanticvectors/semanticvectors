@@ -79,25 +79,25 @@ public class BuildIndex {
       throw e;
     }
 
-    if (flagConfig.getLuceneindexpath().isEmpty()) {
+    if (flagConfig.luceneindexpath().isEmpty()) {
       throw (new IllegalArgumentException("-luceneindexpath must be set."));
     }
 
-    String luceneIndex = flagConfig.getLuceneindexpath();
-    VerbatimLogger.info("Seedlength: " + flagConfig.getSeedlength()
-        + ", Dimension: " + flagConfig.getDimension()
-        + ", Vector type: " + flagConfig.getVectortype()
-        + ", Minimum frequency: " + flagConfig.getMinfrequency()
-        + ", Maximum frequency: " + flagConfig.getMaxfrequency()
-        + ", Number non-alphabet characters: " + flagConfig.getMaxnonalphabetchars()
-        + ", Contents fields are: " + Arrays.toString(flagConfig.getContentsfields()) + "\n");
+    String luceneIndex = flagConfig.luceneindexpath();
+    VerbatimLogger.info("Seedlength: " + flagConfig.seedlength()
+        + ", Dimension: " + flagConfig.dimension()
+        + ", Vector type: " + flagConfig.vectortype()
+        + ", Minimum frequency: " + flagConfig.minfrequency()
+        + ", Maximum frequency: " + flagConfig.maxfrequency()
+        + ", Number non-alphabet characters: " + flagConfig.maxnonalphabetchars()
+        + ", Contents fields are: " + Arrays.toString(flagConfig.contentsfields()) + "\n");
 
-    String termFile = flagConfig.getTermvectorsfile();
-    String docFile = flagConfig.getDocvectorsfile();
+    String termFile = flagConfig.termvectorsfile();
+    String docFile = flagConfig.docvectorsfile();
 
     try{
       TermVectorsFromLucene vecStore;
-      if (!flagConfig.getInitialtermvectors().isEmpty()) {
+      if (!flagConfig.initialtermvectors().isEmpty()) {
         // If Flags.initialtermvectors="random" create elemental (random index)
         // term vectors. Recommended to iterate at least once (i.e. -trainingcycles = 2) to
         // obtain semantic term vectors.
@@ -110,32 +110,32 @@ public class BuildIndex {
       }
 
       // Create doc vectors and write vectors to disk.
-      if (flagConfig.getDocindexing().equals("incremental")) {
+      if (flagConfig.docindexing().equals("incremental")) {
         VectorStoreWriter.writeVectors(termFile, flagConfig, vecStore);
         IncrementalDocVectors.createIncrementalDocVectors(
-            vecStore, flagConfig, luceneIndex, flagConfig.getContentsfields(), "incremental_"+docFile);
+            vecStore, flagConfig, luceneIndex, flagConfig.contentsfields(), "incremental_"+docFile);
         IncrementalTermVectors itermVectors = null;
         
-        for (int i = 1; i < flagConfig.getTrainingcycles(); ++i) {
+        for (int i = 1; i < flagConfig.trainingcycles(); ++i) {
           itermVectors = new IncrementalTermVectors(flagConfig,
-              luceneIndex, flagConfig.getVectortype(),
-              flagConfig.getDimension(), flagConfig.getContentsfields(), docFile);
+              luceneIndex, flagConfig.vectortype(),
+              flagConfig.dimension(), flagConfig.contentsfields(), docFile);
 
           VectorStoreWriter.writeVectors(
-              "incremental_termvectors"+flagConfig.getTrainingcycles()+".bin", flagConfig, itermVectors);
+              "incremental_termvectors"+flagConfig.trainingcycles()+".bin", flagConfig, itermVectors);
 
         // Write over previous cycle's docvectors until final
         // iteration, then rename according to number cycles
-        if (i == flagConfig.getTrainingcycles() - 1)
-          docFile = "docvectors" + flagConfig.getTrainingcycles() + ".bin";
+        if (i == flagConfig.trainingcycles() - 1)
+          docFile = "docvectors" + flagConfig.trainingcycles() + ".bin";
 
         IncrementalDocVectors.createIncrementalDocVectors(
-            itermVectors, flagConfig, luceneIndex, flagConfig.getContentsfields(),
+            itermVectors, flagConfig, luceneIndex, flagConfig.contentsfields(),
             "incremental_"+docFile);
         }
-      } else if (flagConfig.getDocindexing().equals("inmemory")) {
+      } else if (flagConfig.docindexing().equals("inmemory")) {
         DocVectors docVectors = new DocVectors(vecStore, flagConfig);
-        for (int i = 1; i < flagConfig.getTrainingcycles(); ++i) {
+        for (int i = 1; i < flagConfig.trainingcycles(); ++i) {
           VerbatimLogger.info("\nRetraining with learned document vectors ...");
           vecStore = TermVectorsFromLucene.createTermVectorsFromLucene(flagConfig, docVectors);
           docVectors = new DocVectors(vecStore, flagConfig);
@@ -143,9 +143,9 @@ public class BuildIndex {
         // At end of training, convert document vectors from ID keys to pathname keys.
         VectorStore writeableDocVectors = docVectors.makeWriteableVectorStore();
 
-        if (flagConfig.getTrainingcycles() > 1) {
-          termFile = "termvectors" + flagConfig.getTrainingcycles() + ".bin";
-          docFile = "docvectors" + flagConfig.getTrainingcycles() + ".bin";
+        if (flagConfig.trainingcycles() > 1) {
+          termFile = "termvectors" + flagConfig.trainingcycles() + ".bin";
+          docFile = "docvectors" + flagConfig.trainingcycles() + ".bin";
         }
         VerbatimLogger.info("Writing term vectors to " + termFile + "\n");
         VectorStoreWriter.writeVectors(termFile, flagConfig, vecStore);

@@ -44,16 +44,12 @@ import java.util.logging.Logger;
 import pitt.search.semanticvectors.vectors.VectorType;
 
 /**
- * Class for representing and parsing global command line flags.
+ * Class for representing and parsing command line flags into a configuration
+ * instance to be passed to other components.
  *
- * All command line flags for the SemanticVectors package should be defined here.
- * This design is a violation of encapsulation, but since these are things that
- * the user can break, we believe that we'll create a much cleaner package if we
- * put this power into user's hands explicitly, but at least insist that all command
- * line flags are declared in one place - in the Flags class. Needless to say, the
- * Flags class only looks after the basic syntax of (name, value) command line flags.
- * All semantics (i.e., in this case, behaviour affected by the flags) is up to the
- * developer to implement.
+ * Nearly all flags are configured once when an instance is created. Exceptions
+ * are {@link #dimension} and {#link vectortype}, since these can be set
+ * when a {@code VectorStore} is opened for reading.
  *
  * @author Dominic Widdows
  */
@@ -69,209 +65,225 @@ public class FlagConfig {
   public String[] remainingArgs;
 
   // Add new command line flags here. By convention, please use lower case.
-  //
-  // DO NOT DUPLICATE NAMES HERE! YOU WILL OVERWRITE OTHER PEOPLE's FLAGS!
+
   private int dimension = 200;
-  public int getDimension() { return dimension; }
+  /** Dimension of semantic vector space, default value 200. Can be set when a {@code VectorStore} is opened.
+      Recommended values are in the hundreds for {@link VectorType#REAL} and {@link VectorType#COMPLEX} 
+      and in the thousands for {@link VectorType#BINARY}, since binary dimensions are single bits. */
+  public int dimension() { return dimension; }
+  /** Sets the {@link #dimension()}. */
   public void setDimension(int dimension) { this.dimension = dimension; }
-  public static final String dimensionDescription = "Dimension of semantic vector space";
 
   private VectorType vectortype = VectorType.REAL;
-  public VectorType getVectortype() { return vectortype; }
+  /** Ground field for vectors: real, binary or complex. Can be set when a {@code VectorStore} is opened. */
+  public VectorType vectortype() { return vectortype; }
+  /** Sets the {@link #vectortype()}. */
   public void setVectortype(VectorType vectortype) {this.vectortype = vectortype; }
-  public static final String vectortypeDescription = "Ground field for vectors: real, binary or complex.";
-  public static final String[] vectortypeValues = {"binary", "real", "complex"};
 
   public int seedlength = 10;
-  public int getSeedlength() { return seedlength; }
-  public static final String seedlengthDescription =
-    "Number of +1 and number of -1 entries in a sparse random vector";
+  /** Number of nonzero entries in a sparse random vector, default value 10 except for
+   * when {@link #vectortype()} is {@link VectorType#BINARY}, in which case default of
+   * {@link #dimension()} / 2 is enforced by {@link #makeFlagsCompatible()}.
+   */
+  public int seedlength() { return seedlength; }
   
   private int minfrequency = 0;
-  public int getMinfrequency() { return minfrequency; }
+  /** Minimum frequency of a term for it to be indexed, default value 0. */
+  public int minfrequency() { return minfrequency; }
+
   private int maxfrequency = Integer.MAX_VALUE;
-  public int getMaxfrequency() { return maxfrequency; }
+  /** Maximum frequency of a term for it to be indexed, default value {@link Integer#MAX_VALUE}. */
+  public int maxfrequency() { return maxfrequency; }
+
   private int maxnonalphabetchars = Integer.MAX_VALUE;
-  public int getMaxnonalphabetchars() { return maxnonalphabetchars; }
+  /** Maximum number of nonalphabetic characters in a term for it to be indexed, default value {@link Integer#MAX_VALUE}. */
+  public int maxnonalphabetchars() { return maxnonalphabetchars; }
+
   private boolean filteroutnumbers = true;
-  public boolean getFilteroutnumbers() { return filteroutnumbers; }
+  /** If {@code true}, terms containing only numeric characters are filtered out during indexing, default value {@code true}. */
+  public boolean filteroutnumbers() { return filteroutnumbers; }
+  
   private boolean deterministicvectors = false;
-  public boolean getDeterministicvectors() { return deterministicvectors; }
-  
-  
-  private String indexrootdirectory = "";
-  public String getIndexrootdirectory() { return indexrootdirectory; }
-  public String indexrootdirectoryDescription = "Allow for the specification of a directory to place the lucene index in. Requires a trailing slash";
+  /** If {@code true}, deterministic vectors will be used throughout indexing, using {@code pitt.search.semanticvectors.hashing}. */
+  public boolean deterministicvectors() { return deterministicvectors; }
   
   private int numsearchresults = 20;
-  public int getNumsearchresults() { return numsearchresults; }
+  /** Number of search results to return, default value 20. */
+  public int numsearchresults() { return numsearchresults; }
   
   private double searchresultsminscore = -1.0;
-  public double getSearchresultsminscore() { return searchresultsminscore; }
-  public static final String searchresultsminscoreDescription = "Search results with similarity scores below "
-    + "this value will not be included in search results.";
+  /** Search results with similarity scores below this value will not be included in search results, default value -1. */
+  public double searchresultsminscore() { return searchresultsminscore; }
 
-  private int numclusters = 5;
+  private int numclusters = 10;
+  /** Number of clusters used in {@link ClusterResults} and {@link ClusterVectorStore}, default value 10. */
   public int getNumclusters() { return numclusters; }
+  
   private int trainingcycles = 0;
-  public int getTrainingcycles() { return trainingcycles; }
+  /** Number of training cycles used for Reflective Random Indexing in {@link BuildIndex}. */
+  public int trainingcycles() { return trainingcycles; }
+  
   private int windowradius = 5;
-  public int getWindowradius() { return windowradius; }
+  /** Window radius used in {@link BuildPositionalIndex}, default value 5. */
+  public int windowradius() { return windowradius; }
 
   private String searchtype = "sum";
-  public String getSearchtype() { return searchtype; }
-  public static final String searchtypeDescription = "Method used for combining and searching vectors.";
+  // TODO: turn into enum.
+  /** Method used for combining and searching vectors. */
+  public String searchtype() { return searchtype; }
   public static final String[] searchtypeValues =
     {"sum", "sparsesum", "subspace", "maxsim", "balanced_permutation", "permutation",
      "boundproduct", "boundproductsubspace", "analogy", "printquery"};
 
   private boolean fieldweight = false;
-  public boolean getFieldweight() { return fieldweight; }
-  public static final String fieldweightDescription =
-	  "Set to true if you want document vectors built from multiple fields to emphasize terms from shorter fields";
+  /** Set to true if you want document vectors built from multiple fields to emphasize terms from shorter fields, default value {@code false}. */
+  public boolean fieldweight() { return fieldweight; }
   
   private String termweight = "none";
-  public String getTermweight() { return termweight; }
-  public static final String termweightDescription = "Term weighting used when constructing document vectors.";
+  /** Term weighting used when constructing document vectors. */
+  public String termweight() { return termweight; }
+  // TODO: Turn into enum.
   public static final String[] termweightValues = {"logentropy","idf", "none"};
 
   private boolean porterstemmer = false;
-  public boolean getPorterstemmer() { return porterstemmer; }
-  public static final String porterstemmerDescription =
-    "Set to true when using IndexFilePositions if you would like to stem terms";
+  /** Tells {@link IndexFilePositions} to stem terms using Porter Stemmer, default value false. */
+  public boolean porterstemmer() { return porterstemmer; }
 
   private boolean usetermweightsinsearch = false;
-  public boolean getUsetermweightsinsearch() { return usetermweightsinsearch; }
-  public static final String usetermweightsinsearchDescription =
-    "Set to true only if you want to scale each comparison score by a term weight during search.";
-
+  /** Tells search implementations to scale each comparison score by a term weight during search, default value false. */
+  public boolean usetermweightsinsearch() { return usetermweightsinsearch; }
+ 
   private boolean stdev = false;
-  public boolean getStdev() { return stdev; }
-  public static final String stdevDescription =
-    "Set to true when you would prefer results scored as SD above the mean across all search vectors";
+  /** Score search results according to number of SDs above the mean across all search vectors, default false. */
+  public boolean stdev() { return stdev; }
 
   private boolean expandsearchspace = false;
-  public boolean getExpandsearchspace() { return expandsearchspace; }
-  public static final String expandsearchspaceDescription =
-	  "Set to true to generated bound products from each pairwise element of the search space. "+
-	  "Expands the size of the space to n-squared";
-  
+  /** Generate bound products from each pairwise element of the search space, default false.
+   *  Expands the size of the space to n-squared. */
+  public boolean expandsearchspace() { return expandsearchspace; }
+
   private String indexfileformat = "lucene";
-  public String getIndexfileformat() { return indexfileformat; }
-  public static final String indexfileformatDescription =
-    "Format used for serializing / deserializing vectors from disk";
+  /** Format used for serializing / deserializing vectors from disk, default lucene. */
+  public String indexfileformat() { return indexfileformat; }
+  // TODO: Turn into enum.
   public static final String[] indexfileformatValues = {"lucene", "text"};
 
   private String termvectorsfile = "termvectors";
-  public String getTermvectorsfile() { return termvectorsfile; }
+  /** File to which termvectors are written during indexing. */
+  public String termvectorsfile() { return termvectorsfile; }
+  
   private String docvectorsfile = "docvectors";
-  public String getDocvectorsfile() { return docvectorsfile; }
+  /** File to which docvectors are written during indexing. */
+  public String docvectorsfile() { return docvectorsfile; }
+  
   private String termtermvectorsfile = "termtermvectors";
-  public String getTermtermvectorsfile() { return termtermvectorsfile; }
+  /** File to which docvectors are written during indexing. */
+  public String termtermvectorsfile() { return termtermvectorsfile; }
   
   private String queryvectorfile = "termvectors";
-  public String getQueryvectorfile() { return queryvectorfile; }
-  public static final String queryvectorfileDescription = "Principal vector store for finding query vectors.";
-
+  /** Principal vector store for finding query vectors, default termvectors.bin. */
+  public String queryvectorfile() { return queryvectorfile; }
+  
   private String searchvectorfile = "";
-  public String getSearchvectorfile() { return searchvectorfile; }
-  public static final String searchvectorfileDescription =
-      "Vector store for searching. Defaults to being the same as {@link #queryVecReader}. "
-      + "May be different from queryvectorfile e.g., when using terms to search for documents.";
+  /** Vector store for searching. Defaults to being the same as {@link #queryvectorfile}.
+    May be different from queryvectorfile e.g., when using terms to search for documents. */
+  public String searchvectorfile() { return searchvectorfile; }
   
   private String boundvectorfile = "";
-  public String getBoundvectorfile() { return boundvectorfile; }
-  public static final String boundvectorfileDescription =
-      "Auxiliary vector store used when searching for boundproducts. Used only in some searchtypes.";
+  /** Auxiliary vector store used when searching for boundproducts. Used only in some searchtypes. */
+  public String boundvectorfile() { return boundvectorfile; }
 
   private String elementalvectorfile = "elementalvectors";
-  public String getElementalvectorfile() { return elementalvectorfile; }
-  public static final String elementalvectorfileDescription =
-      "Random elemental vectors, sometimes written out, and used (e.g.) in conjunction with permuted vector file.";
-  
+  /** Random elemental vectors, sometimes written out, and used (e.g.) in conjunction with permuted vector file. */
+  public String elementalvectorfile() { return elementalvectorfile; }
+
   private String semanticvectorfile = "semanticvectors";
-  public String getSemanticvectorfile() { return semanticvectorfile; }
-  public static final String semanticvectorfileDescription =
-      "Semantic vectors; used so far as a name in PSI.";
+  /** Semantic vectors; used so far as a name in PSI. */
+  public String semanticvectorfile() { return semanticvectorfile; }
 
   private String predicatevectorfile = "predicatevectors";
-  public String getPredicatevectorfile() { return predicatevectorfile; }
-  public static final String predicatevectorfileDescription =
-      "Vectors used to represent predicates in PSI.";
+  /** Vectors used to represent predicates in PSI. */
+  public String predicatevectorfile() { return predicatevectorfile; }
   
   private String permutedvectorfile = "permtermvectors";
-  public String getPermutedvectorfile() { return permutedvectorfile; }
-  public static final String permutedvectorfileDescription =
-      "Permuted term vectors, output by -positionalmethod permutation.";
+  /** "Permuted term vectors, output by -positionalmethod permutation. */
+  public String permutedvectorfile() { return permutedvectorfile; }
   
   private String directionalvectorfile ="drxntermvectors";
-  public String getDirectionalvectorfile() { return directionalvectorfile; }
-  public static final String directionalvectorfileDescription =
-      "Permuted term vectors, output by -positionalmethod directional";
+  /** Permuted term vectors, output by -positionalmethod directional. */
+  public String directionalvectorfile() { return directionalvectorfile; }      
   
   private String permplustermvectorfile ="permplustermvectors";
-  public String getPermplustermvectorfile() { return permplustermvectorfile; }
-  public static final String permplustermvectorfileDescription =
-      "Permuted term vectors, output by -positionalmethod permutation_plus_basic";
+  /** "Permuted term vectors, output by -positionalmethod permutation_plus_basic. */
+  public String permplustermvectorfile() { return permplustermvectorfile; }      
   
   private String positionalmethod = "basic";
-  public String getPositionalmethod() { return positionalmethod; }
-  public static final String positionalmethodDescription =
-      "Method used for positional indexing.";
+  /** Method used for positional indexing. */
+  public String positionalmethod() { return positionalmethod; }
+  // TODO: Replace with enum.
   public static String positionalmethodValues[] =
       {"basic", "directional", "permutation","permutation_plus_basic"};
   
   private String stoplistfile = "";
-  public String getStoplistfile() { return stoplistfile; }
+  /** Path to file containing stopwords, one word per line, no default value. */
+  public String stoplistfile() { return stoplistfile; }
 
   private String startlistfile = "";
+  /** Path to file containing startwords, to be indexed always, no default value. */
   public String getStartlistfile() { return startlistfile; }
   
   private String luceneindexpath = "";
-  public String getLuceneindexpath() { return luceneindexpath; }
+  /** Path to a Lucene index. Must contain term position information for positional applications,
+   * See {@link BuildPositionalIndex}.
+   */
+  public String luceneindexpath() { return luceneindexpath; }
   
   private String initialtermvectors = "";
-  public String getInitialtermvectors() { return initialtermvectors; }
-  public static final String initialtermvectorsDescription =
-    "Use the vectors in this file for initialization instead of new random vectors.";
+  /** If set, use the vectors in this file for initialization instead of new random vectors. */
+  public String initialtermvectors() { return initialtermvectors; }
 
-  public String initialdocumentvectors = "";
-  public static final String initialdocumentvectorsDescription =
-    "Use the vectors in this file for initialization instead of new random vectors.";
+  private String initialdocumentvectors = "";
+  /** If set, use the vectors in this file for initialization instead of new random vectors. */
+  public String initialdocumentvectors() { return initialdocumentvectors; }
 
   private String docindexing = "inmemory";
-  public String getDocindexing() { return docindexing; }
-  public static final String docindexingDescription = "Memory management method used for indexing documents.";
+  /** Memory management method used for indexing documents. */
+  public String docindexing() { return docindexing; }
+  // TODO: Turn into enum.
   public static String docindexingValues[] = {"inmemory", "incremental", "none"};
 
   private String vectorlookupsyntax = "exactmatch";
-  public String getVectorlookupsyntax() { return vectorlookupsyntax; }
-  public static final String vectorlookupsyntaxDescription =
-    "Method used for looking up vectors in a vector store";
+  /** Method used for looking up vectors in a vector store. */
+  public String vectorlookupsyntax() { return vectorlookupsyntax; }
+  // TODO: Turn into enum.
   public static String[] vectorlookupsyntaxValues = {"exactmatch", "regex"};
 
   private boolean matchcase = false;
-  public boolean getMatchcase() { return matchcase; }
-  public static final String matchcaseDescription =
-      "If true, matching of query terms is case-sensitive; otherwise case-insensitive";
+  /** If true, matching of query terms is case-sensitive; otherwise case-insensitive, default false. */
+  public boolean matchcase() { return matchcase; }
   
   private String vectorstorelocation = "ram";
-  public String getVectorstorelocation() { return vectorstorelocation; }
-  public static final String vectorstorelocationDescription = "Where to store vectors - in memory or on disk";
+  /** Where to store vectors during indexing - in memory or on disk, default ram." */
+  public String vectorstorelocation() { return vectorstorelocation; }
+  // TODO: Turn into enum.
   public static String[] vectorstorelocationValues = {"ram", "disk"};
 
   private String batchcompareseparator = "\\|";
-  public String getBatchcompareseparator() { return batchcompareseparator; }
-  public static final String batchcompareseparatorDescription = "Separator for documents on a single line in batch comparison mode.";
+  /** Separator for documents on a single line in batch comparison mode, default '\\|' (as a regular expression for '|'). */
+  public String batchcompareseparator() { return batchcompareseparator; }
 
   private boolean suppressnegatedqueries = false;
-  public boolean getSuppressnegatedqueries() { return suppressnegatedqueries; }
-  public static final String suppressnegatedqueriesDescription = "Suppress checking for the query negation token which indicates subsequent terms are to be negated when comparing terms. If this is set all terms are treated as positive";
+  /** If true, suppress checking for the query negation token which indicates subsequent terms are to be negated when comparing terms, default false.
+   * If this is set to {@code true}, all terms are treated as positive. */
+  public boolean suppressnegatedqueries() { return suppressnegatedqueries; }
 
   private String[] contentsfields = {"contents"};
-  public String[] getContentsfields() { return contentsfields; }
+  /** Fields to be indexed for their contents, e.g., "title,description,notes", default "contents". */
+  public String[] contentsfields() { return contentsfields; }
+  
   private String docidfield = "path";
-  public String getDocidfield() { return docidfield; }
+  /** Field used by Lucene to record the identifier for each document, default "path". */
+  public String docidfield() { return docidfield; }
   
   /**
    * Parse flags from a single string.  Presumes that string contains only command line flags.
@@ -372,6 +384,7 @@ public class FlagConfig {
         } else if (field.getType().isEnum()) {
           // Parse enum arguments.
           try {
+            @SuppressWarnings({ "rawtypes", "unchecked" })
             Class<Enum> className = (Class<Enum>) field.getType();
             field.set(flagConfig, Enum.valueOf(className, args[argc + 1].toUpperCase()));
           } catch (ArrayIndexOutOfBoundsException e) {

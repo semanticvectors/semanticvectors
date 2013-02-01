@@ -87,7 +87,7 @@ public class BuildBilingualIndex{
       throw e;
     }
 
-    if (!flagConfig.getDocidfield().equals("filename")) {
+    if (!flagConfig.docidfield().equals("filename")) {
       logger.log(Level.WARNING, "Docid field is normally 'filename' for bilingual indexes." + 
       " Are you sure you wanted to change this?");
     }

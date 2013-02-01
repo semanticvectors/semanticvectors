@@ -83,73 +83,73 @@ public class BuildPositionalIndex {
       throw e;
     }
 
-    if (flagConfig.getLuceneindexpath().isEmpty()) {
+    if (flagConfig.luceneindexpath().isEmpty()) {
       throw (new IllegalArgumentException("-luceneindexpath must be set."));
     }
-    String luceneIndex = flagConfig.getLuceneindexpath();
+    String luceneIndex = flagConfig.luceneindexpath();
 
     // If initialtermvectors is defined, read these vectors.
-    if (!flagConfig.getInitialtermvectors().isEmpty()) {
+    if (!flagConfig.initialtermvectors().isEmpty()) {
       try {
         VectorStoreRAM vsr = new VectorStoreRAM(flagConfig);
-        vsr.initFromFile(flagConfig.getInitialtermvectors());
+        vsr.initFromFile(flagConfig.initialtermvectors());
         newBasicTermVectors = vsr;
-        VerbatimLogger.info("Using trained index vectors from vector store " + flagConfig.getInitialtermvectors());
+        VerbatimLogger.info("Using trained index vectors from vector store " + flagConfig.initialtermvectors());
       } catch (IOException e) {
-        logger.info("Could not read from vector store " + flagConfig.getInitialtermvectors());
+        logger.info("Could not read from vector store " + flagConfig.initialtermvectors());
         System.out.println(usageMessage);
         throw new IllegalArgumentException();
       }
     }
 
-    String termFile = flagConfig.getTermtermvectorsfile();
-    String docFile = flagConfig.getDocvectorsfile();
+    String termFile = flagConfig.termtermvectorsfile();
+    String docFile = flagConfig.docvectorsfile();
 
-    if (flagConfig.getPositionalmethod().equals("permutation")) termFile = flagConfig.getPermutedvectorfile();
-    else if (flagConfig.getPositionalmethod().equals("permutation_plus_basic")) termFile = flagConfig.getPermplustermvectorfile();
-    else if (flagConfig.getPositionalmethod().equals("directional")) termFile = flagConfig.getDirectionalvectorfile();
+    if (flagConfig.positionalmethod().equals("permutation")) termFile = flagConfig.permutedvectorfile();
+    else if (flagConfig.positionalmethod().equals("permutation_plus_basic")) termFile = flagConfig.permplustermvectorfile();
+    else if (flagConfig.positionalmethod().equals("directional")) termFile = flagConfig.directionalvectorfile();
 
     VerbatimLogger.info("Building positional index, Lucene index: " + luceneIndex
-        + ", Seedlength: " + flagConfig.getSeedlength()
-        + ", Vector length: " + flagConfig.getDimension()
-        + ", Vector type: " + flagConfig.getVectortype()
-        + ", Minimum term frequency: " + flagConfig.getMinfrequency()
-        + ", Maximum term frequency: " + flagConfig.getMaxfrequency()
-        + ", Number non-alphabet characters: " + flagConfig.getMaxnonalphabetchars()
-        + ", Window radius: " + flagConfig.getWindowradius()
-        + ", Fields to index: " + Arrays.toString(flagConfig.getContentsfields())
+        + ", Seedlength: " + flagConfig.seedlength()
+        + ", Vector length: " + flagConfig.dimension()
+        + ", Vector type: " + flagConfig.vectortype()
+        + ", Minimum term frequency: " + flagConfig.minfrequency()
+        + ", Maximum term frequency: " + flagConfig.maxfrequency()
+        + ", Number non-alphabet characters: " + flagConfig.maxnonalphabetchars()
+        + ", Window radius: " + flagConfig.windowradius()
+        + ", Fields to index: " + Arrays.toString(flagConfig.contentsfields())
         + "\n");
 
     try {
       TermTermVectorsFromLucene vecStore = new TermTermVectorsFromLucene(
           flagConfig,
-          luceneIndex,  flagConfig.getVectortype(),
-          flagConfig.getDimension(), flagConfig.getSeedlength(), flagConfig.getMinfrequency(), flagConfig.getMaxfrequency(),
-          flagConfig.getMaxnonalphabetchars(), flagConfig.getFilteroutnumbers(), 2 * flagConfig.getWindowradius() + 1, flagConfig.getPositionalmethod(),
-          newBasicTermVectors, flagConfig.getContentsfields());
+          luceneIndex,  flagConfig.vectortype(),
+          flagConfig.dimension(), flagConfig.seedlength(), flagConfig.minfrequency(), flagConfig.maxfrequency(),
+          flagConfig.maxnonalphabetchars(), flagConfig.filteroutnumbers(), 2 * flagConfig.windowradius() + 1, flagConfig.positionalmethod(),
+          newBasicTermVectors, flagConfig.contentsfields());
       
       VectorStoreWriter.writeVectors(termFile, flagConfig, vecStore);
 
-      for (int i = 1; i < flagConfig.getTrainingcycles(); ++i) {
+      for (int i = 1; i < flagConfig.trainingcycles(); ++i) {
         newBasicTermVectors = vecStore.getBasicTermVectors();
         VerbatimLogger.info("\nRetraining with learned term vectors ...");
         vecStore = new TermTermVectorsFromLucene(
             flagConfig,
-            luceneIndex,  flagConfig.getVectortype(),
-            flagConfig.getDimension(), flagConfig.getSeedlength(), flagConfig.getMinfrequency(), flagConfig.getMaxfrequency(),
-            flagConfig.getMaxnonalphabetchars(), flagConfig.getFilteroutnumbers(), 2 * flagConfig.getWindowradius() + 1, flagConfig.getPositionalmethod(),
-            newBasicTermVectors, flagConfig.getContentsfields());
+            luceneIndex,  flagConfig.vectortype(),
+            flagConfig.dimension(), flagConfig.seedlength(), flagConfig.minfrequency(), flagConfig.maxfrequency(),
+            flagConfig.maxnonalphabetchars(), flagConfig.filteroutnumbers(), 2 * flagConfig.windowradius() + 1, flagConfig.positionalmethod(),
+            newBasicTermVectors, flagConfig.contentsfields());
       }
 
-      if (flagConfig.getTrainingcycles() > 1) {
-        termFile = termFile.replaceAll("\\..*", "") + flagConfig.getTrainingcycles() + ".bin";
-        docFile = "docvectors" + flagConfig.getTrainingcycles() + ".bin";
+      if (flagConfig.trainingcycles() > 1) {
+        termFile = termFile.replaceAll("\\..*", "") + flagConfig.trainingcycles() + ".bin";
+        docFile = "docvectors" + flagConfig.trainingcycles() + ".bin";
         VectorStoreWriter.writeVectors(termFile, flagConfig, vecStore);
       }
 
-      if (!flagConfig.getDocindexing().equals("none")) {
+      if (!flagConfig.docindexing().equals("none")) {
         IncrementalDocVectors.createIncrementalDocVectors(
-            vecStore, flagConfig, luceneIndex, flagConfig.getContentsfields(), docFile);
+            vecStore, flagConfig, luceneIndex, flagConfig.contentsfields(), docFile);
       }
     }
     catch (IOException e) {

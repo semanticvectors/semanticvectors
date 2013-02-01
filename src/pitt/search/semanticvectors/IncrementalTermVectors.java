@@ -144,7 +144,7 @@ public class IncrementalTermVectors implements VectorStore {
 
       // Skip terms that don't pass the filter.
       if (!lUtils.termFilter(terms.term(), fieldsToIndex,
-          flagConfig.getMinfrequency(), flagConfig.getMaxfrequency(), flagConfig.getMaxnonalphabetchars()))
+          flagConfig.minfrequency(), flagConfig.maxfrequency(), flagConfig.maxnonalphabetchars()))
         continue;
       tc++;
       Vector termVector = VectorFactory.createZeroVector(vectorType, dimension);
@@ -255,8 +255,8 @@ public class IncrementalTermVectors implements VectorStore {
 
     VectorStore termVectors = new IncrementalTermVectors(
         flagConfig,
-        luceneIndex, flagConfig.getVectortype(), flagConfig.getDimension(),
-        flagConfig.getContentsfields(), vectorFile);
+        luceneIndex, flagConfig.vectortype(), flagConfig.dimension(),
+        flagConfig.contentsfields(), vectorFile);
     VectorStoreWriter.writeVectors("incremental_termvectors.bin", flagConfig, termVectors);
   }
 }

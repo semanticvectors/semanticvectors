@@ -84,11 +84,11 @@ public class BeagleTest
 			System.out.println("\nNumber of convolutions: " + utils.getNumConvolutions());
 
 			VectorStoreWriter.writeVectors(
-			    fileOut + "_" + flagConfig.getDimension() + "_" + numGrams + ".bin", flagConfig, bngv);
+			    fileOut + "_" + flagConfig.dimension() + "_" + numGrams + ".bin", flagConfig, bngv);
 
 			VectorStore indexVectors = bngv.getIndexVectors();
 			VectorStoreWriter.writeVectors(
-			    fileOut + "_" + flagConfig.getDimension() + "_" + numGrams + "_index.bin", flagConfig, indexVectors);
+			    fileOut + "_" + flagConfig.dimension() + "_" + numGrams + "_index.bin", flagConfig, indexVectors);
 
 			bngv = null;
 			System.gc();

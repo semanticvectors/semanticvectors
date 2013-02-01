@@ -123,8 +123,8 @@ public class IncrementalDocVectors {
 
       String docID = Integer.toString(dc); 
       // Use filename and path rather than Lucene index number for document vector.
-      if (this.indexReader.document(dc).getField(flagConfig.getDocidfield()) != null) {
-        docID = this.indexReader.document(dc).getField(flagConfig.getDocidfield()).stringValue();
+      if (this.indexReader.document(dc).getField(flagConfig.docidfield()) != null) {
+        docID = this.indexReader.document(dc).getField(flagConfig.docidfield()).stringValue();
         if (docID.length() == 0) {
           logger.warning("Empty document name!!! This will cause problems ...");
           logger.warning("Please set -docidfield to a nonempty field in your Lucene index.");
@@ -150,19 +150,19 @@ public class IncrementalDocVectors {
             float fieldweight = 1;
 
 
-            if (flagConfig.getFieldweight()) {
+            if (flagConfig.fieldweight()) {
               //field weight: 1/sqrt(number of terms in field)
               fieldweight = (float) (1/Math.sqrt(terms.length));
             }
 
-            if (flagConfig.getTermweight().equals("logentropy")) {
+            if (flagConfig.termweight().equals("logentropy")) {
               //local weighting: 1+ log (local frequency)
               localweight = new Double(1 + Math.log(localweight)).floatValue();
               Term term = new Term(fieldName, termString);
               globalweight = globalweight * lUtils.getEntropy(term);
             }
             else 
-              if (flagConfig.getTermweight().equals("idf")) {
+              if (flagConfig.termweight().equals("idf")) {
                 Term term = new Term(fieldName, termString);
                 globalweight = lUtils.getIDF(term);
               }	
@@ -209,11 +209,11 @@ public class IncrementalDocVectors {
     VectorStoreRAM vsr = new VectorStoreRAM(flagConfig);
     vsr.initFromFile(args[0]);
 
-    logger.info("Minimum frequency = " + flagConfig.getMinfrequency());
-    logger.info("Maximum frequency = " + flagConfig.getMaxfrequency());
-    logger.info("Number non-alphabet characters = " + flagConfig.getMaxnonalphabetchars());
-    logger.info("Contents fields are: " + Arrays.toString(flagConfig.getContentsfields()));
+    logger.info("Minimum frequency = " + flagConfig.minfrequency());
+    logger.info("Maximum frequency = " + flagConfig.maxfrequency());
+    logger.info("Number non-alphabet characters = " + flagConfig.maxnonalphabetchars());
+    logger.info("Contents fields are: " + Arrays.toString(flagConfig.contentsfields()));
 
-    createIncrementalDocVectors(vsr, flagConfig, args[1], flagConfig.getContentsfields(), vectorFile);
+    createIncrementalDocVectors(vsr, flagConfig, args[1], flagConfig.contentsfields(), vectorFile);
   }
 }

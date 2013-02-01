@@ -76,7 +76,7 @@ public class PSI {
     PSI incrementalPSIVectors = new PSI();
     incrementalPSIVectors.flagConfig = flagConfig;
     incrementalPSIVectors.indexReader = IndexReader.open(
-        FSDirectory.open(new File(flagConfig.getLuceneindexpath())));
+        FSDirectory.open(new File(flagConfig.luceneindexpath())));
 
     if (incrementalPSIVectors.lUtils == null) {
       incrementalPSIVectors.lUtils = new LuceneUtils(flagConfig);
@@ -103,20 +103,20 @@ public class PSI {
 
       if (field.equals("subject") | field.equals("object")) {
 
-        if (!lUtils.termFilter(term, desiredFields, flagConfig.getMinfrequency(), flagConfig.getMaxfrequency(), Integer.MAX_VALUE))
+        if (!lUtils.termFilter(term, desiredFields, flagConfig.minfrequency(), flagConfig.maxfrequency(), Integer.MAX_VALUE))
           continue;
 
         if (!addedConcepts.contains(term.text())) {
           addedConcepts.add(term.text());
           Vector semanticVector = VectorFactory.createZeroVector(
-              flagConfig.getVectortype(), flagConfig.getDimension());
+              flagConfig.vectortype(), flagConfig.dimension());
           
-      	if (flagConfig.getDeterministicvectors())
+      	if (flagConfig.deterministicvectors())
       	  random.setSeed(Bobcat.asLong(term.text()));
         
           Vector elementalVector = VectorFactory.generateRandomVector(
-              flagConfig.getVectortype(), flagConfig.getDimension(),
-              flagConfig.getSeedlength(), random);
+              flagConfig.vectortype(), flagConfig.dimension(),
+              flagConfig.seedlength(), random);
 
           semanticVectors.putVector(term.text(), semanticVector);
           elementalVectors.putVector(term.text(), elementalVector);
@@ -131,20 +131,20 @@ public class PSI {
           continue;
         }
 
-    	if (flagConfig.getDeterministicvectors())
+    	if (flagConfig.deterministicvectors())
       	  random.setSeed(Bobcat.asLong(term.text().trim()));
       
         Vector elementalVector = VectorFactory.generateRandomVector(
-            flagConfig.getVectortype(), flagConfig.getDimension(),
-            flagConfig.getSeedlength(), random);
+            flagConfig.vectortype(), flagConfig.dimension(),
+            flagConfig.seedlength(), random);
         predicateVectors.putVector(term.text().trim(), elementalVector);
         
-    	if (flagConfig.getDeterministicvectors())
+    	if (flagConfig.deterministicvectors())
       	  random.setSeed(Bobcat.asLong(term.text().trim()+"-INV"));
           
         Vector inverseElementalVector = VectorFactory.generateRandomVector(
-            flagConfig.getVectortype(), flagConfig.getDimension(),
-            flagConfig.getSeedlength(), random);
+            flagConfig.vectortype(), flagConfig.dimension(),
+            flagConfig.seedlength(), random);
         predicateVectors.putVector(term.text().trim()+"-INV", inverseElementalVector);
       }
     }
@@ -179,7 +179,7 @@ public class PSI {
       float oWeight =1;
       float pWeight =1;
 
-      if (flagConfig.getTermweight().equalsIgnoreCase("idf")) {
+      if (flagConfig.termweight().equalsIgnoreCase("idf")) {
         sWeight = lUtils.getIDF(new Term("subject",subject));
         oWeight = lUtils.getIDF(new Term("object",object));  
         pWeight = (float) Math.log(1+lUtils.getGlobalTermFreq(theTerm)); //log(occurrences of predication)
@@ -214,9 +214,9 @@ public class PSI {
       e.nextElement().getVector().normalize();
     }
 
-    VectorStoreWriter.writeVectors(flagConfig.getElementalvectorfile(), flagConfig, elementalVectors);
-    VectorStoreWriter.writeVectors(flagConfig.getSemanticvectorfile(), flagConfig, semanticVectors);
-    VectorStoreWriter.writeVectors(flagConfig.getPredicatevectorfile(), flagConfig, predicateVectors);
+    VectorStoreWriter.writeVectors(flagConfig.elementalvectorfile(), flagConfig, elementalVectors);
+    VectorStoreWriter.writeVectors(flagConfig.semanticvectorfile(), flagConfig, semanticVectors);
+    VectorStoreWriter.writeVectors(flagConfig.predicatevectorfile(), flagConfig, predicateVectors);
 
     VerbatimLogger.info("Finished writing vectors.\n");
   }
@@ -226,20 +226,20 @@ public class PSI {
     args = flagConfig.remainingArgs;
 
     // Currently implemented for complex and binary vectors only
-    if (flagConfig.getVectortype() == VectorType.REAL) {
+    if (flagConfig.vectortype() == VectorType.REAL) {
       throw new IllegalArgumentException(
           "PSI is currently implemented for complex and binary vectors only. " +
           "Try rerunning using -vectortype complex or binary with appropriate -dimension and -seedlength");
     }
 
-    if (flagConfig.getLuceneindexpath().isEmpty()) {
+    if (flagConfig.luceneindexpath().isEmpty()) {
       throw (new IllegalArgumentException("-luceneindexpath must be set."));
     }
 
-    VerbatimLogger.info("Building PSI model from index in: " + flagConfig.getLuceneindexpath() + "\n");
-    VerbatimLogger.info("Minimum frequency = " + flagConfig.getMinfrequency() + "\n");
-    VerbatimLogger.info("Maximum frequency = " + flagConfig.getMaxfrequency() + "\n");
-    VerbatimLogger.info("Number non-alphabet characters = " + flagConfig.getMaxnonalphabetchars() + "\n");
+    VerbatimLogger.info("Building PSI model from index in: " + flagConfig.luceneindexpath() + "\n");
+    VerbatimLogger.info("Minimum frequency = " + flagConfig.minfrequency() + "\n");
+    VerbatimLogger.info("Maximum frequency = " + flagConfig.maxfrequency() + "\n");
+    VerbatimLogger.info("Number non-alphabet characters = " + flagConfig.maxnonalphabetchars() + "\n");
 
     createIncrementalPSIVectors(flagConfig);
   }

@@ -25,9 +25,9 @@ public class SemanticVectorCollider {
 		
 		System.out.println("Number of iterations "+iterations);
 		System.out.println("Number of superpositions per iteration (if no collision occurs) "+superpositions);
-		System.out.println("Vector type "+flagConfig.getVectortype());
-		System.out.println("Dimension "+flagConfig.getDimension());
-		System.out.println("Seed length "+flagConfig.getSeedlength());
+		System.out.println("Vector type "+flagConfig.vectortype());
+		System.out.println("Dimension "+flagConfig.dimension());
+		System.out.println("Seed length "+flagConfig.seedlength());
 		
 		int overlapcnt = 0;
 		int overlaprank = 0;
@@ -44,17 +44,17 @@ public class SemanticVectorCollider {
 			
 		
 		Vector originalVector = VectorFactory.generateRandomVector(
-		    flagConfig.getVectortype(), flagConfig.getDimension(), flagConfig.getSeedlength(), random);
+		    flagConfig.vectortype(), flagConfig.dimension(), flagConfig.seedlength(), random);
 		
-		Vector superPosition = VectorFactory.createZeroVector(flagConfig.getVectortype(), flagConfig.getDimension());
+		Vector superPosition = VectorFactory.createZeroVector(flagConfig.vectortype(), flagConfig.dimension());
 		
 		superPosition.superpose(originalVector, 1, null);
-		if (flagConfig.getVectortype() == VectorType.BINARY) {
+		if (flagConfig.vectortype() == VectorType.BINARY) {
 		  superPosition.normalize();
 		}
 		
 		Vector additionalVector = VectorFactory.generateRandomVector(
-        flagConfig.getVectortype(), flagConfig.getDimension(), flagConfig.getSeedlength(), random);
+        flagConfig.vectortype(), flagConfig.dimension(), flagConfig.seedlength(), random);
 		
 		for (int x =0; x < superpositions; x++)
 		{
@@ -65,7 +65,7 @@ public class SemanticVectorCollider {
 		
 			//generate another random vector
 			Vector randomVector = VectorFactory.generateRandomVector(
-	        flagConfig.getVectortype(), flagConfig.getDimension(), flagConfig.getSeedlength(), random);
+	        flagConfig.vectortype(), flagConfig.dimension(), flagConfig.seedlength(), random);
 			double overlapWithRandom = superPosition.measureOverlap(randomVector); 
 			
 			
@@ -89,11 +89,11 @@ public class SemanticVectorCollider {
 			}
 			
 			additionalVector = VectorFactory.generateRandomVector(
-			    flagConfig.getVectortype(), flagConfig.getDimension(), flagConfig.getSeedlength(), random);
+			    flagConfig.vectortype(), flagConfig.dimension(), flagConfig.seedlength(), random);
 			
 			superPosition.superpose(additionalVector, 1, null);
 			
-			if (flagConfig.getVectortype() == VectorType.BINARY) {
+			if (flagConfig.vectortype() == VectorType.BINARY) {
 			  superPosition.normalize();
 			}
 		}

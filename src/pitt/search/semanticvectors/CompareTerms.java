@@ -95,19 +95,19 @@ public class CompareTerms{
 
     CloseableVectorStore vecReader;
     try {
-      vecReader = new VectorStoreReaderLucene(flagConfig.getQueryvectorfile(), flagConfig);
+      vecReader = new VectorStoreReaderLucene(flagConfig.queryvectorfile(), flagConfig);
     } catch (IOException e) {
-      logger.warning("Failed to open vector store from file: " + flagConfig.getQueryvectorfile());
+      logger.warning("Failed to open vector store from file: " + flagConfig.queryvectorfile());
       throw e;
     }
 
-    logger.info("Opened query vector store from file: " + flagConfig.getQueryvectorfile());
+    logger.info("Opened query vector store from file: " + flagConfig.queryvectorfile());
 
-    if (flagConfig.getLuceneindexpath() != null) {
+    if (flagConfig.luceneindexpath() != null) {
       try {
         luceneUtils = new LuceneUtils(flagConfig);
       } catch (IOException e) {
-        VerbatimLogger.info("Couldn't open Lucene index at " + flagConfig.getLuceneindexpath());
+        VerbatimLogger.info("Couldn't open Lucene index at " + flagConfig.luceneindexpath());
       }
     }
     if (luceneUtils == null) {

@@ -248,7 +248,7 @@ public class TermTermVectorsFromLucene implements VectorStore {
       // Do the same for random index vectors unless retraining with trained term vectors
       if (!retraining) {
     	  
-    	if (flagConfig.getDeterministicvectors())
+    	if (flagConfig.deterministicvectors())
     	  random.setSeed(Bobcat.asLong(term.text()));
     		
         Vector indexVector =  VectorFactory.generateRandomVector(
@@ -286,12 +286,12 @@ public class TermTermVectorsFromLucene implements VectorStore {
     // term vectors here.  We should redesign this.
     if ((positionalmethod.equals("permutation") || (positionalmethod.equals("permutation_plus_basic"))) 
         && !retraining) {
-      VerbatimLogger.info("Normalizing and writing random vectors to " + flagConfig.getElementalvectorfile() + "\n");
+      VerbatimLogger.info("Normalizing and writing random vectors to " + flagConfig.elementalvectorfile() + "\n");
       Enumeration<ObjectVector> f = indexVectors.getAllVectors();
       while (f.hasMoreElements())	{
         f.nextElement().getVector().normalize();
       }
-      VectorStoreWriter.writeVectors(flagConfig.getElementalvectorfile(), flagConfig, this.indexVectors);
+      VectorStoreWriter.writeVectors(flagConfig.elementalvectorfile(), flagConfig, this.indexVectors);
     }
   }
 
@@ -373,13 +373,13 @@ public class TermTermVectorsFromLucene implements VectorStore {
         }
         
         float globalweight = 1;
-        if (flagConfig.getTermweight().equals("logentropy")) {
+        if (flagConfig.termweight().equals("logentropy")) {
             //local weighting: 1+ log (local frequency)
             Term term = new Term(vex.getField(), docterms[coterm]);
             globalweight = globalweight * lUtils.getEntropy(term);
           }
           else 
-          if (flagConfig.getTermweight().equals("idf")) {
+          if (flagConfig.termweight().equals("idf")) {
         	  
         	  	Term term = new Term(vex.getField(), docterms[coterm]);
                 globalweight =  globalweight * lUtils.getIDF(term);

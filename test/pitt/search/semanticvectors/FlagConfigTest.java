@@ -49,9 +49,9 @@ public class FlagConfigTest extends TestCase {
         "-queryvectorfile", "myvectors.bin", "queryterm"};
     FlagConfig flagConfig = FlagConfig.getFlagConfig(args);
     args = flagConfig.remainingArgs;
-    assertEquals("subspace", flagConfig.getSearchtype());
-    assertEquals(3, flagConfig.getDimension());
-    assertEquals("myvectors.bin", flagConfig.getQueryvectorfile());
+    assertEquals("subspace", flagConfig.searchtype());
+    assertEquals(3, flagConfig.dimension());
+    assertEquals("myvectors.bin", flagConfig.queryvectorfile());
 
     // Test remaining query args correct.
     assertEquals(1, args.length);
@@ -62,14 +62,14 @@ public class FlagConfigTest extends TestCase {
   public void testTwoDifferentFlagConfigs() {
     FlagConfig config1 = FlagConfig.getFlagConfig(new String[] {"-dimension", "2"});
     FlagConfig config2 = FlagConfig.getFlagConfig(new String[] {"-dimension", "3"});
-    assertEquals(2, config1.getDimension());
-    assertEquals(3, config2.getDimension());
+    assertEquals(2, config1.dimension());
+    assertEquals(3, config2.dimension());
   }
 
   @Test
   public void testParseEnumFlag() {
     FlagConfig config = FlagConfig.getFlagConfig(new String[] {"-vectortype", "complex" });
-    assertEquals(VectorType.COMPLEX, config.getVectortype());
+    assertEquals(VectorType.COMPLEX, config.vectortype());
     
     try {
       FlagConfig.getFlagConfig(new String[] {"-vectortype", "banana" });
@@ -82,8 +82,8 @@ public class FlagConfigTest extends TestCase {
   @Test
   public void testParseFlagsFromString() {    
     FlagConfig flagConfig = FlagConfig.parseFlagsFromString("-vectortype complex -dimension 2");
-    assertEquals(2, flagConfig.getDimension());
-    assertEquals(VectorType.COMPLEX, flagConfig.getVectortype());
+    assertEquals(2, flagConfig.dimension());
+    assertEquals(VectorType.COMPLEX, flagConfig.vectortype());
   }
 
   @Test
@@ -91,11 +91,11 @@ public class FlagConfigTest extends TestCase {
     String[] args = {"-contentsfields", "text,moretext"};
     FlagConfig flagConfig = FlagConfig.getFlagConfig(args);
     args = flagConfig.remainingArgs;
-    assertEquals(2, flagConfig.getContentsfields().length);
-    assertEquals("moretext", flagConfig.getContentsfields()[1]);
+    assertEquals(2, flagConfig.contentsfields().length);
+    assertEquals("moretext", flagConfig.contentsfields()[1]);
     String[] args2 = {"-contentsfields", "contents"};
     flagConfig = FlagConfig.getFlagConfig(args2);
-    assertEquals(1, flagConfig.getContentsfields().length);
+    assertEquals(1, flagConfig.contentsfields().length);
   }
 
   @Test
@@ -132,14 +132,14 @@ public class FlagConfigTest extends TestCase {
   public void testMakeFlagsCompatible() {
     String[] args = {"-dimension", "60", "-vectortype", "binary", "-seedlength", "20"};
     FlagConfig flagConfig = FlagConfig.getFlagConfig(args);
-    assertEquals(64, flagConfig.getDimension());
-    assertEquals(32, flagConfig.getSeedlength());
+    assertEquals(64, flagConfig.dimension());
+    assertEquals(32, flagConfig.seedlength());
     
     // Reset the vectortype flag to real and you have more options.
     args = new String[] {"-dimension", "60", "-vectortype", "real", "-seedlength", "20"};
     flagConfig = FlagConfig.getFlagConfig(args);
-    assertEquals(60, flagConfig.getDimension());
-    assertEquals(20, flagConfig.getSeedlength());
+    assertEquals(60, flagConfig.dimension());
+    assertEquals(20, flagConfig.seedlength());
   }
 
   @org.junit.Test

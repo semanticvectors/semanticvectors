@@ -187,14 +187,14 @@ public class BeagleNGramVectors implements VectorStore {
 
       // Create random index vectors for terms that pass filter
       if (iFilter.filter(term)) {
-        float[] indexVector =  utils.generateNormalizedRandomVector(flagConfig.getDimension());
+        float[] indexVector =  utils.generateNormalizedRandomVector(flagConfig.dimension());
         this.indexVectors.putVector(term.text(), new RealVector(indexVector));
       }
 
       // Create zero term vectors for terms that pass filter
       if (tFilter.filter(term))
       {
-        float[] termVector = new float[flagConfig.getDimension()];
+        float[] termVector = new float[flagConfig.dimension()];
         this.termVectors.putVector(term.text(), new RealVector(termVector));
       }
     }
@@ -264,7 +264,7 @@ public class BeagleNGramVectors implements VectorStore {
           // Create local term vectors
           if (this.termVectors.getVector(docterms[tcn]) != null) {
             /** retrieve the relevant term vectors**/
-            localtermvectors[tcn] = utils.createZeroVector(flagConfig.getDimension());
+            localtermvectors[tcn] = utils.createZeroVector(flagConfig.dimension());
           }
         }
 
@@ -393,7 +393,7 @@ public class BeagleNGramVectors implements VectorStore {
   }
 
   public int getDimension() {
-    return flagConfig.getDimension();
+    return flagConfig.dimension();
   }
   
   @Override

@@ -69,8 +69,8 @@ public class VectorStoreWriter {
    * "-vectortype real -dimension 100".
    */
   public static String generateHeaderString(FlagConfig flagConfig) {
-    return "-vectortype " + flagConfig.getVectortype().toString()
-        + " -dimension " + Integer.toString(flagConfig.getDimension());
+    return "-vectortype " + flagConfig.vectortype().toString()
+        + " -dimension " + Integer.toString(flagConfig.dimension());
   }
 
   /**
@@ -82,12 +82,12 @@ public class VectorStoreWriter {
   public static void writeVectors(String storeName, FlagConfig flagConfig, VectorStore objectVectors)
       throws IOException {
     String vectorFileName = VectorStoreUtils.getStoreFileName(storeName, flagConfig);
-    if (flagConfig.getIndexfileformat().equals("lucene")) {
+    if (flagConfig.indexfileformat().equals("lucene")) {
       writeVectorsInLuceneFormat(vectorFileName, flagConfig, objectVectors);
-    } else if (flagConfig.getIndexfileformat().equals("text")) {
+    } else if (flagConfig.indexfileformat().equals("text")) {
       writeVectorsInTextFormat(vectorFileName, flagConfig, objectVectors);
     } else {
-      throw new IllegalStateException("Unrecognized indexfileformat: '" + flagConfig.getIndexfileformat() + "'");
+      throw new IllegalStateException("Unrecognized indexfileformat: '" + flagConfig.indexfileformat() + "'");
     }
   }
 
@@ -100,7 +100,7 @@ public class VectorStoreWriter {
   public static void writeVectorsInLuceneFormat(String vectorFileName, FlagConfig flagConfig, VectorStore objectVectors)
       throws IOException {
     VerbatimLogger.info("About to write " + objectVectors.getNumVectors() + " vectors of dimension "
-        + flagConfig.getDimension() + " to Lucene format file: " + vectorFileName + " ... ");
+        + flagConfig.dimension() + " to Lucene format file: " + vectorFileName + " ... ");
     File vectorFile = new File(vectorFileName);
     String parentPath = vectorFile.getParent();
     if (parentPath == null) parentPath = "";
@@ -139,7 +139,7 @@ public class VectorStoreWriter {
   public static void writeVectorsInTextFormat(String vectorFileName, FlagConfig flagConfig, VectorStore objectVectors)
       throws IOException {
     VerbatimLogger.info("About to write " + objectVectors.getNumVectors() + " vectors of dimension "
-        + flagConfig.getDimension() + " to text file: " + vectorFileName + " ... ");
+        + flagConfig.dimension() + " to text file: " + vectorFileName + " ... ");
     BufferedWriter outBuf = new BufferedWriter(new FileWriter(vectorFileName));
     writeToTextBuffer(objectVectors, flagConfig, outBuf);
     outBuf.close();

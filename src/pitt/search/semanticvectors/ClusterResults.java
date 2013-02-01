@@ -107,7 +107,7 @@ public class ClusterResults {
     while (true) {
       // Clear centroid register.
       for (int i = 0; i < clusters.centroids.length; ++i) {
-        clusters.centroids[i] = VectorFactory.createZeroVector(flagConfig.getVectortype(), flagConfig.getDimension()); 
+        clusters.centroids[i] = VectorFactory.createZeroVector(flagConfig.vectortype(), flagConfig.dimension()); 
       }
       // Generate new cluster centroids.
       for (int i = 0; i < objectVectors.length; ++i) {
@@ -170,7 +170,7 @@ public class ClusterResults {
     args = flagConfig.remainingArgs;
 
     // Get search results, perform clustering, and print out results.		
-    ObjectVector[] resultsVectors = Search.getSearchResultVectors(flagConfig, args, flagConfig.getNumsearchresults());
+    ObjectVector[] resultsVectors = Search.getSearchResultVectors(flagConfig, args, flagConfig.numsearchresults());
     Clusters clusters = kMeansCluster(resultsVectors, flagConfig);
     for (int i = 0; i < flagConfig.getNumclusters(); ++i) {
       System.out.println("Cluster " + i);
