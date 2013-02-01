@@ -102,8 +102,6 @@ public class PSITest {
     PSI.main(buildArgs);
     for (String fn: filesToBuild) assertTrue((new File(fn)).isFile());
 
-
-
     results = Search.RunSearch(searchArgs, 10);
     rank = 1;
     if (results.isEmpty()) {
@@ -118,6 +116,5 @@ public class PSITest {
     assertTrue(rank < 2);
 
     for (String fn: filesToBuild) assertTrue((new File(fn)).delete());
-
   }
 }

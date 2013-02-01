@@ -146,9 +146,7 @@ public class RegressionTests {
   public void testBuildAndSearchRealPositionalIndex() {
     int peterRank = positionalBuildSearchGetRank(
         "-dimension 200 -vectortype real -seedlength 10 -luceneindexpath positional_index",
-        // Setting the -searchvectorfile here is necessary to avoid flag bleedover from previous
-        // tests.  Yet another indication of the problems with the current flags design.
-        "-queryvectorfile termtermvectors.bin -searchvectorfile termtermvectors.bin simon",
+        "-queryvectorfile termtermvectors.bin simon",
         new String[] {"termtermvectors.bin", "docvectors.bin"},
         "peter");
     assertTrue(peterRank < 5);
@@ -178,9 +176,7 @@ public class RegressionTests {
   public void testBuildAndSearchRealDirectionalIndex() {
     int peterRank = positionalBuildSearchGetRank(
         "-dimension 200 -vectortype real -seedlength 10 -positionalmethod directional -luceneindexpath positional_index",
-        // Setting the -searchvectorfile here is necessary to avoid flag bleedover from previous
-        // tests.  Yet another indication of the problems with the current flags design.
-        "-queryvectorfile drxntermvectors.bin -searchvectorfile drxntermvectors.bin simon",
+        "-queryvectorfile drxntermvectors.bin simon",
         new String[] {"drxntermvectors.bin", "docvectors.bin"},
         "peter");
     assertTrue(peterRank <= 3);
