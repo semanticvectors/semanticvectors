@@ -99,8 +99,7 @@ public class LSA {
     TermEnum terms = indexReader.terms();
     int tc = 0;
     while(terms.next()){
-      if (lUtils.termFilter(terms.term(), flagConfig.contentsfields(),
-          flagConfig.minfrequency(), flagConfig.maxfrequency(), flagConfig.maxnonalphabetchars()))
+      if (lUtils.termFilter(terms.term()))
         tc++;
     }
 
@@ -114,8 +113,7 @@ public class LSA {
 
     while(terms.next()){
       org.apache.lucene.index.Term term = terms.term();
-      if (lUtils.termFilter(term, flagConfig.contentsfields(),
-          flagConfig.minfrequency(), flagConfig.maxfrequency(), flagConfig.maxnonalphabetchars())) {
+      if (lUtils.termFilter(term)) {
         termList[tc] = term.text();
 
         // Create matrix of nonzero indices.
@@ -147,9 +145,7 @@ public class LSA {
 
     while (terms.next()) {
       org.apache.lucene.index.Term term = terms.term();
-      if (lUtils.termFilter(term, flagConfig.contentsfields(),
-                            flagConfig.minfrequency(), flagConfig.maxfrequency(),
-                            flagConfig.maxnonalphabetchars())) {
+      if (lUtils.termFilter(term)) {
         TermDocs td = indexReader.termDocs(term);
         S.pointr[tc] = nn;  // Index of first non-zero entry (document) of each column (term).
 
