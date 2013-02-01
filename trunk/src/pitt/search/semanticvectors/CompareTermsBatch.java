@@ -106,27 +106,27 @@ public class CompareTermsBatch {
     }
 
     LuceneUtils luceneUtils = null;
-    String separator = flagConfig.getBatchcompareseparator();
-    boolean ramCache = (flagConfig.getVectorstorelocation().equals("ram"));
+    String separator = flagConfig.batchcompareseparator();
+    boolean ramCache = (flagConfig.vectorstorelocation().equals("ram"));
 
     /* reading and searching test */
     try {
       VectorStore vecReader;
       if (ramCache) {
         VectorStoreRAM ramReader = new VectorStoreRAM(flagConfig);
-        ramReader.initFromFile(flagConfig.getQueryvectorfile());
+        ramReader.initFromFile(flagConfig.queryvectorfile());
         vecReader = ramReader;
         logger.info("Using RAM cache of vectors");
       } else {
-        vecReader = new VectorStoreReaderLucene(flagConfig.getQueryvectorfile(), flagConfig);
+        vecReader = new VectorStoreReaderLucene(flagConfig.queryvectorfile(), flagConfig);
         logger.info("Reading vectors directly off disk");
       }
 
-      if (flagConfig.getLuceneindexpath() != null) {
+      if (flagConfig.luceneindexpath() != null) {
         try {
           luceneUtils = new LuceneUtils(flagConfig);
         } catch (IOException e) {
-          logger.info("Couldn't open Lucene index at " + flagConfig.getLuceneindexpath());
+          logger.info("Couldn't open Lucene index at " + flagConfig.luceneindexpath());
         }
       }
       if (luceneUtils == null) {

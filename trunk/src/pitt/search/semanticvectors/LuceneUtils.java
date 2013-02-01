@@ -73,17 +73,17 @@ public class LuceneUtils{
 
   /**
    * @param flagConfig Contains all information necessary for configuring LuceneUtils.
-   *        {@see FlagConfig#luceneindexpath} must be set. 
+   *        {@link FlagConfig#luceneindexpath()} must be non-empty. 
    */
   public LuceneUtils(FlagConfig flagConfig) throws IOException {
-    if (flagConfig.getLuceneindexpath().isEmpty()) {
+    if (flagConfig.luceneindexpath().isEmpty()) {
       throw new IllegalArgumentException(
           "-luceneindexpath is a required argument for initializing LuceneUtils instance.");
     }
-    this.indexReader = IndexReader.open(FSDirectory.open(new File(flagConfig.getLuceneindexpath())));
+    this.indexReader = IndexReader.open(FSDirectory.open(new File(flagConfig.luceneindexpath())));
     this.flagConfig = flagConfig;
-    if (!flagConfig.getStoplistfile().isEmpty())
-      loadStopWords(flagConfig.getStoplistfile());
+    if (!flagConfig.stoplistfile().isEmpty())
+      loadStopWords(flagConfig.stoplistfile());
   }
 
 
@@ -170,7 +170,7 @@ public class LuceneUtils{
   public float getGlobalTermWeightFromString(String termString) {
     try {
       int freq = 0;
-      for (String field: flagConfig.getContentsfields())
+      for (String field: flagConfig.contentsfields())
         freq += indexReader.docFreq(new Term(field, termString));
       return (float) Math.pow(freq, -0.05);
     } catch (IOException e) {

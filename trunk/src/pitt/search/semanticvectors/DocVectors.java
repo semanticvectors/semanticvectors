@@ -118,11 +118,11 @@ public class DocVectors implements VectorStore {
           float globalweight = 1;
           float fieldweight = 1;
 
-          if (flagConfig.getTermweight().equals("logentropy")) { 
+          if (flagConfig.termweight().equals("logentropy")) { 
             //global entropy weighting
             globalweight = globalweight * lUtils.getEntropy(term);
           }
-          else if (flagConfig.getTermweight().equals("idf")) {
+          else if (flagConfig.termweight().equals("idf")) {
             int docFreq = indexReader.docFreq(term);
             if (docFreq > 0)
               globalweight =  globalweight * (float) Math.log10(indexReader.numDocs()/docFreq);
@@ -137,13 +137,13 @@ public class DocVectors implements VectorStore {
             Vector docVector = this.docVectors.getVector(docID);
             float localweight = td.freq();
 
-            if (flagConfig.getFieldweight()) {
+            if (flagConfig.fieldweight()) {
               //field weight: 1/sqrt(number of terms in field)
               String[] terms = indexReader.getTermFreqVector(td.doc(), fieldName).getTerms();
               fieldweight = (float) (1/Math.sqrt(terms.length));
             }
 
-            if (flagConfig.getTermweight().equals("logentropy"))
+            if (flagConfig.termweight().equals("logentropy"))
             {
               //local weighting: 1+ log (local frequency)
               localweight = new Double(1 + Math.log(localweight)).floatValue();    	
@@ -189,8 +189,8 @@ public class DocVectors implements VectorStore {
         // reconfigured.  For bilingual docs, we index "filename" not
         // "path", since there are two system paths, one for each
         // language.
-        if (this.indexReader.document(i).getField(flagConfig.getDocidfield()) != null) {
-          docName = this.indexReader.document(i).getField(flagConfig.getDocidfield()).stringValue();
+        if (this.indexReader.document(i).getField(flagConfig.docidfield()) != null) {
+          docName = this.indexReader.document(i).getField(flagConfig.docidfield()).stringValue();
           if (docName.length() == 0) {
             logger.warning("Empty document name!!! This will cause problems ...");
             logger.warning("Please set -docidfield to a nonempty field in your Lucene index.");

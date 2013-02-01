@@ -47,8 +47,8 @@ public class VectorStoreDeterministic implements VectorStore {
   public VectorStoreDeterministic(FlagConfig flagConfig) {
     this.flagConfig = flagConfig;
     this.objectVectors = new Hashtable<Object, ObjectVector>();
-    this.vectorType = flagConfig.getVectortype();
-    this.dimension = flagConfig.getDimension();
+    this.vectorType = flagConfig.vectortype();
+    this.dimension = flagConfig.dimension();
   }
 
   @Override
@@ -106,7 +106,7 @@ public class VectorStoreDeterministic implements VectorStore {
      } else {
        random.setSeed(Bobcat.asLong(desiredObject.toString()));
        Vector v = VectorFactory.generateRandomVector(vectorType,
-           dimension, flagConfig.getSeedlength(), random);
+           dimension, flagConfig.seedlength(), random);
        if (cacheVectors)
          objectVectors.put(desiredObject, new ObjectVector(
              desiredObject, v));

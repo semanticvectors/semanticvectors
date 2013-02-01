@@ -95,8 +95,8 @@ public class VectorStoreReaderText implements CloseableVectorStore {
       // Read number of dimension from header information.
       String firstLine = inBuf.readLine();
       FlagConfig.mergeWriteableFlagsFromString(firstLine, flagConfig);
-      this.dimension = flagConfig.getDimension();
-      this.vectorType = flagConfig.getVectortype();
+      this.dimension = flagConfig.dimension();
+      this.vectorType = flagConfig.vectortype();
     } catch (IOException e) {
       System.out.println("Cannot read file: " + vectorFileText + "\n" + e.getMessage());
     }

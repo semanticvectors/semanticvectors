@@ -37,11 +37,9 @@ public class IndexFilePositions {
     }
     if (args.length > 0) {
       flagConfig = FlagConfig.getFlagConfig(args);
-      if (flagConfig.getPorterstemmer())
-        INDEX_DIR = new File("stemmed_positional_index");
       // Allow for the specification of a directory to write the index to.
-      if (flagConfig.getIndexrootdirectory().length() > 0)
-        INDEX_DIR = new File(flagConfig.getIndexrootdirectory() + INDEX_DIR.getName());
+      if (flagConfig.luceneindexpath().length() > 0)
+        INDEX_DIR = new File(flagConfig.luceneindexpath() + INDEX_DIR.getName());
     }
     if (INDEX_DIR.exists()) {
       System.out.println(INDEX_DIR.getAbsolutePath());
@@ -50,7 +48,7 @@ public class IndexFilePositions {
     }
     try {
     	IndexWriter writer;
-    	if (flagConfig.getPorterstemmer()) {
+    	if (flagConfig.porterstemmer()) {
     	  // Create IndexWriter using porter stemmer without any stopword list.
     		writer = new IndexWriter(FSDirectory.open(INDEX_DIR),
     		    new PorterAnalyzer(),

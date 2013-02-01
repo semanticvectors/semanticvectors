@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="src" path="src-ext"/>
+	<classpathentry kind="src" path="thirdparty"/>
+	<classpathentry kind="src" path="test"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="lib" path="C:/Users/Widdows/Software/ParallelColt/parallelcolt-0.9.4.jar"/>
+	<classpathentry kind="lib" path="C:/Users/Widdows/Software/lucene-3.6.2/lucene-3.6.2/contrib/demo/lucene-demo-3.6.2.jar"/>
+	<classpathentry kind="lib" path="C:/Users/Widdows/Software/lucene-3.6.2/lucene-3.6.2/lucene-core-3.6.2.jar"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>

@@ -357,7 +357,7 @@ public class CompoundVectorBuilder {
     Vector returnVector = VectorFactory.createZeroVector(
         vecReader.getVectorType(), vecReader.getDimension());
     // Check through args to see if we need to do negation.
-    if (!flagConfig.getSuppressnegatedqueries()) {
+    if (!flagConfig.suppressnegatedqueries()) {
       for (int i = 0; i < queryTerms.length; ++i) {
         if (queryTerms[i].equalsIgnoreCase(NEGATION_TOKEN)) {
           // If, so build negated query and return.
@@ -365,7 +365,7 @@ public class CompoundVectorBuilder {
         }
       }
     }
-    if (flagConfig.getVectorlookupsyntax().equals("regex")) {
+    if (flagConfig.vectorlookupsyntax().equals("regex")) {
       returnVector = builder.getAdditiveQueryVectorRegex(flagConfig, queryTerms);
     } else {
       returnVector = builder.getAdditiveQueryVector(queryTerms);
@@ -412,7 +412,7 @@ public class CompoundVectorBuilder {
    * @param queryTerms String array of query terms to look up.
    */
   protected Vector getAdditiveQueryVectorRegex (FlagConfig flagConfig, String[] queryTerms) {
-    Vector queryVec = VectorFactory.createZeroVector(flagConfig.getVectortype(), flagConfig.getDimension());
+    Vector queryVec = VectorFactory.createZeroVector(flagConfig.vectortype(), flagConfig.dimension());
     float weight = 1;
 
     for (int j = 0; j < queryTerms.length; ++j) {

@@ -66,22 +66,22 @@ public class LSA {
     // Find the number of docs, and if greater than dimension, set the dimension
     // to be this number.
     this.numDocs = indexReader.numDocs();
-    if (flagConfig.getDimension() > numDocs) {
+    if (flagConfig.dimension() > numDocs) {
       logger.warning("Dimension for SVD cannot be greater than number of documents ... "
           + "Setting dimension to " + numDocs);
       flagConfig.setDimension(numDocs);
     }
 
-    if (flagConfig.getTermweight().equals("logentropy")) {
+    if (flagConfig.termweight().equals("logentropy")) {
       VerbatimLogger.info("Term weighting: log-entropy.\n");
     }
 
     // Log some of the basic properties. This could be altered to be more informative if
     // our users ever ask for different properties.
     VerbatimLogger.info("Set up LSA indexer.\n" +
-    		"Dimension: " + flagConfig.getDimension() + " Minimum frequency = " + flagConfig.getMinfrequency()
-        + " Maximum frequency = " + flagConfig.getMaxfrequency()
-        + " Number non-alphabet characters = " + flagConfig.getMaxnonalphabetchars() +  "\n");
+    		"Dimension: " + flagConfig.dimension() + " Minimum frequency = " + flagConfig.minfrequency()
+        + " Maximum frequency = " + flagConfig.maxfrequency()
+        + " Number non-alphabet characters = " + flagConfig.maxnonalphabetchars() +  "\n");
   }
 
   /**
@@ -99,8 +99,8 @@ public class LSA {
     TermEnum terms = indexReader.terms();
     int tc = 0;
     while(terms.next()){
-      if (lUtils.termFilter(terms.term(), flagConfig.getContentsfields(),
-          flagConfig.getMinfrequency(), flagConfig.getMaxfrequency(), flagConfig.getMaxnonalphabetchars()))
+      if (lUtils.termFilter(terms.term(), flagConfig.contentsfields(),
+          flagConfig.minfrequency(), flagConfig.maxfrequency(), flagConfig.maxnonalphabetchars()))
         tc++;
     }
 
@@ -114,8 +114,8 @@ public class LSA {
 
     while(terms.next()){
       org.apache.lucene.index.Term term = terms.term();
-      if (lUtils.termFilter(term, flagConfig.getContentsfields(),
-          flagConfig.getMinfrequency(), flagConfig.getMaxfrequency(), flagConfig.getMaxnonalphabetchars())) {
+      if (lUtils.termFilter(term, flagConfig.contentsfields(),
+          flagConfig.minfrequency(), flagConfig.maxfrequency(), flagConfig.maxnonalphabetchars())) {
         termList[tc] = term.text();
 
         // Create matrix of nonzero indices.
@@ -147,9 +147,9 @@ public class LSA {
 
     while (terms.next()) {
       org.apache.lucene.index.Term term = terms.term();
-      if (lUtils.termFilter(term, flagConfig.getContentsfields(),
-                            flagConfig.getMinfrequency(), flagConfig.getMaxfrequency(),
-                            flagConfig.getMaxnonalphabetchars())) {
+      if (lUtils.termFilter(term, flagConfig.contentsfields(),
+                            flagConfig.minfrequency(), flagConfig.maxfrequency(),
+                            flagConfig.maxnonalphabetchars())) {
         TermDocs td = indexReader.termDocs(term);
         S.pointr[tc] = nn;  // Index of first non-zero entry (document) of each column (term).
 
@@ -164,7 +164,7 @@ public class LSA {
           float value = td.freq();
 
           // Use log-entropy weighting if directed.
-          if (flagConfig.getTermweight().equals("logentropy")) {
+          if (flagConfig.termweight().equals("logentropy")) {
             float entropy = lUtils.getEntropy(term);
             float log1plus = (float) Math.log10(1+value);
             value = entropy*log1plus;
@@ -191,30 +191,30 @@ public class LSA {
       System.out.println(usageMessage);
       throw e;
     }
-    if (flagConfig.getVectortype() != VectorType.REAL) {
+    if (flagConfig.vectortype() != VectorType.REAL) {
       logger.warning("LSA is only supported for real vectors ... setting vectortype to 'real'."); 
     }
     
-    if (flagConfig.getLuceneindexpath().isEmpty()) {
+    if (flagConfig.luceneindexpath().isEmpty()) {
       throw (new IllegalArgumentException("-luceneindexpath must be set."));
     }
     
     // Create an instance of the LSA class.
     // TODO: given the more object oriented instantiation pattern, consider calling this class LSAIndexer.
-    LSA lsaIndexer = new LSA(flagConfig.getLuceneindexpath(), flagConfig);
+    LSA lsaIndexer = new LSA(flagConfig.luceneindexpath(), flagConfig);
     SMat A = lsaIndexer.smatFromIndex();
     Svdlib svd = new Svdlib();
 
     VerbatimLogger.info("Starting SVD using algorithm LAS2 ...\n");
 
-    SVDRec svdR = svd.svdLAS2A(A, flagConfig.getDimension());
+    SVDRec svdR = svd.svdLAS2A(A, flagConfig.dimension());
     DMat vT = svdR.Vt;
     DMat uT = svdR.Ut;
 
     // Open file and write headers.
     FSDirectory fsDirectory = FSDirectory.open(new File("."));
     IndexOutput outputStream = fsDirectory.createOutput(
-        VectorStoreUtils.getStoreFileName(flagConfig.getTermvectorsfile(), flagConfig));
+        VectorStoreUtils.getStoreFileName(flagConfig.termvectorsfile(), flagConfig));
 
     // Write header giving number of dimensions for all vectors and make sure type is real.
     outputStream.writeString(VectorStoreWriter.generateHeaderString(flagConfig));
@@ -222,10 +222,10 @@ public class LSA {
     // Write out term vectors
     for (cnt = 0; cnt < vT.cols; cnt++) {
       outputStream.writeString(lsaIndexer.termList[cnt]);
-      Vector termVector = VectorFactory.createZeroVector(flagConfig.getVectortype(), flagConfig.getDimension());
+      Vector termVector = VectorFactory.createZeroVector(flagConfig.vectortype(), flagConfig.dimension());
 
-      float[] tmp = new float[flagConfig.getDimension()];
-      for (int i = 0; i < flagConfig.getDimension(); i++)
+      float[] tmp = new float[flagConfig.dimension()];
+      for (int i = 0; i < flagConfig.dimension(); i++)
         tmp[i] = (float) vT.value[i][cnt];
       termVector = new RealVector(tmp);
       termVector.normalize();
@@ -235,25 +235,25 @@ public class LSA {
     outputStream.flush();
     outputStream.close();
     VerbatimLogger.info(
-        "Wrote " + cnt + " term vectors incrementally to file " + flagConfig.getTermvectorsfile() + ".\n");
+        "Wrote " + cnt + " term vectors incrementally to file " + flagConfig.termvectorsfile() + ".\n");
 
     // Write document vectors.
     // Open file and write headers.
     outputStream = fsDirectory.createOutput(
-        VectorStoreUtils.getStoreFileName(flagConfig.getDocvectorsfile(), flagConfig));
+        VectorStoreUtils.getStoreFileName(flagConfig.docvectorsfile(), flagConfig));
 
     // Write header giving number of dimensions for all vectors and make sure type is real.
     outputStream.writeString(VectorStoreWriter.generateHeaderString(flagConfig));
-    File file = new File(flagConfig.getLuceneindexpath());
+    File file = new File(flagConfig.luceneindexpath());
     IndexReader indexReader = IndexReader.open(FSDirectory.open(file));
 
     // Write out document vectors
     for (cnt = 0; cnt < uT.cols; cnt++) {
-      String thePath = indexReader.document(cnt).get(flagConfig.getDocidfield());
+      String thePath = indexReader.document(cnt).get(flagConfig.docidfield());
       outputStream.writeString(thePath);
-      float[] tmp = new float[flagConfig.getDimension()];
+      float[] tmp = new float[flagConfig.dimension()];
 
-      for (int i = 0; i < flagConfig.getDimension(); i++)
+      for (int i = 0; i < flagConfig.dimension(); i++)
         tmp[i] = (float) uT.value[i][cnt];
       RealVector docVector = new RealVector(tmp);
       docVector.normalize();
@@ -263,6 +263,6 @@ public class LSA {
     outputStream.flush();
     outputStream.close();
     VerbatimLogger.info("Wrote " + cnt + " document vectors incrementally to file "
-                        + flagConfig.getDocvectorsfile() + ". Done.\n");
+                        + flagConfig.docvectorsfile() + ". Done.\n");
   }
 }

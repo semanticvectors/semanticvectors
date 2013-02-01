@@ -119,7 +119,7 @@ abstract public class VectorSearcher {
     this.flagConfig = flagConfig;
     this.searchVecStore = searchVecStore;
     this.luceneUtils = luceneUtils;
-    if (flagConfig.getExpandsearchspace()) {
+    if (flagConfig.expandsearchspace()) {
       this.searchVecStore = expandSearchSpace(searchVecStore, flagConfig);
     }
   }
@@ -140,8 +140,8 @@ public LinkedList<SearchResult> getNearestNeighbors(int numResults) {
     LinkedList<SearchResult> results = new LinkedList<SearchResult>();
     List<SearchResult> tmpResults = new ArrayList<SearchResult>(indexSize);
     double score = -1;
-    double threshold = flagConfig.getSearchresultsminscore();
-    if (flagConfig.getStdev()) threshold = 0;
+    double threshold = flagConfig.searchresultsminscore();
+    if (flagConfig.stdev()) threshold = 0;
     //Counters for statistics to calculate standard deviation
     double sum=0, sumsquared=0;
     int count=0;
@@ -162,12 +162,12 @@ public LinkedList<SearchResult> getNearestNeighbors(int numResults) {
       // seems to be good at moving excessively common terms further
       // down the results. Note that using this means that scores
       // returned are no longer just cosine similarities.
-      if (this.luceneUtils != null && flagConfig.getUsetermweightsinsearch()) {
+      if (this.luceneUtils != null && flagConfig.usetermweightsinsearch()) {
         score = score *
             luceneUtils.getGlobalTermWeightFromString((String) testElement.getObject());
       }
 
-      if (flagConfig.getStdev()) {
+      if (flagConfig.stdev()) {
         count++;
         sum += score;
         sumsquared += Math.pow(score, 2);
@@ -185,7 +185,7 @@ public LinkedList<SearchResult> getNearestNeighbors(int numResults) {
     	  threshold = tmpResults.get(indexSize - 1).getScore();
       }
     }
-    if (flagConfig.getStdev()) results = transformToStats(results, count, sum, sumsquared);
+    if (flagConfig.stdev()) results = transformToStats(results, count, sum, sumsquared);
 
     Collections.sort(tmpResults);
     for(int i = 0; i < numResults; i++)
@@ -705,8 +705,8 @@ public LinkedList<SearchResult> getAllAboveThreshold(float threshold) {
     public LinkedList<SearchResult> getNearestNeighbors(int numResults) {
       LinkedList<SearchResult> results = new LinkedList<SearchResult>();
       double score, score1, score2 = -1;
-      double threshold = specialFlagConfig.getSearchresultsminscore();
-      if (specialFlagConfig.getStdev())
+      double threshold = specialFlagConfig.searchresultsminscore();
+      if (specialFlagConfig.stdev())
         threshold = 0;
 
       // Counters for statistics to calculate standard deviation
@@ -728,11 +728,11 @@ public LinkedList<SearchResult> getAllAboveThreshold(float threshold) {
         // seems to be good at moving excessively common terms further
         // down the results. Note that using this means that scores
         // returned are no longer just cosine similarities.
-        if ((specialLuceneUtils != null) && specialFlagConfig.getUsetermweightsinsearch()) {
+        if ((specialLuceneUtils != null) && specialFlagConfig.usetermweightsinsearch()) {
           score = score * specialLuceneUtils.getGlobalTermWeightFromString((String) testElement.getObject());
         }
 
-        if (specialFlagConfig.getStdev()) {
+        if (specialFlagConfig.stdev()) {
           count++;
           sum += score;
           sumsquared += Math.pow(score, 2);
@@ -758,7 +758,7 @@ public LinkedList<SearchResult> getAllAboveThreshold(float threshold) {
           }
         }
       }
-      if (specialFlagConfig.getStdev()) results = transformToStats(results, count, sum, sumsquared);
+      if (specialFlagConfig.stdev()) results = transformToStats(results, count, sum, sumsquared);
       return results;
     }
 
@@ -791,7 +791,7 @@ public LinkedList<SearchResult> getAllAboveThreshold(float threshold) {
       SearchResult temp = iterator.next();
       double score = temp.getScore();
       score = new Double((score-mean)/stdev).floatValue();
-      if (score > flagConfig.getSearchresultsminscore())
+      if (score > flagConfig.searchresultsminscore())
         transformedResults.add(new SearchResult(score, temp.getObjectVector()));
     }
     return transformedResults;

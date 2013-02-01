@@ -43,14 +43,14 @@ public class VectorStoreUtils {
    * is returned unchanged.
    */
   public static String getStoreFileName(String storeName, FlagConfig flagConfig) {
-    if (flagConfig.getIndexfileformat() == "lucene") {
+    if (flagConfig.indexfileformat() == "lucene") {
       if (storeName.endsWith(".bin")) {
         return storeName;
       }
       else {
         return storeName + ".bin";
       }
-    } else if (flagConfig.getIndexfileformat() == "text") {
+    } else if (flagConfig.indexfileformat() == "text") {
       if (storeName.endsWith(".txt")) {
         return storeName;
       }
@@ -58,6 +58,6 @@ public class VectorStoreUtils {
         return storeName + ".txt";
       }
     }
-    throw new IllegalStateException("Looks like an illegal indexfileformat: " + flagConfig.getIndexfileformat());
+    throw new IllegalStateException("Looks like an illegal indexfileformat: " + flagConfig.indexfileformat());
   }
 }

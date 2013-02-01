@@ -55,9 +55,9 @@ public class VectorStoreReader {
   public static CloseableVectorStore openVectorStore(String storeName, FlagConfig flagConfig) throws IOException {
     CloseableVectorStore vectorStore = null;
     storeName = VectorStoreUtils.getStoreFileName(storeName, flagConfig);
-    if (flagConfig.getIndexfileformat().equals("lucene")) {
+    if (flagConfig.indexfileformat().equals("lucene")) {
       vectorStore = new VectorStoreReaderLucene(storeName, flagConfig);
-    } else if (flagConfig.getIndexfileformat().equals("text")) {
+    } else if (flagConfig.indexfileformat().equals("text")) {
       vectorStore = new VectorStoreReaderText(storeName, flagConfig);
     }
     return vectorStore;
