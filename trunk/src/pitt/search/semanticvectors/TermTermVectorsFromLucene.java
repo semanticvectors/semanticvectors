@@ -68,30 +68,14 @@ import pitt.search.semanticvectors.vectors.VectorType;
  * @author Trevor Cohen, Dominic Widdows.
  */
 public class TermTermVectorsFromLucene implements VectorStore {
-  private static final Logger logger = Logger.getLogger(
-      TermTermVectorsFromLucene.class.getCanonicalName());
 
-  // TODO: Refactor to get other fields from FlagConfig as appropriate.
   private FlagConfig flagConfig;
-  
-  private int dimension;
-  private VectorType vectorType;
   private boolean retraining = false;
   private VectorStoreRAM termVectors;
   private VectorStore indexVectors;
-  private String luceneIndexDir;
   private IndexReader luceneIndexReader;
-  private int seedLength;
-  private String[] fieldsToIndex;
-  private int minFreq;
-  private int maxFreq;
-  private int maxNonAlphabet;
-  private boolean filterNumbers;
-  private int windowSize;
   private Vector[] localindexvectors;
   private LuceneUtils lUtils;
-
-  private String positionalmethod;
   
   /**
    * Used to store permutations we'll use in training.  If positional method is one of the
@@ -103,10 +87,10 @@ public class TermTermVectorsFromLucene implements VectorStore {
 
 
   @Override
-  public VectorType getVectorType() { return vectorType; }
+  public VectorType getVectorType() { return flagConfig.vectortype(); }
   
   @Override
-  public int getDimension() { return dimension; }
+  public int getDimension() { return flagConfig.dimension(); }
   
   /**
    * @return The object's indexReader.
@@ -118,7 +102,7 @@ public class TermTermVectorsFromLucene implements VectorStore {
    */
   public VectorStore getBasicTermVectors(){ return this.termVectors; }
 
-  public String[] getFieldsToIndex(){ return this.fieldsToIndex; }
+  public String[] getFieldsToIndex(){ return flagConfig.contentsfields(); }
 
   // Basic VectorStore interface methods implemented through termVectors.
   public Vector getVector(Object term) {
@@ -135,47 +119,22 @@ public class TermTermVectorsFromLucene implements VectorStore {
 
   /**
    * This constructor uses only the values passed, no parameters from Flag.
-   * @param luceneIndexDir Directory containing Lucene index.
-   * @param vectorType type of vector
-   * @param dimension number of dimension to use for the vectors
-   * @param seedLength Number of +1 or -1 entries in basic
-   * vectors. Should be even to give same number of each.
-   * @param minFreq The minimum term frequency for a term to be indexed.
-   * @param maxFreq The minimum term frequency for a term to be indexed.
-   * @param maxNonAlphabet
-   * @param filterNumbers
-   * @param windowSize The size of the sliding context window.
-   * @param positionalmethod
    * @param indexVectors
-   * @param fieldsToIndex These fields will be indexed.
    * @throws IOException
    */
   public TermTermVectorsFromLucene(
       FlagConfig flagConfig,
-      String luceneIndexDir, VectorType vectorType, int dimension, int seedLength,
-      int minFreq, int maxFreq, int maxNonAlphabet, boolean filterNumbers, int windowSize, String positionalmethod,
-      VectorStore indexVectors, String[] fieldsToIndex) throws IOException {
+      VectorStore indexVectors) throws IOException {
     this.flagConfig = flagConfig;
-    this.luceneIndexDir = luceneIndexDir;
-    this.vectorType = vectorType;
-    this.dimension = dimension;
-    this.positionalmethod = positionalmethod;
-    this.minFreq = minFreq;
-    this.maxFreq = maxFreq;
-    this.maxNonAlphabet = maxNonAlphabet;
-    this.filterNumbers = filterNumbers;
-    this.fieldsToIndex = fieldsToIndex;
-    this.seedLength = seedLength;
-    this.windowSize = windowSize;
     this.indexVectors = indexVectors;
 
     // TODO(widdows): This clearly demonstrates the need for catching flag values and
     // turning them into enums earlier in the pipeline. This would be a very silly place to
     // have a programming typo cause an error!
-    if (positionalmethod.equals("permutation")
-        || positionalmethod.equals("permutation_plus_basic")) {
+    if (flagConfig.positionalmethod().equals("permutation")
+        || flagConfig.positionalmethod().equals("permutation_plus_basic")) {
       initializePermutations();}
-      else if (positionalmethod.equals("directional")) {
+      else if (flagConfig.positionalmethod().equals("directional")) {
       initializeDirectionalPermutations();	  
     }
     trainTermTermVectors();
@@ -186,10 +145,10 @@ public class TermTermVectorsFromLucene implements VectorStore {
    */
   private void initializePermutations() {    
     permutationCache =
-      new int[windowSize][PermutationUtils.getPermutationLength(vectorType, dimension)];
-    for (int i = 0; i < windowSize; ++i) {
+      new int[2 * flagConfig.windowradius() + 1][PermutationUtils.getPermutationLength(flagConfig.vectortype(), flagConfig.dimension())];
+    for (int i = 0; i < 2 * flagConfig.windowradius() + 1; ++i) {
       permutationCache[i] = PermutationUtils.getShiftPermutation(
-          vectorType, dimension, i - windowSize/2);
+          flagConfig.vectortype(), flagConfig.dimension(), i - flagConfig.windowradius());
     }
   }
   
@@ -198,20 +157,19 @@ public class TermTermVectorsFromLucene implements VectorStore {
    */
   private void initializeDirectionalPermutations() {    
     permutationCache =
-      new int[2][PermutationUtils.getPermutationLength(vectorType, dimension)];
+      new int[2][PermutationUtils.getPermutationLength(flagConfig.vectortype(), flagConfig.dimension())];
       
     permutationCache[0] = PermutationUtils.getShiftPermutation(
-          vectorType, dimension, -1);
+        flagConfig.vectortype(), flagConfig.dimension(), -1);
     
     permutationCache[1] = PermutationUtils.getShiftPermutation(
-            vectorType, dimension, 1);
-    
+        flagConfig.vectortype(), flagConfig.dimension(), 1);
   }
   
   private void trainTermTermVectors() throws IOException, RuntimeException {
     // Check that the Lucene index contains Term Positions.
-    LuceneUtils.compressIndex(luceneIndexDir);
-    this.luceneIndexReader = IndexReader.open(FSDirectory.open(new File(luceneIndexDir)));
+    LuceneUtils.compressIndex(flagConfig.luceneindexpath());
+    this.luceneIndexReader = IndexReader.open(FSDirectory.open(new File(flagConfig.luceneindexpath())));
     FieldInfos fieldsWithPositions = ReaderUtil.getMergedFieldInfos(luceneIndexReader);
     if (!fieldsWithPositions.hasVectors()) {
       throw new IOException(
@@ -242,7 +200,7 @@ public class TermTermVectorsFromLucene implements VectorStore {
         continue;
       }
       tc++;
-      Vector termVector = VectorFactory.createZeroVector(vectorType, dimension);
+      Vector termVector = VectorFactory.createZeroVector(flagConfig.vectortype(), flagConfig.dimension());
       // Place each term vector in the vector store.
       this.termVectors.putVector(term.text(), termVector);
       // Do the same for random index vectors unless retraining with trained term vectors
@@ -252,7 +210,7 @@ public class TermTermVectorsFromLucene implements VectorStore {
     	  random.setSeed(Bobcat.asLong(term.text()));
     		
         Vector indexVector =  VectorFactory.generateRandomVector(
-            vectorType, dimension, seedLength, random);
+            flagConfig.vectortype(), flagConfig.dimension(), flagConfig.seedlength, random);
         ((VectorStoreRAM) this.indexVectors).putVector(term.text(), indexVector);
       }
     }
@@ -267,7 +225,7 @@ public class TermTermVectorsFromLucene implements VectorStore {
         VerbatimLogger.info("Processed " + dc + " documents ... ");
       }
 
-      for (String field: fieldsToIndex) {
+      for (String field: flagConfig.contentsfields()) {
         TermPositionVector vex = (TermPositionVector) luceneIndexReader.getTermFreqVector(dc, field);
         if (vex != null) processTermPositionVector(vex);
       }
@@ -284,7 +242,7 @@ public class TermTermVectorsFromLucene implements VectorStore {
     //
     // TODO(widdows): It is odd to do this here while not writing out the semantic
     // term vectors here.  We should redesign this.
-    if ((positionalmethod.equals("permutation") || (positionalmethod.equals("permutation_plus_basic"))) 
+    if ((flagConfig.positionalmethod().equals("permutation") || (flagConfig.positionalmethod().equals("permutation_plus_basic"))) 
         && !retraining) {
       VerbatimLogger.info("Normalizing and writing random vectors to " + flagConfig.elementalvectorfile() + "\n");
       Enumeration<ObjectVector> f = indexVectors.getAllVectors();
@@ -355,12 +313,11 @@ public class TermTermVectorsFromLucene implements VectorStore {
     /** Iterate through positions adding index vectors of terms
      *  occurring within window to term vector for focus term
      **/
-    int windowRadius = windowSize / 2;
     for (int focusposn = 0; focusposn < positions.length; ++focusposn) {
       int focusterm = positions[focusposn];
       if (focusterm == NONEXISTENT) continue;
-      int windowstart = Math.max(0, focusposn - windowRadius);
-      int windowend = Math.min(focusposn + windowRadius, positions.length - 1);
+      int windowstart = Math.max(0, focusposn - flagConfig.windowradius());
+      int windowend = Math.min(focusposn + flagConfig.windowradius(), positions.length - 1);
 
       for (int cursor = windowstart; cursor <= windowend; cursor++) {
         if (cursor == focusposn) continue;
@@ -388,16 +345,16 @@ public class TermTermVectorsFromLucene implements VectorStore {
         
         // calculate permutation required for either Sahlgren (2008) implementation
         // encoding word order, or encoding direction as in Burgess and Lund's HAL
-        if (positionalmethod.equals("permutation_plus_basic")
-            || positionalmethod.equals("basic")) {
+        if (flagConfig.positionalmethod().equals("permutation_plus_basic")
+            || flagConfig.positionalmethod().equals("basic")) {
           // docterms[coterm] contains the term in position[w] in this document.
           localtermvectors[focusterm].superpose(localindexvectors[coterm], globalweight, null);
         }
-        if ((positionalmethod.equals("permutation"))
-            || (positionalmethod.equals("permutation_plus_basic"))) {
-          int[] permutation = permutationCache[cursor - focusposn + windowRadius];
+        if ((flagConfig.positionalmethod().equals("permutation"))
+            || (flagConfig.positionalmethod().equals("permutation_plus_basic"))) {
+          int[] permutation = permutationCache[cursor - focusposn + flagConfig.windowradius()];
           localtermvectors[focusterm].superpose(localindexvectors[coterm], globalweight, permutation);
-        } else if (positionalmethod.equals("directional")) {
+        } else if (flagConfig.positionalmethod().equals("directional")) {
         	 int[] permutation = permutationCache[(int) Math.max(0,Math.signum(cursor - focusposn))];
              localtermvectors[focusterm].superpose(localindexvectors[coterm], globalweight, permutation);
         		

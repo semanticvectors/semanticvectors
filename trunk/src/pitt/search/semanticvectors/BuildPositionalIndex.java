@@ -39,8 +39,6 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.logging.Logger;
 
-import pitt.search.semanticvectors.vectors.VectorType;
-
 /**
  * Command line utility for creating semantic vector indexes using the
  * sliding context window approach (see work on HAL, and by Schutze).
@@ -123,10 +121,7 @@ public class BuildPositionalIndex {
     try {
       TermTermVectorsFromLucene vecStore = new TermTermVectorsFromLucene(
           flagConfig,
-          luceneIndex,  flagConfig.vectortype(),
-          flagConfig.dimension(), flagConfig.seedlength(), flagConfig.minfrequency(), flagConfig.maxfrequency(),
-          flagConfig.maxnonalphabetchars(), flagConfig.filteroutnumbers(), 2 * flagConfig.windowradius() + 1, flagConfig.positionalmethod(),
-          newBasicTermVectors, flagConfig.contentsfields());
+          newBasicTermVectors);
       
       VectorStoreWriter.writeVectors(termFile, flagConfig, vecStore);
 
@@ -135,10 +130,7 @@ public class BuildPositionalIndex {
         VerbatimLogger.info("\nRetraining with learned term vectors ...");
         vecStore = new TermTermVectorsFromLucene(
             flagConfig,
-            luceneIndex,  flagConfig.vectortype(),
-            flagConfig.dimension(), flagConfig.seedlength(), flagConfig.minfrequency(), flagConfig.maxfrequency(),
-            flagConfig.maxnonalphabetchars(), flagConfig.filteroutnumbers(), 2 * flagConfig.windowradius() + 1, flagConfig.positionalmethod(),
-            newBasicTermVectors, flagConfig.contentsfields());
+            newBasicTermVectors);
       }
 
       if (flagConfig.trainingcycles() > 1) {
@@ -149,7 +141,7 @@ public class BuildPositionalIndex {
 
       if (!flagConfig.docindexing().equals("none")) {
         IncrementalDocVectors.createIncrementalDocVectors(
-            vecStore, flagConfig, luceneIndex, flagConfig.contentsfields(), docFile);
+            vecStore, flagConfig, luceneIndex, docFile);
       }
     }
     catch (IOException e) {

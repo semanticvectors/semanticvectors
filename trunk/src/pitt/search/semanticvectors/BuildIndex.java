@@ -39,8 +39,6 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.logging.Logger;
 
-import pitt.search.semanticvectors.vectors.VectorType;
-
 /**
  * Command line utility for creating semantic vector indexes.
  */
@@ -113,13 +111,12 @@ public class BuildIndex {
       if (flagConfig.docindexing().equals("incremental")) {
         VectorStoreWriter.writeVectors(termFile, flagConfig, vecStore);
         IncrementalDocVectors.createIncrementalDocVectors(
-            vecStore, flagConfig, luceneIndex, flagConfig.contentsfields(), "incremental_"+docFile);
+            vecStore, flagConfig, luceneIndex, "incremental_"+docFile);
         IncrementalTermVectors itermVectors = null;
         
         for (int i = 1; i < flagConfig.trainingcycles(); ++i) {
           itermVectors = new IncrementalTermVectors(flagConfig,
-              luceneIndex, flagConfig.vectortype(),
-              flagConfig.dimension(), flagConfig.contentsfields(), docFile);
+              luceneIndex, docFile);
 
           VectorStoreWriter.writeVectors(
               "incremental_termvectors"+flagConfig.trainingcycles()+".bin", flagConfig, itermVectors);
@@ -130,8 +127,7 @@ public class BuildIndex {
           docFile = "docvectors" + flagConfig.trainingcycles() + ".bin";
 
         IncrementalDocVectors.createIncrementalDocVectors(
-            itermVectors, flagConfig, luceneIndex, flagConfig.contentsfields(),
-            "incremental_"+docFile);
+            itermVectors, flagConfig, luceneIndex, "incremental_"+docFile);
         }
       } else if (flagConfig.docindexing().equals("inmemory")) {
         DocVectors docVectors = new DocVectors(vecStore, flagConfig);
