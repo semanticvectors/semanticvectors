@@ -119,35 +119,15 @@ public class RunTests {
     }
 
     // Create Lucene indexes from test corpus, to use in index building and searching tests.
-    //
-    // Explicitly trying to use Runtime constructs instead of (more reliable)
-    // imported class APIs, in the hope that we fail faster with Runtime constructs.
     String testDataPath = "../John";
     File testDataDir = new File(testDataPath);
     if (!testDataDir.isDirectory()) return false;
-    String[] args = {testDataPath};
-    try {
-      Process lucenePositionsIndexer = TestUtils.spawnChildProcess(
-          IndexFilePositions.class, args, null, null, null);
-      TestUtils.waitForAndDestroy(lucenePositionsIndexer);
-    } catch (Exception e) {
-      System.err.println("Failed to prepare test Lucene index ... abandoning tests.");
-      e.printStackTrace();
-    }
-
+    IndexFilePositions.main(new String[] {testDataPath});
     
     testDataPath = "../nationalfacts/nationalfacts.txt";
     testDataDir = new File(testDataPath);
-    args[0] = testDataPath;
-    try {
-      Process lucenePositionsIndexer = TestUtils.spawnChildProcess(
-          LuceneIndexFromTriples.class, args, null, null, null);
-      TestUtils.waitForAndDestroy(lucenePositionsIndexer);
-    } catch (Exception e) {
-      System.err.println("Failed to prepare test predication-based Lucene index ... abandoning tests.");
-      e.printStackTrace();
-    }
-    
+    LuceneIndexFromTriples.main(new String[] {testDataPath});
+
     testDataPrepared = true;
     return true;
   }
