@@ -41,7 +41,9 @@ import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.logging.Logger;
 
+/** Imports must include the declarations of all enums used as flag values */
 import pitt.search.semanticvectors.vectors.VectorType;
+import pitt.search.semanticvectors.LuceneUtils.TermWeight;
 
 /**
  * Class for representing and parsing command line flags into a configuration
@@ -139,11 +141,9 @@ public class FlagConfig {
   /** Set to true if you want document vectors built from multiple fields to emphasize terms from shorter fields, default value {@code false}. */
   public boolean fieldweight() { return fieldweight; }
   
-  private String termweight = "none";
-  /** Term weighting used when constructing document vectors. */
-  public String termweight() { return termweight; }
-  // TODO: Turn into enum.
-  public static final String[] termweightValues = {"logentropy","idf", "none"};
+  private TermWeight termweight = TermWeight.NONE;
+  /** Term weighting used when constructing document vectors, default value {@link TermWeight#NONE} */
+  public LuceneUtils.TermWeight termweight() { return termweight; }
 
   private boolean porterstemmer = false;
   /** Tells {@link pitt.search.lucene.IndexFilePositions} to stem terms using Porter Stemmer, default value false. */

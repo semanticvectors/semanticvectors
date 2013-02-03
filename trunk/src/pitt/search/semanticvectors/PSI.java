@@ -179,12 +179,10 @@ public class PSI {
       float oWeight =1;
       float pWeight =1;
 
-      if (flagConfig.termweight().equalsIgnoreCase("idf")) {
-        sWeight = lUtils.getIDF(new Term("subject",subject));
-        oWeight = lUtils.getIDF(new Term("object",object));  
-        pWeight = (float) Math.log(1+lUtils.getGlobalTermFreq(theTerm)); //log(occurrences of predication)
-        
-      }
+      sWeight = lUtils.getGlobalTermWeight(new Term("subject",subject));
+      oWeight = lUtils.getGlobalTermWeight(new Term("object",object));
+      // TODO: Explain different weighting for predicates, log(occurrences of predication)
+      pWeight = (float) Math.log(1+lUtils.getGlobalTermFreq(theTerm));
 
       Vector subject_semanticvector = semanticVectors.getVector(subject);
       Vector object_semanticvector = semanticVectors.getVector(object);

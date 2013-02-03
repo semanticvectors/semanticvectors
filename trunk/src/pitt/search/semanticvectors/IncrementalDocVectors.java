@@ -141,26 +141,13 @@ public class IncrementalDocVectors {
             String termString = terms[b];
             int freq = freqs[b];
             float localweight = freq;
-            float globalweight = 1;
+            float globalweight = lUtils.getGlobalTermWeightFromString(termString);
             float fieldweight = 1;
-
 
             if (flagConfig.fieldweight()) {
               //field weight: 1/sqrt(number of terms in field)
               fieldweight = (float) (1/Math.sqrt(terms.length));
             }
-
-            if (flagConfig.termweight().equals("logentropy")) {
-              //local weighting: 1+ log (local frequency)
-              localweight = new Double(1 + Math.log(localweight)).floatValue();
-              Term term = new Term(fieldName, termString);
-              globalweight = globalweight * lUtils.getEntropy(term);
-            }
-            else 
-              if (flagConfig.termweight().equals("idf")) {
-                Term term = new Term(fieldName, termString);
-                globalweight = lUtils.getIDF(term);
-              }	
 
             // Add contribution from this term, excluding terms that
             // are not represented in termVectorData.

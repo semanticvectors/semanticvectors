@@ -55,21 +55,31 @@ import org.apache.lucene.index.TermDocs;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.util.Version;
 
-
 /**
  * Class to support reading extra information from Lucene indexes,
  * including term frequency, doc frequency.
  */
-public class LuceneUtils{
+public class LuceneUtils {
   private static final Logger logger = Logger.getLogger(DocVectors.class.getCanonicalName());
   private FlagConfig flagConfig;
   private IndexReader indexReader;
   private Hashtable<Term, Float> termEntropy = new Hashtable<Term, Float>();
   private Hashtable<Term, Float> termIDF = new Hashtable<Term, Float>();
   private TreeSet<String> stopwords = null;
-  //added by sid
   private TreeSet<String> startwords = null;
 
+  /**
+   * Determines which term-weighting strategy to use in indexing, 
+   * and in search if {@link FlagConfig#usetermweightsinsearch()} is set. 
+   */
+  public enum TermWeight {
+    /** No term weighting: all terms have weight 1. */
+    NONE,
+    /** Use inverse document frequency: see {@link LuceneUtils#getIDF}. */
+    IDF,
+    /** Use log entropy: see {@link LuceneUtils#getEntropy}. */
+    LOG_ENTROPY,
+  }
 
   /**
    * @param flagConfig Contains all information necessary for configuring LuceneUtils.
@@ -163,35 +173,38 @@ public class LuceneUtils{
   }
 
   /**
-   * Gets a term weight for a string, adding frequency over occurences
+   * Gets a term weight for a string, adding frequency over occurrences
    * in all contents fields.
-   * Currently returns some power of inverse document frequency - you can experiment.
    */
   public float getGlobalTermWeightFromString(String termString) {
-    try {
-      int freq = 0;
-      for (String field: flagConfig.contentsfields())
-        freq += indexReader.docFreq(new Term(field, termString));
-      return (float) Math.pow(freq, -0.05);
-    } catch (IOException e) {
-      logger.info("Couldn't get term weight for term '" + termString + "'");
-      return 1;
-    }
+    int freq = 0;
+    for (String field: flagConfig.contentsfields())
+      freq += getGlobalTermWeight(new Term(field, termString));
+    return freq;
   }
 
   /**
-   * Gets the global term weight for a term, used in query weighting.
-   * Currently returns some power of inverse document frequency - you can experiment.
+   * Gets a global term weight for a term, depending on the setting for
+   * {@link FlagConfig#termweight()}.
+   * 
+   * Used in indexing. Used in query weighting if
+   * {@link FlagConfig#usetermweightsinsearch} is true.
+   *
    * @param term whose frequency you want
    * @return Global term weight, or 1 if unavailable.
    */
   public float getGlobalTermWeight(Term term) {
-    try {
-      return (float) Math.pow(indexReader.docFreq(term), -0.05);
-    } catch (IOException e) {
-      logger.info("Couldn't get term weight for term '" + term.text() + "'");
+    switch (flagConfig.termweight()) {
+    case NONE:
       return 1;
+    case IDF:
+      return getIDF(term);
+    case LOG_ENTROPY:
+      return getEntropy(term);
     }
+    VerbatimLogger.severe("Unrecognized termweight option: " + flagConfig.termweight()
+        + ". Returning 1.");
+    return 1;
   }
 
   /**
@@ -203,7 +216,7 @@ public class LuceneUtils{
    * Gets the IDF (i.e. log10(numdocs/doc frequency)) of a term
    *	@param term the term whose IDF you would like
    */
-  public float getIDF(Term term) {
+  private float getIDF(Term term) {
     if (termIDF.containsKey(term)) {
       return termIDF.get(term);
     } else { 
@@ -231,7 +244,7 @@ public class LuceneUtils{
    * Thanks to Vidya Vasuki for adding the hash table to
    * eliminate redundant calculation
    */
-  public float getEntropy(Term term){
+  private float getEntropy(Term term){
     if(termEntropy.containsKey(term))
       return termEntropy.get(term);
     int gf = getGlobalTermFreq(term);
@@ -254,7 +267,7 @@ public class LuceneUtils{
     termEntropy.put(term, 1+(float)entropy);
     return (float) (1 + entropy);
   }
-  
+
   /**
    * Public version of {@link #termFilter} that gets all its inputs from the
    * {@link #flagConfig} and the provided term.
