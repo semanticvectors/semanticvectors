@@ -38,7 +38,6 @@ package pitt.search.semanticvectors;
 import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.Random;
-import java.util.logging.Logger;
 import java.io.File;
 import java.io.IOException;
 
@@ -76,7 +75,7 @@ public class TermTermVectorsFromLucene implements VectorStore {
   private IndexReader luceneIndexReader;
   private Vector[] localindexvectors;
   private LuceneUtils lUtils;
-  
+
   /**
    * Used to store permutations we'll use in training.  If positional method is one of the
    * permutations, this contains the shift for all the focus positions.
@@ -88,10 +87,10 @@ public class TermTermVectorsFromLucene implements VectorStore {
 
   @Override
   public VectorType getVectorType() { return flagConfig.vectortype(); }
-  
+
   @Override
   public int getDimension() { return flagConfig.dimension(); }
-  
+
   /**
    * @return The object's indexReader.
    */
@@ -134,7 +133,7 @@ public class TermTermVectorsFromLucene implements VectorStore {
     if (flagConfig.positionalmethod().equals("permutation")
         || flagConfig.positionalmethod().equals("permutation_plus_basic")) {
       initializePermutations();}
-      else if (flagConfig.positionalmethod().equals("directional")) {
+    else if (flagConfig.positionalmethod().equals("directional")) {
       initializeDirectionalPermutations();	  
     }
     trainTermTermVectors();
@@ -145,27 +144,27 @@ public class TermTermVectorsFromLucene implements VectorStore {
    */
   private void initializePermutations() {    
     permutationCache =
-      new int[2 * flagConfig.windowradius() + 1][PermutationUtils.getPermutationLength(flagConfig.vectortype(), flagConfig.dimension())];
+        new int[2 * flagConfig.windowradius() + 1][PermutationUtils.getPermutationLength(flagConfig.vectortype(), flagConfig.dimension())];
     for (int i = 0; i < 2 * flagConfig.windowradius() + 1; ++i) {
       permutationCache[i] = PermutationUtils.getShiftPermutation(
           flagConfig.vectortype(), flagConfig.dimension(), i - flagConfig.windowradius());
     }
   }
-  
+
   /**
    * Initialize all permutations that might be used (i.e +1 and -1).
    */
   private void initializeDirectionalPermutations() {    
     permutationCache =
-      new int[2][PermutationUtils.getPermutationLength(flagConfig.vectortype(), flagConfig.dimension())];
-      
+        new int[2][PermutationUtils.getPermutationLength(flagConfig.vectortype(), flagConfig.dimension())];
+
     permutationCache[0] = PermutationUtils.getShiftPermutation(
         flagConfig.vectortype(), flagConfig.dimension(), -1);
-    
+
     permutationCache[1] = PermutationUtils.getShiftPermutation(
         flagConfig.vectortype(), flagConfig.dimension(), 1);
   }
-  
+
   private void trainTermTermVectors() throws IOException, RuntimeException {
     // Check that the Lucene index contains Term Positions.
     LuceneUtils.compressIndex(flagConfig.luceneindexpath());
@@ -174,7 +173,7 @@ public class TermTermVectorsFromLucene implements VectorStore {
     if (!fieldsWithPositions.hasVectors()) {
       throw new IOException(
           "Term-term indexing requires a Lucene index containing TermPositionVectors."
-          + "\nTry rebuilding Lucene index using pitt.search.lucene.IndexFilePositions");
+              + "\nTry rebuilding Lucene index using pitt.search.lucene.IndexFilePositions");
     }
     lUtils = new LuceneUtils(flagConfig);
 
@@ -205,10 +204,10 @@ public class TermTermVectorsFromLucene implements VectorStore {
       this.termVectors.putVector(term.text(), termVector);
       // Do the same for random index vectors unless retraining with trained term vectors
       if (!retraining) {
-    	  
-    	if (flagConfig.deterministicvectors())
-    	  random.setSeed(Bobcat.asLong(term.text()));
-    		
+
+        if (flagConfig.deterministicvectors())
+          random.setSeed(Bobcat.asLong(term.text()));
+
         Vector indexVector =  VectorFactory.generateRandomVector(
             flagConfig.vectortype(), flagConfig.dimension(), flagConfig.seedlength, random);
         ((VectorStoreRAM) this.indexVectors).putVector(term.text(), indexVector);
@@ -323,26 +322,14 @@ public class TermTermVectorsFromLucene implements VectorStore {
         if (cursor == focusposn) continue;
         int coterm = positions[cursor];
         if (coterm == NONEXISTENT) continue;
-        
+
         if (this.indexVectors.getVector(docterms[coterm]) == null
             || localtermvectors[focusterm] == null) {
           continue;
         }
-        
-        float globalweight = 1;
-        if (flagConfig.termweight().equals("logentropy")) {
-            //local weighting: 1+ log (local frequency)
-            Term term = new Term(vex.getField(), docterms[coterm]);
-            globalweight = globalweight * lUtils.getEntropy(term);
-          }
-          else 
-          if (flagConfig.termweight().equals("idf")) {
-        	  
-        	  	Term term = new Term(vex.getField(), docterms[coterm]);
-                globalweight =  globalweight * lUtils.getIDF(term);
-        	  	
-        	  	}	
-        
+
+        float globalweight = lUtils.getGlobalTermWeight(new Term(vex.getField(), docterms[coterm]));
+
         // calculate permutation required for either Sahlgren (2008) implementation
         // encoding word order, or encoding direction as in Burgess and Lund's HAL
         if (flagConfig.positionalmethod().equals("permutation_plus_basic")
@@ -355,9 +342,9 @@ public class TermTermVectorsFromLucene implements VectorStore {
           int[] permutation = permutationCache[cursor - focusposn + flagConfig.windowradius()];
           localtermvectors[focusterm].superpose(localindexvectors[coterm], globalweight, permutation);
         } else if (flagConfig.positionalmethod().equals("directional")) {
-        	 int[] permutation = permutationCache[(int) Math.max(0,Math.signum(cursor - focusposn))];
-             localtermvectors[focusterm].superpose(localindexvectors[coterm], globalweight, permutation);
-        		
+          int[] permutation = permutationCache[(int) Math.max(0,Math.signum(cursor - focusposn))];
+          localtermvectors[focusterm].superpose(localindexvectors[coterm], globalweight, permutation);
+
         }
       }
     }

@@ -115,18 +115,8 @@ public class DocVectors implements VectorStore {
         // Go through checking terms for each fieldName.
         for (String fieldName: termVectorData.getFieldsToIndex()) {
           Term term = new Term(fieldName, word);
-          float globalweight = 1;
+          float globalweight = lUtils.getGlobalTermWeight(term);
           float fieldweight = 1;
-
-          if (flagConfig.termweight().equals("logentropy")) { 
-            //global entropy weighting
-            globalweight = globalweight * lUtils.getEntropy(term);
-          }
-          else if (flagConfig.termweight().equals("idf")) {
-            int docFreq = indexReader.docFreq(term);
-            if (docFreq > 0)
-              globalweight =  globalweight * (float) Math.log10(indexReader.numDocs()/docFreq);
-          }	
 
           // Get any docs for this term.
           TermDocs td = this.indexReader.termDocs(term);
@@ -149,8 +139,8 @@ public class DocVectors implements VectorStore {
               localweight = new Double(1 + Math.log(localweight)).floatValue();    	
             }
 
-
-            docVector.superpose(termVector, localweight * globalweight * fieldweight, null);
+            docVector.superpose(
+                termVector, localweight * globalweight * fieldweight, null);
           }
         }
       }

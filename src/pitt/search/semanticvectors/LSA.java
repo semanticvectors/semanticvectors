@@ -156,15 +156,7 @@ public class LSA {
             *  (otherwise it would be difficult to extract this
             *  information from the lucene index)
             */
-
-          float value = td.freq();
-
-          // Use log-entropy weighting if directed.
-          if (flagConfig.termweight().equals("logentropy")) {
-            float entropy = lUtils.getEntropy(term);
-            float log1plus = (float) Math.log10(1+value);
-            value = entropy*log1plus;
-          }
+          float value = td.freq() * lUtils.getGlobalTermWeight(term);
 
           S.rowind[nn] = td.doc();  // set row index to document number
           S.value[nn] = value;  // set value to frequency (with/without weighting)
