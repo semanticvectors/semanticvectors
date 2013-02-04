@@ -222,8 +222,15 @@ public class LuceneUtils {
     if (termIDF.containsKey(term)) {
       return termIDF.get(term);
     } else { 
+    	 	
       try {
-        float idf = (float) Math.log10(indexReader.numDocs()/indexReader.docFreq(term));
+    	  
+    	int freq =  indexReader.docFreq(term);
+    		if (freq == 0) 
+    			{ 
+    				return 0;
+       			}
+    	float idf = (float) Math.log10(indexReader.numDocs()/freq);
         termIDF.put(term, idf);
         return idf; 
       } catch (IOException e) {
