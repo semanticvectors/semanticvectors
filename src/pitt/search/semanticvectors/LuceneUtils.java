@@ -70,7 +70,9 @@ public class LuceneUtils {
 
   /**
    * Determines which term-weighting strategy to use in indexing, 
-   * and in search if {@link FlagConfig#usetermweightsinsearch()} is set. 
+   * and in search if {@link FlagConfig#usetermweightsinsearch()} is set.
+   * 
+   * <p>Names may be passed as command-line arguments, so underscores are avoided.
    */
   public enum TermWeight {
     /** No term weighting: all terms have weight 1. */
@@ -78,7 +80,7 @@ public class LuceneUtils {
     /** Use inverse document frequency: see {@link LuceneUtils#getIDF}. */
     IDF,
     /** Use log entropy: see {@link LuceneUtils#getEntropy}. */
-    LOG_ENTROPY,
+    LOGENTROPY,
   }
 
   /**
@@ -199,7 +201,7 @@ public class LuceneUtils {
       return 1;
     case IDF:
       return getIDF(term);
-    case LOG_ENTROPY:
+    case LOGENTROPY:
       return getEntropy(term);
     }
     VerbatimLogger.severe("Unrecognized termweight option: " + flagConfig.termweight()

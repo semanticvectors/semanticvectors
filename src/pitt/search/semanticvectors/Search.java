@@ -44,61 +44,99 @@ import pitt.search.semanticvectors.vectors.Vector;
 
 /**
  * Command line term vector search utility. <br/>
- * <br/>
- * 
- * Following is a list of different types of searches that can be performed.
- * Most involve processing combinations of vectors in different ways, in
- * building a query expression, scoring candidates against these query
- * expressions, or both. Most options here correspond directly to a particular
- * subclass of <code>{@link VectorSearcher}</code>.
- * <p>
- * The search option is set using the <code>--searchtype</code> flag. Options
- * include:
- * <p>
- * 
- * <ul>
- * <li>{@link VectorSearcher.VectorSearcherCosine <b>sum</b>}: Default option -
- * build a query by adding together (weighted) vectors for each of the query
- * terms, and search using cosine similarity.
- * 
- * <li>{@link VectorSearcher.VectorSearcherCosine <b>sparsesum</b>}: Build a
- * query as with <code>SUM</code> option, but quantize to sparse vectors before
- * taking scalar product at search time. This can be used to give a guide to how
- * much similarities are changed by only using the most significant coordinates
- * of a vector.
- * 
- * <li>{@link VectorSearcher.VectorSearcherSubspaceSim <b>subspace</b>}:
- * "Quantum disjunction" - get vectors for each query term, create a
- * representation for the subspace spanned by these vectors, and score by
- * measuring cosine similarity with this subspace.
- * 
- * <li>{@link VectorSearcher.VectorSearcherMaxSim <b>maxsim</b>}:
- * "Closest disjunction" - get vectors for each query term, score by measuring
- * distance to each term and taking the minimum.
- * 
- * <li>{@link VectorSearcher.VectorSearcherPerm <b>permutation</b>}: Based on
- * Sahlgren at al. (2008). Searches for the term that best matches the position
- * of a "?" in a sequence of terms. For example 'martin ? king' should retrieve
- * luther as the top ranked match requires the index queried to contain
- * unpermuted vectors, either random vectors or previously learned term vectors,
- * and the index searched must contain permuted vectors.
- * 
- * <li>{@link VectorSearcher.VectorSearcherPerm <b>balanced_permutation</b>}:
- * Based on Sahlgren at al. (2008). Searches for the term that best matches the
- * position of a "?" in a sequence of terms. For example 'martin ? king' should
- * retrieve luther as the top ranked match requires the index queried to contain
- * unpermuted vectors, either random vectors or previously learned term vectors,
- * and the index searched must contain permuted vectors. This is a variant of
- * the method, that takes the mean of the two possible search directions (search
- * with index vectors for permuted vectors, or vice versa).
- * 
- * <li>{@link VectorSearcher.VectorSearcherPerm <b>printquery</b>}: Build an
- * additive query vector (as with <code>SUM</code> and print out the query
- * vector for debugging).
- * </ul>
  */
 public class Search {
   private static final Logger logger = Logger.getLogger(Search.class.getCanonicalName());
+
+  /**
+   *  Different types of searches that can be performed, set using {@link FlagConfig#searchtype()}.
+   *  
+   * <p>Most involve processing combinations of vectors in different ways, in
+   * building a query expression, scoring candidates against these query
+   * expressions, or both. Most options here correspond directly to a particular
+   * subclass of {@link VectorSearcher}.
+   * 
+   * <p>Names may be passed as command-line arguments, so underscores are avoided.
+   * */
+  public enum SearchType {
+    /**
+     * Build a query by adding together (weighted) vectors for each of the query
+     * terms, and search using cosine similarity.
+     * See {@link VectorSearcher.VectorSearcherCosine}.
+     * This is the default search option.
+     */
+    SUM,
+
+    /**
+     * Build a query as with {@link SearchType#SUM} option, but quantize to sparse vectors before
+     * taking scalar product at search time. This can be used to give a guide to how
+     * much similarities are changed by only using the most significant coordinates
+     * of a vector. Also uses {@link VectorSearcher.VectorSearcherCosine}.
+     */
+    SPARSESUM, 
+
+    /** 
+     * "Quantum disjunction" - get vectors for each query term, create a
+     * representation for the subspace spanned by these vectors, and score by
+     * measuring cosine similarity with this subspace.
+     * Uses {@link VectorSearcher.VectorSearcherSubspaceSim}.
+     */
+    SUBSPACE,
+
+    /**    
+     * "Closest disjunction" - get vectors for each query term, score by measuring
+     * distance to each term and taking the minimum.
+     * Uses {@link VectorSearcher.VectorSearcherMaxSim}.
+     */
+    MAXSIM,
+
+    /**
+     * Uses permutation of coordinates to model typed relationships, as
+     * introduced by Sahlgren at al. (2008).
+     * 
+     * <p>Searches for the term that best matches the position of a "?" in a sequence of terms.
+     * For example <code>martin ? king</code> should retrieve <code>luther</code> as the top ranked match. 
+     * 
+     * <p>Requires {@link FlagConfig#queryvectorfile()} to contain
+     * unpermuted vectors, either random vectors or previously learned term vectors,
+     * and {@link FlagConfig#searchvectorfile()} must contain permuted learned vectors.
+     * 
+     * <p>Uses {@link VectorSearcher.VectorSearcherPerm}.
+     */
+    PERMUTATION,
+
+    /**
+     * This is a variant of the {@link SearchType#PERMUTATION} method which 
+     * takes the mean of the two possible search directions (search
+     * with index vectors for permuted vectors, or vice versa).
+     * Uses {@link VectorSearcher.VectorSearcherPerm}.
+     */
+    BALANCEDPERMUTATION,
+
+    /**
+     * Used for Predication Semantic Indexing, see {@link PSI}.
+     * Uses {@link VectorSearcher.VectorSearcherBoundProduct}.
+     */
+    BOUNDPRODUCT,
+
+    /**
+     * Binds vectors to facilitate search across multiple relationship paths.
+     * Uses {@link VectorSearcher.VectorSearcherBoundProductSubSpace}
+     */
+    BOUNDPRODUCTSUBSPACE,
+
+    /**
+     * Intended to support searches of the form A is to B as C is to ?, but 
+     * hasn't worked well thus far. (dwiddows, 2013-02-03).
+     */
+    ANALOGY,
+
+    /** 
+     * Builds an additive query vector (as with {@link SearchType#SUM} and prints out the query
+     * vector for debugging).
+     */
+    PRINTQUERY
+  }
 
   /** Principal vector store for finding query vectors. */
   private static CloseableVectorStore queryVecReader = null;
@@ -195,61 +233,57 @@ public class Search {
     LinkedList<SearchResult> results = new LinkedList<SearchResult>();
     VerbatimLogger.info("Searching term vectors, searchtype " + flagConfig.searchtype() + "\n");
 
-    // The following is essentially a big "switch" statement on Flags.searchtype that creates the
-    // appropriate VectorSearcher and throws a ZeroVectorException if it doesn't work.
     try {
-  
-      if (flagConfig.searchtype().equals("sum")) {
+      switch (flagConfig.searchtype()) {
+      case SUM:
         vecSearcher = new VectorSearcher.VectorSearcherCosine(
             queryVecReader, searchVecReader, luceneUtils, flagConfig, args);
-      } else if (flagConfig.searchtype().equals("subspace")) {
-        // Quantum disjunction / subspace similarity.
+        break;
+      case SUBSPACE:    
         vecSearcher = new VectorSearcher.VectorSearcherSubspaceSim(
             queryVecReader, searchVecReader, luceneUtils, flagConfig, args);
-      } else if (flagConfig.searchtype().equals("maxsim")) {
-        // Ranks by maximum similarity with any of the query terms.
+        break;
+      case MAXSIM:
         vecSearcher = new VectorSearcher.VectorSearcherMaxSim(
             queryVecReader, searchVecReader, luceneUtils, flagConfig, args);
-      } else if (flagConfig.searchtype().equals("boundproduct")) {
+        break;
+      case BOUNDPRODUCT:
         if (args.length == 2) {
-          // Binds vectors to faciliate search across specific relations
           vecSearcher = new VectorSearcher.VectorSearcherBoundProduct(
               queryVecReader, boundVecReader, searchVecReader, luceneUtils, flagConfig, args[0],args[1]);
         } else {
-          // Binds vectors to faciliate search across specific relations
           vecSearcher = new VectorSearcher.VectorSearcherBoundProduct(
               queryVecReader, boundVecReader, searchVecReader, luceneUtils, flagConfig, args[0]);
         }
-      } else if (flagConfig.searchtype().equals("boundproductsubspace")) {
-    	  if (args.length == 2)
-    	  {
-        // Binds vectors to facilitate search across multiple relationship paths
-        vecSearcher = new VectorSearcher.VectorSearcherBoundProductSubSpace(
-            queryVecReader, boundVecReader, searchVecReader, luceneUtils, flagConfig, args[0],args[1]);
-    	  } else {
-              // Binds vectors to facilitate search across specific relations
-              vecSearcher = new VectorSearcher.VectorSearcherBoundProductSubSpace(
-                  queryVecReader, boundVecReader, searchVecReader, luceneUtils, flagConfig, args[0]);
-            }    	  
-      } else if (flagConfig.searchtype().equals("permutation")) {
-        // Permutes query vectors such that the most likely term in the position of the "?" is retrieved.
+        break;
+      case BOUNDPRODUCTSUBSPACE:
+        if (args.length == 2)
+        {
+          vecSearcher = new VectorSearcher.VectorSearcherBoundProductSubSpace(
+              queryVecReader, boundVecReader, searchVecReader, luceneUtils, flagConfig, args[0],args[1]);
+        } else {
+          vecSearcher = new VectorSearcher.VectorSearcherBoundProductSubSpace(
+              queryVecReader, boundVecReader, searchVecReader, luceneUtils, flagConfig, args[0]);
+        }
+        break;
+      case PERMUTATION:
         vecSearcher = new VectorSearcher.VectorSearcherPerm(
             queryVecReader, searchVecReader, luceneUtils, flagConfig, args);
-      } else if (flagConfig.searchtype().equals("balanced_permutation")) {
-        // Permutes query vectors such that the most likely term in the position of the "?" is retrieved
+        break;
+      case BALANCEDPERMUTATION:
         vecSearcher = new VectorSearcher.BalancedVectorSearcherPerm(
             queryVecReader, searchVecReader, luceneUtils, flagConfig, args);
-      } else if (flagConfig.searchtype().equals("analogy")) {
-        // Try to find best filler for slot in a is to b as c is to ?
+        break;
+      case ANALOGY:
         vecSearcher = new VectorSearcher.AnalogySearcher(
             queryVecReader, searchVecReader, luceneUtils, flagConfig, args);
-      } else if (flagConfig.searchtype().equals("printquery")) {
-        // Simply prints out the query vector: doesn't do any searching.
+        break;
+      case PRINTQUERY:    
         Vector queryVector = CompoundVectorBuilder.getQueryVector(
             queryVecReader, luceneUtils, flagConfig, args);
         System.out.println(queryVector.toString());
         return new LinkedList<SearchResult>();
-      } else {
+      default:
         throw new IllegalArgumentException("Unknown search type: " + flagConfig.searchtype());
       }
     } catch (ZeroVectorException zve) {
@@ -258,7 +292,7 @@ public class Search {
     }
 
     results = vecSearcher.getNearestNeighbors(numResults);
-    
+
     // Release filesystem resources.
     //
     // TODO(widdows): This is not the cleanest control flow, since these are
@@ -311,7 +345,7 @@ public class Search {
       for (SearchResult result: results) {
         System.out.println(result.getScore() + ":" +
             ((ObjectVector)result.getObjectVector()).getObject().toString());
-      
+
       }
     } else {
       VerbatimLogger.info("No search output.\n");
