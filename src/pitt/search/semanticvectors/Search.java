@@ -160,7 +160,7 @@ public class Search {
       + "\n-luceneindexpath argument is needed if to get term weights from"
       + "\n    term frequency, doc frequency, etc. in lucene index."
       + "\n-searchtype can be one of SUM, SPARSESUM, SUBSPACE, MAXSIM,"
-      + "\n    BALANCED_PERMUTATION, PERMUTATION, PRINTQUERY"
+      + "\n    BALANCEDPERMUTATION, PERMUTATION, PRINTQUERY"
       + "\n<QUERYTERMS> should be a list of words, separated by spaces."
       + "\n    If the term NOT is used, terms after that will be negated.";
 
