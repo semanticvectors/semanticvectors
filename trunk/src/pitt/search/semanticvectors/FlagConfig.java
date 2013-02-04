@@ -44,6 +44,7 @@ import java.util.logging.Logger;
 /** Imports must include the declarations of all enums used as flag values */
 import pitt.search.semanticvectors.vectors.VectorType;
 import pitt.search.semanticvectors.LuceneUtils.TermWeight;
+import pitt.search.semanticvectors.Search.SearchType;
 
 /**
  * Class for representing and parsing command line flags into a configuration
@@ -77,7 +78,8 @@ public class FlagConfig {
   public void setDimension(int dimension) { this.dimension = dimension; }
 
   private VectorType vectortype = VectorType.REAL;
-  /** Ground field for vectors: real, binary or complex. Can be set when a {@code VectorStore} is opened. */
+  /** Ground field for vectors: real, binary or complex. Can be set when a {@code VectorStore} is opened.
+   * Default value {@link VectorType#REAL}, corresponding to "-vectortype real". */
   public VectorType vectortype() { return vectortype; }
   /** Sets the {@link #vectortype()}. */
   public void setVectortype(VectorType vectortype) {this.vectortype = vectortype; }
@@ -129,13 +131,10 @@ public class FlagConfig {
   /** Window radius used in {@link BuildPositionalIndex}, default value 5. */
   public int windowradius() { return windowradius; }
 
-  private String searchtype = "sum";
-  // TODO: turn into enum.
-  /** Method used for combining and searching vectors. */
-  public String searchtype() { return searchtype; }
-  public static final String[] searchtypeValues =
-    {"sum", "sparsesum", "subspace", "maxsim", "balanced_permutation", "permutation",
-     "boundproduct", "boundproductsubspace", "analogy", "printquery"};
+  private SearchType searchtype = SearchType.SUM;
+  /** Method used for combining and searching vectors,
+   * default value {@link SearchType#SUM} corresponding to "-searchtype sum". */
+  public SearchType searchtype() { return searchtype; }
 
   private boolean fieldweight = false;
   /** Set to true if you want document vectors built from multiple fields to emphasize terms from shorter fields, default value {@code false}. */

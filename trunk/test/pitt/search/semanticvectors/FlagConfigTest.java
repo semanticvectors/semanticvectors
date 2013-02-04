@@ -49,7 +49,7 @@ public class FlagConfigTest extends TestCase {
         "-queryvectorfile", "myvectors.bin", "queryterm"};
     FlagConfig flagConfig = FlagConfig.getFlagConfig(args);
     args = flagConfig.remainingArgs;
-    assertEquals("subspace", flagConfig.searchtype());
+    assertEquals(Search.SearchType.SUBSPACE, flagConfig.searchtype());
     assertEquals(3, flagConfig.dimension());
     assertEquals("myvectors.bin", flagConfig.queryvectorfile());
 
@@ -123,7 +123,8 @@ public class FlagConfigTest extends TestCase {
       FlagConfig.getFlagConfig(args2);
       fail();
     } catch (IllegalArgumentException e) {
-      assertTrue(e.getMessage().contains("Value 'notagoodvalue' not valid"));
+      assertTrue(e.getMessage().contains(
+      		"No enum constant pitt.search.semanticvectors.Search.SearchType.NOTAGOODVALUE"));
     }
   }
   
