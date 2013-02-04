@@ -117,7 +117,7 @@ public class DocVectors implements VectorStore {
           Term term = new Term(fieldName, word);
           float globalweight = lUtils.getGlobalTermWeight(term);
           float fieldweight = 1;
-
+           
           // Get any docs for this term.
           TermDocs td = this.indexReader.termDocs(term);
 
@@ -133,12 +133,7 @@ public class DocVectors implements VectorStore {
               fieldweight = (float) (1/Math.sqrt(terms.length));
             }
 
-            if (flagConfig.termweight().equals("logentropy"))
-            {
-              //local weighting: 1+ log (local frequency)
-              localweight = new Double(1 + Math.log(localweight)).floatValue();    	
-            }
-
+ 
             docVector.superpose(
                 termVector, localweight * globalweight * fieldweight, null);
           }
