@@ -4,9 +4,13 @@ This is a large topic on which much has been written. There are many many more p
 
 ===Papers that talk about the SemanticVectors Package itself===
 
-[http://www.puttypeg.net/papers/semanticvectors.v2.pdf Semantic Vectors: A Scalable Open Source Package and Online Technology Management Application]. Dominic Widdows, Kathleen Ferraro, 2008.
+[http://www.puttypeg.net/papers/typed-vectors.pdf Real, Complex, and Binary Semantic Vectors]. Dominic Widdows, Trevor Cohen, Lance De Vine. Proceedings of the Sixth International Symposium on Quantum Interaction, Paris, France, 2012
 
-Empirical Distributional Semantics: Methods and Biomedical Applications. Trevor Cohen, Dominic Widdows, Journal of Biomedical Informatics (2009) (to appear).
+[http://semanticvectors.googlecode.com/files/semantic-vectors-package-2010.pdf The Semantic Vectors Package: New Algorithms and Public Tools for Distributional Semantics]. Dominic Widdows, Trevor Cohen, Fourth IEEE International Conference on Semantic Computing (IEEE ICSC2010).
+
+[http://www.ncbi.nlm.nih.gov/pubmed/19232399 Empirical Distributional Semantics: Methods and Biomedical Applications]. Trevor Cohen, Dominic Widdows, Journal of Biomedical Informatics, 42(2), pages 390-405, April 2009. 
+
+[http://www.puttypeg.net/papers/semanticvectors.v2.pdf Semantic Vectors: A Scalable Open Source Package and Online Technology Management Application]. Dominic Widdows, Kathleen Ferraro, 2008.
 
 ===Papers that use the SemanticVectors Package to generate results===
 
