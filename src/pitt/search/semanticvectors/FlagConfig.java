@@ -45,6 +45,7 @@ import java.util.logging.Logger;
 import pitt.search.semanticvectors.vectors.VectorType;
 import pitt.search.semanticvectors.LuceneUtils.TermWeight;
 import pitt.search.semanticvectors.Search.SearchType;
+import pitt.search.semanticvectors.CompoundVectorBuilder.VectorLookupSyntax;
 
 /**
  * Class for representing and parsing command line flags into a configuration
@@ -251,11 +252,9 @@ public class FlagConfig {
   // TODO: Turn into enum.
   public static String docindexingValues[] = {"inmemory", "incremental", "none"};
 
-  private String vectorlookupsyntax = "exactmatch";
-  /** Method used for looking up vectors in a vector store. */
-  public String vectorlookupsyntax() { return vectorlookupsyntax; }
-  // TODO: Turn into enum.
-  public static String[] vectorlookupsyntaxValues = {"exactmatch", "regex"};
+  private VectorLookupSyntax vectorlookupsyntax = VectorLookupSyntax.EXACTMATCH;
+  /** Method used for looking up vectors in a vector store, default value {@link VectorLookupSyntax#EXACTMATCH}. */
+  public VectorLookupSyntax vectorlookupsyntax() { return vectorlookupsyntax; }
 
   private boolean matchcase = false;
   /** If true, matching of query terms is case-sensitive; otherwise case-insensitive, default false. */

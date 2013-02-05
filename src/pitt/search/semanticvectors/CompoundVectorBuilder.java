@@ -60,6 +60,15 @@ import pitt.search.semanticvectors.vectors.VectorUtils;
  * So far these basic operations include negation of one or more terms.
  */
 public class CompoundVectorBuilder {
+  
+  public enum VectorLookupSyntax {
+    /** Only include exactly matching strings in query vectors (default) */
+    EXACTMATCH,
+    /** Interpret query strings as regular expressions and include all vectors
+     * whose objects match this regex in the query vector (not fully tested). */
+    REGEX,
+  }
+  
   public static final String NEGATION_TOKEN = "~NOT";
   
   private VectorStore vecReader;
@@ -365,7 +374,7 @@ public class CompoundVectorBuilder {
         }
       }
     }
-    if (flagConfig.vectorlookupsyntax().equals("regex")) {
+    if (flagConfig.vectorlookupsyntax() == VectorLookupSyntax.REGEX) {
       returnVector = builder.getAdditiveQueryVectorRegex(flagConfig, queryTerms);
     } else {
       returnVector = builder.getAdditiveQueryVector(queryTerms);
