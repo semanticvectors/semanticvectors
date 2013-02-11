@@ -33,7 +33,9 @@
 
 package pitt.search.semanticvectors;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 
 import junit.framework.TestCase;
 
@@ -118,13 +120,14 @@ public class FlagConfigTest extends TestCase {
       fail();
     }
 
-    String[] args2 = {"-searchtype", "notagoodvalue"};
+    String[] args2 = {"-searchtype", "banana"};
     try {
       FlagConfig.getFlagConfig(args2);
       fail();
     } catch (IllegalArgumentException e) {
-      assertTrue(e.getMessage().contains(
-      		"No enum constant pitt.search.semanticvectors.Search.SearchType.NOTAGOODVALUE"));
+      assertTrue(e.getMessage(),
+      		e.getMessage().contains(
+          		"No enum constant pitt.search.semanticvectors.Search.SearchType.BANANA"));
     }
   }
   
