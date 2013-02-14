@@ -390,7 +390,7 @@ public class BinaryVector implements Vector {
    * @return an OpenBitSet representing the superposition of all vectors added up to this point
    */
   protected OpenBitSet concludeVote() {
-    if (votingRecord.size() == 0) return new OpenBitSet(dimension);
+    if (votingRecord.size() == 0 || votingRecord.size() == 1 && votingRecord.get(0).cardinality() ==0) return new OpenBitSet(dimension);
     else return concludeVote(totalNumberOfVotes);
   }
 
