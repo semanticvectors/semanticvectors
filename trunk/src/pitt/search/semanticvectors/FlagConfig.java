@@ -43,6 +43,7 @@ import java.util.logging.Logger;
 
 /** Imports must include the declarations of all enums used as flag values */
 import pitt.search.semanticvectors.vectors.VectorType;
+import pitt.search.semanticvectors.DocVectors.DocIndexingStrategy;
 import pitt.search.semanticvectors.LuceneUtils.TermWeight;
 import pitt.search.semanticvectors.Search.SearchType;
 import pitt.search.semanticvectors.CompoundVectorBuilder.VectorLookupSyntax;
@@ -246,11 +247,9 @@ public class FlagConfig {
   /** If set, use the vectors in this file for initialization instead of new random vectors. */
   public String initialdocumentvectors() { return initialdocumentvectors; }
 
-  private String docindexing = "inmemory";
+  private DocIndexingStrategy docindexing = DocIndexingStrategy.INMEMORY;
   /** Memory management method used for indexing documents. */
-  public String docindexing() { return docindexing; }
-  // TODO: Turn into enum.
-  public static String docindexingValues[] = {"inmemory", "incremental", "none"};
+  public DocIndexingStrategy docindexing() { return docindexing; }
 
   private VectorLookupSyntax vectorlookupsyntax = VectorLookupSyntax.EXACTMATCH;
   /** Method used for looking up vectors in a vector store, default value {@link VectorLookupSyntax#EXACTMATCH}. */

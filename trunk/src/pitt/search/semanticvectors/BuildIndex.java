@@ -7,15 +7,15 @@
    modification, are permitted provided that the following conditions are
    met:
 
-   * Redistributions of source code must retain the above copyright
+ * Redistributions of source code must retain the above copyright
    notice, this list of conditions and the following disclaimer.
 
-   * Redistributions in binary form must reproduce the above
+ * Redistributions in binary form must reproduce the above
    copyright notice, this list of conditions and the following
    disclaimer in the documentation and/or other materials provided
    with the distribution.
 
-   * Neither the name of the University of Pittsburgh nor the names
+ * Neither the name of the University of Pittsburgh nor the names
    of its contributors may be used to endorse or promote products
    derived from this software without specific prior written
    permission.
@@ -31,13 +31,15 @@
    LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
    NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
    SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-**/
+ **/
 
 package pitt.search.semanticvectors;
 
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.logging.Logger;
+
+import pitt.search.semanticvectors.DocVectors.DocIndexingStrategy;
 
 /**
  * Command line utility for creating semantic vector indexes.
@@ -46,22 +48,22 @@ public class BuildIndex {
   public static Logger logger = Logger.getLogger("pitt.search.semanticvectors");
 
   public static String usageMessage = "\nBuildIndex class in package pitt.search.semanticvectors"
-    + "\nUsage: java pitt.search.semanticvectors.BuildIndex -luceneindexpath PATH_TO_LUCENE_INDEX"
-    + "\nBuildIndex creates termvectors and docvectors files in local directory."
-    + "\nOther parameters that can be changed include number of dimensions, "
-    + "vector type (real, binary or complex), seed length (number of non-zero entries in "
-    + "basic vectors), minimum term frequency, max. number of non-alphabetical characters per term, "
-    + "filtering of numeric terms (i.e. numbers), and number of iterative training cycles."
-    + "\nTo change these use the command line arguments "
-    + "\n  -vectortpe [real, complex or binary]"
-    + "\n  -dimension [number of dimension]"
-    + "\n  -seedlength [seed length]"
-    + "\n  -minfrequency [minimum term frequency]"
-    + "\n  -maxnonalphabetchars [number non-alphabet characters (-1 for any number)]"
-    + "\n  -filternumbers [true or false]"
-    + "\n  -trainingcycles [training cycles]"
-    + "\n  -docindexing [incremental|inmemory|none] Switch between building doc vectors incrementally"
-    + "\n        (requires positional index), all in memory (default case), or not at all";
+      + "\nUsage: java pitt.search.semanticvectors.BuildIndex -luceneindexpath PATH_TO_LUCENE_INDEX"
+      + "\nBuildIndex creates termvectors and docvectors files in local directory."
+      + "\nOther parameters that can be changed include number of dimensions, "
+      + "vector type (real, binary or complex), seed length (number of non-zero entries in "
+      + "basic vectors), minimum term frequency, max. number of non-alphabetical characters per term, "
+      + "filtering of numeric terms (i.e. numbers), and number of iterative training cycles."
+      + "\nTo change these use the command line arguments "
+      + "\n  -vectortpe [real, complex or binary]"
+      + "\n  -dimension [number of dimension]"
+      + "\n  -seedlength [seed length]"
+      + "\n  -minfrequency [minimum term frequency]"
+      + "\n  -maxnonalphabetchars [number non-alphabet characters (-1 for any number)]"
+      + "\n  -filternumbers [true or false]"
+      + "\n  -trainingcycles [training cycles]"
+      + "\n  -docindexing [incremental|inmemory|none] Switch between building doc vectors incrementally"
+      + "\n        (requires positional index), all in memory (default case), or not at all";
 
   /**
    * Builds term vector and document vector stores from a Lucene index.
@@ -108,12 +110,13 @@ public class BuildIndex {
       }
 
       // Create doc vectors and write vectors to disk.
-      if (flagConfig.docindexing().equals("incremental")) {
+      switch (flagConfig.docindexing()) {
+      case INCREMENTAL:
         VectorStoreWriter.writeVectors(termFile, flagConfig, vecStore);
         IncrementalDocVectors.createIncrementalDocVectors(
             vecStore, flagConfig, luceneIndex, "incremental_"+docFile);
         IncrementalTermVectors itermVectors = null;
-        
+
         for (int i = 1; i < flagConfig.trainingcycles(); ++i) {
           itermVectors = new IncrementalTermVectors(flagConfig,
               luceneIndex, docFile);
@@ -121,15 +124,16 @@ public class BuildIndex {
           VectorStoreWriter.writeVectors(
               "incremental_termvectors"+flagConfig.trainingcycles()+".bin", flagConfig, itermVectors);
 
-        // Write over previous cycle's docvectors until final
-        // iteration, then rename according to number cycles
-        if (i == flagConfig.trainingcycles() - 1)
-          docFile = "docvectors" + flagConfig.trainingcycles() + ".bin";
+          // Write over previous cycle's docvectors until final
+          // iteration, then rename according to number cycles
+          if (i == flagConfig.trainingcycles() - 1)
+            docFile = "docvectors" + flagConfig.trainingcycles() + ".bin";
 
-        IncrementalDocVectors.createIncrementalDocVectors(
-            itermVectors, flagConfig, luceneIndex, "incremental_"+docFile);
+          IncrementalDocVectors.createIncrementalDocVectors(
+              itermVectors, flagConfig, luceneIndex, "incremental_"+docFile);
+          break;
         }
-      } else if (flagConfig.docindexing().equals("inmemory")) {
+      case INMEMORY:
         DocVectors docVectors = new DocVectors(vecStore, flagConfig);
         for (int i = 1; i < flagConfig.trainingcycles(); ++i) {
           VerbatimLogger.info("\nRetraining with learned document vectors ...");
@@ -147,10 +151,15 @@ public class BuildIndex {
         VectorStoreWriter.writeVectors(termFile, flagConfig, vecStore);
         VerbatimLogger.info("Writing doc vectors to " + docFile + "\n");
         VectorStoreWriter.writeVectors(docFile, flagConfig, writeableDocVectors);
-      } else {
+        break;
+      case NONE:
         // Write term vectors to disk even if there are no docvectors to output.
         VerbatimLogger.info("Writing term vectors to " + termFile + "\n");
         VectorStoreWriter.writeVectors(termFile, flagConfig, vecStore);
+        break;
+      default:
+        throw new IllegalStateException(
+            "No procedure defined for -docindexing " + flagConfig.docindexing());
       }
     }
     catch (IOException e) {
