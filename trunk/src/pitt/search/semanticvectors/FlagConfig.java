@@ -259,12 +259,6 @@ public class FlagConfig {
   private boolean matchcase = false;
   /** If true, matching of query terms is case-sensitive; otherwise case-insensitive, default false. */
   public boolean matchcase() { return matchcase; }
-  
-  private String vectorstorelocation = "ram";
-  /** Where to store vectors during indexing - in memory or on disk, default ram." */
-  public String vectorstorelocation() { return vectorstorelocation; }
-  // TODO: Turn into enum.
-  public static String[] vectorstorelocationValues = {"ram", "disk"};
 
   private String batchcompareseparator = "\\|";
   /** Separator for documents on a single line in batch comparison mode, default '\\|' (as a regular expression for '|'). */
