@@ -39,6 +39,8 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.logging.Logger;
 
+import pitt.search.semanticvectors.DocVectors.DocIndexingStrategy;
+
 /**
  * Command line utility for creating semantic vector indexes using the
  * sliding context window approach (see work on HAL, and by Schutze).
@@ -139,7 +141,10 @@ public class BuildPositionalIndex {
         VectorStoreWriter.writeVectors(termFile, flagConfig, vecStore);
       }
 
-      if (!flagConfig.docindexing().equals("none")) {
+      // Incremental indexing is hardcoded into BuildPositionalIndex.
+      // TODO: Understand if this is an appropriate requirement, and whether
+      //       the user should be alerted of any potential consequences.
+      if (flagConfig.docindexing() != DocIndexingStrategy.NONE) {
         IncrementalDocVectors.createIncrementalDocVectors(
             vecStore, flagConfig, luceneIndex, docFile);
       }

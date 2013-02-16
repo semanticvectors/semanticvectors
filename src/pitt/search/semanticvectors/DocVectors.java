@@ -55,6 +55,30 @@ import java.util.logging.Logger;
  * that term.
  */
 public class DocVectors implements VectorStore {
+  
+  /**
+   * Enumeration of different memory management strategies for indexing documents. 
+   */
+  public enum DocIndexingStrategy {
+    /**
+     * Index documents in memory, write to disk at the end. Fast but relies on large
+     * memory footprint. */
+    INMEMORY,
+    
+    /**
+     * Index one document at a time, writing to disk during the process.
+     * Requires less memory. Cannot be used for indexing strategies that rely
+     * on random access to doc vector store during indexing.
+     */
+    INCREMENTAL,
+    
+    /**
+     * Do not create document vectors at all. Useful if there are many documents
+     * and you are only interested in exploring term vectors.
+     */
+    NONE,
+  }
+  
   private static final Logger logger = Logger.getLogger(DocVectors.class.getCanonicalName());
   private FlagConfig flagConfig;
   private VectorType vectorType;
