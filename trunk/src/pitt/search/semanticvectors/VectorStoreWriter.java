@@ -43,7 +43,6 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Enumeration;
-import java.util.logging.Logger;
 
 /**
  * This class provides methods for serializing a VectorStore to disk.
@@ -59,7 +58,6 @@ import java.util.logging.Logger;
  * @see ObjectVector
  */
 public class VectorStoreWriter {
-  private static final Logger logger = Logger.getLogger(VectorStoreWriter.class.getCanonicalName());
 
   /**
    * Generates a single string containing global header information for a vector store.
@@ -82,12 +80,15 @@ public class VectorStoreWriter {
   public static void writeVectors(String storeName, FlagConfig flagConfig, VectorStore objectVectors)
       throws IOException {
     String vectorFileName = VectorStoreUtils.getStoreFileName(storeName, flagConfig);
-    if (flagConfig.indexfileformat().equals("lucene")) {
+    switch (flagConfig.indexfileformat()) {
+    case LUCENE:
       writeVectorsInLuceneFormat(vectorFileName, flagConfig, objectVectors);
-    } else if (flagConfig.indexfileformat().equals("text")) {
+      break;
+    case TEXT:
       writeVectorsInTextFormat(vectorFileName, flagConfig, objectVectors);
-    } else {
-      throw new IllegalStateException("Unrecognized indexfileformat: '" + flagConfig.indexfileformat() + "'");
+      break;
+    default:
+      throw new IllegalStateException("Unknown -indexfileformat: " + flagConfig.indexfileformat());
     }
   }
 
