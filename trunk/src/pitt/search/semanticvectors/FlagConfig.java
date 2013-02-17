@@ -377,7 +377,14 @@ public class FlagConfig {
           try {
             @SuppressWarnings({ "rawtypes", "unchecked" })
             Class<Enum> className = (Class<Enum>) field.getType();
-            field.set(flagConfig, Enum.valueOf(className, args[argc + 1].toUpperCase()));
+            try {
+              field.set(flagConfig, Enum.valueOf(className, args[argc + 1].toUpperCase()));
+            } catch (IllegalArgumentException e) {
+              VerbatimLogger.warning(String.format(
+                  "Accepted values for '-%s' are:\n%s%n",
+                  field.getName(), Arrays.asList(className.getEnumConstants())));
+              throw e;
+            }
           } catch (ArrayIndexOutOfBoundsException e) {
             throw new IllegalArgumentException("option -" + flagName + " requires an argument");
           }
