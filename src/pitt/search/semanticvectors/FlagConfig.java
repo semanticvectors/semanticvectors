@@ -47,6 +47,7 @@ import pitt.search.semanticvectors.CompoundVectorBuilder.VectorLookupSyntax;
 import pitt.search.semanticvectors.DocVectors.DocIndexingStrategy;
 import pitt.search.semanticvectors.LuceneUtils.TermWeight;
 import pitt.search.semanticvectors.Search.SearchType;
+import pitt.search.semanticvectors.TermTermVectorsFromLucene.PositionalMethod;
 import pitt.search.semanticvectors.VectorStoreUtils.VectorStoreFormat;
 
 /**
@@ -214,15 +215,12 @@ public class FlagConfig {
   public String directionalvectorfile() { return directionalvectorfile; }      
   
   private String permplustermvectorfile ="permplustermvectors";
-  /** "Permuted term vectors, output by -positionalmethod permutation_plus_basic. */
+  /** "Permuted term vectors, output by -positionalmethod permutationplusbasic. */
   public String permplustermvectorfile() { return permplustermvectorfile; }      
   
-  private String positionalmethod = "basic";
+  private PositionalMethod positionalmethod = PositionalMethod.BASIC;
   /** Method used for positional indexing. */
-  public String positionalmethod() { return positionalmethod; }
-  // TODO: Replace with enum.
-  public static String positionalmethodValues[] =
-      {"basic", "directional", "permutation","permutation_plus_basic"};
+  public PositionalMethod positionalmethod() { return positionalmethod; }
   
   private String stoplistfile = "";
   /** Path to file containing stopwords, one word per line, no default value. */

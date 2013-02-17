@@ -124,7 +124,9 @@ public class RegressionTests {
       assertFalse("File appears to be still present: " + fn, (new File(fn)).isFile());
     }
     BuildPositionalIndex.main(buildArgs);
-    for (String fn : filesToBuild) assertTrue(new File(fn).isFile());
+    for (String fn : filesToBuild) {
+      assertTrue("Missing required file: " + fn, new File(fn).isFile());
+    }
 
     List<SearchResult> results = Search.RunSearch(searchArgs, 10);
     int rank = 1;
