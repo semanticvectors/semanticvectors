@@ -102,12 +102,25 @@ public class BuildPositionalIndex {
       }
     }
 
-    String termFile = flagConfig.termtermvectorsfile();
     String docFile = flagConfig.docvectorsfile();
-
-    if (flagConfig.positionalmethod().equals("permutation")) termFile = flagConfig.permutedvectorfile();
-    else if (flagConfig.positionalmethod().equals("permutation_plus_basic")) termFile = flagConfig.permplustermvectorfile();
-    else if (flagConfig.positionalmethod().equals("directional")) termFile = flagConfig.directionalvectorfile();
+    String termFile = "";
+    switch (flagConfig.positionalmethod()) {
+    case BASIC:
+      termFile = flagConfig.termtermvectorsfile();
+      break;
+    case PERMUTATION:
+      termFile = flagConfig.permutedvectorfile();
+      break;
+    case PERMUTATIONPLUSBASIC:
+      termFile = flagConfig.permplustermvectorfile();
+      break;
+    case DIRECTIONAL:
+      termFile = flagConfig.directionalvectorfile();
+      break;
+    default:
+      throw new IllegalArgumentException(
+          "Unrecognized -positionalmethod: " + flagConfig.positionalmethod());
+    }
 
     VerbatimLogger.info("Building positional index, Lucene index: " + luceneIndex
         + ", Seedlength: " + flagConfig.seedlength()

@@ -68,6 +68,18 @@ import pitt.search.semanticvectors.vectors.VectorType;
  */
 public class TermTermVectorsFromLucene implements VectorStore {
 
+  /** Different methods for creating positional indexes. */
+  public enum PositionalMethod {
+    /** Basic "bag-of-words" method using context windows. */
+    BASIC,
+    /** Binds vectors on left or right based on position. */
+    DIRECTIONAL,
+    /** Permutes vectors according to how many places they are from focus term. */ 
+    PERMUTATION,
+    /** Superposition of basic and permuted vectors. */
+    PERMUTATIONPLUSBASIC
+  }
+  
   private FlagConfig flagConfig;
   private boolean retraining = false;
   private VectorStoreRAM termVectors;
@@ -127,13 +139,10 @@ public class TermTermVectorsFromLucene implements VectorStore {
     this.flagConfig = flagConfig;
     this.indexVectors = indexVectors;
 
-    // TODO(widdows): This clearly demonstrates the need for catching flag values and
-    // turning them into enums earlier in the pipeline. This would be a very silly place to
-    // have a programming typo cause an error!
-    if (flagConfig.positionalmethod().equals("permutation")
-        || flagConfig.positionalmethod().equals("permutation_plus_basic")) {
+    if (flagConfig.positionalmethod() == PositionalMethod.PERMUTATION
+        || flagConfig.positionalmethod() == PositionalMethod.PERMUTATIONPLUSBASIC) {
       initializePermutations();}
-    else if (flagConfig.positionalmethod().equals("directional")) {
+    else if (flagConfig.positionalmethod() == PositionalMethod.DIRECTIONAL) {
       initializeDirectionalPermutations();	  
     }
     trainTermTermVectors();
@@ -241,7 +250,8 @@ public class TermTermVectorsFromLucene implements VectorStore {
     //
     // TODO(widdows): It is odd to do this here while not writing out the semantic
     // term vectors here.  We should redesign this.
-    if ((flagConfig.positionalmethod().equals("permutation") || (flagConfig.positionalmethod().equals("permutation_plus_basic"))) 
+    if (((flagConfig.positionalmethod() == PositionalMethod.PERMUTATION
+        || flagConfig.positionalmethod() == PositionalMethod.PERMUTATIONPLUSBASIC)) 
         && !retraining) {
       VerbatimLogger.info("Normalizing and writing random vectors to " + flagConfig.elementalvectorfile() + "\n");
       Enumeration<ObjectVector> f = indexVectors.getAllVectors();
@@ -332,16 +342,16 @@ public class TermTermVectorsFromLucene implements VectorStore {
 
         // calculate permutation required for either Sahlgren (2008) implementation
         // encoding word order, or encoding direction as in Burgess and Lund's HAL
-        if (flagConfig.positionalmethod().equals("permutation_plus_basic")
-            || flagConfig.positionalmethod().equals("basic")) {
+        if (flagConfig.positionalmethod() == PositionalMethod.BASIC
+            || flagConfig.positionalmethod() == PositionalMethod.PERMUTATIONPLUSBASIC) {
           // docterms[coterm] contains the term in position[w] in this document.
           localtermvectors[focusterm].superpose(localindexvectors[coterm], globalweight, null);
         }
-        if ((flagConfig.positionalmethod().equals("permutation"))
-            || (flagConfig.positionalmethod().equals("permutation_plus_basic"))) {
+        if (flagConfig.positionalmethod() == PositionalMethod.PERMUTATION
+            || flagConfig.positionalmethod() == PositionalMethod.PERMUTATIONPLUSBASIC) {
           int[] permutation = permutationCache[cursor - focusposn + flagConfig.windowradius()];
           localtermvectors[focusterm].superpose(localindexvectors[coterm], globalweight, permutation);
-        } else if (flagConfig.positionalmethod().equals("directional")) {
+        } else if (flagConfig.positionalmethod() == PositionalMethod.DIRECTIONAL) {
           int[] permutation = permutationCache[(int) Math.max(0,Math.signum(cursor - focusposn))];
           localtermvectors[focusterm].superpose(localindexvectors[coterm], globalweight, permutation);
 
