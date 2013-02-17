@@ -7,15 +7,15 @@
    modification, are permitted provided that the following conditions are
    met:
 
-   * Redistributions of source code must retain the above copyright
+ * Redistributions of source code must retain the above copyright
    notice, this list of conditions and the following disclaimer.
 
-   * Redistributions in binary form must reproduce the above
+ * Redistributions in binary form must reproduce the above
    copyright notice, this list of conditions and the following
    disclaimer in the documentation and/or other materials provided
    with the distribution.
 
-   * Neither the name of the University of Pittsburgh nor the names
+ * Neither the name of the University of Pittsburgh nor the names
    of its contributors may be used to endorse or promote products
    derived from this software without specific prior written
    permission.
@@ -31,33 +31,43 @@
    LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
    NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
    SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-**/package pitt.search.semanticvectors;
+ **/package pitt.search.semanticvectors;
 
-public class VectorStoreUtils {
+ public class VectorStoreUtils {
 
-  /**
-   * Returns "$storeName.bin" if {@link FlagConfig#indexfileformat} is "lucene".
-   * Returns "$storeName.txt" if {@link FlagConfig#indexfileformat} is "text".
-   * 
-   * Method is idempotent: if file already ends with ".bin" or ".txt" as appropriate, input
-   * is returned unchanged.
-   */
-  public static String getStoreFileName(String storeName, FlagConfig flagConfig) {
-    if (flagConfig.indexfileformat() == "lucene") {
-      if (storeName.endsWith(".bin")) {
-        return storeName;
-      }
-      else {
-        return storeName + ".bin";
-      }
-    } else if (flagConfig.indexfileformat() == "text") {
-      if (storeName.endsWith(".txt")) {
-        return storeName;
-      }
-      else {
-        return storeName + ".txt";
-      }
-    }
-    throw new IllegalStateException("Looks like an illegal indexfileformat: " + flagConfig.indexfileformat());
-  }
-}
+   public enum VectorStoreFormat {
+     /** Optimized binary format created using Lucene I/O libraries. */
+     LUCENE,
+
+     /** Plan text format, used for interchange with external systems. */
+     TEXT
+   }
+
+   /**
+    * Returns "$storeName.bin" if {@link FlagConfig#indexfileformat()} is {@link VectorStoreFormat#LUCENE}.
+    * Returns "$storeName.txt" if {@link FlagConfig#indexfileformat()} is {@link VectorStoreFormat#TEXT}.
+    * 
+    * Method is idempotent: if file already ends with ".bin" or ".txt" as appropriate, input
+    * is returned unchanged.
+    */
+   public static String getStoreFileName(String storeName, FlagConfig flagConfig) {
+     switch (flagConfig.indexfileformat()) {
+     case LUCENE:
+       if (storeName.endsWith(".bin")) {
+         return storeName;
+       }
+       else {
+         return storeName + ".bin";
+       }
+     case TEXT:
+       if (storeName.endsWith(".txt")) {
+         return storeName;
+       }
+       else {
+         return storeName + ".txt";
+       }
+     default:
+       throw new IllegalStateException("Unknown -indexfileformat: " + flagConfig.indexfileformat());
+     }
+   }
+ }

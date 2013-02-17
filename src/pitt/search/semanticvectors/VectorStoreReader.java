@@ -55,10 +55,15 @@ public class VectorStoreReader {
   public static CloseableVectorStore openVectorStore(String storeName, FlagConfig flagConfig) throws IOException {
     CloseableVectorStore vectorStore = null;
     storeName = VectorStoreUtils.getStoreFileName(storeName, flagConfig);
-    if (flagConfig.indexfileformat().equals("lucene")) {
+    switch (flagConfig.indexfileformat()) {
+    case LUCENE:
       vectorStore = new VectorStoreReaderLucene(storeName, flagConfig);
-    } else if (flagConfig.indexfileformat().equals("text")) {
+      break;
+    case TEXT:
       vectorStore = new VectorStoreReaderText(storeName, flagConfig);
+      break;
+    default:
+      throw new IllegalStateException("Unknown -indexfileformat: " + flagConfig.indexfileformat());
     }
     return vectorStore;
   }

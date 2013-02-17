@@ -43,10 +43,11 @@ import java.util.logging.Logger;
 
 /** Imports must include the declarations of all enums used as flag values */
 import pitt.search.semanticvectors.vectors.VectorType;
+import pitt.search.semanticvectors.CompoundVectorBuilder.VectorLookupSyntax;
 import pitt.search.semanticvectors.DocVectors.DocIndexingStrategy;
 import pitt.search.semanticvectors.LuceneUtils.TermWeight;
 import pitt.search.semanticvectors.Search.SearchType;
-import pitt.search.semanticvectors.CompoundVectorBuilder.VectorLookupSyntax;
+import pitt.search.semanticvectors.VectorStoreUtils.VectorStoreFormat;
 
 /**
  * Class for representing and parsing command line flags into a configuration
@@ -163,11 +164,9 @@ public class FlagConfig {
    *  Expands the size of the space to n-squared. */
   public boolean expandsearchspace() { return expandsearchspace; }
 
-  private String indexfileformat = "lucene";
+  private VectorStoreFormat indexfileformat = VectorStoreFormat.LUCENE;
   /** Format used for serializing / deserializing vectors from disk, default lucene. */
-  public String indexfileformat() { return indexfileformat; }
-  // TODO: Turn into enum.
-  public static final String[] indexfileformatValues = {"lucene", "text"};
+  VectorStoreFormat indexfileformat() { return indexfileformat; }
 
   private String termvectorsfile = "termvectors";
   /** File to which termvectors are written during indexing. */
