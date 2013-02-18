@@ -320,27 +320,7 @@ public class FlagConfig {
             throw new IllegalArgumentException("option -" + flagName + " requires an argument");
           }
           field.set(flagConfig, flagValue);
-          // If there is an enum of accepted values, check that it's one of these.
-          try {
-            Field valuesField = FlagConfig.class.getField(flagName + "Values");
-            String[] valuesList = (String[]) valuesField.get(FlagConfig.class);
-            boolean found = false;
-            for (int i = 0; i < valuesList.length; ++i) {
-              if (flagValue.equals(valuesList[i])) {
-                found = true;
-                argc += 2;
-                break;
-              }
-            }
-            if (!found) {
-              String errString = "Value '" + flagValue + "' not valid value for option -" + flagName
-              + "\nValid values are: " + Arrays.toString(valuesList);
-              throw new IllegalArgumentException(errString);
-            }
-          } catch (NoSuchFieldException e) {
-            // This just means there isn't a list of allowed values.
-            argc += 2;
-          }
+          argc += 2;
           // Parse String[] arguments, presuming they are comma-separated.
           // String[] arguments do not currently support fixed Value lists.
         } else if (field.getType().getName().equals("[Ljava.lang.String;")) {
