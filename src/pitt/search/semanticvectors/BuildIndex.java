@@ -39,8 +39,6 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.logging.Logger;
 
-import pitt.search.semanticvectors.DocVectors.DocIndexingStrategy;
-
 /**
  * Command line utility for creating semantic vector indexes.
  */
@@ -55,7 +53,7 @@ public class BuildIndex {
       + "basic vectors), minimum term frequency, max. number of non-alphabetical characters per term, "
       + "filtering of numeric terms (i.e. numbers), and number of iterative training cycles."
       + "\nTo change these use the command line arguments "
-      + "\n  -vectortpe [real, complex or binary]"
+      + "\n  -vectortype [real, complex or binary]"
       + "\n  -dimension [number of dimension]"
       + "\n  -seedlength [seed length]"
       + "\n  -minfrequency [minimum term frequency]"
