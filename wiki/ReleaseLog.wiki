@@ -3,7 +3,7 @@
 
 Even-numbered versions are releases. Odd-numbered versions are in development. It follows that the most recent code and the `build.xml` file in the SVN repository is always odd-numbered.
 
-=== Version 3.7 (current release candidate) ===
+=== Version 3.8 ===
 
  * Flag config changed to an instance rather than global variables.
    * Deliberately few user-visible changes. One main change is that index-building routines should set `-luceneindexpath FOO` explicitly, rather than just writing (say) `BuildIndex FOO`.
