@@ -11,6 +11,12 @@ This documentation isn't ideal, of course, but there are so many flags by now it
 
 The benefit of the system is that it's very easy to add and use new flags. This encourages people to experiment with semantic vectors, but it doesn't make sharing your improvements as easy and reliable as we would like.
 
+==Upcoming Status==
+
+The code checked into version 3.7 (soon to be released as version 3.8) makes a flag config instance rather than using global variables. This provides some more encapsulation, so that (for example) opening two vector stores with different dimension settings doesn't lead to a conflict. (Provided, of course, that the callers don't try to share the same flag config instance.)
+
+This page will be further updated after the release of version 3.8. (i.e., if you read this sentence and the current SV version is greater than or equal to 3.8, ping me!)
+
 ==Current Status==
 
 The existing flags parsing system was released in version 1.20. It creates public global variables for all Flag values. This is easy to set up, but has clear drawbacks, e.g., configuration state gets shared between different queries and indexing jobs run in the same JVM, which may not be desirable. The immediate problem with this is that is causes tests to break unless each flag is carefully reset.
