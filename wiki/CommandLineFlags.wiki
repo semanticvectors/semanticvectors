@@ -2,14 +2,15 @@
 
 =The Current Flag-Parsing System=
 
-==List of Flags==
+==Overview==
 
-See the [http://semanticvectors.googlecode.com/svn/javadoc/latest-stable/pitt/search/semanticvectors/Flags.html Javadoc] and
-[https://code.google.com/p/semanticvectors/source/browse/trunk/src/pitt/search/semanticvectors/Flags.java source code].
-
-This documentation isn't ideal, of course, but there are so many flags by now it's hard to maintain any documentation that isn't automatically updated!
+Flags can be added to the FlagConfig class, they are automatically parsed, and can then be accessed from an appropriate FlagConfig instance.
 
 The benefit of the system is that it's very easy to add and use new flags. This encourages people to experiment with semantic vectors, but it doesn't make sharing your improvements as easy and reliable as we would like.
+
+==List of Flags==
+
+See the [http://semanticvectors.googlecode.com/svn/javadoc/latest-stable/pitt/search/semanticvectors/FlagConfig.html Javadoc].
 
 ==Current Status (Instance Flag Variables)==
 
