@@ -9,8 +9,8 @@ Even-numbered versions are releases. Odd-numbered versions are in development. I
    * Deliberately few user-visible changes. One main change is that index-building routines should set `-luceneindexpath FOO` explicitly, rather than just writing (say) `BuildIndex FOO`.
    * Many other improvements / simplifications to individual flags.
  * APIs updated to work with Lucene 3.6.x. This change is not backward-compatible.
- * Significant speedup to VectorSearcher.getNearestNeighbors() for large number of results. (With thanks to Christian Prokopp.)
- * Release of deterministic pseudo-random vectors.
+ * Significant speedup to search calls for large number of results. (With thanks to Christian Prokopp.)
+ * Release of deterministic pseudo-random vectors. (With thanks to Manuel Wahle.)
  
 === Version 3.6 ===
 
