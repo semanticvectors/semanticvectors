@@ -33,10 +33,6 @@
 
 package pitt.search.semanticvectors;
 
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-
 import junit.framework.TestCase;
 
 import org.junit.*;
@@ -131,7 +127,6 @@ public class FlagConfigTest extends TestCase {
     }
   }
   
-
   @Test
   public void testMakeFlagsCompatible() {
     String[] args = {"-dimension", "60", "-vectortype", "binary", "-seedlength", "20"};
@@ -144,24 +139,5 @@ public class FlagConfigTest extends TestCase {
     flagConfig = FlagConfig.getFlagConfig(args);
     assertEquals(60, flagConfig.dimension());
     assertEquals(20, flagConfig.seedlength());
-  }
-
-  @org.junit.Test
-  public void testFlagsMetadata() {
-    Field[] allFlagFields = FlagConfig.class.getDeclaredFields();
-    for (Field field: allFlagFields) {
-      String fieldName = field.getName();
-      if (fieldName.endsWith("Description")) {
-        try {
-          String flagName = fieldName.substring(0, fieldName.length() - 11);
-          @SuppressWarnings("unused")
-          Field flagField = FlagConfig.class.getDeclaredField(flagName);
-        } catch (NoSuchFieldException e) {
-          System.err.println("Description field '" + fieldName
-              + "' has no corresponding flag defined.");
-          fail();
-        }
-      }
-    }
   }
 }
