@@ -36,6 +36,7 @@
 package pitt.search.semanticvectors.integrationtests;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -55,7 +56,12 @@ public class ThreadSafetyTest {
 
   @Before
   public void setUp() {
-    assert(RunTests.prepareTestData());
+    try {
+      RunTests.prepareTestData();
+    } catch (IOException e) {
+      e.printStackTrace();
+      fail();
+    }
   }
 
   @Test
