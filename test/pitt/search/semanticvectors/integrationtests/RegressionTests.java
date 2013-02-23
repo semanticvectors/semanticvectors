@@ -34,6 +34,7 @@
 package pitt.search.semanticvectors.integrationtests;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.*;
 
 import org.junit.*;
@@ -58,7 +59,12 @@ import static org.junit.Assert.*;
 public class RegressionTests {
   @Before
   public void setUp() {
-    assert(RunTests.prepareTestData());
+    try {
+      RunTests.prepareTestData();
+    } catch (IOException e) {
+      e.printStackTrace();
+      fail();
+    }
   }
 
   private int buildSearchGetRank(String buildCmd, String searchCmd, String targetResult) {

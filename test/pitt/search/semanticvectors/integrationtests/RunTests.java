@@ -101,27 +101,23 @@ public class RunTests {
     return results;
   }
 
-  public static boolean prepareTestData() {
-    if (testDataPrepared) return true;
+  public static void prepareTestData() throws IOException {
+    if (testDataPrepared) return;
 
     // Create basic vector store files. No Lucene / corpus dependencies here.
-    try {
-      BufferedWriter outBuf = new BufferedWriter(new FileWriter(vectorStoreName + ".txt"));
-      outBuf.write(testVectors);
-      outBuf.close();
+    BufferedWriter outBuf = new BufferedWriter(new FileWriter(vectorStoreName + ".txt"));
+    outBuf.write(testVectors);
+    outBuf.close();
 
-      String[] translaterArgs = {"-TEXTTOLUCENE", vectorStoreName + ".txt", vectorStoreName + ".bin"};
-      VectorStoreTranslater.main(translaterArgs);
-    } catch (IOException e) {
-      System.err.println("Failed to prepare test data ... abandoning tests.");
-      e.printStackTrace();
-      return false;
-    }
+    String[] translaterArgs = {"-TEXTTOLUCENE", vectorStoreName + ".txt", vectorStoreName + ".bin"};
+    VectorStoreTranslater.main(translaterArgs);
 
     // Create Lucene indexes from test corpus, to use in index building and searching tests.
     String testDataPath = "../John";
     File testDataDir = new File(testDataPath);
-    if (!testDataDir.isDirectory()) return false;
+    if (!testDataDir.isDirectory()) {
+      throw new IOException("No directory for test data at: " + testDataDir.getAbsolutePath());
+    }
     IndexFilePositions.main(new String[] {testDataPath});
     
     testDataPath = "../nationalfacts/nationalfacts.txt";
@@ -129,10 +125,9 @@ public class RunTests {
     LuceneIndexFromTriples.main(new String[] {testDataPath});
 
     testDataPrepared = true;
-    return true;
   }
 
-  public static void main(String args[]) {
+  public static void main(String args[]) throws IOException {
     if (!checkCurrentDirEmpty()) {
       System.err.println("The test/testdata/tmp directory should be empty before running tests.\n"
           + "This may skew your results: consider cleaning up this directory first.");
@@ -142,10 +137,7 @@ public class RunTests {
     int failures = 0;
 
     System.err.println("Preparing test data ...");
-    if (!prepareTestData()) {
-      System.err.println("Failed.");
-      System.exit(-1);
-    }
+    prepareTestData();
 
     // Run regression tests.
     System.err.println("Running regression tests ...");

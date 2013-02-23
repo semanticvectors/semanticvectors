@@ -52,7 +52,12 @@ import static org.junit.Assert.*;
 public class LSATest {
   @Before
   public void setUp() {
-    assertTrue(RunTests.prepareTestData());
+    try {
+      RunTests.prepareTestData();
+    } catch (IOException e) {
+      e.printStackTrace();
+      fail();
+    }
   }
 
   @Test
