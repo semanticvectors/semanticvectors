@@ -36,6 +36,8 @@
 package pitt.search.semanticvectors.infer;
 
 import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.Hashtable;
 
 import pitt.search.semanticvectors.FlagConfig;
 import pitt.search.semanticvectors.ObjectVector;
@@ -49,6 +51,7 @@ import pitt.search.semanticvectors.vectors.VectorFactory;
 public class NumberRepresentation
 {
     ArrayList<ObjectVector> _numbers = new ArrayList<ObjectVector>();
+    Hashtable<String,VectorStoreRAM> _pregenerated = new Hashtable<String, VectorStoreRAM>();
    FlagConfig flagConfig = null;
    int _iDimension = 1000;
    String startString, endString;
@@ -60,7 +63,23 @@ public class NumberRepresentation
      */
     public static void main(String[] args)
     {
-  new NumberRepresentation( null);
+    	  
+    	FlagConfig flagConfig;
+    	
+        try {
+          flagConfig = FlagConfig.getFlagConfig(args);
+          args = flagConfig.remainingArgs;
+        } catch (IllegalArgumentException e) {
+          System.err.println(e.getMessage());
+          throw e;
+        }
+    	
+NumberRepresentation NR = new NumberRepresentation(flagConfig);
+VectorStoreRAM VSR = NR.getNumberVectors(1,6);
+Enumeration<ObjectVector> VEN = VSR.getAllVectors();
+while (VEN.hasMoreElements())
+	System.out.println(VEN.nextElement().getObject());
+
     }
     
     /**
@@ -99,7 +118,15 @@ public class NumberRepresentation
     }
     
     public VectorStoreRAM getNumberVectors(int iStart, int iEnd) {
-  _numbers.clear();
+  
+    	if (_pregenerated.containsKey(iStart+":"+iEnd))
+    		return _pregenerated.get(iStart+":"+iEnd);
+    
+    	_numbers.clear();
+  
+  int original_iEnd = iEnd;
+  
+  if ((iEnd-iStart) %2 !=0) iEnd++;
   
   for ( int i = iStart; i <= iEnd+1; ++i )
             _numbers.add( null );
@@ -123,9 +150,13 @@ public class NumberRepresentation
         VectorStoreRAM theVSR = new VectorStoreRAM(flagConfig);
         for (int q=iStart; q <= iEnd; q++)
         {
-          theVSR.putVector((iEnd)+":"+q, _numbers.get(q).getVector());
+          theVSR.putVector((original_iEnd)+":"+q, _numbers.get(q).getVector());
          }
         
+        if (iEnd > original_iEnd) //even number of vectors
+        	theVSR.removeVector((original_iEnd)+":"+iEnd);
+        	
+         _pregenerated.put(iStart+":"+iEnd, theVSR);
         return theVSR;
     }
 
