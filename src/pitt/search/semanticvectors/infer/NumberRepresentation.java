@@ -107,7 +107,9 @@ while (VEN.hasMoreElements())
 
           
           while ( Math.abs(vL.measureOverlap( vR )) > 0.01d )
-          { System.out.println(vL.measureOverlap(vR));
+          { 
+        	  
+        	  //System.out.println(vL.measureOverlap(vR));
           endString += "*";
           random.setSeed(Bobcat.asLong(endString));
            vR = VectorFactory.generateRandomVector(flagConfig.vectortype(), _iDimension, flagConfig.seedlength(), random );
