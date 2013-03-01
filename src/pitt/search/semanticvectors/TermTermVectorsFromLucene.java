@@ -50,6 +50,9 @@ import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.util.ReaderUtil;
 
 import pitt.search.semanticvectors.hashing.Bobcat;
+import pitt.search.semanticvectors.infer.NumberRepresentation;
+import pitt.search.semanticvectors.vectors.ComplexVector;
+import pitt.search.semanticvectors.vectors.ComplexVector.Mode;
 import pitt.search.semanticvectors.vectors.PermutationUtils;
 import pitt.search.semanticvectors.vectors.Vector;
 import pitt.search.semanticvectors.vectors.VectorFactory;
@@ -77,12 +80,16 @@ public class TermTermVectorsFromLucene implements VectorStore {
     /** Permutes vectors according to how many places they are from focus term. */ 
     PERMUTATION,
     /** Superposition of basic and permuted vectors. */
-    PERMUTATIONPLUSBASIC
+    PERMUTATIONPLUSBASIC,
+    /** Encodes position within sliding window using NumberRepresentation */
+    PROXIMITY
   }
   
   private FlagConfig flagConfig;
   private boolean retraining = false;
   private VectorStoreRAM termVectors;
+  private VectorStoreRAM numberVectors;
+  private int numberPrefix;
   private VectorStore indexVectors;
   private IndexReader luceneIndexReader;
   private Vector[] localindexvectors;
@@ -143,8 +150,9 @@ public class TermTermVectorsFromLucene implements VectorStore {
         || flagConfig.positionalmethod() == PositionalMethod.PERMUTATIONPLUSBASIC) {
       initializePermutations();}
     else if (flagConfig.positionalmethod() == PositionalMethod.DIRECTIONAL) {
-      initializeDirectionalPermutations();	  
-    }
+      initializeDirectionalPermutations();	  }
+    else if (flagConfig.positionalmethod() == PositionalMethod.PROXIMITY) {
+      initializeNumberRepresentations(); }
     trainTermTermVectors();
   }
 
@@ -159,7 +167,28 @@ public class TermTermVectorsFromLucene implements VectorStore {
           flagConfig.vectortype(), flagConfig.dimension(), i - flagConfig.windowradius());
     }
   }
+ 
+  /**
+   * Initialize all number vectors that might be used (i.e. one for each position in the sliding window)
+   */
+  
+  private void initializeNumberRepresentations() {
+   
+	NumberRepresentation numberRepresentation = 
+			new NumberRepresentation(flagConfig);
+	  
+	numberVectors = numberRepresentation.getNumberVectors(1, 2*flagConfig.windowradius()+2);
+	numberPrefix = 2*flagConfig.windowradius()+2;
+	
+	Enumeration<ObjectVector> VEN = numberVectors.getAllVectors();
+	while (VEN.hasMoreElements())
+		System.out.println(VEN.nextElement().getObject());
 
+	    }
+	    
+	
+  
+	  
   /**
    * Initialize all permutations that might be used (i.e +1 and -1).
    */
@@ -186,6 +215,9 @@ public class TermTermVectorsFromLucene implements VectorStore {
     }
     lUtils = new LuceneUtils(flagConfig);
 
+    if (flagConfig.vectortype().equals(VectorType.COMPLEX))
+    		ComplexVector.setDominantMode(Mode.CARTESIAN);
+    
     // If basicTermVectors was passed in, set state accordingly.
     if (indexVectors != null) {
       retraining = true;
@@ -334,16 +366,21 @@ public class TermTermVectorsFromLucene implements VectorStore {
         if (coterm == NONEXISTENT) continue;
 
         if (this.indexVectors.getVector(docterms[coterm]) == null
-            || localtermvectors[focusterm] == null) {
+            || localtermvectors[focusterm] == null || localindexvectors[coterm] == null) {
           continue;
         }
 
         float globalweight = lUtils.getGlobalTermWeight(new Term(vex.getField(), docterms[coterm]));
-
+  
+        // bind to appropriate position vector
+         if (flagConfig.positionalmethod() == PositionalMethod.PROXIMITY)
+        		localindexvectors[coterm].bind(numberVectors.getVector(numberPrefix+":"+(1+cursor-windowstart)));
+        	
         // calculate permutation required for either Sahlgren (2008) implementation
         // encoding word order, or encoding direction as in Burgess and Lund's HAL
         if (flagConfig.positionalmethod() == PositionalMethod.BASIC
-            || flagConfig.positionalmethod() == PositionalMethod.PERMUTATIONPLUSBASIC) {
+            || flagConfig.positionalmethod() == PositionalMethod.PERMUTATIONPLUSBASIC
+        		  || flagConfig.positionalmethod() == PositionalMethod.PROXIMITY) {
           // docterms[coterm] contains the term in position[w] in this document.
           localtermvectors[focusterm].superpose(localindexvectors[coterm], globalweight, null);
         }
@@ -355,6 +392,11 @@ public class TermTermVectorsFromLucene implements VectorStore {
           int[] permutation = permutationCache[(int) Math.max(0,Math.signum(cursor - focusposn))];
           localtermvectors[focusterm].superpose(localindexvectors[coterm], globalweight, permutation);
 
+          //release to appropriate position vector
+          if (flagConfig.positionalmethod() == PositionalMethod.PROXIMITY)
+          		localindexvectors[coterm].release(numberVectors.getVector(numberPrefix+":"+(1+cursor-windowstart)));
+        
+          
         }
       }
     }

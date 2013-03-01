@@ -210,6 +210,10 @@ public class FlagConfig {
   /** "Permuted term vectors, output by -positionalmethod permutation. */
   public String permutedvectorfile() { return permutedvectorfile; }
   
+  private String proximityvectorfile = "proxtermvectors";
+  /** "Permuted term vectors, output by -positionalmethod permutation. */
+  public String proximityvectorfile() { return proximityvectorfile; }
+  
   private String directionalvectorfile ="drxntermvectors";
   /** Permuted term vectors, output by -positionalmethod directional. */
   public String directionalvectorfile() { return directionalvectorfile; }      
