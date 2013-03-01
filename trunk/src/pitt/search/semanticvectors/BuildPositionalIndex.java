@@ -108,6 +108,9 @@ public class BuildPositionalIndex {
     case BASIC:
       termFile = flagConfig.termtermvectorsfile();
       break;
+    case PROXIMITY:
+    	termFile = flagConfig.proximityvectorfile();
+    	break;
     case PERMUTATION:
       termFile = flagConfig.permutedvectorfile();
       break;
