@@ -152,11 +152,11 @@ while (VEN.hasMoreElements())
         VectorStoreRAM theVSR = new VectorStoreRAM(flagConfig);
         for (int q=iStart; q <= iEnd; q++)
         {
-          theVSR.putVector((original_iEnd)+":"+q, _numbers.get(q).getVector());
+          theVSR.putVector(q, _numbers.get(q).getVector());
          }
         
         if (iEnd > original_iEnd) //even number of vectors
-        	theVSR.removeVector((original_iEnd)+":"+iEnd);
+        	theVSR.removeVector(iEnd);
         	
          _pregenerated.put(iStart+":"+iEnd, theVSR);
         return theVSR;

@@ -191,7 +191,8 @@ public class Search {
     try {
       // Default VectorStore implementation is (Lucene) VectorStoreReader.
       VerbatimLogger.info("Opening query vector store from file: " + flagConfig.queryvectorfile() + "\n");
-      queryVecReader = VectorStoreReader.openVectorStore(flagConfig.queryvectorfile(), flagConfig);
+      if (flagConfig.queryvectorfile().equals("orthographic")) queryVecReader = new VectorStoreOrthographical(flagConfig);
+      else queryVecReader = VectorStoreReader.openVectorStore(flagConfig.queryvectorfile(), flagConfig);
 
       if (flagConfig.boundvectorfile().length() > 0) {
         VerbatimLogger.info("Opening second query vector store from file: " + flagConfig.boundvectorfile() + "\n");
