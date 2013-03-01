@@ -36,6 +36,14 @@ public class VectorStoreOrthographical implements VectorStore {
   
   public VectorStoreOrthographical(FlagConfig flagConfig) {
     this.flagConfig = flagConfig;
+    if (flagConfig.vectortype().equals(vectorType.REAL))
+    {
+    	 	System.err.println("Not yet implemented for real vectors");
+    	 	System.err.println("Changing to 4096-dimensional binary vectors");
+    	 	flagConfig.setVectortype(VectorType.BINARY);
+    	 	flagConfig.setDimension(4096);
+    }
+    
     this.objectVectors = new Hashtable<Object, ObjectVector>();
     this.vectorType = flagConfig.vectortype();
     this.dimension = flagConfig.dimension();

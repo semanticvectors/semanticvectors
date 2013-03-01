@@ -92,7 +92,10 @@ public class CompareTerms{
       throw new IllegalArgumentException();
     }
 
-    CloseableVectorStore vecReader;
+    VectorStore vecReader;
+    if (flagConfig.queryvectorfile().equals("orthographical"))
+    		vecReader = new VectorStoreOrthographical(flagConfig);
+    else
     try {
       vecReader = new VectorStoreReaderLucene(flagConfig.queryvectorfile(), flagConfig);
     } catch (IOException e) {
@@ -118,7 +121,9 @@ public class CompareTerms{
         vecReader, luceneUtils, flagConfig, args[0]);
     Vector vec2 = CompoundVectorBuilder.getQueryVectorFromString(
         vecReader, luceneUtils, flagConfig, args[1]);
-    vecReader.close();
+    
+    if (! flagConfig.queryvectorfile().equals("orthographical"))
+    		((CloseableVectorStore) vecReader).close();
     double simScore = vec1.measureOverlap(vec2);
     // Logging prompt and printing score to stdout, this should enable
     // easier batch scripting to combine input and output data.
