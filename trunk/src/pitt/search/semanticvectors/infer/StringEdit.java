@@ -187,7 +187,7 @@ public class StringEdit {
       
       if (theLetters.getVector(letter) == null)
       {
-        System.out.println("adding "+letter);
+        //System.out.println("adding "+letter);
         theLetters.putVector(letter, incoming.copy());
       }
       
