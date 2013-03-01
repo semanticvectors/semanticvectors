@@ -24,7 +24,7 @@ import pitt.search.semanticvectors.vectors.VectorType;
  * 
  * @see ObjectVector
  **/
-public class VectorStoreOrthographical implements VectorStore {
+public class VectorStoreOrthographical implements VectorStore, CloseableVectorStore {
   private FlagConfig flagConfig;
   private Hashtable<Object, ObjectVector> objectVectors;
   private Random random = new Random();
@@ -54,6 +54,12 @@ public class VectorStoreOrthographical implements VectorStore {
   @Override
   public VectorType getVectorType() {
     return vectorType;
+  }
+  
+  @Override
+  public void close()
+  {
+	 //dummy method to ease integration into existing command line query code
   }
 
   @Override

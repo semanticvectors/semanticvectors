@@ -118,24 +118,18 @@ public class StringEdit {
     ObjectVector theNext = theNum.nextElement();
     String theTerm = theNext.getObject().toString().trim();
     VectorStoreRAM OV = null;
-    if (allNumberVectors.get(new Integer(theTerm.length())) == null)
-    {
-    System.out.println("----> "+theTerm.length());
-    OV = NR.getNumberVectors(1, theTerm.length());
-    allNumberVectors.put(new Integer(theTerm.length()), OV);
-    System.out.println("--- "+ theTerm.length());
-    }
-    else OV = allNumberVectors.get(new Integer(theTerm.length()));
     
+    OV = NR.getNumberVectors(1, theTerm.length()+1);
+      
     twoVSR.putVector(theTerm,getStringVector(theTerm, OV, theLetters, flagConfig));
     
     Enumeration<ObjectVector> theNumbers = OV.getAllVectors();
     while (theNumbers.hasMoreElements())
     {
       ObjectVector nextObjectVector = theNumbers.nextElement();
-      if (OOV.getVector(theTerm.length()+":"+nextObjectVector.getObject()) == null)
+      if (OOV.getVector(nextObjectVector.getObject()) == null)
       {
-        OOV.putVector(nextObjectVector.getObject(),nextObjectVector.getVector());
+        OOV.putVector(theTerm.length()+":"+nextObjectVector.getObject(),nextObjectVector.getVector());
       }
     }
     
@@ -154,7 +148,7 @@ public class StringEdit {
      
   for (int a = 0; a < terms.length; a++)
   {
-    VectorStoreRAM OV = NR.getNumberVectors(1, terms[a].length());
+    VectorStoreRAM OV = NR.getNumberVectors(1, terms[a].length()+1);
   
     VectorSearcher.VectorSearcherCosine theVSC = new VectorSearcher.VectorSearcherCosine(twoVSR, twoVSR, null, flagConfig, getStringVector(terms[a], OV, theLetters, flagConfig));
     
@@ -192,9 +186,10 @@ public class StringEdit {
       }
       
       
-      Vector posVector = theNumbers.getVector(theTerm.length()+":"+(q+1));
+      Vector posVector = theNumbers.getVector(q+1);
       if (posVector == null)
       { 
+      System.out.println(theTerm);
       System.out.println(posVector);
       System.out.println(theTerm.length()+":"+(q+1)+"\n");
       Enumeration<ObjectVector> nation = theNumbers.getAllVectors();
