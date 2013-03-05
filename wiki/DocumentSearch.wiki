@@ -2,6 +2,8 @@
 
 = Document Search in SemanticVectors =
 
+== Command-Line Search ==
+
 It's easy to search for documents in SemanticVectors, by telling the search program to use an appropriate vector store. This means that there is no special class or interface for searching documents - this functionality is provided by enabling the more general freedom to take query terms and search over a variety of different vector stores.
 
 The query file is set using the `-queryvectorfile` option and the search file is set using the `-searchvectorfile` options.
@@ -50,7 +52,7 @@ Any term weighting for documents is computed when the document vectors are creat
 
 Filtering search results based on some regular expression can be particularly useful for restricting document searches to specific parts of a corpus. See FilteredSearchResults.
 
-== Comparing Two Documents ==
+=== Comparing Two Documents ===
 
 If you want a pairwise comparison score between two documents, Doc1 and Doc2, then you can use the CompareTerms tool. For documents that are already part of your index, use something like:
 
@@ -66,6 +68,31 @@ This could be done on Unix-like systems using something like:
 
 Of course, if there are double quotes inside your documents, this will lead to escaping problems. Be prepared to do a certain amount of cutting, pasting, search and replace, and escaping of special characters using your favorite tools.
 
-== Comparing Terms and Documents Explicitly ==
+=== Comparing Terms and Documents Explicitly ===
 
 This question was raised in the group discussions. Can you explicitly compare a term vector and a document vector? The answer is yes, but it needs a workaround. See CompareTerms for more details.
+
+== Programmatic / API-driven Search ==
+
+For users wishing to incorporate document search into programmatic calls, the basic ideas are the same as above, but you have to translate them into API calls instead of command-line calls.
+
+For example, if you want to search for documents related to "my search terms", you might write something like the following:
+
+{{{
+FlagConfig config = FlagConfig.getFlagConfig( ... appropriate command-line string arguments ... );
+CloseableVectorStore queryVecReader = VectorStoreReader.openVectorStore(config.termvectorsfile(), config), 
+CloseableVectorStore resultsVecReader = VectorStoreReader.openVectorStore(config.docvectorsfile(), config);
+LuceneUtils luceneUtils = new LuceneUtils(config.luceneindexpath()); 
+VectorSearcher  vecSearcher = new VectorSearcher.VectorSearcherCosine( 
+                queryVecReader, resultsVecReader, luceneUtils, config, new String[] {"my", "search", "terms"}); 
+LinkedList<SearchResult> results = vecSearcher.getNearestNeighbors(maxResults);
+
+for (SearchResult result: results) {
+  System.out.println(String.format(
+      "%f:%s",
+      result.getScore(),
+      result.getObjectVector().getObject().toString()));
+}
+}}}
+
+In this case, this will print the paths to the resulting documents to STDOUT (presuming that the indexes were built using default tools and cofigurations).
