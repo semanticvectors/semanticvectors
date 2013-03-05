@@ -344,9 +344,10 @@ public class Search {
     if (results.size() > 0) {
       VerbatimLogger.info("Search output follows ...\n");
       for (SearchResult result: results) {
-        System.out.println(result.getScore() + ":" +
-            ((ObjectVector)result.getObjectVector()).getObject().toString());
-
+        System.out.println(
+            String.format("%f:%s",
+                          result.getScore(),
+                          result.getObjectVector().getObject().toString()));
       }
     } else {
       VerbatimLogger.info("No search output.\n");
