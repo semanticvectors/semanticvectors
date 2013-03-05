@@ -75,13 +75,28 @@ public class NumberRepresentation
         }
     	
 NumberRepresentation NR = new NumberRepresentation(flagConfig);
-VectorStoreRAM VSR = NR.getNumberVectors(1,6);
-Enumeration<ObjectVector> VEN = VSR.getAllVectors();
-while (VEN.hasMoreElements())
-	System.out.println(VEN.nextElement().getObject());
+VectorStoreRAM VSR = NR.getNumberVectors(1,4);
+System.out.print("\t");
+for (int q=1; q <= VSR.getNumVectors(); q++)
+System.out.print(q+"\t");
+System.out.println();	
 
+for (int q=1; q <= VSR.getNumVectors(); q++)
+{Enumeration<ObjectVector> VEN = VSR.getAllVectors();
+	System.out.print(q);
+
+	while (VEN.hasMoreElements())
+{	
+	ObjectVector OV = VEN.nextElement();
+
+	
+	System.out.print("\t");
+	System.out.printf("%.2f",VSR.getVector(VSR.getNumVectors() +1 - q).measureOverlap(OV.getVector()));
+}
+	System.out.println();
+	
     }
-    
+    }
     /**
      * @param iStart
      * @param iEnd
@@ -99,11 +114,12 @@ while (VEN.hasMoreElements())
           startString = "*START*";
           random.setSeed(Bobcat.asLong(startString));
           vL = VectorFactory.generateRandomVector(flagConfig.vectortype(), _iDimension, flagConfig.seedlength(), random );
+          vL.normalize();
           
           endString = "*END*";
           random.setSeed(Bobcat.asLong(endString));
           vR = VectorFactory.generateRandomVector(flagConfig.vectortype(), _iDimension, flagConfig.seedlength(), random );
-          
+          vR.normalize();
 
           
           while ( Math.abs(vL.measureOverlap( vR )) > 0.01d )
