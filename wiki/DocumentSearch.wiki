@@ -95,4 +95,6 @@ for (SearchResult result: results) {
 }
 }}}
 
-In this case, this will print the paths to the resulting documents to STDOUT (presuming that the indexes were built using default tools and cofigurations).
+In this case, this will print the paths (extracted from the index field and configured with the -docidfield flag) to the resulting documents to STDOUT. 
+
+(The -docidfield defaults to "path", which is also the default in Lucene indexes built by `org.apache.lucene.demo.IndexFiles` and `pitt.search.lucene.IndexFilePositions`, but this field name is not invariant and can easily be changed by other index-building tools.) 
