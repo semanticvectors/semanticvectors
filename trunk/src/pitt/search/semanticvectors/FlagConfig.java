@@ -79,14 +79,20 @@ public class FlagConfig {
       and in the thousands for {@link VectorType#BINARY}, since binary dimensions are single bits. */
   public int dimension() { return dimension; }
   /** Sets the {@link #dimension()}. */
-  public void setDimension(int dimension) { this.dimension = dimension; }
+  public void setDimension(int dimension) {
+    this.dimension = dimension;
+    this.makeFlagsCompatible();
+  }
 
   private VectorType vectortype = VectorType.REAL;
   /** Ground field for vectors: real, binary or complex. Can be set when a {@code VectorStore} is opened.
    * Default value {@link VectorType#REAL}, corresponding to "-vectortype real". */
   public VectorType vectortype() { return vectortype; }
   /** Sets the {@link #vectortype()}. */
-  public void setVectortype(VectorType vectortype) {this.vectortype = vectortype; }
+  public void setVectortype(VectorType vectortype) {
+    this.vectortype = vectortype;
+    this.makeFlagsCompatible();
+  }
 
   public int seedlength = 10;
   /** Number of nonzero entries in a sparse random vector, default value 10 except for
@@ -447,7 +453,7 @@ public class FlagConfig {
       if (seedlength != dimension / 2) {
         seedlength = dimension / 2;
         logger.warning("Binary vectors must be generated with a balanced number of zeros and ones."
-            + " Flags.seedlength set to: " + seedlength + ".");
+            + " FlagConfig.seedlength set to: " + seedlength + ".");
       }
     }
   }
