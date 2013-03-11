@@ -92,17 +92,17 @@ public class CompareTerms{
       throw new IllegalArgumentException();
     }
     CloseableVectorStore vecReader;
-    if (flagConfig.queryvectorfile().equals("orthographic"))
-    		vecReader = new VectorStoreOrthographical(flagConfig);
-    else
-    try {
-      vecReader = new VectorStoreReaderLucene(flagConfig.queryvectorfile(), flagConfig);
-    } catch (IOException e) {
-      logger.warning("Failed to open vector store from file: " + flagConfig.queryvectorfile());
-      throw e;
+    if (flagConfig.queryvectorfile().equals("orthographic")) {
+      vecReader = new VectorStoreOrthographical(flagConfig);
+    } else {
+      try {
+        vecReader = new VectorStoreReaderLucene(flagConfig.queryvectorfile(), flagConfig);
+        VerbatimLogger.info("Opened query vector store from file: " + flagConfig.queryvectorfile() + "\n");
+      } catch (IOException e) {
+        logger.warning("Failed to open vector store from file: " + flagConfig.queryvectorfile());
+        throw e;
+      }
     }
-
-    logger.info("Opened query vector store from file: " + flagConfig.queryvectorfile());
 
     if (!flagConfig.luceneindexpath().isEmpty()) {
       try {
@@ -113,7 +113,7 @@ public class CompareTerms{
     }
     if (luceneUtils == null) {
       VerbatimLogger.info("No Lucene index for query term weighting, "
-          + "so all query terms will have same weight.");
+          + "so all query terms will have same weight.\n");
     }
 
     Vector vec1 = CompoundVectorBuilder.getQueryVectorFromString(
@@ -126,7 +126,8 @@ public class CompareTerms{
     double simScore = vec1.measureOverlap(vec2);
     // Logging prompt and printing score to stdout, this should enable
     // easier batch scripting to combine input and output data.
-    logger.info("Outputting similarity of \"" + args[0] + "\" with \"" + args[1] + "\" ...");
+    VerbatimLogger.info(String.format(
+        "Outputting similarity of '%s' with '%s':\n", args[0], args[1]));
     System.out.println(simScore);
   }
 }
