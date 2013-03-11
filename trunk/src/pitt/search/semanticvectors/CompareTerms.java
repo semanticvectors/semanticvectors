@@ -104,7 +104,7 @@ public class CompareTerms{
 
     logger.info("Opened query vector store from file: " + flagConfig.queryvectorfile());
 
-    if (flagConfig.luceneindexpath() != null) {
+    if (!flagConfig.luceneindexpath().isEmpty()) {
       try {
         luceneUtils = new LuceneUtils(flagConfig);
       } catch (IOException e) {
