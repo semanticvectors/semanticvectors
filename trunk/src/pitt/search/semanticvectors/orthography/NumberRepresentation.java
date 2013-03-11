@@ -33,7 +33,7 @@
    SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  **/
 
-package pitt.search.semanticvectors.infer;
+package pitt.search.semanticvectors.orthography;
 
 import java.util.ArrayList;
 import java.util.Enumeration;

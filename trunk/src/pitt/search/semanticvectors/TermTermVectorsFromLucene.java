@@ -50,7 +50,7 @@ import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.util.ReaderUtil;
 
 import pitt.search.semanticvectors.hashing.Bobcat;
-import pitt.search.semanticvectors.infer.NumberRepresentation;
+import pitt.search.semanticvectors.orthography.NumberRepresentation;
 import pitt.search.semanticvectors.vectors.ComplexVector;
 import pitt.search.semanticvectors.vectors.ComplexVector.Mode;
 import pitt.search.semanticvectors.vectors.PermutationUtils;

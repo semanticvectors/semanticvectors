@@ -33,7 +33,7 @@
    SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  **/
 
-package pitt.search.semanticvectors.infer;
+package pitt.search.semanticvectors.orthography;
 
 import java.util.Enumeration;
 import java.util.Hashtable;

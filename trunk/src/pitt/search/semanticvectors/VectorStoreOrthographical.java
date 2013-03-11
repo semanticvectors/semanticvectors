@@ -3,8 +3,8 @@ package pitt.search.semanticvectors;
 import java.util.Enumeration;
 import java.util.Hashtable;
 
-import pitt.search.semanticvectors.infer.NumberRepresentation;
-import pitt.search.semanticvectors.infer.StringEdit;
+import pitt.search.semanticvectors.orthography.NumberRepresentation;
+import pitt.search.semanticvectors.orthography.StringEdit;
 import pitt.search.semanticvectors.vectors.Vector;
 import pitt.search.semanticvectors.vectors.VectorType;
 
