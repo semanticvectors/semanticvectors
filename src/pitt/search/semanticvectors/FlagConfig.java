@@ -456,5 +456,7 @@ public class FlagConfig {
             + " FlagConfig.seedlength set to: " + seedlength + ".");
       }
     }
+    
+    if (searchvectorfile == "") searchvectorfile = queryvectorfile;
   }
 }

@@ -39,6 +39,7 @@ import java.util.*;
 
 import org.junit.*;
 
+import pitt.search.semanticvectors.FlagConfig;
 import pitt.search.semanticvectors.PSI;
 import pitt.search.semanticvectors.Search;
 import pitt.search.semanticvectors.SearchResult;
@@ -77,7 +78,7 @@ public class PSITest {
 
     String searchCmd = "-searchtype boundproduct -queryvectorfile semanticvectors.bin -boundvectorfile predicatevectors.bin -searchvectorfile elementalvectors.bin -matchcase mexico HAS_CURRENCY";
     String[] searchArgs = searchCmd.split("\\s+");
-    List<SearchResult> results = Search.RunSearch(searchArgs, 10);
+    List<SearchResult> results = Search.RunSearch(FlagConfig.getFlagConfig(searchArgs));
     int rank = 1;
     if (results.isEmpty()) {
       throw new RuntimeException("Results were empty!");
@@ -107,7 +108,7 @@ public class PSITest {
     PSI.main(buildArgs);
     for (String fn: filesToBuild) assertTrue((new File(fn)).isFile());
 
-    results = Search.RunSearch(searchArgs, 10);
+    results = Search.RunSearch(FlagConfig.getFlagConfig(searchArgs));
     rank = 1;
     if (results.isEmpty()) {
       throw new RuntimeException("Results were empty!");
