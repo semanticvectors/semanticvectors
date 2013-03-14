@@ -39,6 +39,7 @@ import java.util.*;
 
 import org.junit.*;
 
+import pitt.search.semanticvectors.FlagConfig;
 import pitt.search.semanticvectors.LSA;
 import pitt.search.semanticvectors.Search;
 import pitt.search.semanticvectors.SearchResult;
@@ -76,7 +77,7 @@ public class LSATest {
 
     String searchCmd = "simon";
     String[] searchArgs = searchCmd.split("\\s+");
-    List<SearchResult> results = Search.RunSearch(searchArgs, 10);
+    List<SearchResult> results = Search.RunSearch(FlagConfig.getFlagConfig(searchArgs));
     int rank = 1;
     if (results.isEmpty()) {
       throw new RuntimeException("Results were empty!");
@@ -91,7 +92,7 @@ public class LSATest {
 
     searchCmd = "-queryvectorfile termvectors.bin -searchvectorfile docvectors.bin pilate";
     searchArgs = searchCmd.split("\\s+");
-    results = Search.RunSearch(searchArgs, 10);
+    results = Search.RunSearch(FlagConfig.getFlagConfig(searchArgs));
     rank = 1;
     if (results.isEmpty()) {
       throw new RuntimeException("Results were empty!");

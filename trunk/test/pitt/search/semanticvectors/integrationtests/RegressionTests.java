@@ -41,6 +41,7 @@ import org.junit.*;
 
 import pitt.search.semanticvectors.BuildIndex;
 import pitt.search.semanticvectors.BuildPositionalIndex;
+import pitt.search.semanticvectors.FlagConfig;
 import pitt.search.semanticvectors.Search;
 import pitt.search.semanticvectors.SearchResult;
 import pitt.search.semanticvectors.integrationtests.RunTests;
@@ -82,7 +83,7 @@ public class RegressionTests {
     BuildIndex.main(buildArgs);
     for (String fn: filesToBuild) assertTrue((new File(fn)).isFile());
 
-    List<SearchResult> results = Search.RunSearch(searchArgs, 10);
+    List<SearchResult> results = Search.RunSearch(FlagConfig.getFlagConfig(searchArgs));
     int rank = 1;
     if (results.isEmpty()) {
       throw new RuntimeException("Results were empty!");
@@ -134,7 +135,7 @@ public class RegressionTests {
       assertTrue("Missing required file: " + fn, new File(fn).isFile());
     }
 
-    List<SearchResult> results = Search.RunSearch(searchArgs, 10);
+    List<SearchResult> results = Search.RunSearch(FlagConfig.getFlagConfig(searchArgs));
     int rank = 1;
     if (results.isEmpty()) {
       throw new RuntimeException("Results were empty!");

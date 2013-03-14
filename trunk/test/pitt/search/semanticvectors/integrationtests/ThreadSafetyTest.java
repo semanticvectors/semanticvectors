@@ -47,6 +47,7 @@ import org.junit.Test;
 import static org.junit.Assert.*;
 
 import pitt.search.semanticvectors.BuildIndex;
+import pitt.search.semanticvectors.FlagConfig;
 import pitt.search.semanticvectors.ObjectVector;
 import pitt.search.semanticvectors.Search;
 import pitt.search.semanticvectors.SearchResult;
@@ -117,12 +118,11 @@ public class ThreadSafetyTest {
   }
 
   private static void outputSuggestions(String query) throws Exception  {
-    int maxResults = 10;
     String[] args = new String[] {
-        "-queryvectorfile", "termvectors.bin",
+        "-queryvectorfile", "termvectors.bin", "-numsearchresults", "10",
         "-luceneindexpath", RunTests.lucenePositionalIndexDir,
         query };
-    List<SearchResult> results = Search.RunSearch(args, maxResults);
+    List<SearchResult> results = Search.RunSearch(FlagConfig.getFlagConfig(args));
 
     if (results.size() > 0) {
       for (SearchResult result: results) {

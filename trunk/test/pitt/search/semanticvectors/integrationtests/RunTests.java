@@ -40,6 +40,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.junit.runner.Result;
@@ -48,6 +49,7 @@ import org.junit.runner.notification.Failure;
 import pitt.search.lucene.IndexFilePositions;
 import pitt.search.lucene.LuceneIndexFromTriples;
 import pitt.search.semanticvectors.VectorStoreTranslater;
+import pitt.search.semanticvectors.VerbatimLogger;
 
 /**
  * Class for running unit tests and regression tests.
@@ -104,6 +106,8 @@ public class RunTests {
   public static void prepareTestData() throws IOException {
     if (testDataPrepared) return;
 
+    File cwd = new File(".");
+    
     // Create basic vector store files. No Lucene / corpus dependencies here.
     BufferedWriter outBuf = new BufferedWriter(new FileWriter(vectorStoreName + ".txt"));
     outBuf.write(testVectors);
@@ -113,17 +117,27 @@ public class RunTests {
     VectorStoreTranslater.main(translaterArgs);
 
     // Create Lucene indexes from test corpus, to use in index building and searching tests.
-    String testDataPath = "../John";
-    File testDataDir = new File(testDataPath);
-    if (!testDataDir.isDirectory()) {
-      throw new IOException("No directory for test data at: " + testDataDir.getAbsolutePath());
+    String johnTestDataPath = "../John";
+    File johnTestDataDir = new File(johnTestDataPath);
+    if (!johnTestDataDir.isDirectory()) {
+      throw new IOException("No directory for test data at: " + johnTestDataDir.getAbsolutePath());
     }
-    IndexFilePositions.main(new String[] {testDataPath});
     
-    testDataPath = "../nationalfacts/nationalfacts.txt";
-    testDataDir = new File(testDataPath);
-    LuceneIndexFromTriples.main(new String[] {testDataPath});
-
+    if (Arrays.asList(cwd.list()).contains("positional_index")) {
+      VerbatimLogger.warning(cwd.getCanonicalPath() + " already contains positional_index. "
+          + "Please delete if you want to run from clean.\n");
+    } else {
+      IndexFilePositions.main(new String[] {johnTestDataPath});
+    }
+    
+    String triplesTestDataPath = "../nationalfacts/nationalfacts.txt";
+    if (Arrays.asList(cwd.list()).contains("predication_index")) {
+      VerbatimLogger.warning(cwd.getCanonicalPath() + " already contains predication_index. "
+          + "Please delete if you want to run from clean.\n");
+    } else {
+      LuceneIndexFromTriples.main(new String[] {triplesTestDataPath});
+    }
+      
     testDataPrepared = true;
   }
 

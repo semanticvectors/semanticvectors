@@ -34,9 +34,10 @@ public class LuceneIndexFromTriples {
       System.exit(1);
     }
     if (INDEX_DIR.exists()) {
-			System.out.println(INDEX_DIR.getAbsolutePath());
-    	System.out.println("Cannot save index to '" + INDEX_DIR + "' directory, please delete it first");
-		//	System.exit(1);
+      if (INDEX_DIR.exists()) {
+        throw new IllegalArgumentException(
+            "Cannot save index to '" + INDEX_DIR.getAbsolutePath() + "' directory, please delete it first");
+      }
 		}
    
     try {

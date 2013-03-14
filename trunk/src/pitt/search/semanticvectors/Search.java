@@ -166,27 +166,25 @@ public class Search {
 
   /**
    * Takes a user's query, creates a query vector, and searches a vector store.
-   * @param args See usage();
-   * @param numResults Number of search results to be returned in a ranked list.
+   * @param flagConfig TODO
    * @return List containing <code>numResults</code> search results.
    */
-  public static List<SearchResult> RunSearch (String[] args, int numResults)
+  public static List<SearchResult> RunSearch (FlagConfig flagConfig)
       throws IllegalArgumentException {
     /**
      * The RunSearch function has four main stages:
-     * i. Parse command line arguments, with a tiny bit of extra logic for vector stores.
-     *    (Ideally this would be done outside this method to make programmatic interfaces clearer.)
+     * i. Check flagConfig for null (but so far fails to check other dependencies).
      * ii. Open corresponding vector and lucene indexes.
      * iii. Based on search type, build query vector and perform search.
      * iv. Return LinkedList of results, usually for main() to print out.
      */
-
-    // Stage i. Assemble command line options.
-    FlagConfig flagConfig = FlagConfig.getFlagConfig(args);
-    args = flagConfig.remainingArgs;
-
-    if (flagConfig.numsearchresults() > 0) numResults = flagConfig.numsearchresults();
-
+    // Stage i. Check flagConfig for null, TODO: Check for other dependencies.
+    if (flagConfig == null) {
+      throw new NullPointerException("flagConfig cannot be null");
+    }
+    
+    String[] queryArgs = flagConfig.remainingArgs;
+    
     // Stage ii. Open vector stores, and Lucene utils.
     try {
       // Default VectorStore implementation is (Lucene) VectorStoreReader.
@@ -223,8 +221,8 @@ public class Search {
 
     // This takes the slice of args from argc to end.
     if (!flagConfig.matchcase()) {
-      for (int i = 0; i < args.length; ++i) {
-        args[i] = args[i].toLowerCase();
+      for (int i = 0; i < queryArgs.length; ++i) {
+        queryArgs[i] = queryArgs[i].toLowerCase();
       }
     }
 
@@ -238,50 +236,50 @@ public class Search {
       switch (flagConfig.searchtype()) {
       case SUM:
         vecSearcher = new VectorSearcher.VectorSearcherCosine(
-            queryVecReader, searchVecReader, luceneUtils, flagConfig, args);
+            queryVecReader, searchVecReader, luceneUtils, flagConfig, queryArgs);
         break;
       case SUBSPACE:    
         vecSearcher = new VectorSearcher.VectorSearcherSubspaceSim(
-            queryVecReader, searchVecReader, luceneUtils, flagConfig, args);
+            queryVecReader, searchVecReader, luceneUtils, flagConfig, queryArgs);
         break;
       case MAXSIM:
         vecSearcher = new VectorSearcher.VectorSearcherMaxSim(
-            queryVecReader, searchVecReader, luceneUtils, flagConfig, args);
+            queryVecReader, searchVecReader, luceneUtils, flagConfig, queryArgs);
         break;
       case BOUNDPRODUCT:
-        if (args.length == 2) {
+        if (queryArgs.length == 2) {
           vecSearcher = new VectorSearcher.VectorSearcherBoundProduct(
-              queryVecReader, boundVecReader, searchVecReader, luceneUtils, flagConfig, args[0],args[1]);
+              queryVecReader, boundVecReader, searchVecReader, luceneUtils, flagConfig, queryArgs[0],queryArgs[1]);
         } else {
           vecSearcher = new VectorSearcher.VectorSearcherBoundProduct(
-              queryVecReader, boundVecReader, searchVecReader, luceneUtils, flagConfig, args[0]);
+              queryVecReader, boundVecReader, searchVecReader, luceneUtils, flagConfig, queryArgs[0]);
         }
         break;
       case BOUNDPRODUCTSUBSPACE:
-        if (args.length == 2)
+        if (queryArgs.length == 2)
         {
           vecSearcher = new VectorSearcher.VectorSearcherBoundProductSubSpace(
-              queryVecReader, boundVecReader, searchVecReader, luceneUtils, flagConfig, args[0],args[1]);
+              queryVecReader, boundVecReader, searchVecReader, luceneUtils, flagConfig, queryArgs[0],queryArgs[1]);
         } else {
           vecSearcher = new VectorSearcher.VectorSearcherBoundProductSubSpace(
-              queryVecReader, boundVecReader, searchVecReader, luceneUtils, flagConfig, args[0]);
+              queryVecReader, boundVecReader, searchVecReader, luceneUtils, flagConfig, queryArgs[0]);
         }
         break;
       case PERMUTATION:
         vecSearcher = new VectorSearcher.VectorSearcherPerm(
-            queryVecReader, searchVecReader, luceneUtils, flagConfig, args);
+            queryVecReader, searchVecReader, luceneUtils, flagConfig, queryArgs);
         break;
       case BALANCEDPERMUTATION:
         vecSearcher = new VectorSearcher.BalancedVectorSearcherPerm(
-            queryVecReader, searchVecReader, luceneUtils, flagConfig, args);
+            queryVecReader, searchVecReader, luceneUtils, flagConfig, queryArgs);
         break;
       case ANALOGY:
         vecSearcher = new VectorSearcher.AnalogySearcher(
-            queryVecReader, searchVecReader, luceneUtils, flagConfig, args);
+            queryVecReader, searchVecReader, luceneUtils, flagConfig, queryArgs);
         break;
       case PRINTQUERY:    
         Vector queryVector = CompoundVectorBuilder.getQueryVector(
-            queryVecReader, luceneUtils, flagConfig, args);
+            queryVecReader, luceneUtils, flagConfig, queryArgs);
         System.out.println(queryVector.toString());
         return new LinkedList<SearchResult>();
       default:
@@ -292,7 +290,7 @@ public class Search {
       results = new LinkedList<SearchResult>();
     }
 
-    results = vecSearcher.getNearestNeighbors(numResults);
+    results = vecSearcher.getNearestNeighbors(flagConfig.numsearchresults());
 
     // Release filesystem resources.
     //
@@ -316,7 +314,7 @@ public class Search {
    */
   public static ObjectVector[] getSearchResultVectors(FlagConfig flagConfig, String[] args, int numResults)
       throws IllegalArgumentException {
-    List<SearchResult> results = Search.RunSearch(args, numResults);
+    List<SearchResult> results = Search.RunSearch(flagConfig);
 
     try {
       searchVecReader = VectorStoreReader.openVectorStore(flagConfig.searchvectorfile(), flagConfig);
@@ -338,8 +336,15 @@ public class Search {
    * @param args See {@link #usageMessage}
    */
   public static void main (String[] args) throws IllegalArgumentException {
-    int defaultNumResults = 20;
-    List<SearchResult> results = RunSearch(args, defaultNumResults);
+    FlagConfig flagConfig = null;
+    try {
+      flagConfig = FlagConfig.getFlagConfig(args);
+    } catch (IllegalArgumentException e) {
+      System.err.println(usageMessage);
+      throw e;
+    }
+    
+    List<SearchResult> results = RunSearch(flagConfig);
     // Print out results.
     if (results.size() > 0) {
       VerbatimLogger.info("Search output follows ...\n");
