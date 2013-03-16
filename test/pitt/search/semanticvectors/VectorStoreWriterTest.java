@@ -63,8 +63,8 @@ public class VectorStoreWriterTest extends TestCase {
   public void testGenerateHeaderString() {
     FlagConfig flagConfig = FlagConfig.getFlagConfig(new String[] {});
     flagConfig.setDimension(2);
-    flagConfig.setVectortype(VectorType.BINARY);
-    assertEquals("-vectortype BINARY -dimension 2", VectorStoreWriter.generateHeaderString(flagConfig));
+    flagConfig.setVectortype(VectorType.COMPLEX);
+    assertEquals("-vectortype COMPLEX -dimension 2", VectorStoreWriter.generateHeaderString(flagConfig));
   }
 
   @Test
