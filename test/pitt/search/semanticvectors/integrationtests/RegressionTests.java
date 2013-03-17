@@ -136,15 +136,13 @@ public class RegressionTests {
     }
 
     List<SearchResult> results = Search.RunSearch(FlagConfig.getFlagConfig(searchArgs));
+    assertFalse("Search results should not be empty!", results.isEmpty());
+
     int rank = 1;
-    if (results.isEmpty()) {
-      throw new RuntimeException("Results were empty!");
-    } else {
-      for (SearchResult result : results) {
-        String term = (String) result.getObjectVector().getObject();
-        if (term.equals(targetResult)) break;
-        ++rank;
-      }
+    for (SearchResult result : results) {
+      String term = (String) result.getObjectVector().getObject();
+      if (term.equals(targetResult)) break;
+      ++rank;
     }
 
     for (String fn : filesToBuild) assertTrue(new File(fn).delete());
@@ -162,16 +160,6 @@ public class RegressionTests {
   }
   
   @Test
-  public void testBuildAndSearchBinaryPositionalIndex() {
-    int peterRank = positionalBuildSearchGetRank(
-        "-dimension 8192 -vectortype binary -seedlength 4096 -luceneindexpath positional_index",
-        "-queryvectorfile termtermvectors.bin simon",
-        new String[] {"termtermvectors.bin", "docvectors.bin"},
-        "peter");
-       assertTrue(peterRank < 5);
-  }
-
-  @Test
   public void testBuildAndSearchComplexPositionalIndex() {
     int peterRank = positionalBuildSearchGetRank(
         "-dimension 200 -vectortype complex -seedlength 10 -luceneindexpath positional_index",
@@ -182,13 +170,13 @@ public class RegressionTests {
   }
   
   @Test
-  public void testBuildAndSearchRealDirectionalIndex() {
+  public void testBuildAndSearchBinaryPositionalIndex() {
     int peterRank = positionalBuildSearchGetRank(
-        "-dimension 200 -vectortype real -seedlength 10 -positionalmethod directional -luceneindexpath positional_index",
-        "-queryvectorfile drxntermvectors.bin simon",
-        new String[] {"drxntermvectors.bin", "docvectors.bin"},
+        "-dimension 8192 -vectortype binary -seedlength 4096 -luceneindexpath positional_index",
+        "-queryvectorfile termtermvectors.bin simon",
+        new String[] {"termtermvectors.bin", "docvectors.bin"},
         "peter");
-    assertTrue(peterRank <= 3);
+       assertTrue(peterRank < 5);
   }
 
   // Convolution for complex directional indexing seems to really need some termweighting to work well. 
@@ -196,6 +184,16 @@ public class RegressionTests {
   public void testBuildAndSearchComplexDirectionalIndex() {
     int peterRank = positionalBuildSearchGetRank(
         "-dimension 200 -vectortype complex -seedlength 10 -positionalmethod directional -termweight idf -luceneindexpath positional_index",
+        "-queryvectorfile drxntermvectors.bin simon",
+        new String[] {"drxntermvectors.bin", "docvectors.bin"},
+        "peter");
+    assertTrue(peterRank <= 3);
+  }
+  
+  @Test
+  public void testBuildAndSearchRealDirectionalIndex() {
+    int peterRank = positionalBuildSearchGetRank(
+        "-dimension 200 -vectortype real -seedlength 10 -positionalmethod directional -luceneindexpath positional_index",
         "-queryvectorfile drxntermvectors.bin simon",
         new String[] {"drxntermvectors.bin", "docvectors.bin"},
         "peter");
