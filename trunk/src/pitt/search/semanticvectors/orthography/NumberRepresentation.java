@@ -47,6 +47,7 @@ import pitt.search.semanticvectors.vectors.ComplexVector;
 import pitt.search.semanticvectors.vectors.ComplexVector.Mode;
 import pitt.search.semanticvectors.vectors.Vector;
 import pitt.search.semanticvectors.vectors.VectorFactory;
+import pitt.search.semanticvectors.vectors.VectorType;
 
 public class NumberRepresentation
 {
@@ -57,6 +58,25 @@ public class NumberRepresentation
    String startString, endString;
    java.util.Random random;
    Vector vL, vR;
+   
+   /**
+    * Get the distance between two numerical vectors
+    * For binary vectors this is (2*(0.5-normalized Hamming distance))
+    * For complex and real vectors, this is (90 - the angle between the vectors concerned)/90
+    * 
+    * 
+    * @param firstVector
+    * @param secondVector
+    * @return distance between vectors
+    */
+
+   public double measureDistance(Vector firstVector, Vector secondVector)
+   {
+	   if (flagConfig.vectortype().equals(VectorType.BINARY)) 
+		   return firstVector.measureOverlap(secondVector);
+		   else return 1-Math.acos(firstVector.measureOverlap(secondVector))/1.570796327;
+   }
+   
    
     /**
      * @param args
@@ -75,7 +95,7 @@ public class NumberRepresentation
         }
     	
 NumberRepresentation NR = new NumberRepresentation(flagConfig);
-VectorStoreRAM VSR = NR.getNumberVectors(1,4);
+VectorStoreRAM VSR = NR.getNumberVectors(1,5);
 System.out.print("\t");
 for (int q=1; q <= VSR.getNumVectors(); q++)
 System.out.print(q+"\t");
@@ -91,7 +111,7 @@ for (int q=1; q <= VSR.getNumVectors(); q++)
 
 	
 	System.out.print("\t");
-	System.out.printf("%.2f",VSR.getVector(VSR.getNumVectors() +1 - q).measureOverlap(OV.getVector()));
+	System.out.printf("%.2f",NR.measureDistance(VSR.getVector(VSR.getNumVectors() +1 - q),OV.getVector()));
 }
 	System.out.println();
 	
