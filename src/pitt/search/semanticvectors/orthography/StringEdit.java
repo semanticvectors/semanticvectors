@@ -54,152 +54,121 @@ import pitt.search.semanticvectors.vectors.VectorType;
 import pitt.search.semanticvectors.vectors.ComplexVector.Mode;
 
 public class StringEdit {
-  
-  public static void main(String[] args) throws Exception
-  {
-    
+
+  public static void main(String[] args) throws Exception {
     String[] originalArgs = args.clone();
-    
-     FlagConfig flagConfig = null;
-        try {
-          flagConfig = FlagConfig.getFlagConfig(args);
-         
-        } catch (IllegalArgumentException e) {
-          System.err.println(e.getMessage());
-          throw e;
-        }
-        
-       
-        int dimension = flagConfig.dimension();
-        VectorType vType = flagConfig.vectortype();
-        
-        VectorStoreRAM theVSR = new VectorStoreRAM(flagConfig);
-  
-        VectorStoreRAM twoVSR = new VectorStoreRAM(flagConfig);
-        
-        theVSR.initFromFile(flagConfig.queryvectorfile());
-        
-  
-      try {
-        flagConfig = FlagConfig.getFlagConfig(originalArgs);
-        args = flagConfig.remainingArgs;
-      } catch (IllegalArgumentException e) {
-        System.err.println(e.getMessage());
-        throw e;
-      }
-  
-      //in case query vector file has different dimensionality or vector type
+
+    FlagConfig flagConfig = null;
+    try {
+      flagConfig = FlagConfig.getFlagConfig(args);
+    } catch (IllegalArgumentException e) {
+      System.err.println(e.getMessage());
+      throw e;
+    }
+
+    int dimension = flagConfig.dimension();
+    VectorType vType = flagConfig.vectortype();
+
+    VectorStoreRAM theVSR = new VectorStoreRAM(flagConfig);
+    VectorStoreRAM twoVSR = new VectorStoreRAM(flagConfig);
+
+    theVSR.initFromFile(flagConfig.queryvectorfile());
+
+    try {
+      flagConfig = FlagConfig.getFlagConfig(originalArgs);
+      args = flagConfig.remainingArgs;
+    } catch (IllegalArgumentException e) {
+      System.err.println(e.getMessage());
+      throw e;
+    }
+
+    //in case query vector file has different dimensionality or vector type
     flagConfig.setDimension(dimension);
     flagConfig.setVectortype(vType);
-    
-    VectorStoreRAM OOV = new VectorStoreRAM(flagConfig);
-    
-  System.out.println(flagConfig.minfrequency()+" "+flagConfig.maxfrequency());
-  
 
-    
-  //for (int q =1; q < OV.size(); q++)
-  //  for (int y= 1; y < OV.size(); y++)
-  //    System.out.println(q+":"+y+"\t"+OV.get(q).getVector().measureOverlap(OV.get(y).getVector()));
-  
-  
-  Enumeration<ObjectVector> theNum = theVSR.getAllVectors();
-  
-  Hashtable<Integer, VectorStoreRAM> allNumberVectors = new Hashtable<Integer, VectorStoreRAM>();
-  
-  int cnt = 0;
-  VectorStoreRAM theLetters = new VectorStoreRAM(flagConfig);
-  NumberRepresentation NR = new NumberRepresentation( flagConfig);
-  
-  while (theNum.hasMoreElements())
-  {
-    if (cnt++ % 1000 == 0) System.err.print(".."+cnt);
-    
-    ObjectVector theNext = theNum.nextElement();
-    String theTerm = theNext.getObject().toString().trim();
-    VectorStoreRAM OV = null;
-    
-    OV = NR.getNumberVectors(1, theTerm.length()+1);
-      
-    twoVSR.putVector(theTerm,getStringVector(theTerm, OV, theLetters, flagConfig));
-    
-    Enumeration<ObjectVector> theNumbers = OV.getAllVectors();
-    while (theNumbers.hasMoreElements())
-    {
-      ObjectVector nextObjectVector = theNumbers.nextElement();
-      if (OOV.getVector(nextObjectVector.getObject()) == null)
-      {
-        OOV.putVector(theTerm.length()+":"+nextObjectVector.getObject(),nextObjectVector.getVector());
+    VectorStoreRAM OOV = new VectorStoreRAM(flagConfig);
+
+    System.out.println(flagConfig.minfrequency()+" "+flagConfig.maxfrequency());
+
+    //for (int q =1; q < OV.size(); q++)
+    //  for (int y= 1; y < OV.size(); y++)
+    //    System.out.println(q+":"+y+"\t"+OV.get(q).getVector().measureOverlap(OV.get(y).getVector()));
+
+    Enumeration<ObjectVector> theNum = theVSR.getAllVectors();
+    //Hashtable<Integer, VectorStoreRAM> allNumberVectors = new Hashtable<Integer, VectorStoreRAM>();
+
+    int cnt = 0;
+    VectorStoreRAM theLetters = new VectorStoreRAM(flagConfig);
+    NumberRepresentation NR = new NumberRepresentation( flagConfig);
+
+    while (theNum.hasMoreElements()) {
+      if (cnt++ % 1000 == 0) System.err.print(".."+cnt);
+      ObjectVector theNext = theNum.nextElement();
+      String theTerm = theNext.getObject().toString().trim();
+      VectorStoreRAM OV = null;
+      OV = NR.getNumberVectors(1, theTerm.length()+1);
+      twoVSR.putVector(theTerm,getStringVector(theTerm, OV, theLetters, flagConfig));
+
+      Enumeration<ObjectVector> theNumbers = OV.getAllVectors();
+      while (theNumbers.hasMoreElements()) {
+        ObjectVector nextObjectVector = theNumbers.nextElement();
+        if (OOV.getVector(nextObjectVector.getObject()) == null) {
+          OOV.putVector(theTerm.length()+":"+nextObjectVector.getObject(),nextObjectVector.getVector());
+        }
       }
     }
-    
-  }
-  
-   System.out.println(flagConfig.dimension());
-   System.out.println(flagConfig.vectortype());
-      
-  
-  
-  VectorStoreWriter.writeVectors("editvectors.bin", flagConfig,twoVSR);
-  VectorStoreWriter.writeVectorsInLuceneFormat("numbervectors.bin", flagConfig, OOV);
-  VectorStoreWriter.writeVectorsInLuceneFormat("lettervectors.bin", flagConfig, theLetters);
-  
-  String[] terms = { "diabets", "dibetes",  "diabetic", "dominic", "abram", "sarai", "josh" };
-     
-  for (int a = 0; a < terms.length; a++)
-  {
-    VectorStoreRAM OV = NR.getNumberVectors(1, terms[a].length()+1);
-  
-    VectorSearcher.VectorSearcherCosine theVSC = new VectorSearcher.VectorSearcherCosine(twoVSR, twoVSR, null, flagConfig, getStringVector(terms[a], OV, theLetters, flagConfig));
-    
-    System.out.println(terms[a]);
-    LinkedList<SearchResult> theResults = theVSC.getNearestNeighbors(10);
-      
-    for (int x =0; x < theResults.size(); x++)
-    {
-      System.out.println(theResults.get(x).getScore()+"\t"+theResults.get(x).getObjectVector().getObject());
+
+    System.out.println(flagConfig.dimension());
+    System.out.println(flagConfig.vectortype());
+
+    VectorStoreWriter.writeVectors("editvectors.bin", flagConfig,twoVSR);
+    VectorStoreWriter.writeVectorsInLuceneFormat("numbervectors.bin", flagConfig, OOV);
+    VectorStoreWriter.writeVectorsInLuceneFormat("lettervectors.bin", flagConfig, theLetters);
+
+    String[] terms = { "diabets", "dibetes",  "diabetic", "dominic", "abram", "sarai", "josh" };
+
+    for (int a = 0; a < terms.length; a++) {
+      VectorStoreRAM OV = NR.getNumberVectors(1, terms[a].length() + 1);
+      VectorSearcher.VectorSearcherCosine theVSC = new VectorSearcher.VectorSearcherCosine(
+          twoVSR, twoVSR, null, flagConfig, getStringVector(terms[a], OV, theLetters, flagConfig));
+      System.out.println(terms[a]);
+      LinkedList<SearchResult> theResults = theVSC.getNearestNeighbors(10);
+
+      for (int x =0; x < theResults.size(); x++) {
+        System.out.println(theResults.get(x).getScore()+"\t"+theResults.get(x).getObjectVector().getObject());
+      }
     }
-    
   }
-  
-    
-  }
-  
-  public static Vector getStringVector(String theTerm, VectorStoreRAM theNumbers, VectorStoreRAM theLetters, FlagConfig flagConfig)
-  {
+
+  public static Vector getStringVector(String theTerm, VectorStoreRAM theNumbers, VectorStoreRAM theLetters, FlagConfig flagConfig) {
     Vector theVector = VectorFactory.createZeroVector(flagConfig.vectortype(), flagConfig.dimension());
     Random random = new Random();
-      if (flagConfig.vectortype().equals("complex"))
-        ComplexVector.setDominantMode(Mode.CARTESIAN);
-  
+    if (flagConfig.vectortype() == VectorType.COMPLEX)
+      ComplexVector.setDominantMode(Mode.CARTESIAN);
+
     //  System.out.println(theTerm);
-    for (int q = 0; q < theTerm.length(); q++)
-    {
+    for (int q = 0; q < theTerm.length(); q++) {
       String letter = ""+theTerm.charAt(q);
       random.setSeed(Bobcat.asLong(letter));
       Vector incoming = VectorFactory.generateRandomVector(flagConfig.vectortype(), flagConfig.dimension(), flagConfig.seedlength, random);
-      
-      if (theLetters.getVector(letter) == null)
-      {
+
+      if (theLetters.getVector(letter) == null) {
         //System.out.println("adding "+letter);
         theLetters.putVector(letter, incoming.copy());
       }
-      
-      
-      Vector posVector = theNumbers.getVector(q+1);
-      if (posVector == null)
-      { 
-      System.out.println(theTerm);
-      System.out.println(posVector);
-      System.out.println(theTerm.length()+":"+(q+1)+"\n");
-      Enumeration<ObjectVector> nation = theNumbers.getAllVectors();
-      while (nation.hasMoreElements())
-        System.out.println(nation.nextElement().getObject());
+
+      Vector posVector = theNumbers.getVector(q);
+      if (posVector == null) { 
+        System.out.println(theTerm);
+        System.out.println(posVector);
+        System.out.println(theTerm.length() + ":" + (q) + "\n");
+        Enumeration<ObjectVector> nation = theNumbers.getAllVectors();
+        while (nation.hasMoreElements())
+          System.out.println(nation.nextElement().getObject());
       }
       try {
-      incoming.bind(posVector);
-      } catch (Exception e) 
-      {
+        incoming.bind(posVector);
+      } catch (Exception e) {
         System.out.println(incoming);
         System.out.println(posVector);
         e.printStackTrace();
@@ -208,11 +177,7 @@ public class StringEdit {
       //System.out.println(letter+" "+(q+1));
       theVector.superpose(incoming, 1, null);     
     }
-    theVector.normalize();
-    
-    
+    theVector.normalize(); 
     return theVector;
   }
-  
-  
 }
