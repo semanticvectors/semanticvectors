@@ -49,7 +49,10 @@ public class IncompatibleVectorsException extends RuntimeException {
     super(message + "\nThis almost certainly indicates a programming error!");
   }
   
-  public static void checkVectorsCompatible(Vector first, Vector second) {    
+  public static void checkVectorsCompatible(Vector first, Vector second) {
+    if (first == null) throw new NullPointerException("first vector cannot be null");
+    if (second == null) throw new NullPointerException("second vector cannot be null");
+    
     if (first.getClass() != second.getClass()) {
       throw new IncompatibleVectorsException("Trying to combine vectors of type: "
           + first.getClass().getCanonicalName() + ", " + second.getClass().getCanonicalName());

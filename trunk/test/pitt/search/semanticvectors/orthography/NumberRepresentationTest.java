@@ -45,4 +45,16 @@ public class NumberRepresentationTest {
         vsr.getVector(2).measureOverlap(vsr.getVector(0)), TOL);
         */
   }
+  
+  @Test
+  public void testAbsoluteValuesOfEndpointsDontMatter() {
+    FlagConfig flagConfig = FlagConfig.getFlagConfig(
+        new String[] {"-vectortype", "binary", "-dimension", "2048"});
+    NumberRepresentation numberRepresentation = new NumberRepresentation(flagConfig);
+    
+    VectorStoreRAM vsr1 = numberRepresentation.getNumberVectors(0, 4);    
+    VectorStoreRAM vsr2 = numberRepresentation.getNumberVectors(8, 12);
+    assertEquals(1.0, vsr1.getVector(0).measureOverlap(vsr2.getVector(8)), TOL);
+    assertEquals(1.0, vsr1.getVector(2).measureOverlap(vsr2.getVector(10)), TOL); 
+  }
 }
