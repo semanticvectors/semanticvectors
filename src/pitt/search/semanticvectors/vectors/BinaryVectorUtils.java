@@ -36,6 +36,7 @@
 package pitt.search.semanticvectors.vectors;
 
 import java.util.ArrayList;
+import java.util.Random;
 import java.util.logging.Logger;
 
 import org.apache.lucene.util.OpenBitSet;
@@ -137,4 +138,28 @@ public class BinaryVectorUtils {
 			}
 	  
   }
+  
+  public static Vector weightedSuperposition(BinaryVector v1, double weight, BinaryVector v2, double weight2)
+  {
+	  BinaryVector conclusion = (BinaryVector) VectorFactory.createZeroVector(VectorType.BINARY, v1.getDimension());
+	  OpenBitSet cVote = conclusion.bitSet;
+	  OpenBitSet v1vote = v1.bitSet;
+	  OpenBitSet v2vote = v2.bitSet;
+	  
+      Random random = new Random();
+       
+       for (int x = 0; x < v1.getDimension(); x++)
+       {
+    	   double probability = 0;
+    	   if (v1vote.get(x)) probability += weight/(weight+weight2);
+    	   if (v2vote.get(x)) probability += weight2/(weight+weight2);
+     	   
+    	   if (random.nextDouble() <= probability)
+    	    cVote.fastSet(x);
+    	   
+       }
+
+       return conclusion;
+  }
+  
 }
