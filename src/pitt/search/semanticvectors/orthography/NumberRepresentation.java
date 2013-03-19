@@ -35,7 +35,6 @@
 
 package pitt.search.semanticvectors.orthography;
 
-import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Random;
@@ -110,7 +109,7 @@ public class NumberRepresentation {
       while (VEN.hasMoreElements()) {	
         ObjectVector OV = VEN.nextElement();
         System.out.print("\t");
-        System.out.printf("%.2f",VSR.getVector(VSR.getNumVectors() +1 - q).measureOverlap(OV.getVector()));
+        System.out.printf("%.2f", VSR.getVector(VSR.getNumVectors() + 1 - q).measureOverlap(OV.getVector()));
       }
       System.out.println();
     }
@@ -165,62 +164,22 @@ public class NumberRepresentation {
     if (numberVectorsCache.containsKey(iStart+":"+iEnd))
       return numberVectorsCache.get(iStart+":"+iEnd);
 
-    if (iStart != 0) throw new IllegalArgumentException("Start index must be zero for now.");
-    if (iEnd < 1) throw new IllegalArgumentException("End index must be greater than zero for now.");
-    int original_iEnd = iEnd;
-    if ((iEnd) %2 != 0) iEnd++;
-    
-    ArrayList<ObjectVector> numberVectors = new ArrayList<ObjectVector>(iEnd + 1);
-    for (int i = 0; i <= iEnd; ++i) numberVectors.add(null);
-    
-    // add them to an arraylist
-    ObjectVector ovL = new ObjectVector(Integer.toString(iStart), vL);
-    ObjectVector ovR = new ObjectVector(Integer.toString(iEnd), vR);
-    numberVectors.set(iStart, ovL);
-    numberVectors.set(iEnd, ovR);
-
-    // recursively fill the arraylist with number vectors
-    generateNumbers(numberVectors, iStart, iEnd);
-    
+    if (iEnd < iStart) throw new IllegalArgumentException(
+        String.format(
+            "End index (%d) should be greater than start index (%d).", iEnd, iStart));
+ 
     VectorStoreRAM theVSR = new VectorStoreRAM(flagConfig);
-    for (int q = iStart; q <= iEnd; q++) {
-      theVSR.putVector(q, numberVectors.get(q).getVector());
+    for (int i = 0; i <= iEnd - iStart; ++i) {
+      Vector ithNumberVector = VectorFactory.createZeroVector(
+          flagConfig.vectortype(), flagConfig.dimension());
+      ithNumberVector.superpose(vL, iEnd - iStart - i, null);
+      ithNumberVector.superpose(vR, i, null);
+      ithNumberVector.normalize();
+      theVSR.putVector(iStart + i, ithNumberVector);
     }
-
-    if (iEnd > original_iEnd) //even number of vectors
-      theVSR.removeVector(iEnd);
 
     numberVectorsCache.put(iStart+":"+iEnd, theVSR);
     return theVSR;
-  }
-
-
-  /**
-   * Insert new vector in {@link #numberVectors} at position {@code iLeft + iRight) / 2}
-   * by averaging the endpoints, and continue recursively until all indices between
-   * endpoints are populated.
-   * 
-   * Parameters must be indices of vectors that already have representations in {@link #numberVectors}.
-   * 
-   * @param numberVectors list of number vectors to be populated, passed by reference recursively
-   * @param iLeft index of vector in {@link #numberVectors} at "left" end of the region
-   * @param iRight index of vector in {@link #numberVectors} at "right" end of the region 
-   */
-  private void generateNumbers(ArrayList<ObjectVector> numberVectors, int iLeft, int iRight)
-  {
-    if (Math.abs(iLeft - iRight) <= 1)
-      return;
-
-    Vector m = VectorFactory.createZeroVector(flagConfig.vectortype(), flagConfig.dimension());
-    m.superpose(numberVectors.get(iLeft).getVector(), 1d, null);
-    m.superpose(numberVectors.get(iRight).getVector(), 1d, null);
-    m.normalize();
-    
-    int iMiddle = (iLeft + iRight) / 2;
-    numberVectors.set(iMiddle, new ObjectVector(Integer.toString(iMiddle), m));
-
-    generateNumbers(numberVectors, iLeft, iMiddle);
-    generateNumbers(numberVectors, iMiddle, iRight);
   }
 }
 
