@@ -39,11 +39,24 @@ public class NumberRepresentationTest {
         > vsr.getVector(4).measureOverlap(vsr.getVector(1)));
     assertTrue(vsr.getVector(4).measureOverlap(vsr.getVector(3))
         > vsr.getVector(3).measureOverlap(vsr.getVector(0)));
-    /** This "half-way" equality isn't exact, demontrating that I don't exactly understand
+    /** This "half-way" equality isn't exact, demonstrating that I don't exactly understand
      * the process. -DW.
     assertEquals(vsr.getVector(4).measureOverlap(vsr.getVector(2)),
         vsr.getVector(2).measureOverlap(vsr.getVector(0)), TOL);
         */
+  }
+  
+  /** This is a test written to demonstrate a drawback in the linear generation system
+   * explained by Trevor.
+   */
+  @Test
+  public void testBinaryVectorsChangeStepwise() {
+    FlagConfig flagConfig = FlagConfig.getFlagConfig(
+        new String[] {"-vectortype", "binary", "-dimension", "2048"});
+    NumberRepresentation numberRepresentation = new NumberRepresentation(flagConfig);
+    
+    VectorStoreRAM vsr = numberRepresentation.getNumberVectors(0, 4);
+    assertEquals(1, vsr.getVector(0).measureOverlap(vsr.getVector(1)), TOL);
   }
   
   @Test
