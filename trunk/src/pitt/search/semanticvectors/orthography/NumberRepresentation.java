@@ -43,6 +43,8 @@ import pitt.search.semanticvectors.FlagConfig;
 import pitt.search.semanticvectors.ObjectVector;
 import pitt.search.semanticvectors.VectorStoreRAM;
 import pitt.search.semanticvectors.hashing.Bobcat;
+import pitt.search.semanticvectors.vectors.BinaryVector;
+import pitt.search.semanticvectors.vectors.BinaryVectorUtils;
 import pitt.search.semanticvectors.vectors.ComplexVector;
 import pitt.search.semanticvectors.vectors.ComplexVector.Mode;
 import pitt.search.semanticvectors.vectors.Vector;
@@ -96,7 +98,7 @@ public class NumberRepresentation {
     }
 
     NumberRepresentation NR = new NumberRepresentation(flagConfig);
-    VectorStoreRAM VSR = NR.getNumberVectors(1,4);
+    VectorStoreRAM VSR = NR.getNumberVectors(1,5);
     System.out.print("\t");
     for (int q=1; q <= VSR.getNumVectors(); q++)
       System.out.print(q+"\t");
@@ -172,9 +174,17 @@ public class NumberRepresentation {
     for (int i = 0; i <= iEnd - iStart; ++i) {
       Vector ithNumberVector = VectorFactory.createZeroVector(
           flagConfig.vectortype(), flagConfig.dimension());
+      
+      if (flagConfig.vectortype().equals(VectorType.BINARY))
+      {
+    	  ithNumberVector = BinaryVectorUtils.weightedSuperposition((BinaryVector) vL, iEnd -iStart -i, (BinaryVector) vR, i);
+      }
+    	  
+      else {
       ithNumberVector.superpose(vL, iEnd - iStart - i, null);
       ithNumberVector.superpose(vR, i, null);
       ithNumberVector.normalize();
+      		}
       theVSR.putVector(iStart + i, ithNumberVector);
     }
 
