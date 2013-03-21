@@ -81,7 +81,16 @@ public class CompareTerms{
    */
   public static void main (String[] args) throws IllegalArgumentException, IOException {
     FlagConfig flagConfig = FlagConfig.getFlagConfig(args);
-    args = flagConfig.remainingArgs;
+    // Logging prompt and printing score to stdout, this should enable
+    // easier batch scripting to combine input and output data.
+    VerbatimLogger.info(String.format(
+        "Outputting similarity of '%s' with '%s':\n",
+        flagConfig.remainingArgs[0], flagConfig.remainingArgs[1]));
+    System.out.println(RunCompareTerms(flagConfig));
+  }
+    
+  public static double RunCompareTerms(FlagConfig flagConfig) throws IOException {
+    String[] args = flagConfig.remainingArgs;
 
     LuceneUtils luceneUtils = null;
 
@@ -95,13 +104,8 @@ public class CompareTerms{
     if (flagConfig.queryvectorfile().equals("orthographic")) {
       vecReader = new VectorStoreOrthographical(flagConfig);
     } else {
-      try {
-        vecReader = new VectorStoreReaderLucene(flagConfig.queryvectorfile(), flagConfig);
-        VerbatimLogger.info("Opened query vector store from file: " + flagConfig.queryvectorfile() + "\n");
-      } catch (IOException e) {
-        logger.warning("Failed to open vector store from file: " + flagConfig.queryvectorfile());
-        throw e;
-      }
+      vecReader = new VectorStoreReaderLucene(flagConfig.queryvectorfile(), flagConfig);
+      VerbatimLogger.info("Opened query vector store from file: " + flagConfig.queryvectorfile() + "\n");
     }
 
     if (!flagConfig.luceneindexpath().isEmpty()) {
@@ -124,10 +128,7 @@ public class CompareTerms{
     vecReader.close();
     
     double simScore = vec1.measureOverlap(vec2);
-    // Logging prompt and printing score to stdout, this should enable
-    // easier batch scripting to combine input and output data.
-    VerbatimLogger.info(String.format(
-        "Outputting similarity of '%s' with '%s':\n", args[0], args[1]));
-    System.out.println(simScore);
+    return simScore;
+
   }
 }
