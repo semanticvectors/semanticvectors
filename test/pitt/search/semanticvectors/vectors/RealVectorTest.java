@@ -128,6 +128,65 @@ public class RealVectorTest extends TestCase {
   }
   
   @Test
+  public void testBindAndRelease() {
+    Vector vector1 = new RealVector(new float[] {2, 0, 0, 0});
+    Vector vector2 = new RealVector(new float[] {0, 3, 0, 0});
+    vector1.bind(vector2);
+    vector1.release(vector2);
+    assertTrue(vector1.toString().contains("2.0 0.0 0.0 0.0"));
+    
+    Random random = new Random();
+    random.setSeed(0);
+    vector1 = VectorFactory.generateRandomVector(VectorType.REAL, 1000, 100, random);
+    Vector vector1Copy = vector1.copy();
+    vector2 = VectorFactory.generateRandomVector(VectorType.REAL, 1000, 100, random);
+    vector1.bind(vector2);
+
+    assertEquals(0, vector1Copy.measureOverlap(vector1), 0.1);
+    assertEquals(0, vector2.measureOverlap(vector1), 0.1);
+    vector1.release(vector2);
+    assertEquals(1, vector1Copy.measureOverlap(vector1), TOL);
+  }
+  
+  @Test
+  public void testBindAndReleaseSuperpositions() {
+    Random random = new Random();
+    random.setSeed(0);
+    Vector vector1 = VectorFactory.generateRandomVector(VectorType.REAL, 1000, 50, random);
+    Vector vector2 = VectorFactory.generateRandomVector(VectorType.REAL, 1000, 50, random);
+    Vector vector3 = VectorFactory.generateRandomVector(VectorType.REAL, 1000, 50, random);
+    Vector vector4 = VectorFactory.generateRandomVector(VectorType.REAL, 1000, 50, random);
+    Vector vector5 = VectorFactory.generateRandomVector(VectorType.REAL, 1000, 50, random);
+    Vector vector6 = VectorFactory.generateRandomVector(VectorType.REAL, 1000, 50, random);
+
+    Vector product = vector1.copy();
+    product.bind(vector2);
+    Vector product2 = vector3.copy();
+    product2.bind(vector4);
+    product.superpose(product2, 1, null);
+    Vector product3 = vector5.copy();
+    product3.bind(vector6);
+    product.superpose(product3, 1, null);
+    product.normalize();
+    
+    Vector productCopy = product.copy();
+    productCopy.release(vector2);
+    Vector newVector = VectorFactory.generateRandomVector(VectorType.REAL, 1000, 100, random);
+    assertTrue(productCopy.measureOverlap(vector1) > 2 * productCopy.measureOverlap(newVector));
+    
+    productCopy = product.copy();
+    productCopy.release(vector4);
+    newVector = VectorFactory.generateRandomVector(VectorType.REAL, 1000, 100, random);
+    assertTrue(productCopy.measureOverlap(vector3) + " should exceed " + productCopy.measureOverlap(newVector),
+        productCopy.measureOverlap(vector3) > productCopy.measureOverlap(newVector));
+    
+    productCopy = product.copy();
+    productCopy.release(vector6);
+    newVector = VectorFactory.generateRandomVector(VectorType.REAL, 1000, 100, random);
+    assertTrue(productCopy.measureOverlap(vector5) > 2 * productCopy.measureOverlap(newVector));
+  }
+    
+  @Test
   public void testSparseConversion() {
     // Sparse representation of vector whose dense coordinates would be 1 0 -1.
     RealVector sparse1 = new RealVector(3, new short[] {1, -3});

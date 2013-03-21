@@ -276,13 +276,21 @@ public class RealVector implements Vector {
   public void bind(Vector other, int direction) {
     IncompatibleVectorsException.checkVectorsCompatible(this, other);
     RealVector realOther = (RealVector) other;
+    if (isSparse) sparseToDense();
+    if (realOther.isSparse) realOther.sparseToDense();
+    RealVector result = createZeroVector(dimension);    
     if (direction > 0) {
-      this.superpose(
+      result.superpose(
           realOther, 1, PermutationUtils.getShiftPermutation(VectorType.REAL, dimension, 1));
+      result.superpose(
+          this, 1, PermutationUtils.getShiftPermutation(VectorType.REAL, dimension, -1));
     } else {
-      this.superpose(
+      result.superpose(
           realOther, 1, PermutationUtils.getShiftPermutation(VectorType.REAL, dimension, -1));
+      result.superpose(
+          this, 1, PermutationUtils.getShiftPermutation(VectorType.REAL, dimension, 1));
     }
+    this.coordinates = result.coordinates;
   }
   
   @Override
@@ -290,7 +298,23 @@ public class RealVector implements Vector {
    * Implements release using the {@link #bind} method.
    */
   public void release(Vector other, int direction) {
-    this.bind(other, -direction);
+    IncompatibleVectorsException.checkVectorsCompatible(this, other);
+    RealVector realOther = (RealVector) other;
+    if (isSparse) sparseToDense();
+    if (realOther.isSparse) realOther.sparseToDense();
+    RealVector result = createZeroVector(dimension);
+    if (direction > 0) {
+      this.superpose(
+          realOther, -1, PermutationUtils.getShiftPermutation(VectorType.REAL, dimension, 1));
+      result.superpose(
+          this, 1, PermutationUtils.getShiftPermutation(VectorType.REAL, dimension, 1));
+    } else {
+      result.superpose(
+          realOther, -1, PermutationUtils.getShiftPermutation(VectorType.REAL, dimension, -1));
+      result.superpose(
+          this, 1, PermutationUtils.getShiftPermutation(VectorType.REAL, dimension, -1));
+    }
+    this.coordinates = result.coordinates;
   }
   
   @Override
@@ -305,7 +329,7 @@ public class RealVector implements Vector {
    * Implements release using the {@link #bind} method.
    */
   public void release(Vector other) {
-    this.bind(other, -1);
+    this.release(other, 1);
   }
   
   @Override
