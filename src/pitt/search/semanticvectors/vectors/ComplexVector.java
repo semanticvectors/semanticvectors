@@ -268,8 +268,9 @@ public class ComplexVector implements Vector {
         
         norm1 = Math.sqrt(norm1);
         norm2 = Math.sqrt(norm2);
-            
-        cumulativeCosine += resultThisPair / (norm1 * norm2);           
+        
+        if (norm1 > 0 && norm2 > 0)
+        	cumulativeCosine += resultThisPair / (norm1 * norm2);           
       }
       return cumulativeCosine/dimension;
     }
