@@ -48,6 +48,7 @@ import pitt.search.semanticvectors.VectorStoreRAM;
 import pitt.search.semanticvectors.VectorStoreWriter;
 import pitt.search.semanticvectors.hashing.Bobcat;
 import pitt.search.semanticvectors.vectors.ComplexVector;
+import pitt.search.semanticvectors.vectors.PermutationUtils;
 import pitt.search.semanticvectors.vectors.Vector;
 import pitt.search.semanticvectors.vectors.VectorFactory;
 import pitt.search.semanticvectors.vectors.VectorType;
@@ -149,14 +150,7 @@ public class StringEdit {
     //  System.out.println(theTerm);
     for (int q = 0; q < theTerm.length(); q++) {
       String letter = ""+theTerm.charAt(q);
-      random.setSeed(Bobcat.asLong(letter));
-      Vector incoming = VectorFactory.generateRandomVector(flagConfig.vectortype(), flagConfig.dimension(), flagConfig.seedlength, random);
-
-      if (theLetters.getVector(letter) == null) {
-        //System.out.println("adding "+letter);
-        theLetters.putVector(letter, incoming.copy());
-      }
-
+      
       Vector posVector = theNumbers.getVector(q);
       if (posVector == null) { 
         System.out.println(theTerm);
@@ -166,6 +160,20 @@ public class StringEdit {
         while (nation.hasMoreElements())
           System.out.println(nation.nextElement().getObject());
       }
+      
+      Vector incoming = null;
+      
+      if (flagConfig.vectortype().equals(VectorType.BINARY) || (flagConfig.vectortype().equals(VectorType.COMPLEX)))
+      {
+      random.setSeed(Bobcat.asLong(letter));
+      incoming = VectorFactory.generateRandomVector(flagConfig.vectortype(), flagConfig.dimension(), flagConfig.seedlength, random);
+
+      if (theLetters.getVector(letter) == null) {
+        //System.out.println("adding "+letter);
+        theLetters.putVector(letter, incoming.copy());
+      }
+
+
       try {
         incoming.bind(posVector);
       } catch (Exception e) {
@@ -174,6 +182,14 @@ public class StringEdit {
         e.printStackTrace();
         System.exit(0);
       }
+      }
+      else //real vector case
+      {
+    	  int[] theShift = PermutationUtils.getShiftPermutation(flagConfig.vectortype(), flagConfig.dimension(), (int) theTerm.charAt(q));
+    	  incoming = VectorFactory.createZeroVector(flagConfig.vectortype(), flagConfig.dimension());
+    	  incoming.superpose(posVector, 1, theShift);
+      }
+      
       //System.out.println(letter+" "+(q+1));
       theVector.superpose(incoming, 1, null);     
     }
