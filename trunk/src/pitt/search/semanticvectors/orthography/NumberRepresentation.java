@@ -35,6 +35,7 @@
 
 package pitt.search.semanticvectors.orthography;
 
+import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Random;
@@ -50,6 +51,7 @@ import pitt.search.semanticvectors.vectors.ComplexVector.Mode;
 import pitt.search.semanticvectors.vectors.Vector;
 import pitt.search.semanticvectors.vectors.VectorFactory;
 import pitt.search.semanticvectors.vectors.VectorType;
+import pitt.search.semanticvectors.vectors.VectorUtils;
 
 /**
  * Class that generates sequences of evenly distributed vectors to represent
@@ -141,15 +143,14 @@ public class NumberRepresentation {
     vR = VectorFactory.generateRandomVector(
         flagConfig.vectortype(), flagConfig.dimension(), flagConfig.seedlength(), random);
     vR.normalize();
-
+    
     // Small routine to guarantee that end vector has low similarity with start vector.
-    String endPadding = "";
-    while (Math.abs(vL.measureOverlap(vR)) > maxStartEndSimilarity) {
-      endPadding += "*";
-      random.setSeed(Bobcat.asLong(endRandomSeed + endPadding));
-      vR = VectorFactory.generateRandomVector(
-          flagConfig.vectortype(), flagConfig.dimension(), flagConfig.seedlength(), random);
-    }  
+    ArrayList<Vector> toOrthogonalize = new ArrayList<Vector>();
+    toOrthogonalize.add(vL);
+    toOrthogonalize.add(vR);
+    if (flagConfig.vectortype().equals(VectorType.BINARY)) BinaryVectorUtils.orthogonalizeVectors(toOrthogonalize);
+    else VectorUtils.orthogonalizeVectors(toOrthogonalize);
+
   }
 
   /**
