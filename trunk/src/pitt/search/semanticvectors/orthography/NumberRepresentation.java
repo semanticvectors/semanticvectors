@@ -48,6 +48,8 @@ import pitt.search.semanticvectors.vectors.BinaryVector;
 import pitt.search.semanticvectors.vectors.BinaryVectorUtils;
 import pitt.search.semanticvectors.vectors.ComplexVector;
 import pitt.search.semanticvectors.vectors.ComplexVector.Mode;
+import pitt.search.semanticvectors.vectors.CircleLookupTable;
+import pitt.search.semanticvectors.vectors.ComplexVectorUtils;
 import pitt.search.semanticvectors.vectors.Vector;
 import pitt.search.semanticvectors.vectors.VectorFactory;
 import pitt.search.semanticvectors.vectors.VectorType;
@@ -149,8 +151,10 @@ public class NumberRepresentation {
     toOrthogonalize.add(vL);
     toOrthogonalize.add(vR);
     if (flagConfig.vectortype().equals(VectorType.BINARY)) BinaryVectorUtils.orthogonalizeVectors(toOrthogonalize);
+    else if (flagConfig.vectortype().equals(VectorType.COMPLEX)) ComplexVectorUtils.orthogonalizeVectors(toOrthogonalize);
     else VectorUtils.orthogonalizeVectors(toOrthogonalize);
 
+    System.err.println(vL.measureOverlap(vR));
   }
 
   /**
@@ -176,14 +180,20 @@ public class NumberRepresentation {
       Vector ithNumberVector = VectorFactory.createZeroVector(
           flagConfig.vectortype(), flagConfig.dimension());
       
+      //subdivide into equal angles
+      double phaseAngle = i/((double) iEnd-iStart) * (CircleLookupTable.PHASE_RESOLUTION/(double)4);
+      short angle =  new Double(phaseAngle).shortValue();
+      double y = CircleLookupTable.getRealEntry(angle);
+      double x= CircleLookupTable.getImagEntry(angle);
+       
       if (flagConfig.vectortype().equals(VectorType.BINARY))
       {
-    	  ithNumberVector = BinaryVectorUtils.weightedSuperposition((BinaryVector) vL, iEnd -iStart -i, (BinaryVector) vR, i);
+    	  ithNumberVector = BinaryVectorUtils.weightedSuperposition((BinaryVector) vL, y, (BinaryVector) vR, x);
       }
     	  
       else {
-      ithNumberVector.superpose(vL, iEnd - iStart - i, null);
-      ithNumberVector.superpose(vR, i, null);
+      ithNumberVector.superpose(vL, y, null);
+      ithNumberVector.superpose(vR, x, null);
       ithNumberVector.normalize();
       		}
       theVSR.putVector(iStart + i, ithNumberVector);
