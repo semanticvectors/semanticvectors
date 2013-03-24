@@ -41,6 +41,8 @@ import java.util.logging.Logger;
 
 import org.apache.lucene.util.OpenBitSet;
 
+import pitt.search.semanticvectors.hashing.Bobcat;
+
 /**
  * This class provides standard vector methods, e.g., cosine measure,
  * normalization, tensor utils.
@@ -117,7 +119,7 @@ public class BinaryVectorUtils {
 	  //if it is required to introduce random noise to increase the distance between the two vectors
 	  if (numchanges > 0)
 	  for (int x =0; cnt < numchanges; x++) {	
-		  if (x == 0) System.err.print(cnt+"/"+ numchanges+".."+"loop...");
+		 // if (x == 0) System.err.print(cnt+"/"+ numchanges+".."+"loop...");
 		  if (x >= vector.size()) x =0;
 			double change = random.nextDouble();
 			if (!commonGround.get(x) && change > 0.5) {
@@ -128,7 +130,7 @@ public class BinaryVectorUtils {
 	  //if it is required to introduce commonalities to increase the similarity between the two vectors
 	  else if (numchanges < 0)
 		  for (int x =0; cnt > numchanges; x++) {	
-			  if (x == 0) System.err.print(cnt+"/"+ numchanges+".."+"loop...");
+			 // if (x == 0) System.err.print(cnt+"/"+ numchanges+".."+"loop...");
 			  if (x >= vector.size()) x =0;
 				double change = random.nextDouble();
 				if (commonGround.get(x) && change > 0.5) {
@@ -139,7 +141,7 @@ public class BinaryVectorUtils {
 	  
   }
   
-  public static Vector weightedSuperposition(BinaryVector v1, double weight, BinaryVector v2, double weight2)
+  public static Vector weightedSuperposition(BinaryVector v1, double weight1, BinaryVector v2, double weight2)
   {
 	  BinaryVector conclusion = (BinaryVector) VectorFactory.createZeroVector(VectorType.BINARY, v1.getDimension());
 	  OpenBitSet cVote = conclusion.bitSet;
@@ -147,19 +149,18 @@ public class BinaryVectorUtils {
 	  OpenBitSet v2vote = v2.bitSet;
 	  
       Random random = new Random();
-       
+      random.setSeed(Bobcat.asLong(v1.writeLongToString())); 
+      
        for (int x = 0; x < v1.getDimension(); x++)
        {
     	   double probability = 0;
-    	   if (v1vote.get(x)) probability += weight/(weight+weight2);
-    	   if (v2vote.get(x)) probability += weight2/(weight+weight2);
-     	   
-    	   if (random.nextDouble() <= probability)
-    	    cVote.fastSet(x);
+    	   if (v1vote.get(x)) probability += weight1/(weight1+weight2);
+    	   if (v2vote.get(x)) probability += weight2/(weight1+weight2);
     	   
+    	   if (random.nextDouble() <= probability)
+    	    cVote.fastSet(x);	
        }
-
-       return conclusion;
+        return conclusion;
   }
   
 }
