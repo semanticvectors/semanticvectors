@@ -154,7 +154,6 @@ public class NumberRepresentation {
     else if (flagConfig.vectortype().equals(VectorType.COMPLEX)) ComplexVectorUtils.orthogonalizeVectors(toOrthogonalize);
     else VectorUtils.orthogonalizeVectors(toOrthogonalize);
 
-    System.err.println(vL.measureOverlap(vR));
   }
 
   /**
@@ -180,18 +179,19 @@ public class NumberRepresentation {
       Vector ithNumberVector = VectorFactory.createZeroVector(
           flagConfig.vectortype(), flagConfig.dimension());
       
-      //subdivide into equal angles
-      double phaseAngle = i/((double) iEnd-iStart) * (CircleLookupTable.PHASE_RESOLUTION/(double)4);
-      short angle =  new Double(phaseAngle).shortValue();
-      double y = CircleLookupTable.getRealEntry(angle);
-      double x= CircleLookupTable.getImagEntry(angle);
-       
+      
       if (flagConfig.vectortype().equals(VectorType.BINARY))
       {
-    	  ithNumberVector = BinaryVectorUtils.weightedSuperposition((BinaryVector) vL, y, (BinaryVector) vR, x);
-      }
+    	  ithNumberVector = BinaryVectorUtils.weightedSuperposition((BinaryVector) vL, iEnd-iStart-i, (BinaryVector) vR, i);
+       }
     	  
       else {
+    	    //subdivide into equal angles
+          double phaseAngle = i/((double) iEnd-iStart) * (CircleLookupTable.PHASE_RESOLUTION/(double)4);
+          short angle =  new Double(phaseAngle).shortValue();
+          double y = CircleLookupTable.getRealEntry(angle);
+          double x= CircleLookupTable.getImagEntry(angle);
+        
       ithNumberVector.superpose(vL, y, null);
       ithNumberVector.superpose(vR, x, null);
       ithNumberVector.normalize();
