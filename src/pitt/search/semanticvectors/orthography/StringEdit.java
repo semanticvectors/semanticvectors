@@ -107,7 +107,7 @@ public class StringEdit {
       ObjectVector theNext = theNum.nextElement();
       String theTerm = theNext.getObject().toString().trim();
       VectorStoreRAM OV = null;
-      OV = NR.getNumberVectors(1, theTerm.length()+1);
+      OV = NR.getNumberVectors(0, theTerm.length()+1);
       twoVSR.putVector(theTerm,getStringVector(theTerm, OV, theLetters, flagConfig));
 
       Enumeration<ObjectVector> theNumbers = OV.getAllVectors();
@@ -129,7 +129,7 @@ public class StringEdit {
     String[] terms = { "diabets", "dibetes",  "diabetic", "dominic", "abram", "sarai", "josh" };
 
     for (int a = 0; a < terms.length; a++) {
-      VectorStoreRAM OV = NR.getNumberVectors(1, terms[a].length() + 1);
+      VectorStoreRAM OV = NR.getNumberVectors(0, terms[a].length() + 1);
       VectorSearcher.VectorSearcherCosine theVSC = new VectorSearcher.VectorSearcherCosine(
           twoVSR, twoVSR, null, flagConfig, getStringVector(terms[a], OV, theLetters, flagConfig));
       System.out.println(terms[a]);
@@ -148,8 +148,9 @@ public class StringEdit {
       ComplexVector.setDominantMode(Mode.CARTESIAN);
 
     //  System.out.println(theTerm);
-    for (int q = 0; q < theTerm.length(); q++) {
-      String letter = ""+theTerm.charAt(q);
+    for (int q = 1; q <= theTerm.length(); q++) {
+      String letter = ""+theTerm.charAt(q-1);
+      if (letter.equals("*")) continue;
       
       Vector posVector = theNumbers.getVector(q);
       if (posVector == null) { 
@@ -185,7 +186,7 @@ public class StringEdit {
       }
       else //real vector case
       {
-    	  int[] theShift = PermutationUtils.getShiftPermutation(flagConfig.vectortype(), flagConfig.dimension(), (int) theTerm.charAt(q));
+    	  int[] theShift = PermutationUtils.getShiftPermutation(flagConfig.vectortype(), flagConfig.dimension(), (int) theTerm.charAt(q-1));
     	  incoming = VectorFactory.createZeroVector(flagConfig.vectortype(), flagConfig.dimension());
     	  incoming.superpose(posVector, 1, theShift);
       }

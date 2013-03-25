@@ -104,7 +104,7 @@ public class VectorStoreOrthographical implements VectorStore, CloseableVectorSt
     } else {      
       Vector v = StringEdit.getStringVector(
           desiredObject.toString(),
-          theNumbers.getNumberVectors(0, desiredObject.toString().length() - 1),
+          theNumbers.getNumberVectors(0, desiredObject.toString().length() + 1),
           letterVectors, flagConfig);
 
       if (cacheVectors) {
