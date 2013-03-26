@@ -192,9 +192,7 @@ public class StringEdit {
     	  incoming = VectorFactory.createZeroVector(flagConfig.vectortype(), flagConfig.dimension());
     	  incoming.superpose(posVector, 1, theShift);
       }
-      double theweight = Math.abs(theTerm.length()/2 -q);
-      System.err.println(theweight);
-      theVector.superpose(incoming, 1, null);     
+            theVector.superpose(incoming, 1, null);     
     }
     
     theVector.normalize(); 
