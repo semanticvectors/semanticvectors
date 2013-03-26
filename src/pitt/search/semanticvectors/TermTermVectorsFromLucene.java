@@ -179,10 +179,11 @@ public class TermTermVectorsFromLucene implements VectorStore {
 	  
 	numberVectors = numberRepresentation.getNumberVectors(1, 2*flagConfig.windowradius()+2);
 	numberPrefix = 2*flagConfig.windowradius()+2;
+	this.initializeDirectionalPermutations();
 	
 	Enumeration<ObjectVector> VEN = numberVectors.getAllVectors();
 	while (VEN.hasMoreElements())
-		System.out.println(VEN.nextElement().getObject());
+		System.err.println(VEN.nextElement().getObject());
 
 	    }
 	    
@@ -205,7 +206,8 @@ public class TermTermVectorsFromLucene implements VectorStore {
 
   private void trainTermTermVectors() throws IOException, RuntimeException {
     // Check that the Lucene index contains Term Positions.
-    LuceneUtils.compressIndex(flagConfig.luceneindexpath());
+    
+	LuceneUtils.compressIndex(flagConfig.luceneindexpath());
     this.luceneIndexReader = IndexReader.open(FSDirectory.open(new File(flagConfig.luceneindexpath())));
     FieldInfos fieldsWithPositions = ReaderUtil.getMergedFieldInfos(luceneIndexReader);
     if (!fieldsWithPositions.hasVectors()) {
@@ -374,13 +376,12 @@ public class TermTermVectorsFromLucene implements VectorStore {
   
         // bind to appropriate position vector
          if (flagConfig.positionalmethod() == PositionalMethod.PROXIMITY)
-        		localindexvectors[coterm].bind(numberVectors.getVector(numberPrefix+":"+(1+cursor-windowstart)));
+        		localindexvectors[coterm].bind(numberVectors.getVector((1+cursor-windowstart)));
         	
         // calculate permutation required for either Sahlgren (2008) implementation
         // encoding word order, or encoding direction as in Burgess and Lund's HAL
         if (flagConfig.positionalmethod() == PositionalMethod.BASIC
-            || flagConfig.positionalmethod() == PositionalMethod.PERMUTATIONPLUSBASIC
-        		  || flagConfig.positionalmethod() == PositionalMethod.PROXIMITY) {
+            || flagConfig.positionalmethod() == PositionalMethod.PERMUTATIONPLUSBASIC) {
           // docterms[coterm] contains the term in position[w] in this document.
           localtermvectors[focusterm].superpose(localindexvectors[coterm], globalweight, null);
         }
@@ -388,13 +389,13 @@ public class TermTermVectorsFromLucene implements VectorStore {
             || flagConfig.positionalmethod() == PositionalMethod.PERMUTATIONPLUSBASIC) {
           int[] permutation = permutationCache[cursor - focusposn + flagConfig.windowradius()];
           localtermvectors[focusterm].superpose(localindexvectors[coterm], globalweight, permutation);
-        } else if (flagConfig.positionalmethod() == PositionalMethod.DIRECTIONAL) {
+        } else if (flagConfig.positionalmethod() == PositionalMethod.DIRECTIONAL || flagConfig.positionalmethod() == PositionalMethod.PROXIMITY) {
           int[] permutation = permutationCache[(int) Math.max(0,Math.signum(cursor - focusposn))];
           localtermvectors[focusterm].superpose(localindexvectors[coterm], globalweight, permutation);
 
           //release to appropriate position vector
           if (flagConfig.positionalmethod() == PositionalMethod.PROXIMITY)
-          		localindexvectors[coterm].release(numberVectors.getVector(numberPrefix+":"+(1+cursor-windowstart)));
+          		localindexvectors[coterm].release(numberVectors.getVector((1+cursor-windowstart)));
         
           
         }
