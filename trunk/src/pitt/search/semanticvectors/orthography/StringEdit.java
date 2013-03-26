@@ -150,9 +150,11 @@ public class StringEdit {
     //  System.out.println(theTerm);
     for (int q = 1; q <= theTerm.length(); q++) {
       String letter = ""+theTerm.charAt(q-1);
-      if (letter.equals("*")) continue;
+       if (letter.equals("_")) 
+    	   {continue; }
       
       Vector posVector = theNumbers.getVector(q);
+      
       if (posVector == null) { 
         System.out.println(theTerm);
         System.out.println(posVector);
@@ -177,7 +179,7 @@ public class StringEdit {
 
       try {
         incoming.bind(posVector);
-      } catch (Exception e) {
+            } catch (Exception e) {
         System.out.println(incoming);
         System.out.println(posVector);
         e.printStackTrace();
@@ -190,10 +192,11 @@ public class StringEdit {
     	  incoming = VectorFactory.createZeroVector(flagConfig.vectortype(), flagConfig.dimension());
     	  incoming.superpose(posVector, 1, theShift);
       }
-      
-      //System.out.println(letter+" "+(q+1));
+      double theweight = Math.abs(theTerm.length()/2 -q);
+      System.err.println(theweight);
       theVector.superpose(incoming, 1, null);     
     }
+    
     theVector.normalize(); 
     return theVector;
   }
