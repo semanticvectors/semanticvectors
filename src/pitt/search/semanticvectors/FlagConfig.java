@@ -116,6 +116,10 @@ public class FlagConfig {
   private boolean filteroutnumbers = true;
   /** If {@code true}, terms containing only numeric characters are filtered out during indexing, default value {@code true}. */
   public boolean filteroutnumbers() { return filteroutnumbers; }
+
+  private boolean hybridvectors = false;
+  /** If {@code true}, the StringEdit Class will produce hybrid vectors where each term vector = orthographic vector + semantic vector (from -queryvectorfile), default value {@code false}. */
+  public boolean hybridvectors() { return hybridvectors; }
   
   private boolean deterministicvectors = false;
   /** If {@code true}, deterministic vectors will be used throughout indexing, using {@code pitt.search.semanticvectors.hashing}. */

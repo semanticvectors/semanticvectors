@@ -108,7 +108,17 @@ public class StringEdit {
       String theTerm = theNext.getObject().toString().trim();
       VectorStoreRAM OV = null;
       OV = NR.getNumberVectors(0, theTerm.length()+1);
-      twoVSR.putVector(theTerm,getStringVector(theTerm, OV, theLetters, flagConfig));
+      
+      Vector toAdd = getStringVector(theTerm, OV, theLetters, flagConfig);
+  	   
+      if (flagConfig.hybridvectors())  //combine -queryvectorfile and orthographic vectors 
+      	{
+    	  toAdd.superpose(theVSR.getVector(theTerm), 1, null);
+    	  toAdd.normalize();
+    	}
+    
+      twoVSR.putVector(theTerm,toAdd);
+      
 
       Enumeration<ObjectVector> theNumbers = OV.getAllVectors();
       while (theNumbers.hasMoreElements()) {
@@ -122,7 +132,8 @@ public class StringEdit {
     System.out.println(flagConfig.dimension());
     System.out.println(flagConfig.vectortype());
 
-    VectorStoreWriter.writeVectors("editvectors.bin", flagConfig,twoVSR);
+    if (flagConfig.hybridvectors()) VectorStoreWriter.writeVectors("hybridvectors.bin", flagConfig,twoVSR);
+    else VectorStoreWriter.writeVectors("editvectors.bin", flagConfig,twoVSR);
     VectorStoreWriter.writeVectorsInLuceneFormat("numbervectors.bin", flagConfig, OOV);
     VectorStoreWriter.writeVectorsInLuceneFormat("lettervectors.bin", flagConfig, theLetters);
 
