@@ -63,9 +63,9 @@ import pitt.search.semanticvectors.vectors.VectorUtils;
  */
 public class NumberRepresentation {
   /** Random seed used for starting demarcator vectors. */
-  private final String startRandomSeen = "*START*";
+  private String startRandomSeed = "*START*";
   /** Random seed used for ending demarcator vectors. */
-  private final String endRandomSeed = "*END*";
+  private String endRandomSeed = "*END*";
   /** Maximum acceptable similarity between start and end demarcator vectors/ */
   private final float maxStartEndSimilarity = 0.01f;
 
@@ -125,10 +125,16 @@ public class NumberRepresentation {
    * Initializes an instance of {@link NumberRepresentation} with its start and end vectors,
    * checking that these demarcator vectors are not too close together. 
    * 
+   * Allows for the specification of a start and end seed, so mutually near-orthogonal sets
+   * of demarcator vectors can be created
+   * 
    * @param flagConfig Flag configuration, used in particular to control vectortype and dimension. 
    */
-  public NumberRepresentation(FlagConfig flagConfig) {
+  public NumberRepresentation(FlagConfig flagConfig, String startSeed, String endSeed) {
     if (flagConfig == null) throw new NullPointerException("flagConfig cannot be null");
+	  
+    this.startRandomSeed = startSeed;
+	 this.endRandomSeed = endSeed;
     
     this.flagConfig = flagConfig;
     if (flagConfig.vectortype() == VectorType.COMPLEX)
@@ -136,7 +142,7 @@ public class NumberRepresentation {
 
     // Generate a vector for the lowest number and one for the highest and make sure they
     // have no significant overlap.
-    Random random = new Random(Bobcat.asLong(startRandomSeen));
+    Random random = new Random(Bobcat.asLong(startRandomSeed));
     vL = VectorFactory.generateRandomVector(
         flagConfig.vectortype(), flagConfig.dimension(), flagConfig.seedlength(), random);
     vL.normalize();
@@ -155,7 +161,20 @@ public class NumberRepresentation {
     else VectorUtils.orthogonalizeVectors(toOrthogonalize);
 
   }
-
+  
+  /**
+* This constructor allows for the generation of sets of number vectors, using
+* a standard random seed
+   * 
+   * @param flagConfig 
+   */
+  
+  public NumberRepresentation(FlagConfig flagConfig)
+  {
+	  /** Random seed used for ending demarcator vectors. */
+	  this(flagConfig,  "*START*", "*END*");
+  }	  
+  
   /**
    * Gets a sequence of number vectors, the first and last of which are the demarcator vectors,
    * and the intervening members being evenly linearly distributed between these.

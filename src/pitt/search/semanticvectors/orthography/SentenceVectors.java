@@ -70,10 +70,11 @@ public class SentenceVectors {
   
       StringTokenizer theTokenizer = new StringTokenizer(theSentence, " ");
       int allTokens = theTokenizer.countTokens();
-    //  System.out.println(theTerm);
+   
     for (int q = 0; q < allTokens; q++)
     {
       String word = theTokenizer.nextToken();
+      //System.out.println(word);
       float theweight = 1;
       if (lUtils != null)
         theweight = lUtils.getGlobalTermWeight(new Term("contents",word));
@@ -89,7 +90,7 @@ public class SentenceVectors {
       }
       
       
-      Vector posVector = theNumbers.getVector((allTokens+1)+":"+(q+1));
+      Vector posVector = theNumbers.getVector((q+1));
       
       if (posVector == null)
       {   System.out.println(allTokens+":"+(q+1));
@@ -131,19 +132,19 @@ public class SentenceVectors {
     if (!flagConfig.luceneindexpath().isEmpty())
       lUtils = new LuceneUtils(flagConfig);
     
-    IndexReader indexReader = IndexReader.open(FSDirectory.open(new File("/home/tcohen/OHSUMED_SOURCES/predication_index")));
+    IndexReader indexReader = IndexReader.open(FSDirectory.open(new File(flagConfig.luceneindexpath())));
 
     int numdocs = indexReader.numDocs();
     VectorStoreRAM sentenceVectors = new VectorStoreRAM(flagConfig);
     VectorStoreRAM theNumbers = new VectorStoreRAM(flagConfig);
     VectorStoreRAM theWords = new VectorStoreRAM(flagConfig);
-    //theWords.initFromFile("/home/tcohen/SVNspace/SemanticVectors/termvectors.bin");
+    if (!flagConfig.initialtermvectors().equals("random")) theWords.initFromFile(flagConfig.initialtermvectors());
     
     VectorStoreRAM OOV = new VectorStoreRAM(flagConfig);
     
     
     Hashtable<Integer, VectorStoreRAM> allNumbers = new Hashtable<Integer, VectorStoreRAM>();
-    NumberRepresentation NR = new NumberRepresentation(flagConfig);
+    NumberRepresentation NR = new NumberRepresentation(flagConfig, "*STARTSENTENCE*", "*ENDSENTENCE*");
     
     System.err.println("Numdocs "+numdocs);
     for (int x =0; x < numdocs; x++)
@@ -153,7 +154,7 @@ public class SentenceVectors {
         System.err.print(x+"...");
       
       Document theDoc = indexReader.document(x);
-      String theSentence = theDoc.get("source").replaceAll("[^A-Za-z]"," ").toLowerCase();
+      String theSentence = theDoc.get(flagConfig.contentsfields()[0]).replaceAll("[^A-Za-z]"," ").toLowerCase();
       
       StringTokenizer theTokenizer = new StringTokenizer(theSentence," ");
       int numTokens = theTokenizer.countTokens();
@@ -169,7 +170,7 @@ public class SentenceVectors {
     
       //System.out.println("Generating number vectors for sentence of length "+numTokens);
         
-      theNumbers = NR.getNumberVectors(1, numTokens+1); 
+      theNumbers = NR.getNumberVectors(0, numTokens+1); 
       allNumbers.put(new Integer(numTokens), theNumbers);
       
       Enumeration<ObjectVector> newNumbers = theNumbers.getAllVectors();
