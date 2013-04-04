@@ -77,7 +77,7 @@ public class SentenceVectors {
       //System.out.println(word);
       float theweight = 1;
       if (lUtils != null)
-        theweight = lUtils.getGlobalTermWeight(new Term("contents",word));
+        theweight = lUtils.getGlobalTermWeight(new Term(flagConfig.contentsfields()[0],word));
       
       Vector incoming = termVectors.getVector(word);
       
@@ -97,6 +97,8 @@ public class SentenceVectors {
         System.out.println(posVector);
         System.exit(0);
       }
+      
+      
       try {
       incoming.bind(posVector);
       } catch (Exception e) 
@@ -108,7 +110,8 @@ public class SentenceVectors {
       }
       //System.out.println(letter+" "+(q+1));
       
-      theVector.superpose(incoming, theweight, null);     
+      theVector.superpose(incoming, theweight, null); 
+      incoming.release(posVector);
     }
     theVector.normalize();
     
