@@ -706,9 +706,7 @@ public class BinaryVector implements Vector {
     votingRecord = new ArrayList<OpenBitSet>();
     votingRecord.add((OpenBitSet) bitSet.clone());
     tempSet = new OpenBitSet(dimension);
-    totalNumberOfVotes = 1;
-    minimum = 0;
-     
+       
     isSparse = false;
   }
 
