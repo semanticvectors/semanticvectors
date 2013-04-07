@@ -50,7 +50,7 @@ public class SemanticVectorCollider {
 		
 		superPosition.superpose(originalVector, 1, null);
 		if (flagConfig.vectortype() == VectorType.BINARY) {
-		  superPosition.normalize();
+		  ((BinaryVector) superPosition).tallyVotes();
 		}
 		
 		Vector additionalVector = VectorFactory.generateRandomVector(
@@ -73,7 +73,7 @@ public class SemanticVectorCollider {
 				overlapScore.add(new Double(overlapWithRandom));
 				
 			
-			if (overlapWithRandom >= overlapWithOrigin) //version 2.0 based on Roger Schvaneveldt's Matlab edition: compare superposition:origin vs. superposition:random 
+			if (overlapWithRandom >= overlapWithOrigin) //version 2.0 based on Roger Schvaneveldt's Matlab edition: compare superposition:origin vs. superposition:random (this is different than the implementation in Wahle et al 2012, which compared origin:superposition vs. origin:random) 
 			{
 				System.out.println("Iteration " +cnt+": Incidental overlap occurred at superposition number "+x);
 				
@@ -94,7 +94,7 @@ public class SemanticVectorCollider {
 			superPosition.superpose(additionalVector, 1, null);
 			
 			if (flagConfig.vectortype() == VectorType.BINARY) {
-			  superPosition.normalize();
+			  ((BinaryVector) superPosition).tallyVotes();
 			}
 		}
 		

@@ -205,7 +205,7 @@ public class BinaryVector implements Vector {
     if (isZeroVector()) return 0;
     BinaryVector binaryOther = (BinaryVector) other;
     if (binaryOther.isZeroVector()) return 0;
-
+        
     // Calculate hamming distance in place using cardinality and XOR, then return bitset to
     // original state.
     double hammingDistance = OpenBitSet.xorCount(binaryOther.bitSet, this.bitSet);
@@ -593,6 +593,22 @@ public class BinaryVector implements Vector {
   public void normalize() {
     if (!isSparse)
     this.bitSet = concludeVote();
+    
+    votingRecord = new ArrayList<OpenBitSet>();
+    votingRecord.add((OpenBitSet) bitSet.clone());
+    totalNumberOfVotes = 1;
+    tempSet = new OpenBitSet(dimension);
+    minimum = 0;
+    
+  }
+  
+  /**
+   * Counts votes without normalizing vector (i.e. voting record is not altered). Used in SemanticVectorCollider.
+   */
+  
+  public void tallyVotes() {
+	  if (!isSparse)
+		    this.bitSet = concludeVote();
   }
 
   @Override
@@ -690,6 +706,9 @@ public class BinaryVector implements Vector {
     votingRecord = new ArrayList<OpenBitSet>();
     votingRecord.add((OpenBitSet) bitSet.clone());
     tempSet = new OpenBitSet(dimension);
+    totalNumberOfVotes = 1;
+    minimum = 0;
+     
     isSparse = false;
   }
 
