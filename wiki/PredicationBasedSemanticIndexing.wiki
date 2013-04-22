@@ -26,6 +26,12 @@ Search output follows ...
 ...
 }}}
 
+The "Search" command also implements a simple "formal query parse" using the `E(foo) * S(bar)` kind of notation for elemental and semantic vectors, developed in the papers cited below. For example, once you have the above example working on the test data, the "dollar of mexico" analogy can be recovered using the following query expression (all on one line):
+
+{{{
+java pitt.search.semanticvectors.Search -searchtype boundproduct -queryvectorfile semanticvectors.bin -boundvectorfile elementalvectors.bin -searchvectorfile elementalvectors.bin -matchcase "E(united_states_dollar)*S(united_states)*S(mexico)"
+}}}
+
 ===References===
 
 [http://www.ncbi.nlm.nih.gov/pmc/articles/PMC2815384/pdf/amia-f2009-114.pdf Predication-based Semantic Indexing: Permutations as a Means to Encode Predications in Semantic Space.] Cohen T, Schvaneveldt, R. Rindlesch, T. AMIA Annu Symp Proc. 2009. 114-118.
