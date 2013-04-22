@@ -26,6 +26,10 @@ Search output follows ...
 ...
 }}}
 
-See [http://www.ncbi.nlm.nih.gov/pmc/articles/PMC2815384/pdf/amia-f2009-114.pdf Predication-based Semantic Indexing: Permutations as a Means to Encode Predications in Semantic Space.] Cohen T, Schvaneveldt, R. Rindlesch, T. AMIA Annu Symp Proc. 2009. 114-118.
+===References===
 
-and [http://www.aaai.org/ocs/index.php/FSS/FSS10/paper/view/2272/2682 Logical Leaps and Quantum Connectives: Forging Paths through Predication Space.] Cohen, T. Widdows, D. Schvaneveldt, R. Rindflesch, T. AAAI Fall 2010 symposium on Quantum Informatics for cognitive, social and semantic processes (QI-2010).
+[http://www.ncbi.nlm.nih.gov/pmc/articles/PMC2815384/pdf/amia-f2009-114.pdf Predication-based Semantic Indexing: Permutations as a Means to Encode Predications in Semantic Space.] Cohen T, Schvaneveldt, R. Rindlesch, T. AMIA Annu Symp Proc. 2009. 114-118.
+
+[http://www.aaai.org/ocs/index.php/FSS/FSS10/paper/view/2272/2682 Logical Leaps and Quantum Connectives: Forging Paths through Predication Space.] Cohen, T. Widdows, D. Schvaneveldt, R. Rindflesch, T. AAAI Fall 2010 symposium on Quantum Informatics for cognitive, social and semantic processes (QI-2010).
+
+[http://www.puttypeg.net/papers/schizophrenias-prozac.pdf Finding Schizophrenia's Prozac: Emergent Relational Similarity in Predication Space.] Cohen, T. Widdows, D. Schvaneveldt, RW. Rindflesch, T. Proceedings of the Fifth International Symposium on Quantum Interaction, Aberdeen, UK, 2011.
