@@ -1,5 +1,4 @@
 #summary Installation guide for semantic vectors package.
-#labels Phase-Deploy
 
 = Summary =
 
@@ -9,6 +8,8 @@ These sketch instructions presume that you're reasonably familiar with Java, Ant
 
 == Prerequisites (all Installations) ==
 
+ * You will need some basic knowledge about how to use a command-prompt (such as `cmd` in Windows, a bash shell in Unix or Linux, or the terminal app in MacOS).
+   * In particular, you will need to be able to manage [http://en.wikipedia.org/wiki/Environment_variable#Getting_and_setting_environment_variables environment variables].
  * Make sure you have a Java Development Kit (JDK) installed on your system, and that the `java` and `javac` programs can be seen from you system `PATH` variable.
    * If you type `java` and `javac` at your command line, you should see options and instructions, rather than a "Command not found" error.
    * On some systems you may need to set your `JAVA_HOME` environment variable.
