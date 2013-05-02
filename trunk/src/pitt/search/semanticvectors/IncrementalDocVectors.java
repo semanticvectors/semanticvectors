@@ -38,6 +38,7 @@ package pitt.search.semanticvectors;
 import java.io.File;
 import java.io.IOException;
 import java.lang.Integer;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.logging.Logger;
 
@@ -47,6 +48,7 @@ import org.apache.lucene.store.FSDirectory;
 
 import pitt.search.semanticvectors.vectors.Vector;
 import pitt.search.semanticvectors.vectors.VectorFactory;
+import pitt.search.semanticvectors.vectors.VectorUtils;
 
 /**
  * Generates document vectors incrementally.
@@ -109,6 +111,10 @@ public class IncrementalDocVectors {
     // Write header giving number of dimension for all vectors.
     outputStream.writeString(VectorStoreWriter.generateHeaderString(flagConfig));
 
+    Vector docVector = null;
+    ArrayList<Vector> toBeSuperposed = null;
+    ArrayList<Double> superpositionWeights = null;
+    
     // Iterate through documents.
     for (int dc = 0; dc < numdocs; dc++) {
       // Output progress counter.
@@ -126,8 +132,10 @@ public class IncrementalDocVectors {
         }
       }
 
-      Vector docVector = VectorFactory.createZeroVector(flagConfig.vectortype(), flagConfig.dimension());
-
+      docVector = VectorFactory.createZeroVector(flagConfig.vectortype(), flagConfig.dimension());
+      toBeSuperposed = new ArrayList<Vector>();
+      superpositionWeights = new ArrayList<Double>();
+      
       for (String fieldName: flagConfig.contentsfields()) {
         TermFreqVector vex =
             indexReader.getTermFreqVector(dc, fieldName);
@@ -141,7 +149,7 @@ public class IncrementalDocVectors {
             String termString = terms[b];
             int freq = freqs[b];
             float localweight = freq;
-            float globalweight = lUtils.getGlobalTermWeightFromString(termString);
+            float globalweight = lUtils.getGlobalTermWeight(new Term(fieldName,termString));
             float fieldweight = 1;
 
             if (flagConfig.fieldweight()) {
@@ -154,7 +162,8 @@ public class IncrementalDocVectors {
             try {
               Vector termVector = termVectorData.getVector(termString);
               if (termVector != null && termVector.getDimension() > 0) {
-                docVector.superpose(termVector, localweight * globalweight * fieldweight, null);
+                 toBeSuperposed.add(termVector);
+            	 superpositionWeights.add(new Double(localweight * globalweight * fieldweight));
               }
             } catch (NullPointerException npe) {
               // Don't normally print anything - too much data!
@@ -166,7 +175,7 @@ public class IncrementalDocVectors {
       // All fields in document have been processed.
       // Write out documentID and normalized vector.
       outputStream.writeString(docID);
-      docVector.normalize();
+      docVector = VectorUtils.weightedSuperposition(toBeSuperposed, superpositionWeights, flagConfig);
       docVector.writeToLuceneStream(outputStream);
 
     } // Finish iterating through documents.
