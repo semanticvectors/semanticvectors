@@ -133,9 +133,7 @@ public class IncrementalDocVectors {
       }
 
       docVector = VectorFactory.createZeroVector(flagConfig.vectortype(), flagConfig.dimension());
-      toBeSuperposed = new ArrayList<Vector>();
-      superpositionWeights = new ArrayList<Double>();
-      
+        
       for (String fieldName: flagConfig.contentsfields()) {
         TermFreqVector vex =
             indexReader.getTermFreqVector(dc, fieldName);
@@ -162,9 +160,8 @@ public class IncrementalDocVectors {
             try {
               Vector termVector = termVectorData.getVector(termString);
               if (termVector != null && termVector.getDimension() > 0) {
-                 toBeSuperposed.add(termVector);
-            	 superpositionWeights.add(new Double(localweight * globalweight * fieldweight));
-              }
+                 docVector.superpose(termVector, localweight * globalweight * fieldweight, null);
+                }
             } catch (NullPointerException npe) {
               // Don't normally print anything - too much data!
               logger.finest("term " + termString + " not represented");
@@ -175,7 +172,7 @@ public class IncrementalDocVectors {
       // All fields in document have been processed.
       // Write out documentID and normalized vector.
       outputStream.writeString(docID);
-      docVector = VectorUtils.weightedSuperposition(toBeSuperposed, superpositionWeights, flagConfig);
+      docVector.normalize();
       docVector.writeToLuceneStream(outputStream);
 
     } // Finish iterating through documents.
