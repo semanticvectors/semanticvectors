@@ -59,7 +59,9 @@ If this fails or is too daunting (which it may be, there's a lot going on and ge
 == To Build and Search a Model ==
 
  * Create a Lucene index using the Lucene demo, by running `java org.apache.lucene.demo.IndexFiles` on the directory containing your corpus.
+  * This will create a Lucene index in a new directory, by default called `index`.
  * Create term and document vectors by running `java pitt.search.semanticvectors.BuildIndex`.
+  * In SV versions 3.8 and higher, the path to the Lucene index should be provided as an argument to the `-luceneindexpath` flag. In earlier versions, this path is given as the remaining command-line argument after all flags have been parsed.
  * To search the resulting model, run `java pitt.search.semanticvectors.Search QUERYTERMS`.
  * If the upper case term `NOT` appears in your `QUERYTERMS`, the query parser will add the terms preceding the `NOT` term and negate all the terms after it. See VectorNegation.
  * To compare two concepts, run `java pitt.search.semanticvectors.CompareTerms "QUERYTERMS1" "QUERYTERMS2"`.
