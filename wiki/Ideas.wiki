@@ -1,0 +1,23 @@
+#summary Ideas and Suggestions for Research and Engineering Projects Involving Semantic Vectors
+
+= Ideas =
+
+There are many natural ideas and suggestions for things to try with SemanticVectors. This page is meant to be a starting point. Feel free to add new ideas or comment on existing ones. Many ideas start as discussions in the [https://groups.google.com/forum/?fromgroups#!forum/semanticvectors mailing list]. Some ideas turn into engineering tasks and may eventually be tracked at [https://code.google.com/p/semanticvectors/issues/list Issues].
+
+== Incremental Indexing ==
+
+This has been requested many times for practical reasons, and is a natural scientific question to ask of many of the algorithms used to reduce dimensions, and for learning in general.
+
+Implementing incremental index updates for semantic vectors should be relatively easy: the algorithms would be fast, but issues related to file-ownership and thread-safety could be a pain.
+
+So far, SV indexing is fast enough for most users, so incremental indexing has not been prioritized yet. Other pressing scientific motivation might arise from:
+  * Dated / time varying corpora (e.g., analyzing the evolution of a news story over time).
+  * Modelling narrative and discourse (e.g., a user session, events in a novel).
+  * _Suggestions welcome ..._
+ 
+== Ontology Modelling and Mapping ==
+
+There are many reasons for investigating the relationships between semantic vector models and formal ontology models including taxonomies, conceptual graphs, Cyc, RDF, Wikipedia relationships, etc.
+
+PredicationBasedSemanticIndexing results on Medline have been very promising, so extending these investigations beyond the biomedical domain is a natural step.
+
