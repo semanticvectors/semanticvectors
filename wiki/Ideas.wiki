@@ -19,7 +19,7 @@ So far, SV indexing is fast enough for most users, so incremental indexing has n
 
 There are many reasons for investigating the relationships between semantic vector models and formal ontology models including taxonomies, conceptual graphs, Cyc, RDF, Wikipedia relationships, etc.
 
-PredicationBasedSemanticIndexing results on Medline have been very promising, so extending these investigations beyond the biomedical domain is a natural step.
+PredicationBasedSemanticIndexing results on Medline have been very promising, so extending these investigations beyond the biomedical domain is a natural step. Are the semantically valid generalizations that would enable us to model standard relationships like "is a" and "part of" as vector operators in some relatively comprehensive framework?
 
 == Composition with Real, Complex and Binary Vectors ==
 
@@ -46,6 +46,4 @@ Are the positional techniques used in orthographic vectors useful here?
 Many algorithms could be incorporated into SV, including Latent Dirichlet Analysis (LDA), SVD for complex vectors, SVMs for binary classification.
 
 In some cases it's unclear what this means with binary vectors, which again poses interesting mathematical research challenges.
-
-
 
