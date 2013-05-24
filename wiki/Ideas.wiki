@@ -46,3 +46,7 @@ Are the positional techniques used in orthographic vectors useful here?
 Many algorithms could be incorporated into SV, including Latent Dirichlet Analysis (LDA), SVD for complex vectors, SVMs for binary classification.
 
 In some cases it's unclear what this means with binary vectors, which again poses interesting mathematical research challenges.
+
+== Compare and contrast directional / positional vector indexing with n-gram models ==
+
+Compare results from n-gram modelling with vector positional indexing, for smoothing, computational cost, etc. 
