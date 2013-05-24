@@ -41,5 +41,11 @@ More generally, there are many areas where "records" naturally include continuou
 
 Are the positional techniques used in orthographic vectors useful here?
 
+== Introduce more decomposition, clustering, classification algorithms ==
+
+Many algorithms could be incorporated into SV, including Latent Dirichlet Analysis (LDA), SVD for complex vectors, SVMs for binary classification.
+
+In some cases it's unclear what this means with binary vectors, which again poses interesting mathematical research challenges.
+
 
 
