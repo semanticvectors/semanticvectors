@@ -50,3 +50,7 @@ In some cases it's unclear what this means with binary vectors, which again pose
 == Compare and contrast directional / positional vector indexing with n-gram models ==
 
 Compare results from n-gram modelling with vector positional indexing, for smoothing, computational cost, etc. 
+
+== Spelling Correction, Autosuggest, Autocomplete ==
+
+This would be a natural application for orthographic vectors and positional term vectors. Can these techniques be used to supplement / improve existing text suggestion / correction algorithms?
