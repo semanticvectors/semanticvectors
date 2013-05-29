@@ -50,7 +50,13 @@ import java.util.Enumeration;
 import java.util.logging.Logger;
 
 /**
- * generates term vectors incrementally (i.e. one document at a time)
+ * Generates term vectors incrementally (i.e. one document at a time)
+ * This saves memory compared with other implementations.
+ * The training procedure still iterates through all the documents in the Lucene index,
+ * so currently this class is purely an optimization, not an implementation of
+ * incremental indexing in the sense of being able to add extra terms and documents later after
+ * an initial model has been built.
+ *
  * @author Trevor Cohen, Dominic Widdows
  */
 public class IncrementalTermVectors implements VectorStore {
