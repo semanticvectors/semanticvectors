@@ -51,8 +51,13 @@ import pitt.search.semanticvectors.vectors.VectorFactory;
 import pitt.search.semanticvectors.vectors.VectorUtils;
 
 /**
- * Generates document vectors incrementally.
- * 
+ * Generates document vectors incrementally, writing each document vector to disk after
+ * it is created. This saves memory compared with the implementation in {@link DocumentVectors.java}.
+ * The training procedure still iterates through all the documents in the Lucene index,
+ * so currently this class is purely an optimization, not an implementation of
+ * incremental indexing in the sense of being able to add extra documents later after
+ * an initial model has been built.   
+ *
  * @author Trevor Cohen, Dominic Widdows
  */
 public class IncrementalDocVectors {
