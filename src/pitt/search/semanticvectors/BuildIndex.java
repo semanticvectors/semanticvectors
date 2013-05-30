@@ -129,8 +129,8 @@ public class BuildIndex {
 
           IncrementalDocVectors.createIncrementalDocVectors(
               itermVectors, flagConfig, luceneIndex, "incremental_"+docFile);
-          break;
         }
+          break;
       case INMEMORY:
         DocVectors docVectors = new DocVectors(vecStore, flagConfig);
         for (int i = 1; i < flagConfig.trainingcycles(); ++i) {
