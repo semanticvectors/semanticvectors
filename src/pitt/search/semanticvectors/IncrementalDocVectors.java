@@ -116,7 +116,6 @@ public class IncrementalDocVectors {
     // Write header giving number of dimension for all vectors.
     outputStream.writeString(VectorStoreWriter.generateHeaderString(flagConfig));
 
-    Vector docVector = null;
     ArrayList<Vector> toBeSuperposed = null;
     ArrayList<Double> superpositionWeights = null;
     
@@ -127,6 +126,8 @@ public class IncrementalDocVectors {
         VerbatimLogger.info("Processed " + dc + " documents ... ");
       }
 
+      Vector docVector = null;
+      
       String docID = Integer.toString(dc); 
       // Use filename and path rather than Lucene index number for document vector.
       if (this.indexReader.document(dc).getField(flagConfig.docidfield()) != null) {
