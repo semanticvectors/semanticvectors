@@ -4,7 +4,7 @@ Predication-based Semantic Indexing, or PSI, is an application of distributional
 
 PSI is integrated and available in SemanticVectors as of version 3.4, and works with real, binary, and complex vectors.
 
-To get an example working, get the nationalfacts.txt file from the test directory, and run
+To get an example working, get the [https://code.google.com/p/semanticvectors/source/browse/trunk/test/testdata/nationalfacts/nationalfacts.txt nationalfacts.txt] file from the test directory, and run
 
 {{{
 $ java pitt.search.lucene.LuceneIndexFromTriples nationalfacts.txt
