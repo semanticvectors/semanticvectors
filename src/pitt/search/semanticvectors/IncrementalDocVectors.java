@@ -151,22 +151,25 @@ public class IncrementalDocVectors {
 
           for (int b = 0; b < freqs.length; ++b) {
             String termString = terms[b];
-            int freq = freqs[b];
-            float localweight = freq;
-            float globalweight = lUtils.getGlobalTermWeight(new Term(fieldName,termString));
-            float fieldweight = 1;
+            
+            try {
+                Vector termVector = termVectorData.getVector(termString);
+                if (termVector != null && termVector.getDimension() > 0) {
+        
+            
+                	int freq = freqs[b];
+                	float localweight = freq;
+                	float globalweight = lUtils.getGlobalTermWeight(new Term(fieldName,termString));
+                	float fieldweight = 1;
 
-            if (flagConfig.fieldweight()) {
+                		if (flagConfig.fieldweight()) {
               //field weight: 1/sqrt(number of terms in field)
-              fieldweight = (float) (1/Math.sqrt(terms.length));
-            }
+                		fieldweight = (float) (1/Math.sqrt(terms.length));
+                		}
 
             // Add contribution from this term, excluding terms that
             // are not represented in termVectorData.
-            try {
-              Vector termVector = termVectorData.getVector(termString);
-              if (termVector != null && termVector.getDimension() > 0) {
-                 docVector.superpose(termVector, localweight * globalweight * fieldweight, null);
+                    docVector.superpose(termVector, localweight * globalweight * fieldweight, null);
                 }
             } catch (NullPointerException npe) {
               // Don't normally print anything - too much data!
