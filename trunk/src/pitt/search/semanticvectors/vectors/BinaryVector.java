@@ -10,6 +10,7 @@ import org.apache.lucene.store.IndexOutput;
 import org.apache.lucene.util.OpenBitSet;
 
 import pitt.search.semanticvectors.FlagConfig;
+import pitt.search.semanticvectors.hashing.Bobcat;
 
 /**
  * Binary implementation of Vector.
@@ -588,9 +589,98 @@ public class BinaryVector implements Vector {
 
   @Override
   /**
-   * Normalizes the vector, converting sparse to dense representations in the process.
+   * Normalizes the vector, converting sparse to dense representations in the process. This approach deviates from the "majority rule" 
+   * approach that is standard in the Binary Spatter Code(). Rather, the probability of assigning a one in a particular dimension 
+   * is a function of the probability of encountering the number of votes in the voting record in this dimension.
+   *
+   * This will be slower than normalizeBSC() below, but discards less information with positive effects on accuracy in preliminary experiments
+   * 
+   * As a simple example to illustrate why this would be the case, consider the superposition of vectors for the terms "jazz","jazz" and "rock" 
+   * With the BSC normalization, the vector produced is identical to "jazz" (as jazz wins the vote in each case). With probabilistic normalization,
+   * the vector produced is somewhat similar to both "jazz" and "rock", with a similarity that is proportional to the weights assigned to the 
+   * superposition, e.g. 0.624000:jazz;  0.246000:rock
+   * 
    */
-  public void normalize() {
+  
+ public void normalize() {
+	  
+	  
+	  if (votingRecord == null) return;
+	  if (votingRecord.size() == 1)
+	  {
+		  this.bitSet = votingRecord.get(0);
+		  return;
+	  }
+	  //clear bitset;
+	  this.bitSet.xor(this.bitSet);
+	  
+	  Random random = new Random();
+	  
+	  //Determine value above the universal minimum for each dimension of the voting record
+	  int[] counts = new int[dimension];
+	  int max = totalNumberOfVotes;
+	  
+	  for (int x =0 ; x < votingRecord.size(); x++)
+	  for (int y =0 ; y < dimension; y++)
+	  {
+		  if (votingRecord.get(x).fastGet(y))
+				  counts[y] += Math.pow(2, x);
+		  
+	  }
+	  
+	  for (int w =0; w < dimension; w++)
+	  {
+		  //determine total number of votes 
+		  double votes = minimum+counts[w];
+		  
+		  //calculate standard deviations above/below the mean of max/2 
+		  double z = (votes - (max/2)) / (Math.sqrt(max)/2);
+		  
+		  //find proportion of data points anticipated within z standard deviations of the mean (assuming approximately normal distribution)
+		  double proportion = erf(z/Math.sqrt(2));
+		  
+		  //convert into a value between 0 and 1 (i.e. centered on 0.5 rather than centered on 0)
+		  proportion = (1+proportion) /2;
+		  
+		  //probabilistic normalization
+		  if ((random.nextDouble()) <= proportion) this.bitSet.fastSet(w);
+		
+	  }
+	  
+	  //housekeeping
+	    votingRecord = new ArrayList<OpenBitSet>();
+	    votingRecord.add((OpenBitSet) bitSet.clone());
+	    totalNumberOfVotes = 1;
+	    tempSet = new OpenBitSet(dimension);
+	    minimum = 0;
+	  
+  }
+  
+  // approximation of error function, equation 7.1.27 from
+  // Abramowitz, M. and Stegun, I. A. (Eds.). "Repeated Integrals of the Error Function." §7.2 
+  //in Handbook of Mathematical Functions with Formulas, Graphs, and Mathematical Tables, 
+  //9th printing. New York: Dover, pp. 299-300, 1972.
+  // error of approximation <= 5*10^-4
+  
+  public double erf(double z)
+  {
+	  //erf(-x) == -erf(x)
+	  double sign = Math.signum(z);
+	  z = Math.abs(z);
+	
+	  double a1 = 0.278393, a2 = 0.230389, a3 = 0.000972, a4 = 0.078108;
+	  double sumterm = 1 + a1*z + a2*Math.pow(z,2) + a3*Math.pow(z,3) + a4*Math.pow(z,4);
+	  return sign * ( 1-1/(Math.pow(sumterm, 4)));
+	  
+  }
+  
+  
+  
+ /**
+  * Faster normalization according to the Binary Spatter Code's "majority" rule 
+  */
+  
+  public void normalizeBSC() {
     if (!isSparse)
     this.bitSet = concludeVote();
     
@@ -746,5 +836,7 @@ public class BinaryVector implements Vector {
     if (isSparse) return 0;
     return votingRecord.size();
   }
+  
+  
 }
 
