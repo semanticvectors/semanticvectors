@@ -41,7 +41,7 @@ R(A, B) => S(A) += E(R)*(E(B)),
 }}}
 where "`*`" is the bind operation of the VSA in question.
 
-== Distribution ==
+== Distribution and Worked Examples ==
 
 PSI is integrated and available in SemanticVectors as of version 3.4, and works with real, binary, and complex vectors.
 
@@ -98,6 +98,12 @@ Search output follows ...
 0.047852:hargeisa
 ...
 }}}
+
+== Why is this important? ==
+
+PSI supplements traditional tools for artificial inference by giving "nearby" results. In cases where there is a single clear winner, this recovers the behavior of giving "one right answer". But in cases where there are several possible plausible answers, it can be a great benefit to have robust approximate answers. This has been applied to questions like "Which drugs that have already been developed and approved might help to inhibit the growth of prostate cancer cells?"
+
+PSI is also fast. Every query expression gets resolved to a vector (so far usually a single vector), so once a query expression has been constructed, the search phase is just the same speed as any other search for related terms or documents using SemanticVectors. This is a big deal for computationally hard problems: an inference engine that runs as fast as a search engine could have many practical uses that were previously prohibitively slow or computationally intensive.
 
 == References / Further Reading ==
 
