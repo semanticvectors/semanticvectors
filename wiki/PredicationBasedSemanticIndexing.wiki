@@ -6,12 +6,13 @@ Predication-based Semantic Indexing, or PSI, is an application of distributional
 
 PSI starts with a collection of known facts or observations, and combines them into a single semantic vector model in which concepts and relationships are both represented. Then the usual tools for constructing query vectors and searching for results in SemanticVectors can be used to suggest new facts that have not been observed or recorded before. In some ways this is like using SemanticVectors as a kind of automated theorem prover: but it is much faster and noise-tolerant than traditional symbolic theorem provers. (Of course, one could reverse "noise-tolerant" and say that symbolic theorem provers are more "exact" than PSI: so PSI complements, it does not replace, traditional theorem proving.)
 
-== Semantic Vectors from Subject-Predicate-Object Triples ==
+== Subject-Predicate-Object Triples or Predications ==
 
 Start by taking a look in the small file of test data, [https://code.google.com/p/semanticvectors/source/browse/trunk/test/testdata/nationalfacts/nationalfacts.txt nationalfacts.txt]. This file contains a collection of facts about different countries, such as:
 
 {{{
-Sukhumi	CAPITAL_OF	 Abkhazia
+...
+Algiers	CAPITAL_OF	 Algeria
 ...
 Afghanistan	HAS_CURRENCY	Afghan afghani
 ...
@@ -21,6 +22,26 @@ etc.
 }}}
 
 This is an example of a "triple store", a way of representing individual facts that has become increasingly prominent in recent years. Each fact contains a pair of items (such as "Sukhumi" and "Abkhazia"), and a relationship that holds between them, such as "CAPITAL_OF". The first item is sometimes called the subject, the last item is sometimes called the object, and the relation that holds between them is sometimes called the predicate. And the whole triple may be referred to as a "predication", hence "Predication Semantic Indexing".
+
+== Semantic Vectors from Predications ==
+
+The process for building a semantic vector model from a triple store is conceptually as follows:
+
+* Create an elemental vector _E(A)_ for each item _A_ in the input triple store file.
+  * Also create a semantic vector _S(A)_ for the item, initially zero. 
+
+* Create a operation on vectors _O(R)_ for each type of predicate or relation _R_ in the input.
+
+* Go through the training data. When the predication _A R B_ (also written _R(A, B)_ is encountered, increment the semantic vector for _A_ with the operation for _R_ applied to the elemental vector for _B_. In symbols:
+{{{
+_R(A, B) => S(A) += O(R)(E(B))_.
+}}}
+
+In practice, we have experimented with two kinds of operators for relations. The first version worked with permutations, in much the same way as PermutationSearch. The current implementation uses the [http://semanticvectors.googlecode.com/svn/javadoc/latest-stable/pitt/search/semanticvectors/vectors/Vector.html#bind(pitt.search.semanticvectors.vectors.Vector) Vector.bind()] operation, as in the theory of Vector Symbolic Architectures. In this version, no extra representation of "operators" is necessary: instead, we create an elemental vector _E(R)_ for each type of relation _R_, and the training process is implemented as
+{{{
+_R(A, B) => S(A) += E(R)*(E(B))_,
+}}}
+where "*" is the bind operation of the VSA in question.
 
 == Distribution ==
 
