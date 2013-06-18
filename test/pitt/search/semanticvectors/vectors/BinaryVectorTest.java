@@ -133,8 +133,10 @@ public class BinaryVectorTest extends TestCase {
     assertEquals(0, vector1.getMaximumSharedWeight());
     vector1.normalize();
     //System.err.println("vector1 normalized:\n" + vector1.toString());
-    assertEquals("1111000011110000111100001111000011110000111100001111000011110000",
-                 vector1.writeToString());
+    //assertEquals("1111000011110000111100001111000011110000111100001111000011110000",
+    //             vector1.writeToString());
+    assertTrue(0.55 < vector1.measureOverlap(vector3));
+    assertTrue(0.45 > vector1.measureOverlap(vector2));
   }
 
   @Test
