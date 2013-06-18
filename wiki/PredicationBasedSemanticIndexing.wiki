@@ -27,21 +27,19 @@ This is an example of a "triple store", a way of representing individual facts t
 
 The process for building a semantic vector model from a triple store is conceptually as follows:
 
-* Create an elemental vector _E(A)_ for each item _A_ in the input triple store file.
-  * Also create a semantic vector _S(A)_ for the item, initially zero. 
-
-* Create a operation on vectors _O(R)_ for each type of predicate or relation _R_ in the input.
-
-* Go through the training data. When the predication _A R B_ (also written _R(A, B)_ is encountered, increment the semantic vector for _A_ with the operation for _R_ applied to the elemental vector for _B_. In symbols:
+  * Create an [ElementalVector elemental vector] _E(A)_ for each item _A_ in the input triple store file.
+    * Also create a semantic vector _S(A)_ for the item, initially zero. 
+  * Create a operation on vectors _O(R)_ for each type of predicate or relation _R_ in the input.
+  * Go through the training data. When the predication _A R B_ (also written _R(A, B)_ is encountered, increment the semantic vector for _A_ with the operation for _R_ applied to the elemental vector for _B_. In symbols:
 {{{
-_R(A, B) => S(A) += O(R)(E(B))_.
+R(A, B) => S(A) += O(R)(E(B)).
 }}}
 
 In practice, we have experimented with two kinds of operators for relations. The first version worked with permutations, in much the same way as PermutationSearch. The current implementation uses the [http://semanticvectors.googlecode.com/svn/javadoc/latest-stable/pitt/search/semanticvectors/vectors/Vector.html#bind(pitt.search.semanticvectors.vectors.Vector) Vector.bind()] operation, as in the theory of Vector Symbolic Architectures. In this version, no extra representation of "operators" is necessary: instead, we create an elemental vector _E(R)_ for each type of relation _R_, and the training process is implemented as
 {{{
-_R(A, B) => S(A) += E(R)*(E(B))_,
+R(A, B) => S(A) += E(R)`*`(E(B)),
 }}}
-where "*" is the bind operation of the VSA in question.
+where "`*`" is the bind operation of the VSA in question.
 
 == Distribution ==
 
