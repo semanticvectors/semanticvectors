@@ -1,0 +1,3 @@
+Orthographic vectors are a new addition to SemanticVectors that enables an [ElementalVectors elemental vector] to be generated deterministically for a word from the alphabetic characters in the word and their positions.
+
+This is a new development, more to follow. 
