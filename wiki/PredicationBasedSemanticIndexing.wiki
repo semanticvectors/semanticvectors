@@ -6,6 +6,22 @@ Predication-based Semantic Indexing, or PSI, is an application of distributional
 
 PSI starts with a collection of known facts or observations, and combines them into a single semantic vector model in which concepts and relationships are both represented. Then the usual tools for constructing query vectors and searching for results in SemanticVectors can be used to suggest new facts that have not been observed or recorded before. In some ways this is like using SemanticVectors as a kind of automated theorem prover: but it is much faster and noise-tolerant than traditional symbolic theorem provers. (Of course, one could reverse "noise-tolerant" and say that symbolic theorem provers are more "exact" than PSI: so PSI complements, it does not replace, traditional theorem proving.)
 
+== Semantic Vectors from Subject-Predicate-Object Triples ==
+
+Start by taking a look in the small file of test data, [https://code.google.com/p/semanticvectors/source/browse/trunk/test/testdata/nationalfacts/nationalfacts.txt nationalfacts.txt]. This file contains a collection of facts about different countries, such as:
+
+{{{
+Sukhumi	CAPITAL_OF	 Abkhazia
+...
+Afghanistan	HAS_CURRENCY	Afghan afghani
+...
+Armenia	HAS_NATIONAL_ANIMAL	Eagle
+...
+etc.
+}}}
+
+This is an example of a "triple store", a way of representing individual facts that has become increasingly prominent in recent years. Each fact contains a pair of items (such as "Sukhumi" and "Abkhazia"), and a relationship that holds between them, such as "CAPITAL_OF". The first item is sometimes called the subject, the last item is sometimes called the object, and the relation that holds between them is sometimes called the predicate. And the whole triple may be referred to as a "predication", hence "Predication Semantic Indexing".
+
 == Distribution ==
 
 PSI is integrated and available in SemanticVectors as of version 3.4, and works with real, binary, and complex vectors.
