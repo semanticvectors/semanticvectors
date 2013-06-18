@@ -37,7 +37,7 @@ R(A, B) => S(A) += O(R)(E(B)).
 
 In practice, we have experimented with two kinds of operators for relations. The first version worked with permutations, in much the same way as PermutationSearch. The current implementation uses the [http://semanticvectors.googlecode.com/svn/javadoc/latest-stable/pitt/search/semanticvectors/vectors/Vector.html#bind(pitt.search.semanticvectors.vectors.Vector) Vector.bind()] operation, as in the theory of Vector Symbolic Architectures. In this version, no extra representation of "operators" is necessary: instead, we create an elemental vector _E(R)_ for each type of relation _R_, and the training process is implemented as
 {{{
-R(A, B) => S(A) += E(R)`*`(E(B)),
+R(A, B) => S(A) += E(R)*(E(B)),
 }}}
 where "`*`" is the bind operation of the VSA in question.
 
@@ -49,28 +49,54 @@ To get an example working, get the [https://code.google.com/p/semanticvectors/so
 
 {{{
 $ java pitt.search.lucene.LuceneIndexFromTriples nationalfacts.txt
-$ java pitt.search.semanticvectors.PSI predication_index/
+$ java pitt.search.semanticvectors.PSI -vectortype binary -dimension 4096 -luceneindexpath predication_index/
+}}}
+
+This builds a PSI model for the national facts dataset. The model is represented by three files, containing the elemental vectors, semantic vectors, and predicate vectors. 
+
+There are several ways to query and explore this model. The simplest way to begin is to try to recover some of the individual relationships that went into constructing the model. For example, to ask "What is the currency of Mexico?", the following query works:
+
+{{{
 $ java pitt.search.semanticvectors.Search -searchtype boundproduct -queryvectorfile semanticvectors.bin -boundvectorfile predicatevectors.bin -searchvectorfile elementalvectors.bin -matchcase mexico HAS_CURRENCY
-Opening query vector store from file: semanticvectors.bin
-Opening second query vector store from file: predicatevectors.bin
-Opening search vector store from file: elementalvectors.bin
-Searching term vectors, searchtype boundproduct
-Found vector for 'mexico'
-Found vector for 'HAS_CURRENCY'
+...
 Search output follows ...
-0.6981237432989211:mexican_peso
-0.6940203823601886:euro
-0.6930460858871165:armenian_dram
-0.6923611416306082:netherlands_antillean_guilder
-0.6912367947828915:east_caribbean_dollar
-0.6912367627886535:central_african_cfa_franc
+0.500977:mexican_peso
+0.056641:indian_elephant
+0.052734:guinea-bissau
+0.044922:moroccan_dirham
 ...
 }}}
 
-The "Search" command also implements a simple "formal query parse" using the `E(foo) * S(bar)` kind of notation for elemental and semantic vectors, developed in the papers cited below. For example, once you have the above example working on the test data, the "dollar of mexico" analogy can be recovered using the following query expression (all on one line):
+Note that the big jump in similarity between the first and second result shows that the model is pretty confident that the currency of Mexico is the Mexican Peso, not the Indian Elephant!
+
+Of course, the input model represented this fact already. However, you can also use the same model immediately for a similarity search, as follows.
+
+{{{
+~/Data/PSI: java pitt.search.semanticvectors.Search -queryvectorfile semanticvectors.bin mexico
+...
+Search output follows ...
+1.000000:mexico
+0.261230:albania
+0.060547:dodo
+0.049805:adamstown
+0.046875:colombian_peso
+...
+}}}
+
+Apart from Mexico itself, there is one other "similar" country with a significant similarity score - Albania! This is because both Mexico and Albania share the Golden Eagle as their national animal. (The national facts example dataset is very sparse. If we updated it to include languages and continents, for example, we would find that Mexico is considered to be similar to other North American countries that speak Spanish.)
+
+As well as searching explicit relations and similarities, PSI can be used for analogical search. For example, suppose you were unaware of the formal "HAS_CURRENCY" relation, and just wanted to know "If I use dollars in the USA, what do I use in Mexico?"
+
+For queries like this, the "Search" command also implements a simple "formal query parse" using the `E(foo) * S(bar)` kind of notation for elemental and semantic vectors, developed in the papers cited below. For example, once you have the above example working on the test data, the "dollar of mexico" analogy can be recovered using the following query expression (all on one line):
 
 {{{
 java pitt.search.semanticvectors.Search -searchtype boundproduct -queryvectorfile semanticvectors.bin -boundvectorfile elementalvectors.bin -searchvectorfile elementalvectors.bin -matchcase "E(united_states_dollar)*S(united_states)*S(mexico)"
+...
+Search output follows ...
+0.268555:mexican_peso
+0.047852:moroccan_dirham
+0.047852:hargeisa
+...
 }}}
 
 == References / Further Reading ==
