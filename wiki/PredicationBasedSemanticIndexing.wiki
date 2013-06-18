@@ -1,6 +1,12 @@
 #summary Predication Based Semantic Indexing - PSI
 
-Predication-based Semantic Indexing, or PSI, is an application of distributional semantic techniques to reasoning and inference. 
+== Introduction ==
+
+Predication-based Semantic Indexing, or PSI, is an application of distributional semantic techniques to reasoning and inference. This is exciting because traditionally the areas of empirical learning and deductive inference have been treated quite separately in linguistics and artificial intelligence, but in the last few years we have seen techniques from both areas working together. PSI is one such technique.
+
+PSI starts with a collection of known facts or observations, and combines them into a single semantic vector model in which concepts and relationships are both represented. Then the usual tools for constructing query vectors and searching for results in SemanticVectors can be used to suggest new facts that have not been observed or recorded before. In some ways this is like using SemanticVectors as a kind of automated theorem prover: but it is much faster and noise-tolerant than traditional symbolic theorem provers. (Of course, one could reverse "noise-tolerant" and say that symbolic theorem provers are more "exact" than PSI: so PSI complements, it does not replace, traditional theorem proving.)
+
+== Distribution ==
 
 PSI is integrated and available in SemanticVectors as of version 3.4, and works with real, binary, and complex vectors.
 
@@ -32,7 +38,7 @@ The "Search" command also implements a simple "formal query parse" using the `E(
 java pitt.search.semanticvectors.Search -searchtype boundproduct -queryvectorfile semanticvectors.bin -boundvectorfile elementalvectors.bin -searchvectorfile elementalvectors.bin -matchcase "E(united_states_dollar)*S(united_states)*S(mexico)"
 }}}
 
-===References===
+== References / Further Reading ==
 
 [http://www.ncbi.nlm.nih.gov/pmc/articles/PMC2815384/pdf/amia-f2009-114.pdf Predication-based Semantic Indexing: Permutations as a Means to Encode Predications in Semantic Space.] Cohen T, Schvaneveldt, R. Rindlesch, T. AMIA Annu Symp Proc. 2009. 114-118.
 
