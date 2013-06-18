@@ -31,7 +31,7 @@ import pitt.search.semanticvectors.vectors.VectorType;
  * 
  * <b>[1]</b> Wahle, M, Widdows, D, Herskovic, J, Bernstam, E, Cohen, T.
  * Deterministic Binary Vectors for Efficient Automated Indexing of
- * MEDLINE/PubMed Abstracts, to appear in Proceedings of AMIA 2012.
+ * MEDLINE/PubMed Abstracts, Proceedings of AMIA 2012.
  * <p>
  * 
  * @see ObjectVector
