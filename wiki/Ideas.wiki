@@ -2,7 +2,15 @@
 
 = Ideas =
 
-There are many natural ideas and suggestions for things to try with SemanticVectors. This page is meant to be a starting point. Feel free to add new ideas or comment on existing ones. Many ideas start as discussions in the [https://groups.google.com/forum/?fromgroups#!forum/semanticvectors mailing list]. Some ideas turn into engineering tasks and may eventually be tracked at [https://code.google.com/p/semanticvectors/issues/list Issues]. 
+There are many natural ideas and suggestions for things to try with SemanticVectors. This page is meant to be a starting point. Feel free to add new ideas or comment on existing ones. Many ideas start as discussions in the [https://groups.google.com/forum/?fromgroups#!forum/semanticvectors mailing list]. Some ideas turn into engineering tasks and may eventually be tracked at [https://code.google.com/p/semanticvectors/issues/list Issues].
+
+== Engineering TODOs and Suggestions ==
+
+ * Update to support Lucene 4.0 integration (see LuceneCompatibility).
+ * Make the project work with Maven (see also [https://groups.google.com/forum/#!topic/semanticvectors/qCy0PaL7Nuo Maven artifact discussion]).
+ * Make a couple of small UIs for demos (Swing client, simple Web client).
+
+These are things Dominic hopes to get round to. Any other engineer who jumps in before me and tackles any of these successfully could be paid in [http://linkedin.com LinkedIn] endorsements, letters of reference, beer, chocolate - you choose.
 
 == Incremental Indexing ==
 
