@@ -10,7 +10,9 @@ import org.apache.lucene.store.IndexOutput;
 import org.apache.lucene.util.OpenBitSet;
 
 import pitt.search.semanticvectors.FlagConfig;
+import pitt.search.semanticvectors.VectorStore;
 import pitt.search.semanticvectors.hashing.Bobcat;
+import pitt.search.semanticvectors.orthography.NumberRepresentation;
 
 /**
  * Binary implementation of Vector.
@@ -39,8 +41,10 @@ public class BinaryVector implements Vector {
   
   private static final int DEBUG_PRINT_LENGTH = 64;
   private Random random;
+  private static NumberRepresentation numberRepresentation;
+  private static VectorStore numberVectors;
   private final int dimension;
-
+  
   /**
    * Elemental representation for binary vectors. 
    */
@@ -77,6 +81,15 @@ public class BinaryVector implements Vector {
     this.bitSet = new OpenBitSet(dimension);
     this.isSparse = true;
     this.random = new Random();
+    
+    if (false) //(BinaryVector.numberVectors == null)
+    {	
+    	int d2 = dimension/2;
+    	String[] fakeArgs = {"-dimension",dimension+"","-vectortype","binary","-seedlength",""+d2};
+    	BinaryVector.numberRepresentation = new NumberRepresentation(FlagConfig.getFlagConfig(fakeArgs));
+    	BinaryVector.numberVectors = BinaryVector.numberRepresentation.getNumberVectors(1, 100);
+    }
+    
     }
 
   /**
@@ -616,7 +629,11 @@ public class BinaryVector implements Vector {
 	  this.bitSet.xor(this.bitSet);
 	  
 	  //Ensure that the same set of superposed vectors will always produce the same result
-	  random.setSeed(Bobcat.asLong("##universal_superposition_seed##"));
+	  long theSuperpositionSeed = 0;
+	  for (int q =0; q < votingRecord.size(); q++)
+		  theSuperpositionSeed += votingRecord.get(q).getBits()[0];
+	  
+	  random.setSeed(theSuperpositionSeed);
 	  
 	  //Determine value above the universal minimum for each dimension of the voting record
 	  int[] counts = new int[dimension];
