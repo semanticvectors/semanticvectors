@@ -35,10 +35,10 @@ public class BinaryVector implements Vector {
    */
   public static final int BINARY_VECTOR_DECIMAL_PLACES = 2;
   public static final boolean BINARY_BINDING_WITH_PERMUTE = false;
-
+ 
   
   private static final int DEBUG_PRINT_LENGTH = 64;
-
+  private Random random;
   private final int dimension;
 
   /**
@@ -76,7 +76,8 @@ public class BinaryVector implements Vector {
     this.dimension = dimension;
     this.bitSet = new OpenBitSet(dimension);
     this.isSparse = true;
-  }
+    this.random = new Random();
+    }
 
   /**
    * Returns a new copy of this vector, in dense format.
@@ -614,7 +615,8 @@ public class BinaryVector implements Vector {
 	  //clear bitset;
 	  this.bitSet.xor(this.bitSet);
 	  
-	  Random random = new Random();
+	  //Ensure that the same set of superposed vectors will always produce the same result
+	  random.setSeed(Bobcat.asLong("##universal_superposition_seed##"));
 	  
 	  //Determine value above the universal minimum for each dimension of the voting record
 	  int[] counts = new int[dimension];
