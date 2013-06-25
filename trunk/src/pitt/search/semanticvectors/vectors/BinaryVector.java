@@ -2,18 +2,12 @@ package pitt.search.semanticvectors.vectors;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.Random;
-import java.util.TreeSet;
 import java.util.logging.Logger;
-
 import org.apache.lucene.store.IndexInput;
 import org.apache.lucene.store.IndexOutput;
 import org.apache.lucene.util.OpenBitSet;
 
-import pitt.search.semanticvectors.FlagConfig;
-import pitt.search.semanticvectors.VectorStore;
-import pitt.search.semanticvectors.hashing.Bobcat;
 
 /**
  * Binary implementation of Vector.
