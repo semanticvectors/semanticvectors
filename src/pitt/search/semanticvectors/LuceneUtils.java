@@ -210,6 +210,29 @@ public class LuceneUtils {
   }
 
   /**
+   * Gets a local term weight for a term based on its document frequency, depending on the setting for
+   * {@link FlagConfig#termweight()}.
+   * 
+   * Used in indexing. 
+   *
+   * @param docfreq the frequency of the term concerned in the document of interest
+   * @return Local term weight
+   */
+  public float getLocalTermWeight(int docfreq) {
+    switch (flagConfig.termweight()) {
+    case NONE:
+      return 1;
+    case IDF:
+      return docfreq;
+    case LOGENTROPY:
+      return (float) Math.log10(1+docfreq);
+    }
+    VerbatimLogger.severe("Unrecognized termweight option: " + flagConfig.termweight()
+        + ". Returning 1.");
+    return 1;
+  }
+  
+  /**
    * Returns the number of documents in the Lucene index.
    */
   public int getNumDocs() { return indexReader.numDocs(); }

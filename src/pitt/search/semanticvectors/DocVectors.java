@@ -149,7 +149,7 @@ public class DocVectors implements VectorStore {
             String docID = Integer.toString(td.doc());
             // Add vector from this term, taking freq into account.
             Vector docVector = this.docVectors.getVector(docID);
-            float localweight = td.freq();
+            float localweight = lUtils.getLocalTermWeight(td.freq());
 
             if (flagConfig.fieldweight()) {
               //field weight: 1/sqrt(number of terms in field)
