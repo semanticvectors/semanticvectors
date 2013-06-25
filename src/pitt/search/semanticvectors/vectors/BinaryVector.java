@@ -2,7 +2,9 @@ package pitt.search.semanticvectors.vectors;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.Random;
+import java.util.TreeSet;
 import java.util.logging.Logger;
 
 import org.apache.lucene.store.IndexInput;
@@ -380,19 +382,19 @@ public class BinaryVector implements Vector {
       tempSet.xor(votingRecord.get(0));
       for (int x = 1; x < votingRecord.size(); x++)
         tempSet.andNot(votingRecord.get(x));
-    }
+    } else
+    {
     String inbinary = reverse(Integer.toBinaryString(target));
-
     tempSet.xor(tempSet);
     tempSet.xor(votingRecord.get(inbinary.indexOf("1")));
-
+     
     for (int q =0; q < votingRecord.size(); q++) {
-      if (q < inbinary.length())
-        if (inbinary.charAt(q) == '1')
+      if (q < inbinary.length() && inbinary.charAt(q) == '1')
           tempSet.and(votingRecord.get(q));	
         else 
           tempSet.andNot(votingRecord.get(q));	
-    }	
+    		}
+    }
   }
 
   /**
@@ -638,43 +640,54 @@ public class BinaryVector implements Vector {
 	  //Determine value above the universal minimum for each dimension of the voting record
 	  int[] counts = new int[dimension];
 	  int max = totalNumberOfVotes;
+	   
+	  //Determine the maximum possible votes on the voting record
+	  int maxpossiblevotesonrecord = 0;
 	  
-	  for (int x =0 ; x < votingRecord.size(); x++)
-	  for (int y =0 ; y < dimension; y++)
+	  for (int q=0; q < votingRecord.size(); q++)
+		maxpossiblevotesonrecord += Math.pow(2, q);  
+	  
+	  //For each possible value on the record, get a BitSet with a "1" in the 
+	  //position of the dimensions that match this value
+	  for (int x = 1; x <= maxpossiblevotesonrecord; x++)
 	  {
-		  if (votingRecord.get(x).fastGet(y))
-				  counts[y] += Math.pow(2, x);
-		  
+		    this.setTempSetToExactMatches(x);
+		 	
+		 	//For each y==1 on said BitSet (indicating votes in dimension[y] == x)
+		    int y = tempSet.nextSetBit(0);
+		 	
+		 	  while (y != -1)
+		 	  {
+		 		  //determine total number of votes 
+				  double votes = minimum+x;
+				  
+				  //calculate standard deviations above/below the mean of max/2 
+				  double z = (votes - (max/2)) / (Math.sqrt(max)/2);
+				  
+				  //find proportion of data points anticipated within z standard deviations of the mean (assuming approximately normal distribution)
+				  double proportion = erf(z/Math.sqrt(2));
+				  
+				  //convert into a value between 0 and 1 (i.e. centered on 0.5 rather than centered on 0)
+				  proportion = (1+proportion) /2;
+				  
+				  //probabilistic normalization
+				  if ((random.nextDouble()) <= proportion) this.bitSet.fastSet(y);
+		 		  
+				  y++;
+		 		  y = tempSet.nextSetBit(y);
+		 	  }
+			  
 	  }
-	  
-	  for (int w =0; w < dimension; w++)
-	  {
-		  //determine total number of votes 
-		  double votes = minimum+counts[w];
 		  
-		  //calculate standard deviations above/below the mean of max/2 
-		  double z = (votes - (max/2)) / (Math.sqrt(max)/2);
-		  
-		  //find proportion of data points anticipated within z standard deviations of the mean (assuming approximately normal distribution)
-		  double proportion = erf(z/Math.sqrt(2));
-		  
-		  //convert into a value between 0 and 1 (i.e. centered on 0.5 rather than centered on 0)
-		  proportion = (1+proportion) /2;
-		  
-		  //probabilistic normalization
-		  if ((random.nextDouble()) <= proportion) this.bitSet.fastSet(w);
-		
-	  }
-	  
 	  //housekeeping
 	    votingRecord = new ArrayList<OpenBitSet>();
 	    votingRecord.add((OpenBitSet) bitSet.clone());
 	    totalNumberOfVotes = 1;
 	    tempSet = new OpenBitSet(dimension);
 	    minimum = 0;
-	  
   }
   
+
   // approximation of error function, equation 7.1.27 from
   // Abramowitz, M. and Stegun, I. A. (Eds.). "Repeated Integrals of the Error Function." §7.2 
   //in Handbook of Mathematical Functions with Formulas, Graphs, and Mathematical Tables, 
@@ -740,6 +753,9 @@ public class BinaryVector implements Vector {
     }
   }
 
+  
+  
+  
   @Override
   /**
    * Reads a (dense) version of a vector from a Lucene input stream. 
