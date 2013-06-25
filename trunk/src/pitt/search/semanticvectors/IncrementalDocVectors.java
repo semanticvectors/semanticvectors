@@ -115,10 +115,7 @@ public class IncrementalDocVectors {
 
     // Write header giving number of dimension for all vectors.
     outputStream.writeString(VectorStoreWriter.generateHeaderString(flagConfig));
-
-    ArrayList<Vector> toBeSuperposed = null;
-    ArrayList<Double> superpositionWeights = null;
-    
+ 
     // Iterate through documents.
     for (int dc = 0; dc < numdocs; dc++) {
       // Output progress counter.
@@ -158,7 +155,7 @@ public class IncrementalDocVectors {
         
             
                 	int freq = freqs[b];
-                	float localweight = freq;
+                	float localweight =  lUtils.getLocalTermWeight(freq);
                 	float globalweight = lUtils.getGlobalTermWeight(new Term(fieldName,termString));
                 	float fieldweight = 1;
 
