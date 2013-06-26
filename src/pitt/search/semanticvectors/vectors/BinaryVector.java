@@ -635,28 +635,30 @@ public class BinaryVector implements Vector {
 	  for (int x = 1; x <= maxpossiblevotesonrecord; x++)
 	  {
 		    this.setTempSetToExactMatches(x);
-		 	
+		    
+		    //no exact matches
+		 	if (this.tempSet.cardinality() == 0) continue;
+		 		
 		 	//For each y==1 on said BitSet (indicating votes in dimension[y] == x)
 		    int y = tempSet.nextSetBit(0);
 		 	
+		    //determine total number of votes 
+			double votes = minimum+x;
+			  
+			//calculate standard deviations above/below the mean of max/2 
+			double z = (votes - (max/2)) / (Math.sqrt(max)/2);
+			  
+			//find proportion of data points anticipated within z standard deviations of the mean (assuming approximately normal distribution)
+			double proportion = erf(z/Math.sqrt(2));
+			  
+			//convert into a value between 0 and 1 (i.e. centered on 0.5 rather than centered on 0)
+			proportion = (1+proportion) /2;
+			
 		 	  while (y != -1)
 		 	  {
-		 		  //determine total number of votes 
-				  double votes = minimum+x;
-				  
-				  //calculate standard deviations above/below the mean of max/2 
-				  double z = (votes - (max/2)) / (Math.sqrt(max)/2);
-				  
-				  //find proportion of data points anticipated within z standard deviations of the mean (assuming approximately normal distribution)
-				  double proportion = erf(z/Math.sqrt(2));
-				  
-				  //convert into a value between 0 and 1 (i.e. centered on 0.5 rather than centered on 0)
-				  proportion = (1+proportion) /2;
-				  
-				  //probabilistic normalization
+		 		  //probabilistic normalization
 				  if ((random.nextDouble()) <= proportion) this.bitSet.fastSet(y);
-		 		  
-				  y++;
+		 		   y++;
 		 		  y = tempSet.nextSetBit(y);
 		 	  }
 			  
