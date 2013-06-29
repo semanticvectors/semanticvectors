@@ -1,9 +1,11 @@
 package pitt.search.lucene;
 import java.io.File;
 import java.io.FileReader;
-
+import org.apache.lucene.index.FieldInfo.IndexOptions;
 import org.apache.lucene.document.DateTools;
 import org.apache.lucene.document.Document;
+import org.apache.lucene.document.Field;
+import org.apache.lucene.document.FieldType;
 import org.apache.lucene.document.StoredField;
 import org.apache.lucene.document.TextField;
 
@@ -20,7 +22,16 @@ public class FilePositionDoc  {
     doc.add(new StoredField("path", f.getPath()));
     doc.add(new StoredField("modified",
                       DateTools.timeToString(f.lastModified(), DateTools.Resolution.MINUTE)));
-    doc.add(new TextField("contents", new FileReader(f)));
+    
+    //create new FieldType to store term positions (TextField is not sufficiently configurable)
+    FieldType ft = new FieldType();
+    ft.setIndexed(true);
+    ft.setTokenized(true);
+    ft.setStoreTermVectors(true);
+    ft.setStoreTermVectorPositions(true);
+    Field contentsField = new Field("contents", new FileReader(f), ft);
+
+    doc.add(contentsField);
     return doc;
   }
 }
