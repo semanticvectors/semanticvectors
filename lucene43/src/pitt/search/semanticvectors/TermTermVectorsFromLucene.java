@@ -313,11 +313,13 @@ public class TermTermVectorsFromLucene implements VectorStore {
       
 	  if (terms == null) return;
 	  
-	  Hashtable<String, Integer> freqs = new Hashtable<String, Integer>();
-	  Hashtable<Integer, String> localTermPositions = new Hashtable<Integer, String>();
+	  ArrayList<String> localTerms = new ArrayList<String>();
+	  ArrayList<Integer> freqs = new ArrayList<Integer>();
+	  Hashtable<Integer, Integer> localTermPositions = new Hashtable<Integer, Integer>();
     
 	   TermsEnum termsEnum = terms.iterator(null);
 	    BytesRef text;
+		int termcount = 0;
 		
 	    while((text = termsEnum.next()) != null) {
 	    	
@@ -326,11 +328,14 @@ public class TermTermVectorsFromLucene implements VectorStore {
 	    	    	
 	    	DocsAndPositionsEnum docsAndPositions = termsEnum.docsAndPositions(null, null);
 	    	docsAndPositions.nextDoc();
-	    	freqs.put(theTerm, docsAndPositions.freq());
-	    	 	 
+	    	freqs.add(docsAndPositions.freq());
+	    	localTerms.add(theTerm); 
+	    	
 	    	 for (int x = 0; x < docsAndPositions.freq(); x++)
-	    		 localTermPositions.put(new Integer(docsAndPositions.nextPosition()), theTerm);
+	    		 localTermPositions.put(new Integer(docsAndPositions.nextPosition()), termcount);
 	    	 	 
+	    
+	    	 termcount++;
 	    }
     
  
@@ -338,15 +343,16 @@ public class TermTermVectorsFromLucene implements VectorStore {
     // Iterate through positions adding index vectors of terms
     // occurring within window to term vector for focus term
     for (int focusposn = 0; focusposn < localTermPositions.size(); ++focusposn) {
-      String focusterm = localTermPositions.get(focusposn);
-      if (focusterm == null) continue;
+      if (localTermPositions.get(focusposn) == null) continue;
+      String focusterm = localTerms.get(localTermPositions.get(focusposn));
       int windowstart = Math.max(0, focusposn - flagConfig.windowradius());
       int windowend = Math.min(focusposn + flagConfig.windowradius(), localTermPositions.size() - 1);
 
       for (int cursor = windowstart; cursor <= windowend; cursor++) {
         if (cursor == focusposn) continue;
-        String coterm = localTermPositions.get(cursor);
-        if (coterm == null) continue;
+        if (localTermPositions.get(cursor) == null) continue;
+        String coterm = localTerms.get(localTermPositions.get(cursor));
+       
 
         if (this.indexVectors.getVector(coterm) == null) 
         {
@@ -381,5 +387,8 @@ public class TermTermVectorsFromLucene implements VectorStore {
 
       } //end of current sliding window   
       } //end of all sliding windows
+    
+    
+    
   }
 }
