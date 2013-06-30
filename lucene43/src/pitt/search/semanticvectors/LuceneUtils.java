@@ -50,6 +50,7 @@ import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.DocsEnum;
 import org.apache.lucene.index.FieldInfos;
 import org.apache.lucene.index.MultiFields;
+import org.apache.lucene.index.SlowCompositeReaderWrapper;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.index.Terms;
 import org.apache.lucene.store.FSDirectory;
@@ -97,11 +98,8 @@ public class LuceneUtils {
           "-luceneindexpath is a required argument for initializing LuceneUtils instance.");
     }
 
-    this.compositeReader = DirectoryReader.open(FSDirectory.open(new File(flagConfig.luceneindexpath())));
-    if (compositeReader.leaves().size() != 1) {
-      throw new IllegalStateException("LuceneUtils implementation requires exactly one atomic reader from -luceneindexpath directory.");
-    }    
-    this.atomicReader = compositeReader.leaves().get(0).reader();
+    this.compositeReader = DirectoryReader.open(FSDirectory.open(new File(flagConfig.luceneindexpath())));  
+    this.atomicReader =  SlowCompositeReaderWrapper.wrap(compositeReader);
     MultiFields.getFields(compositeReader);
     this.flagConfig = flagConfig;
     if (!flagConfig.stoplistfile().isEmpty())
@@ -175,7 +173,9 @@ public class LuceneUtils {
 
   public Terms getTermVector(int docID, String field) throws IOException {
     return this.atomicReader.getTermVector(docID, field);
-  }
+     }
+  
+ 
   
   public FieldInfos getFieldInfos() {
     return this.atomicReader.getFieldInfos();
