@@ -36,9 +36,12 @@ import static pitt.search.semanticvectors.LuceneUtils.LUCENE_VERSION;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.Reader;
 import java.util.Date;
 import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.analysis.core.WhitespaceAnalyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
+import org.apache.lucene.analysis.util.CharArraySet;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.store.FSDirectory;
@@ -76,7 +79,7 @@ public class IndexFilePositions {
     try {
     	IndexWriter writer;
       // Create IndexWriter using porter stemmer or no stemming. No stopword list.
-    	Analyzer analyzer = flagConfig.porterstemmer() ? new PorterAnalyzer() : new StandardAnalyzer(LUCENE_VERSION);
+    	Analyzer analyzer = flagConfig.porterstemmer() ? new PorterAnalyzer() : new StandardAnalyzer(LUCENE_VERSION, new CharArraySet(LUCENE_VERSION, 0, false));
       IndexWriterConfig writerConfig = new IndexWriterConfig(LUCENE_VERSION, analyzer);
       writer = new IndexWriter(FSDirectory.open(INDEX_DIR), writerConfig);
 
