@@ -59,13 +59,8 @@ import static org.junit.Assert.*;
  */
 public class RegressionTests {
   @Before
-  public void setUp() {
-    try {
-      RunTests.prepareTestData();
-    } catch (IOException e) {
-      e.printStackTrace();
-      fail();
-    }
+  public void setUp() throws IOException {
+    RunTests.prepareTestData();
   }
 
   private int buildSearchGetRank(String buildCmd, String searchCmd, String targetResult) {

@@ -66,7 +66,6 @@ public class IncrementalDocVectors {
   private FlagConfig flagConfig;
   private VectorStore termVectorData;
   private LuceneUtils luceneUtils;
-  private String vectorFileName;
 
   private IncrementalDocVectors() {};
 
@@ -77,7 +76,6 @@ public class IncrementalDocVectors {
    * @param termVectorData Has all the information needed to create doc vectors.
    * @param flagConfig Any extra flag configurations
    * @param indexDir Directory of the Lucene Index used to generate termVectorData
-   * @param vectorStoreName Filename for the document vectors
    */
   public static void createIncrementalDocVectors(
       VectorStore termVectorData, FlagConfig flagConfig, LuceneUtils luceneUtils) 
@@ -93,7 +91,8 @@ public class IncrementalDocVectors {
     int numdocs = luceneUtils.getNumDocs();
 
     // Open file and write headers.
-    File vectorFile = new File(vectorFileName);
+    File vectorFile = new File(
+        VectorStoreUtils.getStoreFileName(flagConfig.docvectorsfile(), flagConfig));
     String parentPath = vectorFile.getParent();
     if (parentPath == null) parentPath = "";
     FSDirectory fsDirectory = FSDirectory.open(new File(parentPath));

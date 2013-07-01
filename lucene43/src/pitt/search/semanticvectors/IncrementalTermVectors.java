@@ -217,6 +217,6 @@ public class IncrementalTermVectors implements VectorStore {
     }
 
     VectorStore termVectors = new IncrementalTermVectors(flagConfig, new LuceneUtils(flagConfig));
-    VectorStoreWriter.writeVectors("incremental_termvectors.bin", flagConfig, termVectors);
+    VectorStoreWriter.writeVectors(flagConfig.termvectorsfile(), flagConfig, termVectors);
   }
 }

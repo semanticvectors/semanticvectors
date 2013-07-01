@@ -42,7 +42,7 @@
   <property name="docdir" value="${basedir}/doc"/>  
   <property name="srcdir" value="${basedir}/src"/>
   <property name="testdir" value="${basedir}/test"/>
-  <property name="testworkingdir" value="${testdir}/testdata/tmp"/>
+  <property name="testtmpdir" value="${testdir}/testdata/tmp"/>
   <property name="extdir" value="${basedir}/src-ext"/>
   <property name="dist-doc.dir" value="./../javadoc/latest-stable-test"/>
 
@@ -128,7 +128,7 @@
   <target name="clean" depends="init">
     <delete dir="${builddir}"/>
     <delete dir="${distdir}"/>
-    <delete dir="${testworkingdir}"/>
+    <delete dir="${testtmpdir}"/>
     <!-- Only delete html files from ${docdir} - don't delete
          directories since this is part of svn tree -->
     <delete>    
@@ -164,9 +164,9 @@
   <target name="run-integration-tests" depends="compile-tests,jardist">
   	<!-- This test configuration includes some quick and dirty filesystem
       	 operations to make sure that the working dir starts and finishes empty. -->
-    <delete dir="${testworkingdir}"/>
-    <mkdir dir="${testworkingdir}"/>
-    <java fork="true" dir="${testworkingdir}"
+    <delete dir="${testtmpdir}"/>
+    <mkdir dir="${testtmpdir}"/>
+    <java fork="true" dir="${basedir}"
           classpathref="run.classpath"
           classname="pitt.search.semanticvectors.integrationtests.RunTests"/>
     <!--

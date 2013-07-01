@@ -54,7 +54,7 @@ import pitt.search.semanticvectors.VerbatimLogger;
 /**
  * Class for running unit tests and regression tests.
  *
- * Should be run in the test/testdata/tmp working directory. Running
+ * Should be run from the project base directory working directory. Running
  * from the build.xml script with "ant run-integration-tests" ensures this.
  */
 public class RunTests {
@@ -117,7 +117,7 @@ public class RunTests {
     VectorStoreTranslater.main(translaterArgs);
 
     // Create Lucene indexes from test corpus, to use in index building and searching tests.
-    String johnTestDataPath = "../John";
+    String johnTestDataPath = "test/testdata/John";
     File johnTestDataDir = new File(johnTestDataPath);
     if (!johnTestDataDir.isDirectory()) {
       throw new IOException("No directory for test data at: " + johnTestDataDir.getAbsolutePath());
@@ -174,3 +174,5 @@ public class RunTests {
     System.exit(0);
   }
 }
+
+
