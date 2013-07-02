@@ -102,6 +102,7 @@ public class IncrementalDocVectors {
 
     // Write header giving number of dimension for all vectors.
     outputStream.writeString(VectorStoreWriter.generateHeaderString(flagConfig));
+    
     // Iterate through documents.
     for (int dc = 0; dc < numdocs; dc++) {
       // Output progress counter.
@@ -151,8 +152,8 @@ public class IncrementalDocVectors {
         if (docID.length() == 0) {
           logger.warning("Empty document name!!! This will cause problems ...");
           logger.warning("Please set -docidfield to a nonempty field in your Lucene index.");
-          outputStream.writeString(docID);
         }
+        outputStream.writeString(docID);
       }
       docVector.normalize();
       docVector.writeToLuceneStream(outputStream);
