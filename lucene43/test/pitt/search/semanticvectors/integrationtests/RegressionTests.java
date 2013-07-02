@@ -166,12 +166,12 @@ public class RegressionTests {
         new String[] {"termtermvectors.bin", "docvectors.bin"},
         "peter");
     assertTrue(peterRank < 5);
-    int chapter21Rank = positionalBuildSearchGetRank(
+    int chapter17Rank = positionalBuildSearchGetRank(
         "-dimension 200 -vectortype real -seedlength 10 -luceneindexpath positional_index",
-        "-queryvectorfile termtermvectors.bin -searchvectorfile docvectors.bin simon",
+        "-queryvectorfile termtermvectors.bin -searchvectorfile docvectors.bin bread",
         new String[] {"termtermvectors.bin", "docvectors.bin"},
-        "peter");
-    assertTrue(chapter21Rank < 5);
+        "test/testdata/John/Chapter_17");
+    assertTrue(chapter17Rank < 5);
   }
   
   @Test

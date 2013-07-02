@@ -120,7 +120,8 @@ public class IncrementalDocVectors {
         TermsEnum termsEnum = terms.iterator(tmp);
         BytesRef bytes;
         while ((bytes = termsEnum.next()) != null) {
-          String termString = bytes.toString();
+          Term term = new Term(fieldName, bytes);
+          String termString = term.text();
           int freq = termsEnum.docFreq();
           try {
             Vector termVector = termVectorData.getVector(termString);
