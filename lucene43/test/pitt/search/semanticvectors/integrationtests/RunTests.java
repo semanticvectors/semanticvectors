@@ -130,7 +130,7 @@ public class RunTests {
       IndexFilePositions.main(new String[] {johnTestDataPath});
     }
     
-    String triplesTestDataPath = "../nationalfacts/nationalfacts.txt";
+    String triplesTestDataPath = "test/testdata/nationalfacts/nationalfacts.txt";
     if (Arrays.asList(cwd.list()).contains("predication_index")) {
       VerbatimLogger.warning(cwd.getCanonicalPath() + " already contains predication_index. "
           + "Please delete if you want to run from clean.\n");

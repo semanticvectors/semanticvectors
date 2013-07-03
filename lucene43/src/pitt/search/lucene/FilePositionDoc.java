@@ -1,13 +1,11 @@
 package pitt.search.lucene;
 import java.io.File;
 import java.io.FileReader;
-import org.apache.lucene.index.FieldInfo.IndexOptions;
 import org.apache.lucene.document.DateTools;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.FieldType;
 import org.apache.lucene.document.StoredField;
-import org.apache.lucene.document.TextField;
 
 /**
  *  This class makes a minor modification to org.apache.lucene.FileDocument

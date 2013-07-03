@@ -30,7 +30,6 @@ public class LuceneIndexFromTriples {
   /** Index all text files under a directory. */
   public static void main(String[] args) {
 
-
     String usage = "java pitt.search.lucene.LuceneIndexFromTriples [triples text file] ";
     if (args.length == 0) {
       System.err.println("Usage: " + usage);
@@ -107,7 +106,7 @@ public class LuceneIndexFromTriples {
       }
 
       lineIn = theReader.readLine();
-      theReader.close();
     }
+    theReader.close();
   }
 }
