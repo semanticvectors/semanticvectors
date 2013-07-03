@@ -114,19 +114,25 @@ public class IncrementalDocVectors {
 
       docVector = VectorFactory.createZeroVector(flagConfig.vectortype(), flagConfig.dimension());
 
+
+      
       for (String fieldName: flagConfig.contentsfields()) {
         Terms terms = luceneUtils.getTermVector(dc, fieldName);
+        if (terms == null) {logger.severe("No term vector for document "+dc); continue; }
         TermsEnum tmp = null;
         TermsEnum termsEnum = terms.iterator(tmp);
         BytesRef bytes;
         while ((bytes = termsEnum.next()) != null) {
           Term term = new Term(fieldName, bytes);
           String termString = term.text();
-          int freq = termsEnum.docFreq();
-          try {
+          DocsEnum docs = termsEnum.docs(null, null);
+          docs.nextDoc();
+	      int freq = docs.freq();
+	     
+	      try {
             Vector termVector = termVectorData.getVector(termString);
             if (termVector != null && termVector.getDimension() > 0) {
-              float localweight = freq;
+              float localweight = luceneUtils.getLocalTermWeight(freq);
               float globalweight = luceneUtils.getGlobalTermWeight(new Term(fieldName,termString));
               float fieldweight = 1;
 

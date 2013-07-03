@@ -105,7 +105,7 @@ public class IncrementalTermVectors implements VectorStore {
       while ((bytes = termEnum.next()) != null) {
         Term term = new Term(fieldName, bytes);
 
-        if (termVectorData.getVector(term.text()) == null) continue;
+        if (termVectorData.getVector(term.text()) != null) continue;
         if (!luceneUtils.termFilter(term)) continue;
         tc++;
         Vector termVector = VectorFactory.createZeroVector(flagConfig.vectortype(), flagConfig.dimension());
@@ -159,7 +159,9 @@ public class IncrementalTermVectors implements VectorStore {
       }
 
       for (String fieldName : this.flagConfig.contentsfields()) {
-        Terms docTerms = this.luceneUtils.getTermVector(new Integer(docID), fieldName);
+        Terms docTerms = this.luceneUtils.getTermVector(new Integer(dc), fieldName);
+        if (docTerms == null) {logger.severe("No term vector for document "+dc); continue; }
+        
         TermsEnum termsEnum = docTerms.iterator(null); 
 
         BytesRef bytes;
@@ -167,14 +169,18 @@ public class IncrementalTermVectors implements VectorStore {
           Vector termVector = null;
 
           try{
-            termVector = termVectorData.getVector(bytes.toString());
+            termVector = termVectorData.getVector(bytes.utf8ToString());
           } catch (NullPointerException npe) {
             // Don't normally print anything - too much data!
-            logger.finest(String.format("term %s not represented", bytes.toString()));
+            logger.finest(String.format("term %s not represented", bytes.utf8ToString()));
           }
           // Exclude terms that are not represented in termVectorData
           if (termVector != null && termVector.getDimension() > 0) {
-            termVector.superpose(docVector, termsEnum.docFreq(), null);
+        	  DocsEnum docs = termsEnum.docs(null, null);
+              docs.nextDoc();
+    	      float freq = luceneUtils.getLocalTermWeight(docs.freq());  
+        	  
+    	      termVector.superpose(docVector, freq, null);
           }
         }
 
