@@ -65,7 +65,6 @@ public class LuceneUtils {
   private IndexReader indexReader;
   private Hashtable<Term, Float> termEntropy = new Hashtable<Term, Float>();
   private Hashtable<Term, Float> termIDF = new Hashtable<Term, Float>();
-  private Hashtable<Term, Integer> globalFrequencies =  new Hashtable<Term, Integer>();
   private TreeSet<String> stopwords = null;
   private TreeSet<String> startwords = null;
 
@@ -157,7 +156,6 @@ public class LuceneUtils {
    * @return Global term frequency of term, or 1 if unavailable.
    */
   public int getGlobalTermFreq(Term term){
-	if (globalFrequencies.contains(term)) return globalFrequencies.get(term).intValue();
     int tf = 0;
     try{
       TermDocs tDocs = this.indexReader.termDocs(term);
@@ -173,7 +171,6 @@ public class LuceneUtils {
       logger.info("Couldn't get term frequency for term " + term.text());
       return 1;
     }
-    globalFrequencies.put(term, new Integer(tf));
     return tf;
   }
 
