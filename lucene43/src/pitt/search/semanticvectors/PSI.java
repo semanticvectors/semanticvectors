@@ -89,6 +89,7 @@ public class PSI {
     semanticVectors = new VectorStoreRAM(flagConfig);
     predicateVectors = new VectorStoreRAM(flagConfig);
     Random random = new Random();
+    flagConfig.setContentsfields(itemFields);
 
     for (String fieldName : itemFields) {
       Terms terms = luceneUtils.getTermsForField(fieldName);
@@ -97,9 +98,10 @@ public class PSI {
       BytesRef bytes;
       while((bytes = termsEnum.next()) != null) {
         Term term = new Term(fieldName, bytes);
+        
         if (!luceneUtils.termFilter(term))
           continue;
-
+  
         if (!addedConcepts.contains(term.text())) {
           addedConcepts.add(term.text());
           Vector semanticVector = VectorFactory.createZeroVector(
