@@ -65,6 +65,7 @@ public class PSI {
   private static final String SUBJECT_FIELD = "subject";
   private static final String PREDICATE_FIELD = "predicate";
   private static final String OBJECT_FIELD = "object";
+  private static final String PREDICATION_FIELD = "predication";
   private String[] indexedFields = {SUBJECT_FIELD, PREDICATE_FIELD, OBJECT_FIELD};
   private String[] itemFields = {SUBJECT_FIELD, OBJECT_FIELD};
   private LuceneUtils luceneUtils;
@@ -149,15 +150,13 @@ public class PSI {
       predicateVectors.putVector(term.text().trim()+"-INV", inverseElementalVector);
     }
 
-    for (String fieldName : indexedFields) {
+    String fieldName = PREDICATION_FIELD; 
       // Iterate through documents (each document = one predication).
       Terms allTerms = luceneUtils.getTermsForField(fieldName);
       termsEnum = allTerms.iterator(null);
       while((bytes = termsEnum.next()) != null) {
         int pc = 0;
         Term term = new Term(fieldName, bytes);
-        if (!term.field().equals("predication"))
-          continue;
         pc++;
 
         // Output progress counter.
@@ -203,7 +202,7 @@ public class PSI {
         object_semanticvector.superpose(subject_elementalvector, pWeight*sWeight, null);
         subject_elementalvector.release(predicate_vector_inv);      
       } // Finish iterating through predications.
-    }
+    
 
     //Normalize semantic vectors
     Enumeration<ObjectVector> e = semanticVectors.getAllVectors();
