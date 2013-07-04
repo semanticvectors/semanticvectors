@@ -81,10 +81,7 @@ public class IncrementalTermVectors implements VectorStore {
   public int getDimension() { return flagConfig.dimension(); }
 
   /**
-   * Constructor that gets everything it needs from a
-   * TermVectorsFromLucene object and writes to a named file.
-   * @param luceneIndexDir Directory of the Lucene Index used to generate termVectorData
-   * @param docVectorFileName Filename containing the input document vectors
+   * Constructs new instance and creates term vectors.
    */
   public IncrementalTermVectors(FlagConfig flagConfig, LuceneUtils luceneUtils)
       throws IOException {
@@ -146,17 +143,7 @@ public class IncrementalTermVectors implements VectorStore {
 
       Vector docVector = VectorFactory.createZeroVector(flagConfig.vectortype(), flagConfig.dimension());
 
-      // Read ID for each document first 
-      String docID;
-      try {
-        docID = inputStream.readString(); 
-        docVector.readFromLuceneStream(inputStream);
-      }
-      catch (Exception e) {
-        System.out.println("Doc vectors less than total number of documents");
-        dc = numdocs + 1;
-        continue;
-      }
+      docVector.readFromLuceneStream(inputStream);
 
       for (String fieldName : this.flagConfig.contentsfields()) {
         Terms docTerms = this.luceneUtils.getTermVector(new Integer(dc), fieldName);

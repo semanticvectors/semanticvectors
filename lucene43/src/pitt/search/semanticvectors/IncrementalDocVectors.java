@@ -51,7 +51,7 @@ import pitt.search.semanticvectors.vectors.VectorFactory;
 
 /**
  * Generates document vectors incrementally, writing each document vector to disk after
- * it is created. This saves memory compared with the implementation in {@link DocumentVectors.java}.
+ * it is created. This saves memory compared with the implementation in {@link DocVectors}.
  * The training procedure still iterates through all the documents in the Lucene index,
  * so currently this class is purely an optimization, not an implementation of
  * incremental indexing in the sense of being able to add extra documents later after
@@ -73,9 +73,9 @@ public class IncrementalDocVectors {
    * Creates incremental doc vectors, getting everything it needs from a
    * TermVectorsFromLucene object and a Lucene Index directory, and writing to a named file.
    * 
-   * @param termVectorData Has all the information needed to create doc vectors.
+   * @param termVectorData Vector store containing terms create doc vectors.
    * @param flagConfig Any extra flag configurations
-   * @param indexDir Directory of the Lucene Index used to generate termVectorData
+   * @param luceneUtils Lucene Utils used for reading Lucene index
    */
   public static void createIncrementalDocVectors(
       VectorStore termVectorData, FlagConfig flagConfig, LuceneUtils luceneUtils) 
@@ -113,8 +113,6 @@ public class IncrementalDocVectors {
       Vector docVector = null;
 
       docVector = VectorFactory.createZeroVector(flagConfig.vectortype(), flagConfig.dimension());
-
-
       
       for (String fieldName: flagConfig.contentsfields()) {
         Terms terms = luceneUtils.getTermVector(dc, fieldName);
