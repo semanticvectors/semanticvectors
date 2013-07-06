@@ -43,23 +43,21 @@ import java.io.IOException;
  * 
  * TODO: This code has been refactored to accommodate FlagConfig changes: needs testing.
  */
-public class BuildBilingualIndex{
-  public static Logger logger = Logger.getLogger("pitt.search.semanticvectors");
+public class BuildBilingualIndex {
+  public static Logger logger = Logger.getLogger("pitt.search.semanticvectors.BuildBilingualIndex");
 
   /**
-   * Prints the following usage message:
-   * <code>
-   * <br> BuildBilingualIndex class in package pitt.search.semanticvectors
-   * <br> Usage: java pitt.search.semanticvectors.BuildBilingualIndex PATH_TO_LUCENE_INDEX LANG1 LANG2
-   * <br> BuildBilingualIndex creates files termvectors_LANGn.bin and docvectors_LANGn.bin,
-   * <br> in local directory, where LANG1 and LANG2 are obtained from fields in index.
-   * </code>
+   * Usage message for the BuildBilingualIndex program.
+   */
+  private static final String usageMessage = "\nBuildBilingualIndex class in package pitt.search.semanticvectors"
+	      + "\nUsage: java pitt.search.semanticvectors.BuildBilingualIndex [args] -luceneindexpath PATH_TO_LUCENE_INDEX LANG1 LANG2."
+	      + "\nBuildBilingualIndex creates files termvectors_LANGn.bin and docvectors_LANGn.bin,"
+	      + "\nin local directory, where LANG1 and LANG2 are obtained from fields in index.";
+
+  /**
+   * Prints {@link #usageMessage} to the console.
    */
   public static void usage() {
-    String usageMessage = "\nBuildBilingualIndex class in package pitt.search.semanticvectors"
-      + "\nUsage: java pitt.search.semanticvectors.BuildBilingualIndex -luceneindexpath LANG1 LANG2."
-      + "\nBuildBilingualIndex creates files termvectors_LANGn.bin and docvectors_LANGn.bin,"
-      + "\nin local directory, where LANG1 and LANG2 are obtained from fields in index.";
     System.out.println(usageMessage);
   }
 
@@ -81,7 +79,7 @@ public class BuildBilingualIndex{
     // This is actually just a test; the "real" configs will be created below.
     FlagConfig flagConfig;
     try {
-      flagConfig = FlagConfig.getFlagConfig(args);
+      flagConfig = FlagConfig.getFlagConfig(argsWithDocIdField);
     } catch (IllegalArgumentException e) {
       usage();
       throw e;
@@ -93,10 +91,10 @@ public class BuildBilingualIndex{
     }
 
     // Only two arguments should remain, the identification strings for each language.
-    if (args.length != 2) {
+    if (flagConfig.remainingArgs.length != 2) {
       usage();
       throw (new IllegalArgumentException("After parsing command line flags, there were " +
-          args.length + " arguments, instead of the expected 2."));
+    	flagConfig.remainingArgs.length + " arguments, instead of the expected 2."));
     }
 
     String lang1 = args[args.length - 2];
@@ -107,15 +105,15 @@ public class BuildBilingualIndex{
     String docFile2 = "docvectors_" + lang2 + ".bin";
     
     String[] argsWithDocIdAndContentsField = new String[2 + argsWithDocIdField.length];
-    System.arraycopy(argsWithDocIdField, 0, argsWithDocIdAndContentsField, 0, argsWithDocIdField.length);
-    argsWithDocIdAndContentsField[args.length + 2] = "-contentsfield";
-    argsWithDocIdAndContentsField[args.length + 3] = "contents_" + lang1;
+    System.arraycopy(argsWithDocIdField, 0, argsWithDocIdAndContentsField, 2, argsWithDocIdField.length);
+    argsWithDocIdAndContentsField[0] = "-contentsfields";
+    argsWithDocIdAndContentsField[1] = "contents_" + lang1;
     FlagConfig actualConfigLang1 = FlagConfig.getFlagConfig(argsWithDocIdAndContentsField);
-    argsWithDocIdAndContentsField[args.length + 3] = "contents_" + lang2;
+    argsWithDocIdAndContentsField[1] = "contents_" + lang2;
     FlagConfig actualConfigLang2 = FlagConfig.getFlagConfig(argsWithDocIdAndContentsField);
 
     VerbatimLogger.info("Creating bilingual indexes ...");
-    try{
+    try {
       TermVectorsFromLucene vecStore1 =
         TermVectorsFromLucene.createTermVectorsFromLucene(actualConfigLang1, null);
       logger.info("Writing term vectors to " + termFile1);
