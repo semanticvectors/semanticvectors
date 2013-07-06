@@ -33,6 +33,7 @@
 
 package pitt.search.semanticvectors;
 
+import org.apache.lucene.store.IOContext;
 import org.apache.lucene.store.IndexInput;
 import org.apache.lucene.store.IndexOutput;
 import org.apache.lucene.store.RAMDirectory;
@@ -68,7 +69,7 @@ public class VectorStoreReaderLuceneTest extends TestCase {
     store.putVector("isaac", new RealVector(new float[] {1, 0}));
     store.putVector("abraham", new RealVector(new float[] {0.7f, 0.7f}));
     try {
-      indexOutput = directory.createOutput(TEST_VECTOR_FILE);
+      indexOutput = directory.createOutput(TEST_VECTOR_FILE, IOContext.DEFAULT);
       VectorStoreWriter.writeToIndexOutput(store, FLAG_CONFIG, indexOutput);
       indexOutput.flush();
 
@@ -76,7 +77,7 @@ public class VectorStoreReaderLuceneTest extends TestCase {
         @Override
         protected IndexInput initialValue() {
           try {
-            return directory.openInput(TEST_VECTOR_FILE);
+            return directory.openInput(TEST_VECTOR_FILE, IOContext.READ);
           } catch (IOException e) {
             e.printStackTrace();
           }

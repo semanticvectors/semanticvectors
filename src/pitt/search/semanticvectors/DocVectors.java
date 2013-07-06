@@ -36,9 +36,9 @@
 package pitt.search.semanticvectors;
 
 import org.apache.lucene.index.CorruptIndexException;
-import org.apache.lucene.index.IndexReader;
+import org.apache.lucene.index.DocsEnum;
 import org.apache.lucene.index.Term;
-import org.apache.lucene.index.TermDocs;
+import org.apache.lucene.index.TermsEnum;
 
 import pitt.search.semanticvectors.vectors.Vector;
 import pitt.search.semanticvectors.vectors.VectorFactory;
@@ -85,8 +85,7 @@ public class DocVectors implements VectorStore {
   private int dimension;  
   private VectorStoreRAM docVectors;
   private TermVectorsFromLucene termVectorData;
-  private IndexReader indexReader;
-  private LuceneUtils lUtils;
+  private LuceneUtils luceneUtils;
 
   @Override
   public VectorType getVectorType() { return vectorType; }
@@ -98,21 +97,23 @@ public class DocVectors implements VectorStore {
    * Constructor that gets everything it needs from a
    * TermVectorsFromLucene object and its corresponding FlagConfig.
    */
-  public DocVectors (TermVectorsFromLucene termVectorData, FlagConfig flagConfig) throws IOException {
+  public DocVectors (TermVectorsFromLucene termVectorData, FlagConfig flagConfig, LuceneUtils luceneUtils) throws IOException {
     this.flagConfig = flagConfig;
+    this.luceneUtils = luceneUtils;
     this.termVectorData = termVectorData;
     this.vectorType = termVectorData.getVectorType();
     this.dimension = termVectorData.getDimension();
-    this.indexReader = termVectorData.getIndexReader();
     this.docVectors = new VectorStoreRAM(flagConfig);
 
-    if (this.lUtils == null) {
-      String indexReaderDir = termVectorData.getIndexReader().directory().toString();
-      indexReaderDir = indexReaderDir.replaceAll("^[^@]+@","");
-      indexReaderDir = indexReaderDir.replaceAll(" lockFactory=.+$","");
-      this.lUtils = new LuceneUtils(flagConfig);
+    /*
+    if (this.luceneUtils == null) {
+      //String indexReaderDir = termVectorData.getIndexReader().directory().toString();
+      //indexReaderDir = indexReaderDir.replaceAll("^[^@]+@","");
+      //indexReaderDir = indexReaderDir.replaceAll(" lockFactory=.+$","");
+      this.luceneUtils = new LuceneUtils(flagConfig);
     }
-
+    */
+    
     initializeDocVectors();
     trainDocVectors();
   }
@@ -137,27 +138,30 @@ public class DocVectors implements VectorStore {
         String word = (String) termVectorObject.getObject();
 
         // Go through checking terms for each fieldName.
-        for (String fieldName: termVectorData.getFieldsToIndex()) {
+        for (String fieldName : termVectorData.getFieldsToIndex()) {
           Term term = new Term(fieldName, word);
-          float globalweight = lUtils.getGlobalTermWeight(term);
+          float globalweight = luceneUtils.getGlobalTermWeight(term);
           float fieldweight = 1;
            
           // Get any docs for this term.
-          TermDocs td = this.indexReader.termDocs(term);
+          DocsEnum docsEnum = this.luceneUtils.getDocsForTerm(term);
 
-          while (td.next()) {
-            String docID = Integer.toString(td.doc());
+          while (docsEnum.nextDoc() != DocsEnum.NO_MORE_DOCS) {
+            int docID = docsEnum.docID();
             // Add vector from this term, taking freq into account.
-            Vector docVector = this.docVectors.getVector(docID);
-            float localweight = lUtils.getLocalTermWeight(td.freq());
+            Vector docVector = this.docVectors.getVector(Integer.toString(docID));
+            float localweight = docsEnum.freq();
 
             if (flagConfig.fieldweight()) {
               //field weight: 1/sqrt(number of terms in field)
-              String[] terms = indexReader.getTermFreqVector(td.doc(), fieldName).getTerms();
-              fieldweight = (float) (1/Math.sqrt(terms.length));
+              TermsEnum terms = luceneUtils.getTermVector(docID, fieldName).iterator(null);
+              int numTerms = 0;
+              while (terms.next() != null) {
+                numTerms++;
+              }
+              fieldweight = (float) (1/Math.sqrt(numTerms));
             }
 
- 
             docVector.superpose(
                 termVector, localweight * globalweight * fieldweight, null);
           }
@@ -169,7 +173,7 @@ public class DocVectors implements VectorStore {
     }
 
     VerbatimLogger.info("\nNormalizing doc vectors ...\n");
-    for (int i = 0; i < indexReader.numDocs(); ++i) {
+    for (int i = 0; i < luceneUtils.getNumDocs(); ++i) {
       docVectors.getVector(Integer.toString(i)).normalize();
     }
   }
@@ -179,7 +183,7 @@ public class DocVectors implements VectorStore {
    */
   private void initializeDocVectors() {
     VerbatimLogger.info("Initializing document vector store ... \n");
-    for (int i = 0; i < indexReader.numDocs(); ++i) {
+    for (int i = 0; i < luceneUtils.getNumDocs(); ++i) {
       Vector docVector = VectorFactory.createZeroVector(vectorType, dimension);
       this.docVectors.putVector(Integer.toString(i), docVector);
     }
@@ -191,15 +195,15 @@ public class DocVectors implements VectorStore {
   public VectorStore makeWriteableVectorStore() {
     VectorStoreRAM outputVectors = new VectorStoreRAM(flagConfig);
 
-    for (int i = 0; i < this.indexReader.numDocs(); ++i) {
+    for (int i = 0; i < this.luceneUtils.getNumDocs(); ++i) {
       String docName = "";
       try {
         // Default field value for docid is "path". But can be
         // reconfigured.  For bilingual docs, we index "filename" not
         // "path", since there are two system paths, one for each
         // language.
-        if (this.indexReader.document(i).getField(flagConfig.docidfield()) != null) {
-          docName = this.indexReader.document(i).getField(flagConfig.docidfield()).stringValue();
+        if (this.luceneUtils.getDoc(i).getField(flagConfig.docidfield()) != null) {
+          docName = this.luceneUtils.getDoc(i).getField(flagConfig.docidfield()).stringValue();
           if (docName.length() == 0) {
             logger.warning("Empty document name!!! This will cause problems ...");
             logger.warning("Please set -docidfield to a nonempty field in your Lucene index.");

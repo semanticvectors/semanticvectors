@@ -7,15 +7,15 @@
    modification, are permitted provided that the following conditions are
    met:
 
-   * Redistributions of source code must retain the above copyright
+ * Redistributions of source code must retain the above copyright
    notice, this list of conditions and the following disclaimer.
 
-   * Redistributions in binary form must reproduce the above
+ * Redistributions in binary form must reproduce the above
    copyright notice, this list of conditions and the following
    disclaimer in the documentation and/or other materials provided
    with the distribution.
 
-   * Neither the name of the University of Pittsburgh nor the names
+ * Neither the name of the University of Pittsburgh nor the names
    of its contributors may be used to endorse or promote products
    derived from this software without specific prior written
    permission.
@@ -31,16 +31,17 @@
    LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
    NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
    SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-**/
+ **/
 
 package pitt.search.semanticvectors;
-
 
 import java.io.File;
 import java.io.IOException;
 import org.apache.lucene.index.*;
+import org.apache.lucene.store.IOContext;
 import org.apache.lucene.store.IndexInput;
 import org.apache.lucene.store.FSDirectory;
+import org.apache.lucene.util.BytesRef;
 
 import pitt.search.semanticvectors.vectors.Vector;
 import pitt.search.semanticvectors.vectors.VectorFactory;
@@ -62,66 +63,68 @@ import java.util.logging.Logger;
 public class IncrementalTermVectors implements VectorStore {
   /** Usage message printed if {@link #main} is called with ill-formed arguments. */
   public static String usageMessage = "\nIncrementalTermVectors class in package pitt.search.semanticvectors"
-    + "\nUsage: java pitt.search.semanticvectors.IncrementalTermVectors [document vector file] [lucene index]"
-    + "\nIncrementalTermVectors creates termvectors files in local directory from docvectors file."
-    + "\nOther parameters that can be changed include vector type (real, binary, complex), "
-    + "\n    vector length (number of dimensions), seed length (number of non-zero"
-    + "\n    entries in basic vectors), minimum term frequency,"
-    + "\n    and number of iterative training cycles."
-    + "\nTo change these use the command line arguments "
-    + "\n  -vectortype [real|binary|complex]"
-    + "\n  -dimension [number of dimension]"
-    + "\n  -seedlength [seed length]"
-    + "\n  -minfrequency [minimum term frequency]"
-    + "\n  -maxnonalphabetchars [number non-alphabet characters (-1 for any number)]"
-    + "\n  -filternumbers [true or false]"
-    + "\n  -trainingcycles [training cycles]"
-    + "\n  -docindexing [incremental|inmemory|none] Switch between building doc vectors incrementally"
-    + "\n        (requires positional index), all in memory (default case), or not at all";
-  
+      + "\nUsage: java pitt.search.semanticvectors.IncrementalTermVectors [-docvectorsfile ...] [-luceneindexpath ...]"
+      + "\nIncrementalTermVectors creates termvectors files in local directory from docvectors file.";
+
   private static final Logger logger = Logger.getLogger(
       IncrementalTermVectors.class.getCanonicalName());
-  
-  // TODO: Refactor to use more of this.
+
   private FlagConfig flagConfig;
-  
+
   private VectorStoreRAM termVectorData;
-  private IndexReader indexReader;
-  private LuceneUtils lUtils = null;
-  private String docVectorFileName;
-  
+  private LuceneUtils luceneUtils = null;
+
   @Override
   public VectorType getVectorType() { return flagConfig.vectortype(); }
-  
+
   @Override
   public int getDimension() { return flagConfig.dimension(); }
-  
+
   /**
-   * Constructor that gets everything it needs from a
-   * TermVectorsFromLucene object and writes to a named file.
-   * @param luceneIndexDir Directory of the Lucene Index used to generate termVectorData
-   * @param docVectorFileName Filename containing the input document vectors
+   * Constructs new instance and creates term vectors.
    */
-  public IncrementalTermVectors(FlagConfig flagConfig,
-      String luceneIndexDir, String docVectorFileName)
+  public IncrementalTermVectors(FlagConfig flagConfig, LuceneUtils luceneUtils)
       throws IOException {
     this.flagConfig = flagConfig;
-    this.indexReader = IndexReader.open(FSDirectory.open(new File(luceneIndexDir)));
-    this.docVectorFileName = "incremental_"+docVectorFileName;
-    if (this.lUtils == null)
-      this.lUtils = new LuceneUtils(flagConfig);
+    this.luceneUtils = luceneUtils;
     createIncrementalTermVectorsFromLucene();
   }
 
+  private void initializeVectorStore() throws IOException {
+    termVectorData = new VectorStoreRAM(flagConfig);
+
+    for (String fieldName : this.flagConfig.contentsfields()) {
+      Terms terms = this.luceneUtils.getTermsForField(fieldName);
+      TermsEnum termEnum = terms.iterator(null);
+      int tc = 0;
+
+      BytesRef bytes;
+      while ((bytes = termEnum.next()) != null) {
+        Term term = new Term(fieldName, bytes);
+
+        if (termVectorData.getVector(term.text()) != null) continue;
+        if (!luceneUtils.termFilter(term)) continue;
+        tc++;
+        Vector termVector = VectorFactory.createZeroVector(flagConfig.vectortype(), flagConfig.dimension());
+
+        // Place each term vector in the vector store.
+        termVectorData.putVector(term.text(), termVector);
+      }
+      VerbatimLogger.info(String.format(
+          "There are %d terms (and %d docs)", tc, this.luceneUtils.getNumDocs()));
+    }
+  }
+
   private void createIncrementalTermVectorsFromLucene() throws IOException {
-    int numdocs = indexReader.numDocs();
+    int numdocs = luceneUtils.getNumDocs();
 
     // Open file and write headers.
-    File vectorFile = new File(docVectorFileName);
+    File vectorFile = new File(flagConfig.docvectorsfile());
     String parentPath = vectorFile.getParent();
     if (parentPath == null) parentPath = "";
     FSDirectory fsDirectory = FSDirectory.open(new File(parentPath));
-    IndexInput inputStream = fsDirectory.openInput(docVectorFileName.replaceAll(".*/", "")+".bin");
+    IndexInput inputStream = fsDirectory.openInput(
+        VectorStoreUtils.getStoreFileName(flagConfig.docvectorsfile(), flagConfig), IOContext.DEFAULT);
 
     logger.info("Read vectors incrementally from file " + vectorFile);
 
@@ -129,71 +132,42 @@ public class IncrementalTermVectors implements VectorStore {
     String header = inputStream.readString();
     FlagConfig.mergeWriteableFlagsFromString(header, flagConfig);
 
-    termVectorData = new VectorStoreRAM(flagConfig);
-    TermEnum terms = this.indexReader.terms();
-    int tc = 0;
-
-    while(terms.next()){
-      Term term = terms.term();
-
-      // Skip terms that don't pass the filter.
-      if (!lUtils.termFilter(terms.term()))
-        continue;
-      tc++;
-      Vector termVector = VectorFactory.createZeroVector(flagConfig.vectortype(), flagConfig.dimension());
-
-      // Place each term vector in the vector store.
-      termVectorData.putVector(term.text(), termVector);
-    }
-    VerbatimLogger.info("There are " + tc + " terms (and " + indexReader.numDocs() + " docs)");
+    initializeVectorStore();
 
     // Iterate through documents.
-    for (int dc=0; dc < numdocs; dc++) {
+    for (int dc = 0; dc < numdocs; dc++) {
       /* output progress counter */
       if (( dc % 10000 == 0 ) || ( dc < 10000 && dc % 1000 == 0 )) {
         VerbatimLogger.info(dc + " ... ");
       }
 
-      int dcount = dc;
       Vector docVector = VectorFactory.createZeroVector(flagConfig.vectortype(), flagConfig.dimension());
 
-      try {
-    	 /**
-    	  * read ID for each document first 
-    	  */
-    	 String docID = inputStream.readString(); 
-         docVector.readFromLuceneStream(inputStream);
-      }
-      catch (Exception e) {
-    	System.out.println("Doc vectors less than total number of documents");
-        dc = numdocs + 1;
-        continue;
-      }
+      docVector.readFromLuceneStream(inputStream);
 
-      for (String fieldName: flagConfig.contentsfields()) {
-        TermFreqVector vex = indexReader.getTermFreqVector(dcount, fieldName);
+      for (String fieldName : this.flagConfig.contentsfields()) {
+        Terms docTerms = this.luceneUtils.getTermVector(new Integer(dc), fieldName);
+        if (docTerms == null) {logger.severe("No term vector for document "+dc); continue; }
+        
+        TermsEnum termsEnum = docTerms.iterator(null); 
 
-        if (vex !=null) {
-          // Get terms in document and term frequencies.
-          String[] docterms = vex.getTerms();
-          int[] freqs = vex.getTermFrequencies();
+        BytesRef bytes;
+        while ((bytes = termsEnum.next()) != null) {
+          Vector termVector = null;
 
-          //For each term in doc (and its frequency)
-          for (int b = 0; b < freqs.length; ++b) {
-            String term = docterms[b];
-            int freq = freqs[b];
-            Vector termVector = null;
-
-            try{
-              termVector = termVectorData.getVector(term);
-            } catch (NullPointerException npe) {
-              // Don't normally print anything - too much data!
-              logger.finest("term " + term + " not represented");
-            }
-            // Exclude terms that are not represented in termVectorData
-            if (termVector != null && termVector.getDimension() > 0) {
-              termVector.superpose(docVector, freq, null);
-            }
+          try{
+            termVector = termVectorData.getVector(bytes.utf8ToString());
+          } catch (NullPointerException npe) {
+            // Don't normally print anything - too much data!
+            logger.finest(String.format("term %s not represented", bytes.utf8ToString()));
+          }
+          // Exclude terms that are not represented in termVectorData
+          if (termVector != null && termVector.getDimension() > 0) {
+        	  DocsEnum docs = termsEnum.docs(null, null);
+              docs.nextDoc();
+    	      float freq = luceneUtils.getLocalTermWeight(docs.freq());  
+        	  
+    	      termVector.superpose(docVector, freq, null);
           }
         }
 
@@ -210,9 +184,8 @@ public class IncrementalTermVectors implements VectorStore {
     }
 
     inputStream.close();
-    indexReader.close();
   }
-  
+
   // Basic VectorStore interface methods implemented through termVectors.
   public Vector getVector(Object term) {
     return termVectorData.getVector(term);
@@ -236,19 +209,7 @@ public class IncrementalTermVectors implements VectorStore {
       throw e;
     }
 
-    // Only one argument should remain, the path to the Lucene index.
-    if (args.length != 2) {
-      System.err.println(usageMessage);
-      throw (new IllegalArgumentException("After parsing command line flags, there were " + args.length
-                                          + " arguments, instead of the expected 2."));
-    }
-
-    String vectorFile = args[0];
-    String luceneIndex = args[1];
-
-    VectorStore termVectors = new IncrementalTermVectors(
-        flagConfig,
-        luceneIndex, vectorFile);
-    VectorStoreWriter.writeVectors("incremental_termvectors.bin", flagConfig, termVectors);
+    VectorStore termVectors = new IncrementalTermVectors(flagConfig, new LuceneUtils(flagConfig));
+    VectorStoreWriter.writeVectors(flagConfig.termvectorsfile(), flagConfig, termVectors);
   }
 }

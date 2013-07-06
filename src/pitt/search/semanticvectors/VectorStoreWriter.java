@@ -36,6 +36,7 @@
 package pitt.search.semanticvectors;
 
 import org.apache.lucene.store.FSDirectory;
+import org.apache.lucene.store.IOContext;
 import org.apache.lucene.store.IndexOutput;
 
 import java.io.BufferedWriter;
@@ -106,7 +107,7 @@ public class VectorStoreWriter {
     String parentPath = vectorFile.getParent();
     if (parentPath == null) parentPath = "";
     FSDirectory fsDirectory = FSDirectory.open(new File(parentPath));
-    IndexOutput outputStream = fsDirectory.createOutput(vectorFile.getName());
+    IndexOutput outputStream = fsDirectory.createOutput(vectorFile.getName(), IOContext.DEFAULT);
     writeToIndexOutput(objectVectors, flagConfig, outputStream);
     outputStream.close();
     fsDirectory.close();

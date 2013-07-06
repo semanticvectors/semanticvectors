@@ -66,8 +66,9 @@ public class BuildIndex {
   /**
    * Builds term vector and document vector stores from a Lucene index.
    * @param args [command line options to be parsed] then path to Lucene index
+   * @throws IOException  If filesystem resources including Lucene index are unavailable.
    */
-  public static void main (String[] args) throws IllegalArgumentException {
+  public static void main (String[] args) throws IllegalArgumentException, IOException {
     FlagConfig flagConfig = null;
     try {
       flagConfig = FlagConfig.getFlagConfig(args);
@@ -81,7 +82,6 @@ public class BuildIndex {
       throw (new IllegalArgumentException("-luceneindexpath must be set."));
     }
 
-    String luceneIndex = flagConfig.luceneindexpath();
     VerbatimLogger.info("Seedlength: " + flagConfig.seedlength()
         + ", Dimension: " + flagConfig.dimension()
         + ", Vector type: " + flagConfig.vectortype()
@@ -92,8 +92,9 @@ public class BuildIndex {
 
     String termFile = flagConfig.termvectorsfile();
     String docFile = flagConfig.docvectorsfile();
-
-    try{
+    LuceneUtils luceneUtils = new LuceneUtils(flagConfig);
+    
+    try {
       TermVectorsFromLucene vecStore;
       if (!flagConfig.initialtermvectors().isEmpty()) {
         // If Flags.initialtermvectors="random" create elemental (random index)
@@ -111,32 +112,31 @@ public class BuildIndex {
       switch (flagConfig.docindexing()) {
       case INCREMENTAL:
         VectorStoreWriter.writeVectors(termFile, flagConfig, vecStore);
-        IncrementalDocVectors.createIncrementalDocVectors(
-            vecStore, flagConfig, luceneIndex, "incremental_"+docFile);
+        IncrementalDocVectors.createIncrementalDocVectors(vecStore, flagConfig, luceneUtils);
         IncrementalTermVectors itermVectors = null;
 
         for (int i = 1; i < flagConfig.trainingcycles(); ++i) {
-          itermVectors = new IncrementalTermVectors(flagConfig,
-              luceneIndex, docFile);
+          itermVectors = new IncrementalTermVectors(flagConfig, luceneUtils);
 
           VectorStoreWriter.writeVectors(
-              "incremental_termvectors"+flagConfig.trainingcycles()+".bin", flagConfig, itermVectors);
+              VectorStoreUtils.getStoreFileName(
+                  flagConfig.termvectorsfile() + flagConfig.trainingcycles(), flagConfig),
+              flagConfig, itermVectors);
 
           // Write over previous cycle's docvectors until final
           // iteration, then rename according to number cycles
           if (i == flagConfig.trainingcycles() - 1)
             docFile = "docvectors" + flagConfig.trainingcycles() + ".bin";
 
-          IncrementalDocVectors.createIncrementalDocVectors(
-              itermVectors, flagConfig, luceneIndex, "incremental_"+docFile);
+          IncrementalDocVectors.createIncrementalDocVectors(itermVectors, flagConfig, luceneUtils);
         }
           break;
       case INMEMORY:
-        DocVectors docVectors = new DocVectors(vecStore, flagConfig);
+        DocVectors docVectors = new DocVectors(vecStore, flagConfig, luceneUtils);
         for (int i = 1; i < flagConfig.trainingcycles(); ++i) {
           VerbatimLogger.info("\nRetraining with learned document vectors ...");
           vecStore = TermVectorsFromLucene.createTermVectorsFromLucene(flagConfig, docVectors);
-          docVectors = new DocVectors(vecStore, flagConfig);
+          docVectors = new DocVectors(vecStore, flagConfig, luceneUtils);
         }
         // At end of training, convert document vectors from ID keys to pathname keys.
         VectorStore writeableDocVectors = docVectors.makeWriteableVectorStore();

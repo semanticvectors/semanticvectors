@@ -162,7 +162,7 @@ public class BuildPositionalIndex {
       //       the user should be alerted of any potential consequences.
       if (flagConfig.docindexing() != DocIndexingStrategy.NONE) {
         IncrementalDocVectors.createIncrementalDocVectors(
-            vecStore, flagConfig, luceneIndex, docFile);
+            vecStore, flagConfig, new LuceneUtils(flagConfig));
       }
     }
     catch (IOException e) {

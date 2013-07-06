@@ -43,6 +43,7 @@ import java.util.logging.Logger;
 
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
+import org.apache.lucene.store.IOContext;
 import org.apache.lucene.store.IndexInput;
 
 import pitt.search.semanticvectors.vectors.Vector;
@@ -96,7 +97,7 @@ public class VectorStoreReaderLucene implements CloseableVectorStore {
         @Override
         protected IndexInput initialValue() {
           try {
-            return directory.openInput(vectorFile.getName());
+            return directory.openInput(vectorFile.getName(), IOContext.READ);
           } catch (IOException e) {
             throw new RuntimeException(e.getMessage(), e);
           }
