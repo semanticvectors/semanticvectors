@@ -36,6 +36,8 @@ As well as the Lucene and Java prerequisites, you will also need to install [htt
 
 ===Installation===
 
+_As of Revision 931, the main trunk depends on Lucene 4.3. This requires dependencies on lucene-analyzers-common and lucene-queryparser, as well as core and demos. These packages are included in Lucene 4.3., so it's just a question of adding these to your classpath. This requirement will soon apply to the main package distribution as well as for checking out from source._
+
  * Download the most recent `semanticvectors-*.*.tar.gz` or `semanticvectors-*.*.zip` archive and expand the archive (using `tar -zxvf` or `unzip`).
  * Change directory to the new `semanticvectors-*.*` that has just been created. Check that you can see the `build.xml' file and `src/` directory.
  * The locations of the lucene core and demo jar files can be specified by one of the following methods (only setting `CLASSPATH` works for versions prior to 2010-09-21):
