@@ -175,7 +175,7 @@ public class TermVectorsFromLucene implements VectorStore {
     }
 
     for(String fieldName : flagConfig.contentsfields()) {
-      VerbatimLogger.info("Training term vectors for field " + fieldName);
+      VerbatimLogger.info("Training term vectors for field " + fieldName + "\n");
       int tc = 0;
       TermsEnum terms = this.luceneUtils.getTermsForField(fieldName).iterator(termsEnum);
       BytesRef bytes;
@@ -240,7 +240,7 @@ public class TermVectorsFromLucene implements VectorStore {
       logger.info("Creating random term vectors");
 
       for(String fieldName : flagConfig.contentsfields()) {
-        VerbatimLogger.info("Training term vectors for field " + fieldName);
+        VerbatimLogger.info("Training RRI term vectors for field " + fieldName + "\n");
         TermsEnum terms = luceneUtils.getTermsForField(fieldName).iterator(termsEnum);
         BytesRef bytes;
         while ((bytes = terms.next()) != null) {
