@@ -282,6 +282,11 @@ public class FlagConfig {
   private String[] contentsfields = {"contents"};
   /** Fields to be indexed for their contents, e.g., "title,description,notes", default "contents". */
   public String[] contentsfields() { return contentsfields; }
+  /** Set contentsfields (e.g. to specify for TermFilter **/
+  public void setContentsfields(String[] contentsfields) {
+		this.contentsfields = contentsfields;
+	}
+
   
   private String docidfield = "path";
   /** Field used by Lucene to record the identifier for each document, default "path". */
@@ -463,4 +468,5 @@ public class FlagConfig {
     
     if (searchvectorfile == "") searchvectorfile = queryvectorfile;
   }
+
 }

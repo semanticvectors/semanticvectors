@@ -59,13 +59,8 @@ import static org.junit.Assert.*;
  */
 public class RegressionTests {
   @Before
-  public void setUp() {
-    try {
-      RunTests.prepareTestData();
-    } catch (IOException e) {
-      e.printStackTrace();
-      fail();
-    }
+  public void setUp() throws IOException {
+    RunTests.prepareTestData();
   }
 
   private int buildSearchGetRank(String buildCmd, String searchCmd, String targetResult) {
@@ -80,21 +75,32 @@ public class RegressionTests {
       file = null;
       assertFalse("File appears to be still present: " + fn, (new File(fn)).isFile());
     }
-    BuildIndex.main(buildArgs);
+    try {
+      BuildIndex.main(buildArgs);
+    } catch (IllegalArgumentException | IOException e) {
+      e.printStackTrace();
+    }
     for (String fn: filesToBuild) assertTrue((new File(fn)).isFile());
 
     List<SearchResult> results = Search.RunSearch(FlagConfig.getFlagConfig(searchArgs));
     int rank = 1;
+    boolean found = false;
     if (results.isEmpty()) {
       throw new RuntimeException("Results were empty!");
     } else {
       for (SearchResult result : results) {
         String term = (String) result.getObjectVector().getObject();
-        if (term.equals(targetResult)) break;
+        if (term.equals(targetResult)) {
+          found = true;
+          break;
+        }
         ++rank;
       }
     }
-
+    if (!found) {
+      fail("Failed to get matching results with search terms: " + searchCmd);
+    }
+    
     for (String fn: filesToBuild) assertTrue((new File(fn)).delete());
     return rank;
   }
@@ -103,6 +109,9 @@ public class RegressionTests {
   public void testBuildAndSearchBasicRealIndex() {
     assertEquals(2, buildSearchGetRank("-dimension 200 -luceneindexpath positional_index",
         "-queryvectorfile termvectors.bin -searchvectorfile termvectors.bin peter", "simon"));
+    assertTrue(3 > buildSearchGetRank("-dimension 200 -luceneindexpath positional_index",
+        "-queryvectorfile termvectors.bin -searchvectorfile docvectors.bin peter",
+        "test/testdata/John/Chapter_21"));
   }
 
   @Test
@@ -157,6 +166,12 @@ public class RegressionTests {
         new String[] {"termtermvectors.bin", "docvectors.bin"},
         "peter");
     assertTrue(peterRank < 5);
+    int chapter17Rank = positionalBuildSearchGetRank(
+        "-dimension 200 -vectortype real -seedlength 10 -luceneindexpath positional_index",
+        "-queryvectorfile termtermvectors.bin -searchvectorfile docvectors.bin bread",
+        new String[] {"termtermvectors.bin", "docvectors.bin"},
+        "test/testdata/John/Chapter_17");
+    assertTrue(chapter17Rank < 5);
   }
   
   @Test

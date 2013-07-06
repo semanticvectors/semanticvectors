@@ -1,20 +1,49 @@
+/**
+   Copyright 2008 and ongoing, the SemanticVectors AUTHORS.
+   All rights reserved.
 
-package pitt.search.lucene;
+   Redistribution and use in source and binary forms, with or without
+   modification, are permitted provided that the following conditions are
+   met:
+
+ * Redistributions of source code must retain the above copyright
+   notice, this list of conditions and the following disclaimer.
+
+ * Redistributions in binary form must reproduce the above
+   copyright notice, this list of conditions and the following disclaimer
+   in the documentation and/or other materials provided with the
+   distribution.
+
+ * Neither the name of Google Inc. nor the names of its
+   contributors may be used to endorse or promote products derived from
+   this software without specific prior written permission.
+
+   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+   "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+   LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+   A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+   OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+   SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+   LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+   DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+   THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+   (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+   THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ **/package pitt.search.lucene;
+
+import static pitt.search.semanticvectors.LuceneUtils.LUCENE_VERSION;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Date;
-import java.util.TreeSet;
+import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
+import org.apache.lucene.analysis.util.CharArraySet;
 import org.apache.lucene.index.IndexWriter;
-import org.apache.lucene.index.IndexWriter.MaxFieldLength;
+import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.store.FSDirectory;
-import org.apache.lucene.util.Version;
-import org.apache.lucene.analysis.PorterStemFilter;
-
 import pitt.search.semanticvectors.FlagConfig;
-
 
 /** Index all text files under a directory. This class makes minor
  * modifications to <code>org.apache.lucene.demos.IndexFiles</code>
@@ -47,21 +76,14 @@ public class IndexFilePositions {
     }
     try {
     	IndexWriter writer;
-    	if (flagConfig.porterstemmer()) {
-    	  // Create IndexWriter using porter stemmer without any stopword list.
-    		writer = new IndexWriter(FSDirectory.open(INDEX_DIR),
-    		    new PorterAnalyzer(),
-    		    true, MaxFieldLength.UNLIMITED);
-    	} 
-    	else	{
-    	  // Create IndexWriter using StandardAnalyzer without any stopword list.
-    		writer = new IndexWriter(FSDirectory.open(INDEX_DIR),
-    		    new StandardAnalyzer(Version.LUCENE_30, new TreeSet()),
-    		    true, MaxFieldLength.UNLIMITED);
-    	}
+      // Create IndexWriter using porter stemmer or no stemming. No stopword list.
+    	Analyzer analyzer = flagConfig.porterstemmer() ? new PorterAnalyzer() : new StandardAnalyzer(LUCENE_VERSION, new CharArraySet(LUCENE_VERSION, 0, false));
+      IndexWriterConfig writerConfig = new IndexWriterConfig(LUCENE_VERSION, analyzer);
+      writer = new IndexWriter(FSDirectory.open(INDEX_DIR), writerConfig);
 
     	final File docDir = new File(flagConfig.remainingArgs[0]);
       if (!docDir.exists() || !docDir.canRead()) {
+        writer.close();
         throw new IOException ("Document directory '" + docDir.getAbsolutePath() +
             "' does not exist or is not readable, please check the path");
       }
@@ -70,8 +92,6 @@ public class IndexFilePositions {
 
       System.out.println("Indexing to directory '" +INDEX_DIR+ "'...");
       indexDocs(writer, docDir);
-      System.out.println("Optimizing...");
-      writer.optimize();
       writer.close();
 
       Date end = new Date();

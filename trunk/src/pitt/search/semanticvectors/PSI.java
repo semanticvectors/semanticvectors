@@ -35,7 +35,6 @@
 
 package pitt.search.semanticvectors;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.Enumeration;
 import java.util.HashSet;
@@ -44,7 +43,7 @@ import java.util.logging.Logger;
 
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.*;
-import org.apache.lucene.store.FSDirectory;
+import org.apache.lucene.util.BytesRef;
 
 import pitt.search.semanticvectors.hashing.Bobcat;
 import pitt.search.semanticvectors.vectors.Vector;
@@ -63,9 +62,13 @@ public class PSI {
   private static final Logger logger = Logger.getLogger(PSI.class.getCanonicalName());
   private FlagConfig flagConfig;
   private VectorStoreRAM elementalVectors, semanticVectors, predicateVectors;
-  private IndexReader indexReader;
-  private String[] desiredFields={"subject","predicate","object"};
-  private LuceneUtils lUtils;
+  private static final String SUBJECT_FIELD = "subject";
+  private static final String PREDICATE_FIELD = "predicate";
+  private static final String OBJECT_FIELD = "object";
+  private static final String PREDICATION_FIELD = "predication";
+  private String[] indexedFields = {SUBJECT_FIELD, PREDICATE_FIELD, OBJECT_FIELD};
+  private String[] itemFields = {SUBJECT_FIELD, OBJECT_FIELD};
+  private LuceneUtils luceneUtils;
 
   private PSI() {};
 
@@ -75,11 +78,8 @@ public class PSI {
   public static void createIncrementalPSIVectors(FlagConfig flagConfig) throws IOException {
     PSI incrementalPSIVectors = new PSI();
     incrementalPSIVectors.flagConfig = flagConfig;
-    incrementalPSIVectors.indexReader = IndexReader.open(
-        FSDirectory.open(new File(flagConfig.luceneindexpath())));
-
-    if (incrementalPSIVectors.lUtils == null) {
-      incrementalPSIVectors.lUtils = new LuceneUtils(flagConfig);
+    if (incrementalPSIVectors.luceneUtils == null) {
+      incrementalPSIVectors.luceneUtils = new LuceneUtils(flagConfig);
     }
     incrementalPSIVectors.trainIncrementalPSIVectors();
   }
@@ -90,30 +90,27 @@ public class PSI {
     semanticVectors = new VectorStoreRAM(flagConfig);
     predicateVectors = new VectorStoreRAM(flagConfig);
     Random random = new Random();
+    flagConfig.setContentsfields(itemFields);
 
-    TermEnum terms = this.indexReader.terms();
-    HashSet<String> addedConcepts = new HashSet<String>();
-
-    while(terms.next()){
-
-      Term term = terms.term();
-
-
-      String field = term.field();
-
-      if (field.equals("subject") | field.equals("object")) {
-
-        if (!lUtils.termFilter(term, desiredFields, flagConfig.minfrequency(), flagConfig.maxfrequency(), Integer.MAX_VALUE))
+    for (String fieldName : itemFields) {
+      Terms terms = luceneUtils.getTermsForField(fieldName);
+      TermsEnum termsEnum = terms.iterator(null);
+      HashSet<String> addedConcepts = new HashSet<String>();
+      BytesRef bytes;
+      while((bytes = termsEnum.next()) != null) {
+        Term term = new Term(fieldName, bytes);
+        
+        if (!luceneUtils.termFilter(term))
           continue;
-
+  
         if (!addedConcepts.contains(term.text())) {
           addedConcepts.add(term.text());
           Vector semanticVector = VectorFactory.createZeroVector(
               flagConfig.vectortype(), flagConfig.dimension());
-          
-      	if (flagConfig.deterministicvectors())
-      	  random.setSeed(Bobcat.asLong(term.text()));
-        
+
+          if (flagConfig.deterministicvectors())
+            random.setSeed(Bobcat.asLong(term.text()));
+
           Vector elementalVector = VectorFactory.generateRandomVector(
               flagConfig.vectortype(), flagConfig.dimension(),
               flagConfig.seedlength(), random);
@@ -122,89 +119,90 @@ public class PSI {
           elementalVectors.putVector(term.text(), elementalVector);
         }
       }
+    }
 
-      else if (field.equals("predicate")) {
+    // Now elemental vectors for the predicate field.
+    Terms predicateTerms = luceneUtils.getTermsForField(PREDICATE_FIELD);
+    String[] dummyArray = new String[] { PREDICATE_FIELD };  // To satisfy LuceneUtils.termFilter interface.
+    TermsEnum termsEnum = predicateTerms.iterator(null);
+    BytesRef bytes;
+    while((bytes = termsEnum.next()) != null) {
+      Term term = new Term(PREDICATE_FIELD, bytes);
+      // frequency thresholds do not apply to predicates... but the stopword list does
+      if (!luceneUtils.termFilter(term, dummyArray, 0, Integer.MAX_VALUE, Integer.MAX_VALUE)) {  
+        continue;
+      }
 
-        //frequency thresholds do not apply to predicates... but the stopword list does
-        if (!lUtils.termFilter(term, desiredFields, 0, Integer.MAX_VALUE, Integer.MAX_VALUE))
-        {  
+      if (flagConfig.deterministicvectors())
+        random.setSeed(Bobcat.asLong(term.text().trim()));
+
+      Vector elementalVector = VectorFactory.generateRandomVector(
+          flagConfig.vectortype(), flagConfig.dimension(),
+          flagConfig.seedlength(), random);
+      predicateVectors.putVector(term.text().trim(), elementalVector);
+
+      if (flagConfig.deterministicvectors())
+        random.setSeed(Bobcat.asLong(term.text().trim()+"-INV"));
+
+      Vector inverseElementalVector = VectorFactory.generateRandomVector(
+          flagConfig.vectortype(), flagConfig.dimension(),
+          flagConfig.seedlength(), random);
+      predicateVectors.putVector(term.text().trim()+"-INV", inverseElementalVector);
+    }
+
+    String fieldName = PREDICATION_FIELD; 
+      // Iterate through documents (each document = one predication).
+      Terms allTerms = luceneUtils.getTermsForField(fieldName);
+      termsEnum = allTerms.iterator(null);
+      while((bytes = termsEnum.next()) != null) {
+        int pc = 0;
+        Term term = new Term(fieldName, bytes);
+        pc++;
+
+        // Output progress counter.
+        if ((pc > 0) && ((pc % 10000 == 0) || ( pc < 10000 && pc % 1000 == 0 ))) {
+          VerbatimLogger.info("Processed " + pc + " unique predications ... ");
+        }
+
+        DocsEnum termDocs = luceneUtils.getDocsForTerm(term);
+        termDocs.nextDoc();
+        Document document = luceneUtils.getDoc(termDocs.docID());
+
+        String subject = document.get(SUBJECT_FIELD);
+        String predicate = document.get(PREDICATE_FIELD);
+        String object = document.get(OBJECT_FIELD);
+
+        float sWeight =1;
+        float oWeight =1;
+        float pWeight =1;
+
+        sWeight = luceneUtils.getGlobalTermWeight(new Term("subject",subject));
+        oWeight = luceneUtils.getGlobalTermWeight(new Term("object",object));
+        // TODO: Explain different weighting for predicates, log(occurrences of predication)
+        pWeight = (float) Math.log(1 + luceneUtils.getGlobalTermFreq(term));
+
+        Vector subject_semanticvector = semanticVectors.getVector(subject);
+        Vector object_semanticvector = semanticVectors.getVector(object);
+        Vector subject_elementalvector = elementalVectors.getVector(subject);
+        Vector object_elementalvector = elementalVectors.getVector(object);
+        Vector predicate_vector = predicateVectors.getVector(predicate);
+        Vector predicate_vector_inv = predicateVectors.getVector(predicate+"-INV");
+
+        if (subject_semanticvector == null || object_semanticvector == null || predicate_vector == null)
+        {	  
+          logger.info("skipping predication "+subject+" "+predicate+" "+object);
           continue;
         }
 
-    	if (flagConfig.deterministicvectors())
-      	  random.setSeed(Bobcat.asLong(term.text().trim()));
-      
-        Vector elementalVector = VectorFactory.generateRandomVector(
-            flagConfig.vectortype(), flagConfig.dimension(),
-            flagConfig.seedlength(), random);
-        predicateVectors.putVector(term.text().trim(), elementalVector);
-        
-    	if (flagConfig.deterministicvectors())
-      	  random.setSeed(Bobcat.asLong(term.text().trim()+"-INV"));
-          
-        Vector inverseElementalVector = VectorFactory.generateRandomVector(
-            flagConfig.vectortype(), flagConfig.dimension(),
-            flagConfig.seedlength(), random);
-        predicateVectors.putVector(term.text().trim()+"-INV", inverseElementalVector);
-      }
-    }
+        object_elementalvector.bind(predicate_vector);
+        subject_semanticvector.superpose(object_elementalvector, pWeight*oWeight, null);
+        object_elementalvector.release(predicate_vector);
 
-    // Iterate through documents (each document = one predication).
-    TermEnum te = indexReader.terms();
-    int pc = 0;
-
-    while (te.next()) {
-
-      Term theTerm = te.term();
-      if (!theTerm.field().equals("predication"))
-        continue;
-      pc++;
-
-      // Output progress counter.
-      if ((pc > 0) && ((pc % 10000 == 0) || ( pc < 10000 && pc % 1000 == 0 ))) {
-        VerbatimLogger.info("Processed " + pc + " unique predications ... ");
-      }
-
-      TermDocs theTermDocs = indexReader.termDocs(theTerm);
-      theTermDocs.next();
-      int dc = theTermDocs.doc();
-
-      Document document = indexReader.document(dc);
-
-      String subject = document.get("subject");
-      String predicate = document.get("predicate");
-      String object = document.get("object");
-
-      float sWeight =1;
-      float oWeight =1;
-      float pWeight =1;
-
-      sWeight = lUtils.getGlobalTermWeight(new Term("subject",subject));
-      oWeight = lUtils.getGlobalTermWeight(new Term("object",object));
-      // TODO: Explain different weighting for predicates, log(occurrences of predication)
-      pWeight = (float) Math.log(1+lUtils.getGlobalTermFreq(theTerm));
-
-      Vector subject_semanticvector = semanticVectors.getVector(subject);
-      Vector object_semanticvector = semanticVectors.getVector(object);
-      Vector subject_elementalvector = elementalVectors.getVector(subject);
-      Vector object_elementalvector = elementalVectors.getVector(object);
-      Vector predicate_vector = predicateVectors.getVector(predicate);
-      Vector predicate_vector_inv = predicateVectors.getVector(predicate+"-INV");
-
-      if (subject_semanticvector == null || object_semanticvector == null || predicate_vector == null)
-      {	  
-        logger.info("skipping predication "+subject+" "+predicate+" "+object);
-        continue;
-      }
-
-      object_elementalvector.bind(predicate_vector);
-      subject_semanticvector.superpose(object_elementalvector, pWeight*oWeight, null);
-      object_elementalvector.release(predicate_vector);
-
-      subject_elementalvector.bind(predicate_vector_inv);
-      object_semanticvector.superpose(subject_elementalvector, pWeight*sWeight, null);
-      subject_elementalvector.release(predicate_vector_inv);      
-    } // Finish iterating through predications.
+        subject_elementalvector.bind(predicate_vector_inv);
+        object_semanticvector.superpose(subject_elementalvector, pWeight*sWeight, null);
+        subject_elementalvector.release(predicate_vector_inv);      
+      } // Finish iterating through predications.
+    
 
     //Normalize semantic vectors
     Enumeration<ObjectVector> e = semanticVectors.getAllVectors();

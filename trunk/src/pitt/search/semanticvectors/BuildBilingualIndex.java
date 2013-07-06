@@ -120,7 +120,8 @@ public class BuildBilingualIndex{
         TermVectorsFromLucene.createTermVectorsFromLucene(actualConfigLang1, null);
       logger.info("Writing term vectors to " + termFile1);
       VectorStoreWriter.writeVectors(termFile1, actualConfigLang1, vecStore1);
-      DocVectors docVectors = new DocVectors(vecStore1, actualConfigLang1);
+      DocVectors docVectors = new DocVectors(
+          vecStore1, actualConfigLang1, new LuceneUtils(actualConfigLang1));
       logger.info("Writing doc vectors to " + docFile1);
       VectorStoreWriter.writeVectors(docFile1, actualConfigLang1, docVectors.makeWriteableVectorStore());
 
@@ -130,7 +131,8 @@ public class BuildBilingualIndex{
         TermVectorsFromLucene.createTermVectorsFromLucene(actualConfigLang2, basicDocVectors);
       logger.info("Writing term vectors to " + termFile2);
       VectorStoreWriter.writeVectors(termFile2, actualConfigLang2, vecStore2);
-      docVectors = new DocVectors(vecStore2, actualConfigLang2);
+      docVectors = new DocVectors(
+          vecStore2, actualConfigLang2, new LuceneUtils(actualConfigLang2));
       logger.info("Writing doc vectors to " + docFile2);
       VectorStoreWriter.writeVectors(docFile2, actualConfigLang2, docVectors.makeWriteableVectorStore());
     }

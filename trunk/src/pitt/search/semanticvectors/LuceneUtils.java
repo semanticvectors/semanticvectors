@@ -39,19 +39,20 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-
-import java.lang.Math;
 import java.util.Hashtable;
 import java.util.TreeSet;
 import java.util.logging.Logger;
 
-import org.apache.lucene.analysis.standard.StandardAnalyzer;
-import org.apache.lucene.index.CorruptIndexException;
-import org.apache.lucene.index.IndexReader;
-import org.apache.lucene.index.IndexWriter;
-import org.apache.lucene.index.IndexWriter.MaxFieldLength;
+import org.apache.lucene.document.Document;
+import org.apache.lucene.index.AtomicReader;
+import org.apache.lucene.index.BaseCompositeReader;
+import org.apache.lucene.index.DirectoryReader;
+import org.apache.lucene.index.DocsEnum;
+import org.apache.lucene.index.FieldInfos;
+import org.apache.lucene.index.MultiFields;
+import org.apache.lucene.index.SlowCompositeReaderWrapper;
 import org.apache.lucene.index.Term;
-import org.apache.lucene.index.TermDocs;
+import org.apache.lucene.index.Terms;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.util.Version;
 
@@ -60,9 +61,12 @@ import org.apache.lucene.util.Version;
  * including term frequency, doc frequency.
  */
 public class LuceneUtils {
+  public static final Version LUCENE_VERSION = Version.LUCENE_43;
+
   private static final Logger logger = Logger.getLogger(DocVectors.class.getCanonicalName());
   private FlagConfig flagConfig;
-  private IndexReader indexReader;
+  private BaseCompositeReader<AtomicReader> compositeReader;
+  private AtomicReader atomicReader;
   private Hashtable<Term, Float> termEntropy = new Hashtable<Term, Float>();
   private Hashtable<Term, Float> termIDF = new Hashtable<Term, Float>();
   private TreeSet<String> stopwords = null;
@@ -92,7 +96,10 @@ public class LuceneUtils {
       throw new IllegalArgumentException(
           "-luceneindexpath is a required argument for initializing LuceneUtils instance.");
     }
-    this.indexReader = IndexReader.open(FSDirectory.open(new File(flagConfig.luceneindexpath())));
+
+    this.compositeReader = DirectoryReader.open(FSDirectory.open(new File(flagConfig.luceneindexpath())));  
+    this.atomicReader =  SlowCompositeReaderWrapper.wrap(compositeReader);
+    MultiFields.getFields(compositeReader);
     this.flagConfig = flagConfig;
     if (!flagConfig.stoplistfile().isEmpty())
       loadStopWords(flagConfig.stoplistfile());
@@ -105,7 +112,7 @@ public class LuceneUtils {
    * @throws IOException If stopword file cannot be read.
    */
   public void loadStopWords(String stoppath) throws IOException  {
-    logger.info("Using stopword file: "+stoppath);
+    logger.info("Using stopword file: " + stoppath);
     stopwords = new TreeSet<String>();
     try {
       BufferedReader readIn = new BufferedReader(new FileReader(stoppath));
@@ -114,9 +121,10 @@ public class LuceneUtils {
         stopwords.add(in);
         in = readIn.readLine();
       }
+      readIn.close();
     }
     catch (IOException e) {
-      throw new IOException("Couldn't open file "+stoppath);
+      throw new IOException("Couldn't open file " + stoppath);
     }
   }
 
@@ -134,7 +142,8 @@ public class LuceneUtils {
       while (in != null) {
         startwords.add(in);
         in = readIn.readLine();
-      }	
+      }
+      readIn.close();
     }
     catch (IOException e) {
       throw new IOException("Couldn't open file "+startpath);
@@ -148,23 +157,45 @@ public class LuceneUtils {
     if (stopwords == null) return false;
     return stopwords.contains(x);
   }
+  
+  public Document getDoc(int docID) throws IOException {
+    return this.atomicReader.document(docID);
+  }
+  
+  public Terms getTermsForField(String field) throws IOException {
+    return atomicReader.terms(field);
+  }
+  
+  public DocsEnum getDocsForTerm(Term term) throws IOException {
+    return this.atomicReader.termDocsEnum(term);
+  }
 
+  public Terms getTermVector(int docID, String field) throws IOException {
+    return this.atomicReader.getTermVector(docID, field);
+     }
+  
+ 
+  
+  public FieldInfos getFieldInfos() {
+    return this.atomicReader.getFieldInfos();
+  }
+  
   /**
    * Gets the global term frequency of a term,
    * i.e. how may times it occurs in the whole corpus
    * @param term whose frequency you want
    * @return Global term frequency of term, or 1 if unavailable.
    */
-  public int getGlobalTermFreq(Term term){
-    int tf = 0;
-    try{
-      TermDocs tDocs = this.indexReader.termDocs(term);
-      if (tDocs == null) {
+  public int getGlobalTermFreq(Term term) {
+	int tf = 0;
+    try {
+      DocsEnum docsEnum = this.getDocsForTerm(term);
+      if (docsEnum == null) {
         logger.info("Couldn't get term frequency for term " + term.text());
         return 1;
       }
-      while (tDocs.next()) {
-        tf += tDocs.freq();
+      while((docsEnum.nextDoc()) != DocsEnum.NO_MORE_DOCS) {
+        tf += docsEnum.freq();
       }
     }
     catch (IOException e) {
@@ -235,7 +266,7 @@ public class LuceneUtils {
   /**
    * Returns the number of documents in the Lucene index.
    */
-  public int getNumDocs() { return indexReader.numDocs(); }
+  public int getNumDocs() { return compositeReader.numDocs(); }
 
   /**
    * Gets the IDF (i.e. log10(numdocs/doc frequency)) of a term
@@ -245,15 +276,12 @@ public class LuceneUtils {
     if (termIDF.containsKey(term)) {
       return termIDF.get(term);
     } else { 
-    	 	
       try {
-    	  
-    	int freq =  indexReader.docFreq(term);
-    		if (freq == 0) 
-    			{ 
-    				return 0;
-       			}
-    	float idf = (float) Math.log10(indexReader.numDocs()/freq);
+        int freq =  compositeReader.docFreq(term);
+        if (freq == 0) { 
+          return 0;
+        }
+        float idf = (float) Math.log10(compositeReader.numDocs()/freq);
         termIDF.put(term, idf);
         return idf; 
       } catch (IOException e) {
@@ -282,12 +310,11 @@ public class LuceneUtils {
     int gf = getGlobalTermFreq(term);
     double entropy = 0;
     try {
-      TermDocs tDocs = indexReader.termDocs(term);
-      while (tDocs.next())
-      {
-        double p = tDocs.freq(); //frequency in this document
-        p=p/gf;		//frequency across all documents
-        entropy += (p*(Math.log(p)/Math.log(2))); //sum of Plog(P)
+      DocsEnum docsEnum = this.getDocsForTerm(term);
+      while((docsEnum.nextDoc()) != DocsEnum.NO_MORE_DOCS) {
+        double p = docsEnum.freq(); //frequency in this document
+        p = p / gf;		//frequency across all documents
+        entropy += p * (Math.log(p) / Math.log(2)); //sum of Plog(P)
       }
       int n= this.getNumDocs();
       double log2n = Math.log(n)/Math.log(2);
@@ -296,7 +323,7 @@ public class LuceneUtils {
     catch (IOException e) {
       logger.info("Couldn't get term entropy for term " + term.text());
     }
-    termEntropy.put(term, 1+(float)entropy);
+    termEntropy.put(term, 1 + (float)entropy);
     return (float) (1 + entropy);
   }
 
@@ -392,6 +419,8 @@ public class LuceneUtils {
   }
 
   /**
+   * TODO(dwiddows): Check that no longer needed in Lucene 4.x and above.
+   * 
    * Static method for compressing an index.
    *
    * This small preprocessing step makes sure that the Lucene index
@@ -399,7 +428,11 @@ public class LuceneUtils {
    * Otherwise exceptions can occur if document id's are greater
    * than indexReader.numDocs().
    */
+
   static void compressIndex(String indexDir) {
+    return;
+  }
+  /*
     try {
       IndexWriter compressor = new IndexWriter(FSDirectory.open(new File(indexDir)),
           new StandardAnalyzer(Version.LUCENE_30),
@@ -413,4 +446,5 @@ public class LuceneUtils {
       e.printStackTrace();
     }
   }
+  */
 }

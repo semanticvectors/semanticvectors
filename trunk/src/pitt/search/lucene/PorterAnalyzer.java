@@ -1,13 +1,20 @@
 package pitt.search.lucene;
 
 import org.apache.lucene.analysis.*;
+import org.apache.lucene.analysis.core.LowerCaseTokenizer;
+import org.apache.lucene.analysis.en.PorterStemFilter;
+
 import java.io.*;
 import java.util.logging.Logger;
 
+import static pitt.search.semanticvectors.LuceneUtils.LUCENE_VERSION;
+
 public class PorterAnalyzer  extends Analyzer {
 
-  public final TokenStream tokenStream(String fieldName, Reader reader) {
-    return new PorterStemFilter(new LowerCaseTokenizer(reader));
+  @Override
+  protected TokenStreamComponents createComponents(String fieldName, Reader reader) {
+    Tokenizer source = new LowerCaseTokenizer(LUCENE_VERSION, reader);
+    return new TokenStreamComponents(source, new PorterStemFilter(source));
   }
 
   /**
@@ -19,7 +26,7 @@ public class PorterAnalyzer  extends Analyzer {
     Logger logger = Logger.getLogger("pitt.search.lucene");
 
     String stemmedQuery = "";
-    TokenStream theTS = tokenStream("", new StringReader(query));
+    TokenStream theTS = createComponents("", new StringReader(query)).getTokenStream();
 
     try {
       while (theTS.incrementToken()) {
@@ -51,5 +58,7 @@ public class PorterAnalyzer  extends Analyzer {
       System.out.println(thePorterAnalyzer.stemQuery(inLine));
       inLine = inReader.readLine();
     }
+    thePorterAnalyzer.close();
+    inReader.close();
   }
 }

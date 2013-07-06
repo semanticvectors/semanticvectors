@@ -1,10 +1,13 @@
 package pitt.search.semanticvectors;
 
-import org.apache.lucene.index.IndexReader;
-import org.apache.lucene.index.TermDocs;
-import org.apache.lucene.index.TermEnum;
+import org.apache.lucene.index.DocsEnum;
+import org.apache.lucene.index.Term;
+import org.apache.lucene.index.Terms;
+import org.apache.lucene.index.TermsEnum;
+import org.apache.lucene.store.IOContext;
 import org.apache.lucene.store.IndexOutput;
 import org.apache.lucene.store.FSDirectory;
+import org.apache.lucene.util.BytesRef;
 
 import pitt.search.semanticvectors.vectors.RealVector;
 import pitt.search.semanticvectors.vectors.Vector;
@@ -41,35 +44,30 @@ public class LSA {
         + "\n  -filternumbers [true or false]";
 
   private FlagConfig flagConfig;
+  /** Stores the list of terms in the same order as rows in the matrix. */
   private String[] termList;
-  private IndexReader indexReader;
-  private LuceneUtils lUtils;
-  private int numDocs;
+  /** The single contents field in the Lucene index: LSA only supports one. */
+  private String contentsField;
+  private LuceneUtils luceneUtils;
   
   /**
    * Basic constructor that tries to check up front that resources are available and
    * configurations are consistent.
    * 
    * @param luceneIndexDir Relative path to directory containing Lucene index.
+   * @throws IOException 
    */
-  private LSA(String luceneIndexDir, FlagConfig flagConfig) {
-    this.flagConfig = flagConfig;
-    LuceneUtils.compressIndex(luceneIndexDir);
-    
-    try {
-      this.indexReader = IndexReader.open(FSDirectory.open(new File(luceneIndexDir)));
-      this.lUtils = new LuceneUtils(flagConfig);
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
+  private LSA(String luceneIndexDir, FlagConfig flagConfig) throws IOException {
+    this.flagConfig = flagConfig;    
+    this.luceneUtils = new LuceneUtils(flagConfig);
+    this.contentsField = flagConfig.contentsfields()[0];
     
     // Find the number of docs, and if greater than dimension, set the dimension
     // to be this number.
-    this.numDocs = indexReader.numDocs();
-    if (flagConfig.dimension() > numDocs) {
+    if (flagConfig.dimension() > this.luceneUtils.getNumDocs()) {
       logger.warning("Dimension for SVD cannot be greater than number of documents ... "
-          + "Setting dimension to " + numDocs);
-      flagConfig.setDimension(numDocs);
+          + "Setting dimension to " + this.luceneUtils.getNumDocs());
+      flagConfig.setDimension(this.luceneUtils.getNumDocs());
     }
 
     if (flagConfig.termweight().equals("logentropy")) {
@@ -92,82 +90,128 @@ public class LSA {
    */
   private SMat smatFromIndex() throws IOException {
     SMat S;
+    Terms terms = this.luceneUtils.getTermsForField(contentsField);
+    VerbatimLogger.info(String.format(
+        "There are %d terms (and %d docs).\n", terms.size(), this.luceneUtils.getNumDocs()));
+    termList = new String[(int) terms.size()];
+    int[][] baseIndex = new int[(int) terms.size()][];
+    int nonZeroVals = 0, termCounter = 0;
+
+    TermsEnum termsEnum = terms.iterator(null);
+    BytesRef bytes;
     
-    // Calculate norm of each doc vector so as to normalize these before SVD.
-    int[][] index;
-
-    TermEnum terms = indexReader.terms();
-    int tc = 0;
-    while(terms.next()){
-      if (lUtils.termFilter(terms.term()))
-        tc++;
-    }
-
-    VerbatimLogger.info("There are " + tc + " terms (and " + indexReader.numDocs() + " docs).\n");
-    termList = new String[tc];
-    index = new int[tc][];
-
-    terms = indexReader.terms();
-    tc = 0;
-    int nonzerovals = 0;
-
-    while(terms.next()){
-      org.apache.lucene.index.Term term = terms.term();
-      if (lUtils.termFilter(term)) {
-        termList[tc] = term.text();
+    // This first loop is all setup and preparing counters.
+    while((bytes = termsEnum.next()) != null) {
+      Term term = new Term(contentsField, bytes);
+      if (luceneUtils.termFilter(term)) {
+        termList[termCounter] = term.text();
 
         // Create matrix of nonzero indices.
-        TermDocs td = indexReader.termDocs(term);
-        int count =0;
-        while (td.next()) {
-          count++;
-          nonzerovals++;
+        DocsEnum docsEnum = this.luceneUtils.getDocsForTerm(term);
+        int numDocsWithTerm = 0;
+        while (docsEnum.nextDoc() != DocsEnum.NO_MORE_DOCS) {
+          ++numDocsWithTerm;
+          ++nonZeroVals;
         }
-        index[tc] = new int[count];
+        baseIndex[termCounter] = new int[numDocsWithTerm];
 
-        // Fill in matrix of nonzero indices.
-        td = indexReader.termDocs(term);
-        count = 0;
-        while (td.next()) {
-          index[tc][count++] = td.doc();
+        // Fill in matrix of nonzero indices, enumerating docsEnum again.
+        docsEnum = this.luceneUtils.getDocsForTerm(term);
+        int count = 0;
+        while (docsEnum.nextDoc() != DocsEnum.NO_MORE_DOCS) {
+          baseIndex[termCounter][count] = docsEnum.docID();
+          ++count;
         }
-        tc++;	// Next term.
+        ++termCounter;	// Next term.
       }
     }
-
+    
     // Initialize "SVDLIBJ" sparse data structure.
-    S = new SMat(indexReader.numDocs(),tc, nonzerovals);
+    S = new SMat(this.luceneUtils.getNumDocs(), termCounter, nonZeroVals);
 
     // Populate "SVDLIBJ" sparse data structure.
-    terms = indexReader.terms();
-    tc = 0;
-    int nn= 0;
+    termsEnum = terms.iterator(termsEnum);
+    termCounter = 0;
+    int firstNonZero = 0; // Index of first non-zero entry (document) of each column (term).
+    while((bytes = termsEnum.next()) != null) {
+      Term term = new Term(contentsField, bytes);
+      if (this.luceneUtils.termFilter(term)) {
+        DocsEnum docsEnum = this.luceneUtils.getDocsForTerm(term);
+        S.pointr[termCounter] = firstNonZero;
 
-    while (terms.next()) {
-      org.apache.lucene.index.Term term = terms.term();
-      if (lUtils.termFilter(term)) {
-        TermDocs td = indexReader.termDocs(term);
-        S.pointr[tc] = nn;  // Index of first non-zero entry (document) of each column (term).
-
-        while (td.next()) {
+        while (docsEnum.nextDoc() != DocsEnum.NO_MORE_DOCS) {
           /** public int[] pointr; For each col (plus 1), index of
             *  first non-zero entry.  we'll represent the matrix as a
             *  document x term matrix such that terms are columns
             *  (otherwise it would be difficult to extract this
             *  information from the lucene index)
             */
-          float value = td.freq() * lUtils.getGlobalTermWeight(term);
-
-          S.rowind[nn] = td.doc();  // set row index to document number
-          S.value[nn] = value;  // set value to frequency (with/without weighting)
-          nn++;
+          S.rowind[firstNonZero] = docsEnum.docID();  // set row index to document number
+          float value = docsEnum.freq() * luceneUtils.getGlobalTermWeight(term);
+          S.value[firstNonZero] = value;  // set value to frequency (with/without weighting)
+          firstNonZero++;
         }
-        tc++;
+        termCounter++;
       }
     }
     S.pointr[S.cols] = S.vals;
 
     return S;
+  }
+
+  private void writeOutput(DMat vT, DMat uT) throws IOException {
+    // Open file and write headers.
+    FSDirectory fsDirectory = FSDirectory.open(new File("."));
+    IndexOutput outputStream = fsDirectory.createOutput(
+        VectorStoreUtils.getStoreFileName(flagConfig.termvectorsfile(), flagConfig),
+        IOContext.DEFAULT);
+  
+    // Write header giving number of dimensions for all vectors and make sure type is real.
+    outputStream.writeString(VectorStoreWriter.generateHeaderString(flagConfig));
+    int cnt;
+    // Write out term vectors
+    for (cnt = 0; cnt < vT.cols; cnt++) {
+      outputStream.writeString(this.termList[cnt]);
+      Vector termVector = VectorFactory.createZeroVector(flagConfig.vectortype(), flagConfig.dimension());
+  
+      float[] tmp = new float[flagConfig.dimension()];
+      for (int i = 0; i < flagConfig.dimension(); i++)
+        tmp[i] = (float) vT.value[i][cnt];
+      termVector = new RealVector(tmp);
+      termVector.normalize();
+  
+      termVector.writeToLuceneStream(outputStream);
+    }
+    outputStream.flush();
+    outputStream.close();
+    VerbatimLogger.info(
+        "Wrote " + cnt + " term vectors incrementally to file " + flagConfig.termvectorsfile() + ".\n");
+  
+    // Write document vectors.
+    // Open file and write headers.
+    outputStream = fsDirectory.createOutput(
+        VectorStoreUtils.getStoreFileName(flagConfig.docvectorsfile(), flagConfig), IOContext.DEFAULT);
+  
+    // Write header giving number of dimensions for all vectors and make sure type is real.
+    outputStream.writeString(VectorStoreWriter.generateHeaderString(flagConfig));
+  
+    // Write out document vectors
+    for (cnt = 0; cnt < uT.cols; cnt++) {
+      String thePath = this.luceneUtils.getDoc(cnt).get(flagConfig.docidfield());
+      outputStream.writeString(thePath);
+      float[] tmp = new float[flagConfig.dimension()];
+  
+      for (int i = 0; i < flagConfig.dimension(); i++)
+        tmp[i] = (float) uT.value[i][cnt];
+      RealVector docVector = new RealVector(tmp);
+      docVector.normalize();
+      
+      docVector.writeToLuceneStream(outputStream);
+    }
+    outputStream.flush();
+    outputStream.close();
+    VerbatimLogger.info("Wrote " + cnt + " document vectors incrementally to file "
+                        + flagConfig.docvectorsfile() + ". Done.\n");
   }
 
   public static void main(String[] args) throws IllegalArgumentException, IOException {
@@ -187,8 +231,11 @@ public class LSA {
       throw (new IllegalArgumentException("-luceneindexpath must be set."));
     }
     
-    // Create an instance of the LSA class.
-    // TODO: given the more object oriented instantiation pattern, consider calling this class LSAIndexer.
+    if (flagConfig.contentsfields().length != 1) {
+      throw new IllegalArgumentException(
+          "LSA only supports one -contentsfield, more than this may cause a corrupt matrix.");
+    }
+    
     LSA lsaIndexer = new LSA(flagConfig.luceneindexpath(), flagConfig);
     SMat A = lsaIndexer.smatFromIndex();
     Svdlib svd = new Svdlib();
@@ -198,59 +245,6 @@ public class LSA {
     SVDRec svdR = svd.svdLAS2A(A, flagConfig.dimension());
     DMat vT = svdR.Vt;
     DMat uT = svdR.Ut;
-
-    // Open file and write headers.
-    FSDirectory fsDirectory = FSDirectory.open(new File("."));
-    IndexOutput outputStream = fsDirectory.createOutput(
-        VectorStoreUtils.getStoreFileName(flagConfig.termvectorsfile(), flagConfig));
-
-    // Write header giving number of dimensions for all vectors and make sure type is real.
-    outputStream.writeString(VectorStoreWriter.generateHeaderString(flagConfig));
-    int cnt;
-    // Write out term vectors
-    for (cnt = 0; cnt < vT.cols; cnt++) {
-      outputStream.writeString(lsaIndexer.termList[cnt]);
-      Vector termVector = VectorFactory.createZeroVector(flagConfig.vectortype(), flagConfig.dimension());
-
-      float[] tmp = new float[flagConfig.dimension()];
-      for (int i = 0; i < flagConfig.dimension(); i++)
-        tmp[i] = (float) vT.value[i][cnt];
-      termVector = new RealVector(tmp);
-      termVector.normalize();
-
-      termVector.writeToLuceneStream(outputStream);
-    }
-    outputStream.flush();
-    outputStream.close();
-    VerbatimLogger.info(
-        "Wrote " + cnt + " term vectors incrementally to file " + flagConfig.termvectorsfile() + ".\n");
-
-    // Write document vectors.
-    // Open file and write headers.
-    outputStream = fsDirectory.createOutput(
-        VectorStoreUtils.getStoreFileName(flagConfig.docvectorsfile(), flagConfig));
-
-    // Write header giving number of dimensions for all vectors and make sure type is real.
-    outputStream.writeString(VectorStoreWriter.generateHeaderString(flagConfig));
-    File file = new File(flagConfig.luceneindexpath());
-    IndexReader indexReader = IndexReader.open(FSDirectory.open(file));
-
-    // Write out document vectors
-    for (cnt = 0; cnt < uT.cols; cnt++) {
-      String thePath = indexReader.document(cnt).get(flagConfig.docidfield());
-      outputStream.writeString(thePath);
-      float[] tmp = new float[flagConfig.dimension()];
-
-      for (int i = 0; i < flagConfig.dimension(); i++)
-        tmp[i] = (float) uT.value[i][cnt];
-      RealVector docVector = new RealVector(tmp);
-      docVector.normalize();
-      
-      docVector.writeToLuceneStream(outputStream);
-    }
-    outputStream.flush();
-    outputStream.close();
-    VerbatimLogger.info("Wrote " + cnt + " document vectors incrementally to file "
-                        + flagConfig.docvectorsfile() + ". Done.\n");
+    lsaIndexer.writeOutput(vT, uT);
   }
 }

@@ -17,6 +17,6 @@ public class CompareTermsTest {
     
     flagConfig = FlagConfig.getFlagConfig(
         new String[] {"-queryvectorfile", "orthographic", "foo", "foot"});
-    assertEquals(0.925, CompareTerms.RunCompareTerms(flagConfig), TOL);
+    assertTrue(0.9 < CompareTerms.RunCompareTerms(flagConfig));
   }
 }

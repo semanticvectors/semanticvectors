@@ -38,6 +38,7 @@ package pitt.search.semanticvectors.vectors;
 import java.io.IOException;
 import java.util.Random;
 
+import org.apache.lucene.store.IOContext;
 import org.apache.lucene.store.IndexInput;
 import org.apache.lucene.store.IndexOutput;
 import org.apache.lucene.store.RAMDirectory;
@@ -220,15 +221,13 @@ public class ComplexVectorTest extends TestCase {
   @Test
   public void testReadWrite() {
     Vector v1 = new ComplexVector(new short[] { -1, 8000, 16000 });
-
     RAMDirectory directory = new RAMDirectory();
-
     try {
-      IndexOutput indexOutput = directory.createOutput("complexvectors.bin");
+      IndexOutput indexOutput = directory.createOutput("complexvectors.bin", IOContext.DEFAULT);
       v1.writeToLuceneStream(indexOutput);
       indexOutput.flush();
 
-      IndexInput indexInput = directory.openInput("complexvectors.bin");
+      IndexInput indexInput = directory.openInput("complexvectors.bin", IOContext.DEFAULT);
       ComplexVector cv2 = new ComplexVector(3, Mode.POLAR_SPARSE);
       cv2.readFromLuceneStream(indexInput);
       assertFloatArrayEquals(
@@ -238,5 +237,6 @@ public class ComplexVectorTest extends TestCase {
       e.printStackTrace();
       fail();
     }
+    directory.close();
   }
 }

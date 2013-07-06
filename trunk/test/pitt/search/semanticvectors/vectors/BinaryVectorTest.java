@@ -39,6 +39,7 @@ import java.util.Random;
 
 import junit.framework.TestCase;
 
+import org.apache.lucene.store.IOContext;
 import org.apache.lucene.store.IndexInput;
 import org.apache.lucene.store.IndexOutput;
 import org.apache.lucene.store.RAMDirectory;
@@ -195,10 +196,10 @@ public class BinaryVectorTest extends TestCase {
 
     RAMDirectory directory = new RAMDirectory();
     try {
-      IndexOutput indexOutput = directory.createOutput("binaryvectors.bin");
+      IndexOutput indexOutput = directory.createOutput("binaryvectors.bin", IOContext.DEFAULT);
       vector.writeToLuceneStream(indexOutput);
       indexOutput.flush();
-      IndexInput indexInput = directory.openInput("binaryvectors.bin");
+      IndexInput indexInput = directory.openInput("binaryvectors.bin", IOContext.DEFAULT);
       Vector vector2 = VectorFactory.createZeroVector(VectorType.BINARY, 64);
       assertEquals("0000000000000000000000000000000000000000000000000000000000000000", vector2.writeToString());
       vector2.readFromLuceneStream(indexInput);
@@ -207,5 +208,6 @@ public class BinaryVectorTest extends TestCase {
       e.printStackTrace();
       fail();
     }
+    directory.close();
   }  
 }
