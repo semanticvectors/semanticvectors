@@ -76,19 +76,20 @@ public class NumberRepresentation {
    * {@code right} are the numbers at each end of the representation.
    */
   private Hashtable<String, VectorStoreRAM> numberVectorsCache = new Hashtable<String, VectorStoreRAM>();
-  
+
   private FlagConfig flagConfig = null;
-  
+
   /** 'Left' vector, used to represent the beginning of each sequence of number vectors. */
   private Vector vL;
   /** 'Right' vector, used to represent the end of each sequence of number vectors. */
   private Vector vR;
 
+  @Deprecated
   /**
    * A simple testing / exploration routine that generates a handful of
    * NumberRepresentation vectors and prints out a table of their similarities.
    * 
-   * @param args
+   * Deprecated - see instead {@link NumberRepresentationTest}.
    */
   public static void main(String[] args) {
     FlagConfig flagConfig;
@@ -120,7 +121,7 @@ public class NumberRepresentation {
       System.out.println();
     }
   }
-  
+
   /**
    * Initializes an instance of {@link NumberRepresentation} with its start and end vectors,
    * checking that these demarcator vectors are not too close together. 
@@ -132,10 +133,10 @@ public class NumberRepresentation {
    */
   public NumberRepresentation(FlagConfig flagConfig, String startSeed, String endSeed) {
     if (flagConfig == null) throw new NullPointerException("flagConfig cannot be null");
-	  
+
     this.startRandomSeed = startSeed;
-	 this.endRandomSeed = endSeed;
-    
+    this.endRandomSeed = endSeed;
+
     this.flagConfig = flagConfig;
     if (flagConfig.vectortype() == VectorType.COMPLEX)
       ComplexVector.setDominantMode(Mode.CARTESIAN);
@@ -151,7 +152,7 @@ public class NumberRepresentation {
     vR = VectorFactory.generateRandomVector(
         flagConfig.vectortype(), flagConfig.dimension(), flagConfig.seedlength(), random);
     vR.normalize();
-    
+
     // Small routine to guarantee that end vector has low similarity with start vector.
     ArrayList<Vector> toOrthogonalize = new ArrayList<Vector>();
     toOrthogonalize.add(vL);
@@ -159,22 +160,18 @@ public class NumberRepresentation {
     if (flagConfig.vectortype().equals(VectorType.BINARY)) BinaryVectorUtils.orthogonalizeVectors(toOrthogonalize);
     else if (flagConfig.vectortype().equals(VectorType.COMPLEX)) ComplexVectorUtils.orthogonalizeVectors(toOrthogonalize);
     else VectorUtils.orthogonalizeVectors(toOrthogonalize);
-
   }
-  
+
   /**
-* This constructor allows for the generation of sets of number vectors, using
-* a standard random seed
+   * This constructor allows for the generation of sets of number vectors, using
+   * a standard random seed
    * 
    * @param flagConfig 
    */
-  
-  public NumberRepresentation(FlagConfig flagConfig)
-  {
-	  /** Random seed used for ending demarcator vectors. */
-	  this(flagConfig,  "*START*", "*END*");
+  public NumberRepresentation(FlagConfig flagConfig) {
+    this(flagConfig,  "*START*", "*END*");
   }	  
-  
+
   /**
    * Gets a sequence of number vectors, the first and last of which are the demarcator vectors,
    * and the intervening members being evenly linearly distributed between these.
@@ -192,29 +189,29 @@ public class NumberRepresentation {
     if (iEnd < iStart) throw new IllegalArgumentException(
         String.format(
             "End index (%d) should be greater than start index (%d).", iEnd, iStart));
- 
+
     VectorStoreRAM theVSR = new VectorStoreRAM(flagConfig);
     for (int i = 0; i <= iEnd - iStart; ++i) {
       Vector ithNumberVector = VectorFactory.createZeroVector(
           flagConfig.vectortype(), flagConfig.dimension());
-      
-      
+
+
       if (flagConfig.vectortype().equals(VectorType.BINARY))
       {
-    	  ithNumberVector = BinaryVectorUtils.weightedSuperposition((BinaryVector) vL, iEnd-iStart-i, (BinaryVector) vR, i);
-       }
-    	  
+        ithNumberVector = BinaryVectorUtils.weightedSuperposition((BinaryVector) vL, iEnd-iStart-i, (BinaryVector) vR, i);
+      }
+
       else {
-    	    //subdivide into equal angles
-          double phaseAngle = i/((double) iEnd-iStart) * (CircleLookupTable.PHASE_RESOLUTION/(double)4);
-          short angle =  new Double(phaseAngle).shortValue();
-          double y = CircleLookupTable.getRealEntry(angle);
-          double x= CircleLookupTable.getImagEntry(angle);
-        
-      ithNumberVector.superpose(vL, y, null);
-      ithNumberVector.superpose(vR, x, null);
-      ithNumberVector.normalize();
-      		}
+        //subdivide into equal angles
+        double phaseAngle = i/((double) iEnd-iStart) * (CircleLookupTable.PHASE_RESOLUTION/(double)4);
+        short angle =  new Double(phaseAngle).shortValue();
+        double y = CircleLookupTable.getRealEntry(angle);
+        double x= CircleLookupTable.getImagEntry(angle);
+
+        ithNumberVector.superpose(vL, y, null);
+        ithNumberVector.superpose(vR, x, null);
+        ithNumberVector.normalize();
+      }
       theVSR.putVector(iStart + i, ithNumberVector);
     }
 

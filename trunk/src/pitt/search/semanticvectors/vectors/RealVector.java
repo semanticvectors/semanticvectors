@@ -54,6 +54,9 @@ import org.apache.lucene.store.IndexOutput;
 public class RealVector implements Vector {
   public static final Logger logger = Logger.getLogger(RealVector.class.getCanonicalName());
 
+  /** Returns {@link VectorType.REAL} */
+  public VectorType getVectorType() { return VectorType.REAL; }
+  
   private final int dimension;
   /**
    * Dense representation.  Coordinates can be anything expressed by floats.
