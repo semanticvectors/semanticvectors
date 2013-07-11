@@ -45,8 +45,8 @@ public class ObjectVector{
   private Object object;
   private Vector vector;
 
-  public Object getObject(){return object;}
-  public Vector getVector(){return vector;}
+  public Object getObject() { return object; }
+  public Vector getVector() { return vector; }
 
   public void setVector(Vector newVector){
     this.vector = newVector;
@@ -57,7 +57,7 @@ public class ObjectVector{
    * @param vector  The corresponding vector.
    * @see VectorStore
    */
-  public ObjectVector(Object object, Vector vector){
+  public ObjectVector(Object object, Vector vector) {
     this.object = object;
     this.vector = vector;
   }

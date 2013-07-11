@@ -25,6 +25,9 @@ import org.apache.lucene.util.OpenBitSet;
 public class BinaryVector implements Vector {
   public static final Logger logger = Logger.getLogger(BinaryVector.class.getCanonicalName());
 
+  /** Returns {@link VectorType.BINARY} */
+  public VectorType getVectorType() { return VectorType.BINARY; }
+  
   // TODO: Determing proper interface for default constants.
   /**
    * Number of decimal places to consider in weighted superpositions of binary vectors.

@@ -287,7 +287,7 @@ public class Search {
       }
     } catch (ZeroVectorException zve) {
       logger.info(zve.getMessage());
-      results = new LinkedList<SearchResult>();
+      return new LinkedList<SearchResult>();
     }
 
     results = vecSearcher.getNearestNeighbors(flagConfig.numsearchresults());

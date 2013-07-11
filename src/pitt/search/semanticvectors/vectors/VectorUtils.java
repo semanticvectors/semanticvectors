@@ -40,11 +40,11 @@ import java.util.Random;
 import java.util.logging.Logger;
 
 /**
- * This class provides some standard vector methods, including orthogonalization for
- * real and complex vectors. Many old methods have been removed and are now implemented
- * in vector classes for real, complex, and binary vectors.
+ * This class provides some standard vector methods. Many old methods have been removed
+ * and are now implemented in vector and util classes for real, complex, and binary vectors.
  */
 public class VectorUtils {
+  @SuppressWarnings("unused")
   private static final Logger logger = Logger.getLogger(VectorUtils.class.getCanonicalName());
 
   /**
@@ -88,27 +88,20 @@ public class VectorUtils {
    * @param vectors ArrayList of vectors (which are themselves arrays of
    * floats) to be orthogonalized in place.
    */
-  public static boolean orthogonalizeVectors(ArrayList<Vector> vectors) {    
-    int dimension = vectors.get(0).getDimension();
-    // Go up through vectors in turn, parameterized by k.
-    for (int k = 0; k < vectors.size(); ++k) {
-      Vector kthVector = vectors.get(k);
-      kthVector.normalize();
-      if (kthVector.getDimension() != dimension) {
-        logger.warning("In orthogonalizeVector: not all vectors have required dimension.");
-        return false;
-      }
-      // Go up to vector k, parameterized by j.
-      for (int j = 0; j < k; ++j) {
-        Vector jthVector = vectors.get(j);
-        double dotProduct = kthVector.measureOverlap(jthVector);
-        // Subtract relevant amount from kth vector.
-        kthVector.superpose(jthVector, -dotProduct, null);
-        // And renormalize each time.
-        kthVector.normalize();
-      }
+  public static void orthogonalizeVectors(ArrayList<Vector> vectors) {
+    switch (vectors.get(0).getVectorType()) {
+    case REAL:
+      RealVectorUtils.orthogonalizeVectors(vectors);
+      break;
+    case COMPLEX:
+      ComplexVectorUtils.orthogonalizeVectors(vectors);
+      break;
+    case BINARY:
+      BinaryVectorUtils.orthogonalizeVectors(vectors);
+      break;
+    default:
+      throw new IncompatibleVectorsException("Type not recognized: " + vectors.get(0).getVectorType());
     }
-    return true;
   }
 
   /**

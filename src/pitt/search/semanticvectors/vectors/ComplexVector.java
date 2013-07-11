@@ -56,6 +56,9 @@ import org.apache.lucene.store.IndexOutput;
 public class ComplexVector implements Vector {
   public static final Logger logger = Logger.getLogger(ComplexVector.class.getCanonicalName());
   
+  /** Returns {@link VectorType.COMPLEX} */
+  public VectorType getVectorType() { return VectorType.COMPLEX; }
+  
   /**
    * We use the 'MODE' enumeration to keep track of which mode the complex vector is in. By 'MODE'
    * we mean whether the vector is using POLAR_SPARSE, POLAR_DENSE or CARTESIAN coordinates.
@@ -315,13 +318,9 @@ public class ComplexVector implements Vector {
     } 
   }
   
-
-  
   /**
    * Normalizes the cartesian form of the vector so that the vector formed by each real/imaginary pair has unit length 
    */
-  
-  
   protected void normalizeCartesian() {
       toDensePolar();
       toCartesian();

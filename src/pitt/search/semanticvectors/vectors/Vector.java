@@ -70,6 +70,9 @@ public interface Vector {
   /** Returns the dimension of the vector. */
   public abstract int getDimension();
   
+  /** Returns the {@link VectorType} of the vector. */
+  public abstract VectorType getVectorType(); 
+  
   /** Returns true if this is a representation of a zero vector. */
   public abstract boolean isZeroVector();
   

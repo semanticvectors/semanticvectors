@@ -31,8 +31,8 @@ public class ComplexVectorUtils {
     float[] coordinates = vec1.getCoordinates();
 
     for (int i=0, j=0; i<dim; i++, j+=2) {
-	  coordinates[j] += CircleLookupTable.getRealEntry(c[i]);
-	  coordinates[j+1] += CircleLookupTable.getImagEntry(c[i]);
+      coordinates[j] += CircleLookupTable.getRealEntry(c[i]);
+      coordinates[j+1] += CircleLookupTable.getImagEntry(c[i]);
     }
   }
 
@@ -43,7 +43,7 @@ public class ComplexVectorUtils {
    */
   public static void superposeWithAngle(
       ComplexVector vec1, ComplexVector vec2, float weight, int[] permutation) {
-	int positionToAdd;
+    int positionToAdd;
     int dim =  vec1.getDimension();
 
     short c[] = vec2.getPhaseAngles();
@@ -116,7 +116,7 @@ public class ComplexVectorUtils {
     IncompatibleVectorsException.checkVectorsCompatible(vec1, vec2);
     assert(vec1.getOpMode() == ComplexVector.Mode.CARTESIAN);
     assert(vec2.getOpMode() == ComplexVector.Mode.CARTESIAN);
-    
+
     int positionToAdd;
 
     float[] coordinates1 = vec1.getCoordinates();
@@ -132,7 +132,7 @@ public class ComplexVectorUtils {
     }
   }
 
-  
+
   /**
    * The orthogonalize function takes an array of vectors and
    * orthogonalizes them using the Gram-Schmidt process. The vectors
@@ -160,15 +160,15 @@ public class ComplexVectorUtils {
       // Go up to vector k, parameterized by j.
       for (int j = 0; j < k; ++j) {
         Vector jthVector = vectors.get(j);
-          renderOrthogonal( (ComplexVector) kthVector, (ComplexVector) jthVector);
-         // And renormalize each time.
+        renderOrthogonal( (ComplexVector) kthVector, (ComplexVector) jthVector);
+        // And renormalize each time.
         kthVector.normalize();
       }
     }
     return true;
   }
-  
-  
+
+
   /**
    * Renders each circular component of vec1 orthogonal to the corresponding component of vec2
    * Both vectors are in CARTESIAN mode.
@@ -178,40 +178,39 @@ public class ComplexVectorUtils {
     IncompatibleVectorsException.checkVectorsCompatible(vec1, vec2);
     assert(vec1.getOpMode() == ComplexVector.Mode.CARTESIAN);
     assert(vec2.getOpMode() == ComplexVector.Mode.CARTESIAN);
-    
+
     float[] coordinates1 = vec1.getCoordinates();
     float[] coordinates2 = vec2.getCoordinates();
-  
-    	  for (int i = 0; i < vec1.getDimension()*2; i+=2) {  
-    	        double resultThisPair= coordinates1[i] * coordinates2[i];
-    	        resultThisPair += coordinates1[i+1] * coordinates2[i+1];
-    	        
-    	        double norm1 = coordinates1[i] * coordinates1[i];
-    	        norm1 += coordinates1[i+1] * coordinates1[i+1];
-    	        
-    	        double norm2 = coordinates2[i] * coordinates2[i];
-    	        norm2  += coordinates2[i+1] * coordinates2[i+1];
-    	        
-    	        norm1 = Math.sqrt(norm1);
-    	        norm2 = Math.sqrt(norm2);
-    	        
-    	        double cosine = 0;
-    	        
-    	        if (norm1 > 0 && norm2 > 0)
-    	        cosine = resultThisPair / (norm1 * norm2);   
-    	        
-    	        coordinates1[i] = (float) (coordinates1[i] - cosine*coordinates2[i]);
-    	        coordinates1[i+1] = (float) (coordinates1[i+1] - cosine*coordinates2[i+1]);
 
-    	  }
+    for (int i = 0; i < vec1.getDimension()*2; i+=2) {  
+      double resultThisPair= coordinates1[i] * coordinates2[i];
+      resultThisPair += coordinates1[i+1] * coordinates2[i+1];
+
+      double norm1 = coordinates1[i] * coordinates1[i];
+      norm1 += coordinates1[i+1] * coordinates1[i+1];
+
+      double norm2 = coordinates2[i] * coordinates2[i];
+      norm2  += coordinates2[i+1] * coordinates2[i+1];
+
+      norm1 = Math.sqrt(norm1);
+      norm2 = Math.sqrt(norm2);
+
+      double cosine = 0;
+
+      if (norm1 > 0 && norm2 > 0)
+        cosine = resultThisPair / (norm1 * norm2);   
+
+      coordinates1[i] = (float) (coordinates1[i] - cosine*coordinates2[i]);
+      coordinates1[i+1] = (float) (coordinates1[i+1] - cosine*coordinates2[i+1]);
+    }
   }
-  
+
   public static void setFloatArrayToZero(float[] array) {
-	  for (int i=0; i<array.length; i++) array[i] = 0.0f;
+    for (int i=0; i<array.length; i++) array[i] = 0.0f;
   }
 
   public static void scaleFloatArray(float[] array, float weight) {
-	  for (int i=0; i<array.length; i++) array[i] = array[i]*weight;
+    for (int i=0; i<array.length; i++) array[i] = array[i]*weight;
   }
 }
 
