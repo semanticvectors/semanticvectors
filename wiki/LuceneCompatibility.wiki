@@ -2,7 +2,7 @@
 
 SemanticVectors depends on Apache Lucene, but not all versions of SemanticVectors work with all versions of Apache Lucene. To find the latest (and some older) versions of Apache Lucene click [http://lucene.apache.org/java/docs/index.html here].
 
-We currently need to upgrade to Lucene 4.x. This issue is being tracked at https://code.google.com/p/semanticvectors/issues/detail?id=65. Code is checked in and merged into trunk, so we are going to release a new Lucene 4.3 version soon.
+SV 4.0 works with Lucene 4.3.1.
 
 SV version 3.8 works with Lucene 3.6.x.
 
