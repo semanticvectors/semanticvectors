@@ -13,8 +13,9 @@ These sketch instructions presume that you're reasonably familiar with Java, Ant
  * Make sure you have a Java Development Kit (JDK) installed on your system, and that the `java` and `javac` programs can be seen from you system `PATH` variable.
    * If you type `java` and `javac` at your command line, you should see options and instructions, rather than a "Command not found" error.
    * On some systems you may need to set your `JAVA_HOME` environment variable.
- * Make sure that you have the [http://lucene.apache.org/java/docs/ Apache Lucene] core and demo jar files.
-   * Unfortunately SemanticVectors doesn't work with all Lucene versions. See the page on LuceneCompatibility.
+ * Make sure that you have the [http://lucene.apache.org/java/docs/ Apache Lucene] core and demo jar files (and the analyzers and queryparser jar files for Lucene and SemanticVectors versions 4.0 and higher).
+   * Add the `lucene-analyzers-common-$VERSION.jar`, `lucene-core-$VERSION.jar`  `lucene-demo-$VERSION.jar`, and `lucene-queryparser-$VERSION.jar` to your `CLASSPATH`, where `$VERSION` is your Lucene version.
+   * For Lucene pre-4.0 (SemanticVectors pre-4.0), only Lucene core and demo jars are required. See also LuceneCompatibility.
    * To test this, run `java org.apache.lucene.demo.IndexFiles` on the directory containing the corpus from which you'd like to build a SemanticVector model. You'll need to do this anyway, so might as well do it first to check your Lucene installation.
 
 == Binary Installation from Jar Distribution ==
@@ -22,12 +23,11 @@ These sketch instructions presume that you're reasonably familiar with Java, Ant
 This is the simplest approach for just getting SemanticVectors working.
 
  * Download the most recent `semanticvectors-*.*.jar` distribution from this site.
- * Add the Lucene core and demo jar files to your `CLASSPATH`.
- * Add the file (including full path) to your `CLASSPATH`.
+ * Add the semanticvectors-*.*.jar file (including full path) to your `CLASSPATH`.
 
 You won't be able to alter the programs beyond the configuration that's possible with command line flags. If you want to do that, you need to build from source.
 
-==Compiling from Source - Package Installation==
+== Compiling from Source - Package Installation ==
 
 ===Prerequisites===
 
