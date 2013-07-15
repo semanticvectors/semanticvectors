@@ -1,7 +1,16 @@
 #summary Release Log
 #labels Phase-Implementation
 
-Even-numbered versions are releases. Odd-numbered versions are in development. It follows that the most recent code and the `build.xml` file in the SVN repository is always odd-numbered.
+Even-numbered (after the decimal point) versions are releases. Odd-numbered versions are in development. It follows that the most recent code and the `build.xml` file in the SVN repository is always odd-numbered.
+
+=== Version 3.9 ===
+
+(soon to be 4.0)
+
+ * Upgraded to Lucene 4.3.1.
+ * Release of OrthographicVectors.
+ * Deterministic probabilistic binary normalization.
+ * Fixes to bilingual search, incremental doc vectors.
 
 === Version 3.8 ===
 
