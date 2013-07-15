@@ -35,23 +35,17 @@
 
 package pitt.search.semanticvectors;
 
+import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Random;
-import java.io.File;
-import java.io.IOException;
 
 import org.apache.lucene.index.DocsAndPositionsEnum;
-import org.apache.lucene.index.DocsEnum;
 import org.apache.lucene.index.FieldInfos;
-import org.apache.lucene.index.Fields;
-import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.index.Terms;
 import org.apache.lucene.index.TermsEnum;
-import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.util.BytesRef;
 
 import pitt.search.semanticvectors.hashing.Bobcat;
@@ -95,10 +89,8 @@ public class TermTermVectorsFromLucene implements VectorStore {
   private VectorStoreRAM termVectors;
   private VectorStoreRAM numberVectors;
   private VectorStore indexVectors;
-  //private IndexReader luceneIndexReader;
   private LuceneUtils luceneUtils;
-  private TermsEnum termsEnum;
-
+  
   /**
    * Used to store permutations we'll use in training.  If positional method is one of the
    * permutations, this contains the shift for all the focus positions.
