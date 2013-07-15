@@ -25,9 +25,9 @@ import org.apache.lucene.util.OpenBitSet;
 public class BinaryVector implements Vector {
   public static final Logger logger = Logger.getLogger(BinaryVector.class.getCanonicalName());
 
-  /** Returns {@link VectorType.BINARY} */
+  /** Returns {@link VectorType#BINARY} */
   public VectorType getVectorType() { return VectorType.BINARY; }
-  
+
   // TODO: Determing proper interface for default constants.
   /**
    * Number of decimal places to consider in weighted superpositions of binary vectors.
@@ -35,12 +35,12 @@ public class BinaryVector implements Vector {
    */
   public static final int BINARY_VECTOR_DECIMAL_PLACES = 2;
   public static final boolean BINARY_BINDING_WITH_PERMUTE = false;
- 
-  
+
+
   private static final int DEBUG_PRINT_LENGTH = 64;
   private Random random;
   private final int dimension;
-  
+
   /**
    * Elemental representation for binary vectors. 
    */
@@ -57,7 +57,7 @@ public class BinaryVector implements Vector {
    * Otherwise, rounding occurs to the second binary place.
    */ 
   private ArrayList<OpenBitSet> votingRecord;
-  
+
   int decimalPlaces = 0;
   /** Accumulated sum of the weights with which vectors have been added into the voting record */
   int totalNumberOfVotes = 0;
@@ -66,7 +66,7 @@ public class BinaryVector implements Vector {
 
   // Used only for temporary internal storage.
   private OpenBitSet tempSet;
-  
+
   public BinaryVector(int dimension) {
     // Check "multiple-of-64" constraint, to facilitate permutation of 64-bit chunks
     if (dimension % 64 != 0) {
@@ -77,8 +77,8 @@ public class BinaryVector implements Vector {
     this.bitSet = new OpenBitSet(dimension);
     this.isSparse = true;
     this.random = new Random();
-     
-    }
+
+  }
 
   /**
    * Returns a new copy of this vector, in dense format.
@@ -105,16 +105,16 @@ public class BinaryVector implements Vector {
       debugString.append("\nVOTING RECORD: \n");
       for (int y =0; y < votingRecord.size(); y++)
       {
-       for (int x = 0; x < DEBUG_PRINT_LENGTH; x++) debugString.append(votingRecord.get(y).getBit(x) + " ");
-      debugString.append("\n");
+        for (int x = 0; x < DEBUG_PRINT_LENGTH; x++) debugString.append(votingRecord.get(y).getBit(x) + " ");
+        debugString.append("\n");
       }
-      
+
       // TODO - output count from first DEBUG_PRINT_LENGTH dimension
       debugString.append("\nNORMALIZED: ");
       this.normalize();
       for (int x = 0; x < DEBUG_PRINT_LENGTH; x++) debugString.append(bitSet.getBit(x) + " ");
       debugString.append("\n");
-      
+
       // Calculate actual values for first 20 dimension
       double[] actualvals = new double[DEBUG_PRINT_LENGTH];
       debugString.append("COUNTS    : ");
@@ -153,7 +153,7 @@ public class BinaryVector implements Vector {
   @Override
   public boolean isZeroVector() {
     if (isSparse) 
-    	{
+    {
       return bitSet.cardinality() == 0;
     } else {
       return (votingRecord == null) || (votingRecord.size() == 0);
@@ -208,7 +208,7 @@ public class BinaryVector implements Vector {
     if (isZeroVector()) return 0;
     BinaryVector binaryOther = (BinaryVector) other;
     if (binaryOther.isZeroVector()) return 0;
-        
+
     // Calculate hamming distance in place using cardinality and XOR, then return bitset to
     // original state.
     double hammingDistance = OpenBitSet.xorCount(binaryOther.bitSet, this.bitSet);
@@ -273,7 +273,7 @@ public class BinaryVector implements Vector {
    * @param incomingBitSet
    * @param weight
    */
-    protected void superposeBitSet(OpenBitSet incomingBitSet, double weight) {
+  protected void superposeBitSet(OpenBitSet incomingBitSet, double weight) {
     // If fractional weights are used, encode all weights as integers (1000 x double value).
     weight = (int) Math.round(weight * Math.pow(10, decimalPlaces));
     if (weight == 0) return;
@@ -370,16 +370,16 @@ public class BinaryVector implements Vector {
         tempSet.andNot(votingRecord.get(x));
     } else
     {
-    String inbinary = reverse(Integer.toBinaryString(target));
-    tempSet.xor(tempSet);
-    tempSet.xor(votingRecord.get(inbinary.indexOf("1")));
-     
-    for (int q =0; q < votingRecord.size(); q++) {
-      if (q < inbinary.length() && inbinary.charAt(q) == '1')
+      String inbinary = reverse(Integer.toBinaryString(target));
+      tempSet.xor(tempSet);
+      tempSet.xor(votingRecord.get(inbinary.indexOf("1")));
+
+      for (int q =0; q < votingRecord.size(); q++) {
+        if (q < inbinary.length() && inbinary.charAt(q) == '1')
           tempSet.and(votingRecord.get(q));	
         else 
           tempSet.andNot(votingRecord.get(q));	
-    		}
+      }
     }
   }
 
@@ -539,30 +539,30 @@ public class BinaryVector implements Vector {
     IncompatibleVectorsException.checkVectorsCompatible(this, other);
     BinaryVector binaryOther = (BinaryVector) other.copy();
     if (direction > 0) {
-    	//as per Kanerva 2009: bind(A,B) = perm+(A) XOR B = C
-    	//this also functions as the left inverse:  left inverse (A,C) = perm+(A) XOR C  = B 
-    	this.permute(PermutationUtils.getShiftPermutation(VectorType.BINARY, dimension, 1)); //perm+(A)
-    	this.bitSet.xor(binaryOther.bitSet); //perm+(A) XOR B
-      
+      //as per Kanerva 2009: bind(A,B) = perm+(A) XOR B = C
+      //this also functions as the left inverse:  left inverse (A,C) = perm+(A) XOR C  = B 
+      this.permute(PermutationUtils.getShiftPermutation(VectorType.BINARY, dimension, 1)); //perm+(A)
+      this.bitSet.xor(binaryOther.bitSet); //perm+(A) XOR B
+
     } else {
-    	//as per Kanerva 2009: right inverse(C,B) =  perm-(C XOR B) = perm-(perm+(A)) = A 
-    	this.bitSet.xor(binaryOther.bitSet); //C XOR B
-    	this.permute(PermutationUtils.getShiftPermutation(VectorType.BINARY, dimension, -1)); //perm-(C XOR B) = A
- }
+      //as per Kanerva 2009: right inverse(C,B) =  perm-(C XOR B) = perm-(perm+(A)) = A 
+      this.bitSet.xor(binaryOther.bitSet); //C XOR B
+      this.permute(PermutationUtils.getShiftPermutation(VectorType.BINARY, dimension, -1)); //perm-(C XOR B) = A
+    }
   }
-  
-  
+
+
   @Override
   /**
    * Implements inverse of binding using permutations and XOR. 
    */
   public void release(Vector other, int direction) {
     if (!BINARY_BINDING_WITH_PERMUTE)
-	   bind(other);
-	  else
-		  bind (other, direction);
+      bind(other);
+    else
+      bind (other, direction);
   }
-  
+
   @Override
   /**
    * Implements binding using exclusive OR. 
@@ -573,20 +573,20 @@ public class BinaryVector implements Vector {
       BinaryVector binaryOther = (BinaryVector) other;
       this.bitSet.xor(binaryOther.bitSet);
     } else {
-    	bind(other, 1);
+      bind(other, 1);
     }
   }
-  
+
   @Override
   /**
    * Implements inverse binding using exclusive OR. 
    */
   public void release(Vector other) {
-	 
-	 if (!BINARY_BINDING_WITH_PERMUTE)
-	   bind(other);
-	 else
-		 bind(other, -1);
+
+    if (!BINARY_BINDING_WITH_PERMUTE)
+      bind(other);
+    else
+      bind(other, -1);
   }
 
   @Override
@@ -601,124 +601,109 @@ public class BinaryVector implements Vector {
    * With the BSC normalization, the vector produced is identical to "jazz" (as jazz wins the vote in each case). With probabilistic normalization,
    * the vector produced is somewhat similar to both "jazz" and "rock", with a similarity that is proportional to the weights assigned to the 
    * superposition, e.g. 0.624000:jazz;  0.246000:rock
-   * 
    */
-  
- public void normalize() {
-	  
-	  
-	  if (votingRecord == null) return;
-	  if (votingRecord.size() == 1)
-	  {
-		  this.bitSet = votingRecord.get(0);
-		  return;
-	  }
-	  //clear bitset;
-	  this.bitSet.xor(this.bitSet);
-	  
-	  //Ensure that the same set of superposed vectors will always produce the same result
-	  long theSuperpositionSeed = 0;
-	  for (int q =0; q < votingRecord.size(); q++)
-		  theSuperpositionSeed += votingRecord.get(q).getBits()[0];
-	  
-	  random.setSeed(theSuperpositionSeed);
-	  
-	  //Determine value above the universal minimum for each dimension of the voting record
-	  int[] counts = new int[dimension];
-	  int max = totalNumberOfVotes;
-	   
-	  //Determine the maximum possible votes on the voting record
-	  int maxpossiblevotesonrecord = 0;
-	  
-	  for (int q=0; q < votingRecord.size(); q++)
-		maxpossiblevotesonrecord += Math.pow(2, q);  
-	  
-	  //For each possible value on the record, get a BitSet with a "1" in the 
-	  //position of the dimensions that match this value
-	  for (int x = 1; x <= maxpossiblevotesonrecord; x++)
-	  {
-		    this.setTempSetToExactMatches(x);
-		    
-		    //no exact matches
-		 	if (this.tempSet.cardinality() == 0) continue;
-		 		
-		 	//For each y==1 on said BitSet (indicating votes in dimension[y] == x)
-		    int y = tempSet.nextSetBit(0);
-		 	
-		    //determine total number of votes 
-			double votes = minimum+x;
-			  
-			//calculate standard deviations above/below the mean of max/2 
-			double z = (votes - (max/2)) / (Math.sqrt(max)/2);
-			  
-			//find proportion of data points anticipated within z standard deviations of the mean (assuming approximately normal distribution)
-			double proportion = erf(z/Math.sqrt(2));
-			  
-			//convert into a value between 0 and 1 (i.e. centered on 0.5 rather than centered on 0)
-			proportion = (1+proportion) /2;
-			
-		 	  while (y != -1)
-		 	  {
-		 		  //probabilistic normalization
-				  if ((random.nextDouble()) <= proportion) this.bitSet.fastSet(y);
-		 		   y++;
-		 		  y = tempSet.nextSetBit(y);
-		 	  }
-			  
-	  }
-		  
-	  //housekeeping
-	    votingRecord = new ArrayList<OpenBitSet>();
-	    votingRecord.add((OpenBitSet) bitSet.clone());
-	    totalNumberOfVotes = 1;
-	    tempSet = new OpenBitSet(dimension);
-	    minimum = 0;
-  }
-  
+  public void normalize() {
+    if (votingRecord == null) return;
+    if (votingRecord.size() == 1) {
+      this.bitSet = votingRecord.get(0);
+      return;
+    }
+    //clear bitset;
+    this.bitSet.xor(this.bitSet);
 
-  // approximation of error function, equation 7.1.27 from
-  // Abramowitz, M. and Stegun, I. A. (Eds.). "Repeated Integrals of the Error Function." §7.2 
-  //in Handbook of Mathematical Functions with Formulas, Graphs, and Mathematical Tables, 
-  //9th printing. New York: Dover, pp. 299-300, 1972.
-  // error of approximation <= 5*10^-4
-  
-  public double erf(double z)
-  {
-	  //erf(-x) == -erf(x)
-	  double sign = Math.signum(z);
-	  z = Math.abs(z);
-	
-	  double a1 = 0.278393, a2 = 0.230389, a3 = 0.000972, a4 = 0.078108;
-	  double sumterm = 1 + a1*z + a2*Math.pow(z,2) + a3*Math.pow(z,3) + a4*Math.pow(z,4);
-	  return sign * ( 1-1/(Math.pow(sumterm, 4)));
-	  
-  }
-  
-  
-  
- /**
-  * Faster normalization according to the Binary Spatter Code's "majority" rule 
-  */
-  
-  public void normalizeBSC() {
-    if (!isSparse)
-    this.bitSet = concludeVote();
-    
+    //Ensure that the same set of superposed vectors will always produce the same result
+    long theSuperpositionSeed = 0;
+    for (int q =0; q < votingRecord.size(); q++)
+      theSuperpositionSeed += votingRecord.get(q).getBits()[0];
+
+    random.setSeed(theSuperpositionSeed);
+
+    //Determine value above the universal minimum for each dimension of the voting record
+    int max = totalNumberOfVotes;
+
+    //Determine the maximum possible votes on the voting record
+    int maxpossiblevotesonrecord = 0;
+
+    for (int q=0; q < votingRecord.size(); q++)
+      maxpossiblevotesonrecord += Math.pow(2, q);  
+
+    //For each possible value on the record, get a BitSet with a "1" in the 
+    //position of the dimensions that match this value
+    for (int x = 1; x <= maxpossiblevotesonrecord; x++) {
+      this.setTempSetToExactMatches(x);
+
+      //no exact matches
+      if (this.tempSet.cardinality() == 0) continue;
+
+      //For each y==1 on said BitSet (indicating votes in dimension[y] == x)
+      int y = tempSet.nextSetBit(0);
+
+      //determine total number of votes 
+      double votes = minimum+x;
+
+      //calculate standard deviations above/below the mean of max/2 
+      double z = (votes - (max/2)) / (Math.sqrt(max)/2);
+
+      //find proportion of data points anticipated within z standard deviations of the mean (assuming approximately normal distribution)
+      double proportion = erf(z/Math.sqrt(2));
+
+      //convert into a value between 0 and 1 (i.e. centered on 0.5 rather than centered on 0)
+      proportion = (1+proportion) /2;
+
+      while (y != -1) {
+        //probabilistic normalization
+        if ((random.nextDouble()) <= proportion) this.bitSet.fastSet(y);
+        y++;
+        y = tempSet.nextSetBit(y);
+      }
+    }
+
+    //housekeeping
     votingRecord = new ArrayList<OpenBitSet>();
     votingRecord.add((OpenBitSet) bitSet.clone());
     totalNumberOfVotes = 1;
     tempSet = new OpenBitSet(dimension);
     minimum = 0;
-    
   }
-  
+
+
+  /**
+   * approximation of error function, equation 7.1.27 from
+   * Abramowitz, M. and Stegun, I. A. (Eds.). "Repeated Integrals of the Error Function." §7.2 
+   * in Handbook of Mathematical Functions with Formulas, Graphs, and Mathematical Tables, 
+   * 9th printing. New York: Dover, pp. 299-300, 1972.
+   * error of approximation <= 5*10^-4
+   */
+  public double erf(double z) {
+    //erf(-x) == -erf(x)
+    double sign = Math.signum(z);
+    z = Math.abs(z);
+
+    double a1 = 0.278393, a2 = 0.230389, a3 = 0.000972, a4 = 0.078108;
+    double sumterm = 1 + a1*z + a2*Math.pow(z,2) + a3*Math.pow(z,3) + a4*Math.pow(z,4);
+    return sign * ( 1-1/(Math.pow(sumterm, 4)));
+  }
+
+  /**
+   * Faster normalization according to the Binary Spatter Code's "majority" rule 
+   */
+  public void normalizeBSC() {
+    if (!isSparse)
+      this.bitSet = concludeVote();
+
+    votingRecord = new ArrayList<OpenBitSet>();
+    votingRecord.add((OpenBitSet) bitSet.clone());
+    totalNumberOfVotes = 1;
+    tempSet = new OpenBitSet(dimension);
+    minimum = 0;
+  }
+
   /**
    * Counts votes without normalizing vector (i.e. voting record is not altered). Used in SemanticVectorCollider.
    */
-  
   public void tallyVotes() {
-	  if (!isSparse)
-		    this.bitSet = concludeVote();
+    if (!isSparse)
+      this.bitSet = concludeVote();
   }
 
   @Override
@@ -741,9 +726,6 @@ public class BinaryVector implements Vector {
     }
   }
 
-  
-  
-  
   @Override
   /**
    * Reads a (dense) version of a vector from a Lucene input stream. 
@@ -819,7 +801,7 @@ public class BinaryVector implements Vector {
     votingRecord = new ArrayList<OpenBitSet>();
     votingRecord.add((OpenBitSet) bitSet.clone());
     tempSet = new OpenBitSet(dimension);
-       
+
     isSparse = false;
   }
 
@@ -859,7 +841,5 @@ public class BinaryVector implements Vector {
     if (isSparse) return 0;
     return votingRecord.size();
   }
-  
-  
 }
 
