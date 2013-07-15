@@ -56,7 +56,7 @@ import org.apache.lucene.store.IndexOutput;
 public class ComplexVector implements Vector {
   public static final Logger logger = Logger.getLogger(ComplexVector.class.getCanonicalName());
   
-  /** Returns {@link VectorType.COMPLEX} */
+  /** Returns {@link VectorType#COMPLEX} */
   public VectorType getVectorType() { return VectorType.COMPLEX; }
   
   /**
