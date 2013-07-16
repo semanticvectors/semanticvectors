@@ -44,21 +44,25 @@ import pitt.search.semanticvectors.vectors.VectorType;
    Classes implementing this interface are used to represent a collection
    of object vectors, including i. methods for accessing individual
    ObjectVectors and ii. an enumeration of all the vectors.
+   
    @author Dominic Widdows
    @see ObjectVector
 */
 public interface VectorStore {
   /**
-   * The type of all vectors in the vector store.  (Implementations should enforce homogeneity.)
+   * Returns the type of all vectors in the vector store.  (Implementations should enforce homogeneity.)
    */
   public VectorType getVectorType();
   
   /**
-   * The dimension of all vectors in the vector store.  (Implementations should enforce homogeneity.)
+   * Returns the dimension of all vectors in the vector store.  (Implementations should enforce homogeneity.)
    */
   public int getDimension();
   
   /**
+   * Returns the vector stored for this object, or {@ code null} if none is present.
+   * (Support is only tested for {@code String} objects.) 
+   * 
    * @param object the object whose vector you want to look up
    * @return a vector (of floats)
    */
