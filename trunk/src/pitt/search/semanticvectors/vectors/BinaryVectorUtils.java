@@ -67,100 +67,97 @@ public class BinaryVectorUtils {
    */
   public static boolean orthogonalizeVectors(ArrayList<Vector> vectors) {
     long dimension = vectors.get(0).getDimension();
-     
+
     // Go up through vectors in turn, parameterized by k.
     for (int k = 0; k < vectors.size(); ++k) {
-     Vector kthVector = vectors.get(k);
-     
+      Vector kthVector = vectors.get(k);
+
       if (kthVector.getDimension() != dimension) {
         System.err.println("In orthogonalizeVector: not all vectors have required dimension.");
         return false;
       }
       // Go up to vector k, parameterized by j.
       for (int j = 0; j < k; ++j) {
-    	 Vector jthVector = vectors.get(j);
-    	 sampleSubtract(((BinaryVector) kthVector).bitSet, ((BinaryVector) jthVector).bitSet); 
-           
+        Vector jthVector = vectors.get(j);
+        sampleSubtract(((BinaryVector) kthVector).bitSet, ((BinaryVector) jthVector).bitSet); 
+
       }
     }
-        
-    
-    
+
     return true;
   }
-  
+
   /**
    * Binary equivalent of comparing to projection in a subspace as occurs with real and complex vectors
    * The score is the sum of any overlap greater than 50% across all vector components of the binary pseudo-subspace
    */  
   public static double compareWithProjection(Vector testVector, ArrayList<Vector> vectors) {
-	    float score = 0;
-	    for (int i = 0; i < vectors.size(); ++i) {
-	     score += testVector.measureOverlap(vectors.get(i));
-	    }
-	    return (float) (score);
-	  }
-  
+    float score = 0;
+    for (int i = 0; i < vectors.size(); ++i) {
+      score += testVector.measureOverlap(vectors.get(i));
+    }
+    return (float) (score);
+  }
+
   /**
    * This method provides the equivalent of orthogonalization for binary vectors. Rather than making vector k 
    * orthogonal to vector j, we alter vector j so it has a Hamming distance of 1/n to vector k. This is the 
    * analog of orthogonality in real/complex space.
    */
   public static void sampleSubtract(OpenBitSet vector,  OpenBitSet subvector) {	
-	  long numchanges =  vector.size()/2 - OpenBitSet.xorCount(vector, subvector); //total common bits - n/2
-	  java.util.Random random = new java.util.Random();
-	  random.setSeed((long) 23); //for consistency across experiments 
-	  OpenBitSet commonGround = (OpenBitSet) vector.clone();
-	  //everything different
-	  commonGround.xor(subvector);
-	    
-	  int cnt = 0;
-	  
-	  //if it is required to introduce random noise to increase the distance between the two vectors
-	  if (numchanges > 0)
-	  for (int x =0; cnt < numchanges; x++) {	
-		 // if (x == 0) System.err.print(cnt+"/"+ numchanges+".."+"loop...");
-		  if (x >= vector.size()) x =0;
-			double change = random.nextDouble();
-			if (!commonGround.get(x) && change > 0.5) {
-				vector.fastFlip(x);
-				cnt++;
-			}
-		}
-	  //if it is required to introduce commonalities to increase the similarity between the two vectors
-	  else if (numchanges < 0)
-		  for (int x =0; cnt > numchanges; x++) {	
-			 // if (x == 0) System.err.print(cnt+"/"+ numchanges+".."+"loop...");
-			  if (x >= vector.size()) x =0;
-				double change = random.nextDouble();
-				if (commonGround.get(x) && change > 0.5) {
-					vector.fastFlip(x);
-					cnt--;
-				}
-			}
-	  
+    long numchanges =  vector.size()/2 - OpenBitSet.xorCount(vector, subvector); //total common bits - n/2
+    java.util.Random random = new java.util.Random();
+    random.setSeed((long) 23); //for consistency across experiments 
+    OpenBitSet commonGround = (OpenBitSet) vector.clone();
+    //everything different
+    commonGround.xor(subvector);
+
+    int cnt = 0;
+
+    //if it is required to introduce random noise to increase the distance between the two vectors
+    if (numchanges > 0)
+      for (int x =0; cnt < numchanges; x++) {	
+        // if (x == 0) System.err.print(cnt+"/"+ numchanges+".."+"loop...");
+        if (x >= vector.size()) x =0;
+        double change = random.nextDouble();
+        if (!commonGround.get(x) && change > 0.5) {
+          vector.fastFlip(x);
+          cnt++;
+        }
+      }
+    //if it is required to introduce commonalities to increase the similarity between the two vectors
+    else if (numchanges < 0) {
+      for (int x =0; cnt > numchanges; x++) {	
+        // if (x == 0) System.err.print(cnt+"/"+ numchanges+".."+"loop...");
+        if (x >= vector.size()) x =0;
+        double change = random.nextDouble();
+        if (commonGround.get(x) && change > 0.5) {
+          vector.fastFlip(x);
+          cnt--;
+        }
+      }
+    }
   }
-  
-  public static Vector weightedSuperposition(BinaryVector v1, double weight1, BinaryVector v2, double weight2)
-  {
-	  BinaryVector conclusion = (BinaryVector) VectorFactory.createZeroVector(VectorType.BINARY, v1.getDimension());
-	  OpenBitSet cVote = conclusion.bitSet;
-	  OpenBitSet v1vote = v1.bitSet;
-	  OpenBitSet v2vote = v2.bitSet;
-	  
-      Random random = new Random();
-      random.setSeed(Bobcat.asLong(v1.writeLongToString())); 
-      
-       for (int x = 0; x < v1.getDimension(); x++)
-       {
-    	   double probability = 0;
-    	   if (v1vote.get(x)) probability += weight1/(weight1+weight2);
-    	   if (v2vote.get(x)) probability += weight2/(weight1+weight2);
-    	   
-    	   if (random.nextDouble() <= probability)
-    	    cVote.fastSet(x);	
-       }
-        return conclusion;
+
+  public static Vector weightedSuperposition(
+      BinaryVector v1, double weight1, BinaryVector v2, double weight2) {
+    BinaryVector conclusion = (BinaryVector) VectorFactory.createZeroVector(VectorType.BINARY, v1.getDimension());
+    OpenBitSet cVote = conclusion.bitSet;
+    OpenBitSet v1vote = v1.bitSet;
+    OpenBitSet v2vote = v2.bitSet;
+
+    Random random = new Random();
+    random.setSeed(Bobcat.asLong(v1.writeLongToString())); 
+
+    for (int x = 0; x < v1.getDimension(); x++) {
+      double probability = 0;
+      if (v1vote.get(x)) probability += weight1 / (weight1 + weight2);
+      if (v2vote.get(x)) probability += weight2 / (weight1 + weight2);
+
+      if (random.nextDouble() <= probability)
+        cVote.fastSet(x);	
+    }
+    return conclusion;
   }
-  
+
 }
