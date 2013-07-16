@@ -49,7 +49,6 @@ import pitt.search.semanticvectors.vectors.BinaryVectorUtils;
 import pitt.search.semanticvectors.vectors.ComplexVector;
 import pitt.search.semanticvectors.vectors.ComplexVector.Mode;
 import pitt.search.semanticvectors.vectors.CircleLookupTable;
-import pitt.search.semanticvectors.vectors.ComplexVectorUtils;
 import pitt.search.semanticvectors.vectors.Vector;
 import pitt.search.semanticvectors.vectors.VectorFactory;
 import pitt.search.semanticvectors.vectors.VectorType;
@@ -66,8 +65,6 @@ public class NumberRepresentation {
   private String startRandomSeed = "*START*";
   /** Random seed used for ending demarcator vectors. */
   private String endRandomSeed = "*END*";
-  /** Maximum acceptable similarity between start and end demarcator vectors/ */
-  private final float maxStartEndSimilarity = 0.01f;
 
   /**
    * Cache of number vectors that have been seen before.
@@ -157,9 +154,7 @@ public class NumberRepresentation {
     ArrayList<Vector> toOrthogonalize = new ArrayList<Vector>();
     toOrthogonalize.add(vL);
     toOrthogonalize.add(vR);
-    if (flagConfig.vectortype().equals(VectorType.BINARY)) BinaryVectorUtils.orthogonalizeVectors(toOrthogonalize);
-    else if (flagConfig.vectortype().equals(VectorType.COMPLEX)) ComplexVectorUtils.orthogonalizeVectors(toOrthogonalize);
-    else VectorUtils.orthogonalizeVectors(toOrthogonalize);
+    VectorUtils.orthogonalizeVectors(toOrthogonalize);
   }
 
   /**
@@ -192,26 +187,7 @@ public class NumberRepresentation {
 
     VectorStoreRAM theVSR = new VectorStoreRAM(flagConfig);
     for (int i = 0; i <= iEnd - iStart; ++i) {
-      Vector ithNumberVector = VectorFactory.createZeroVector(
-          flagConfig.vectortype(), flagConfig.dimension());
-
-
-      if (flagConfig.vectortype().equals(VectorType.BINARY))
-      {
-        ithNumberVector = BinaryVectorUtils.weightedSuperposition((BinaryVector) vL, iEnd-iStart-i, (BinaryVector) vR, i);
-      }
-
-      else {
-        //subdivide into equal angles
-        double phaseAngle = i/((double) iEnd-iStart) * (CircleLookupTable.PHASE_RESOLUTION/(double)4);
-        short angle =  new Double(phaseAngle).shortValue();
-        double y = CircleLookupTable.getRealEntry(angle);
-        double x= CircleLookupTable.getImagEntry(angle);
-
-        ithNumberVector.superpose(vL, y, null);
-        ithNumberVector.superpose(vR, x, null);
-        ithNumberVector.normalize();
-      }
+      Vector ithNumberVector = VectorUtils.weightedSuperposition(vL, iEnd-iStart-i, vR, i);
       theVSR.putVector(iStart + i, ithNumberVector);
     }
 

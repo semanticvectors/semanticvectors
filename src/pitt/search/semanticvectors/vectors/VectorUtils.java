@@ -103,6 +103,33 @@ public class VectorUtils {
       throw new IncompatibleVectorsException("Type not recognized: " + vectors.get(0).getVectorType());
     }
   }
+  
+  /**
+   * Returns a superposition of the form leftWeight*left + rightWeight*right.
+   */
+  public static Vector weightedSuperposition(
+      Vector left, double leftWeight, Vector right, double rightWeight) {
+    if ((left.getVectorType() != right.getVectorType())
+        || (left.getDimension() != right.getDimension())) {
+      throw new IncompatibleVectorsException(
+          String.format("Incompatible vectors:\n%s\n%s", left.toString(), right.toString()));
+    }
+    switch (left.getVectorType()) {
+    case REAL:
+    case COMPLEX:
+      Vector superposition = VectorFactory.createZeroVector(
+          left.getVectorType(), left.getDimension());
+      superposition.superpose(left, leftWeight, null);
+      superposition.superpose(right, rightWeight, null);
+      superposition.normalize();
+      return superposition;
+    case BINARY:
+      return BinaryVectorUtils.weightedSuperposition(
+          (BinaryVector) left, leftWeight, (BinaryVector) right, rightWeight);
+    default:
+      throw new IncompatibleVectorsException("Type not recognized: " + left.getVectorType());
+    }
+  }
 
   /**
    * Generates a basic sparse vector
