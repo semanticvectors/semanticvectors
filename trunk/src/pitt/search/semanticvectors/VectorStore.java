@@ -60,11 +60,8 @@ public interface VectorStore {
   public int getDimension();
   
   /**
-   * Returns the vector stored for this object, or {@ code null} if none is present.
-   * (Support is only tested for {@code String} objects.) 
-   * 
-   * @param object the object whose vector you want to look up
-   * @return a vector (of floats)
+   * Returns the vector stored for this object, or {@code null} if none is present.
+   * (Support is only tested for {@code String} objects.)
    */
   public Vector getVector(Object object);
 
