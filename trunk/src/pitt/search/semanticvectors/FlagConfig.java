@@ -113,7 +113,7 @@ public class FlagConfig {
   /** Maximum number of nonalphabetic characters in a term for it to be indexed, default value {@link Integer#MAX_VALUE}. */
   public int maxnonalphabetchars() { return maxnonalphabetchars; }
 
-  private boolean filteroutnumbers = true;
+  private boolean filteroutnumbers = false;
   /** If {@code true}, terms containing only numeric characters are filtered out during indexing, default value {@code true}. */
   public boolean filteroutnumbers() { return filteroutnumbers; }
 
@@ -455,13 +455,13 @@ public class FlagConfig {
       // Impose "multiple-of-64" constraint, to facilitate permutation of 64-bit chunks.
       if (dimension % 64 != 0) {
         dimension = (1 + (dimension / 64)) * 64;
-        logger.warning("For performance reasons, dimensions for binary vectors must be a mutliple "
+        logger.fine("For performance reasons, dimensions for binary vectors must be a mutliple "
             + "of 64. Flags.dimension set to: " + dimension + ".");
       }
       // Impose "balanced binary vectors" constraint, to facilitate reasonable voting.
       if (seedlength != dimension / 2) {
         seedlength = dimension / 2;
-        logger.warning("Binary vectors must be generated with a balanced number of zeros and ones."
+        logger.fine("Binary vectors must be generated with a balanced number of zeros and ones."
             + " FlagConfig.seedlength set to: " + seedlength + ".");
       }
     }

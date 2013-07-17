@@ -66,7 +66,6 @@ public class PSI {
   private static final String PREDICATE_FIELD = "predicate";
   private static final String OBJECT_FIELD = "object";
   private static final String PREDICATION_FIELD = "predication";
-  private String[] indexedFields = {SUBJECT_FIELD, PREDICATE_FIELD, OBJECT_FIELD};
   private String[] itemFields = {SUBJECT_FIELD, OBJECT_FIELD};
   private LuceneUtils luceneUtils;
 
@@ -100,8 +99,10 @@ public class PSI {
       while((bytes = termsEnum.next()) != null) {
         Term term = new Term(fieldName, bytes);
         
-        if (!luceneUtils.termFilter(term))
+        if (!luceneUtils.termFilter(term)) {
+          VerbatimLogger.fine("Filtering out term: " + term + "\n");
           continue;
+        }
   
         if (!addedConcepts.contains(term.text())) {
           addedConcepts.add(term.text());
@@ -176,8 +177,8 @@ public class PSI {
         float oWeight =1;
         float pWeight =1;
 
-        sWeight = luceneUtils.getGlobalTermWeight(new Term("subject",subject));
-        oWeight = luceneUtils.getGlobalTermWeight(new Term("object",object));
+        sWeight = luceneUtils.getGlobalTermWeight(new Term(SUBJECT_FIELD, subject));
+        oWeight = luceneUtils.getGlobalTermWeight(new Term(OBJECT_FIELD, object));
         // TODO: Explain different weighting for predicates, log(occurrences of predication)
         pWeight = (float) Math.log(1 + luceneUtils.getGlobalTermFreq(term));
 
@@ -188,9 +189,8 @@ public class PSI {
         Vector predicate_vector = predicateVectors.getVector(predicate);
         Vector predicate_vector_inv = predicateVectors.getVector(predicate+"-INV");
 
-        if (subject_semanticvector == null || object_semanticvector == null || predicate_vector == null)
-        {	  
-          logger.info("skipping predication "+subject+" "+predicate+" "+object);
+        if (subject_semanticvector == null || object_semanticvector == null || predicate_vector == null) {	  
+          logger.info("skipping predication " + subject + " " + predicate + " " + object);
           continue;
         }
 
