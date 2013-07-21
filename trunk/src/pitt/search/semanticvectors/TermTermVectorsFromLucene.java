@@ -259,7 +259,8 @@ public class TermTermVectorsFromLucene implements VectorStore {
 
       for (String field: flagConfig.contentsfields()) {
         Terms terms = luceneUtils.getTermVector(dc, field);
-        processTermPositionVector(terms, field);
+        if (terms == null) {VerbatimLogger.severe("No term vector for document "+dc); continue; }
+	    processTermPositionVector(terms, field);
       }
     }
 
@@ -317,8 +318,8 @@ public class TermTermVectorsFromLucene implements VectorStore {
 	    	
 	    	String theTerm = text.utf8ToString();
 	    	if (indexVectors.getVector(theTerm) == null) continue;
-	    	    	
 	    	DocsAndPositionsEnum docsAndPositions = termsEnum.docsAndPositions(null, null);
+	    	if (docsAndPositions == null) return;
 	    	docsAndPositions.nextDoc();
 	    	freqs.add(docsAndPositions.freq());
 	    	localTerms.add(theTerm); 
