@@ -2,4 +2,6 @@
 
 Orthographic vectors are a new addition to SemanticVectors that enables an [ElementalVector elemental vector] to be generated deterministically for a word from the alphabetic characters in the word and their positions.
 
+See [http://www.puttypeg.net/papers/orthogonality-and-orthography.pdf Orthogonality and Orthography: Introducing Measured Distance into Semantic Space]. Trevor Cohen, Dominic Widdows, Manuel Wahle. Proceedings of the Seventh International Conference on Quantum Interaction, Leicester, UK, 2013
+
 This is a new development. References and usage instructions should follow within the next couple of months. 
