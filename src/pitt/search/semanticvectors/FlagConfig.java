@@ -135,7 +135,7 @@ public class FlagConfig {
 
   private int numclusters = 10;
   /** Number of clusters used in {@link ClusterResults} and {@link ClusterVectorStore}, default value 10. */
-  public int getNumclusters() { return numclusters; }
+  public int numclusters() { return numclusters; }
   
   private int trainingcycles = 0;
   /** Number of training cycles used for Reflective Random Indexing in {@link BuildIndex}. */

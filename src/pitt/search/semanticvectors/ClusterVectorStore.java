@@ -54,10 +54,21 @@ public class ClusterVectorStore {
       ClusterVectorStore.class.getCanonicalName());
 
   /**
-   * Number of clustering runs used for overlap measure to mitigate skewed results from
-   * random initialization.
+   * If set to true, writes the centroids of the clusters to a separate file.
    */
-  public static final int numRunsForOverlap = 1000;
+  public static final boolean writeCentroidsFile = false;
+  
+  /**
+   * Whether to perform overlap measures on clusters. Only works for the King James corpus
+   * so far. Code needs to be cleaned up before this can be made generally available.
+   */
+  public static final boolean measureClusterOverlaps = false;
+
+  /**
+   * Number of clustering runs used for overlap measure to mitigate skewed results from
+   * random initialization. Only change from 1 if you intend to measure overlaps.
+   */
+  public static final int numRunsForOverlap = 1;
 
   /**
    * Prints the following usage message:
@@ -182,40 +193,54 @@ public class ClusterVectorStore {
     vecReader.close();
 
     Hashtable<String, int[]> mainOverlapResults = null;
-    
+
     for (int runNumber = 0; runNumber < numRunsForOverlap; ++runNumber) {
       // Perform clustering and print out results.
       logger.info("Clustering vectors ...");
       ClusterResults.Clusters clusters = ClusterResults.kMeansCluster(resultsVectors, flagConfig);
-      
-      /*
-      for (int i = 0; i < Flags.numclusters; ++i) {
-        System.out.println("Cluster " + i);
-        for (int j = 0; j < clusters.clusterMappings.length; ++j) {
-          if (clusters.clusterMappings[j] == i) {
-            System.out.println(resultsVectors[j].getObject());
-          }
-        }
-        System.out.println("\n*********\n");
+
+      printAllCusters(flagConfig, resultsVectors, clusters);
+
+      if (writeCentroidsFile) {
+        ClusterResults.writeCentroidsToFile(clusters, flagConfig);
       }
-  */
 
-      //ClusterResults.writeCentroidsToFile(clusters);
+      /**
+       * The following block is only relevant and working for bible chapters at the moment.
+       */
+      if (measureClusterOverlaps) {
+        Hashtable<String, int[]> newOverlapResults = clusterOverlapMeasure(
+            clusters.clusterMappings, resultsVectors);
 
-      Hashtable<String, int[]> newOverlapResults = clusterOverlapMeasure(
-          clusters.clusterMappings, resultsVectors);
-      
-      if (mainOverlapResults == null) {
-        mainOverlapResults = newOverlapResults;
-      } else {
-        mergeTables(newOverlapResults, mainOverlapResults);
+        if (mainOverlapResults == null) {
+          mainOverlapResults = newOverlapResults;
+        } else {
+          mergeTables(newOverlapResults, mainOverlapResults);
+        }
+
+        for (Enumeration<String> keys = mainOverlapResults.keys(); keys.hasMoreElements();) {
+          String key = keys.nextElement(); 
+          int[] matchAndTotal = mainOverlapResults.get(key);
+          System.out.println(key + "\t" + (float) matchAndTotal[0] / (float) matchAndTotal[1]);
+        }
       }
     }
-    
-    for (Enumeration<String> keys = mainOverlapResults.keys(); keys.hasMoreElements();) {
-      String key = keys.nextElement(); 
-      int[] matchAndTotal = mainOverlapResults.get(key);
-      System.out.println(key + "\t" + (float) matchAndTotal[0] / (float) matchAndTotal[1]);
+  }
+
+  /**
+   * Simple routine that prints clusters to the console output.
+   */
+  private static void printAllCusters(FlagConfig flagConfig,
+      ObjectVector[] resultsVectors, ClusterResults.Clusters clusters) {
+    // Main cluster printing routine.
+    for (int i = 0; i < flagConfig.numclusters(); ++i) {
+      System.out.println("Cluster " + i);
+      for (int j = 0; j < clusters.clusterMappings.length; ++j) {
+        if (clusters.clusterMappings[j] == i) {
+          System.out.print(resultsVectors[j].getObject() + "\t");
+        }
+      }
+      System.out.println("\n*********\n");
     }
   }
 }
