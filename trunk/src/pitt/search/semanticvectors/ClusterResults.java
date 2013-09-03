@@ -85,7 +85,7 @@ public class ClusterResults {
   public static Clusters kMeansCluster (ObjectVector[] objectVectors, FlagConfig flagConfig) {
     Clusters clusters = new Clusters();
     clusters.clusterMappings = new int[objectVectors.length];
-    clusters.centroids = new Vector[flagConfig.getNumclusters()];
+    clusters.centroids = new Vector[flagConfig.numclusters()];
     Random rand = new Random();
 
     logger.info("Initializing clusters ...");
@@ -97,7 +97,7 @@ public class ClusterResults {
         //fix strange result where abs(MIN_VALUE) returns a negative number
         randInt = rand.nextInt();
       }
-      clusters.clusterMappings[i] = Math.abs(randInt) % flagConfig.getNumclusters();
+      clusters.clusterMappings[i] = Math.abs(randInt) % flagConfig.numclusters();
     }
 
     logger.info("Iterating k-means assignment ...");
@@ -112,7 +112,7 @@ public class ClusterResults {
       for (int i = 0; i < objectVectors.length; ++i) {
         clusters.centroids[clusters.clusterMappings[i]].superpose(objectVectors[i].getVector(), 1, null);
       }
-      for (int i = 0; i < flagConfig.getNumclusters(); ++i) {
+      for (int i = 0; i < flagConfig.numclusters(); ++i) {
         clusters.centroids[i].normalize();
       }
 
@@ -171,7 +171,7 @@ public class ClusterResults {
     // Get search results, perform clustering, and print out results.		
     ObjectVector[] resultsVectors = Search.getSearchResultVectors(flagConfig, args, flagConfig.numsearchresults());
     Clusters clusters = kMeansCluster(resultsVectors, flagConfig);
-    for (int i = 0; i < flagConfig.getNumclusters(); ++i) {
+    for (int i = 0; i < flagConfig.numclusters(); ++i) {
       System.out.println("Cluster " + i);
       for (int j = 0; j < clusters.clusterMappings.length; ++j) {
         if (clusters.clusterMappings[j] == i) {
