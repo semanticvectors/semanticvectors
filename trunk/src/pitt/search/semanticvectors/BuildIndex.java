@@ -39,6 +39,8 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.logging.Logger;
 
+import pitt.search.semanticvectors.utils.VerbatimLogger;
+
 /**
  * Command line utility for creating semantic vector indexes.
  */

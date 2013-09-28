@@ -39,6 +39,8 @@ import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.store.IOContext;
 import org.apache.lucene.store.IndexOutput;
 
+import pitt.search.semanticvectors.utils.VerbatimLogger;
+
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;

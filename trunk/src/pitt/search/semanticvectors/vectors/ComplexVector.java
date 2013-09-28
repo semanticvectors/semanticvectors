@@ -78,13 +78,14 @@ public class ComplexVector implements Vector {
   /** 
    * The dominant mode used for normalizing and comparing vectors.
    * 
-   * TODO(widdows): Figure out how clients should be able to set this properly.
+   * TODO(dwiddows): Figure out how clients should be able to set this properly.
    */
   private static Mode DOMINANT_MODE = Mode.POLAR_DENSE;
   public static void setDominantMode(Mode mode) {
     if (mode == Mode.POLAR_SPARSE) {
       throw new IllegalArgumentException("POLAR_SPARSE cannot be used as dominant mode.");
     }
+    logger.info("Globally setting complex DOMINANT_MODE to: '" + mode + "'");
     DOMINANT_MODE = mode;
   }
   public static Mode getDominantMode() {
@@ -239,7 +240,7 @@ public class ComplexVector implements Vector {
     if (complexOther.isZeroVector()) return 0;
     switch (DOMINANT_MODE) {
       case CARTESIAN:
-        return measureCartesianOverlap(complexOther);
+        return measureHermitianOverlap(complexOther);
       case POLAR_DENSE:
         return measurePolarDenseOverlap(complexOther);
       case POLAR_SPARSE:
@@ -250,11 +251,26 @@ public class ComplexVector implements Vector {
   }
   
   /**
+   * Measure overlap, again using the Hermitian / Euclidean scalar product.
+   */
+  protected double measureHermitianOverlap(ComplexVector other) {
+    double result = 0;
+    double norm1 = 0;
+    double norm2 = 0;
+    for (int i = 0; i < dimension; ++i) {
+      result += coordinates[i] * other.coordinates[i];
+      norm1 += coordinates[i] * coordinates[i];
+      norm2 += other.coordinates[i] * other.coordinates[i];
+    }
+    return result / Math.sqrt(norm1 * norm2);
+  }
+  
+  /**
    * Measure overlap, again using the sum of cosines of phase angle difference.
    * 
    * Note that this is different from the Hermitian scalar product.
    */
-  protected double measureCartesianOverlap(ComplexVector other) {
+  protected double measureCartesianAngularOverlap(ComplexVector other) {
       toCartesian();
       other.toCartesian();
      
@@ -424,34 +440,20 @@ public class ComplexVector implements Vector {
   /**
    * Implements binding using the {@link #convolve} method.
    */
-  public void bind(Vector other, int direction) {
+  public void bind(Vector other) {
     IncompatibleVectorsException.checkVectorsCompatible(this, other);
     ComplexVector complexOther = (ComplexVector) other;
-    this.convolve(complexOther, direction);
+    this.convolve(complexOther, 1);
   }
   
   @Override
   /**
-   * Implements release using the {@link #bind} method.
-   */
-  public void release(Vector other, int direction) {
-    this.bind(other, -direction);
-  }
-  
-  @Override
-  /**
-   * Implements release using the {@link #bind} method.
-   */
-  public void bind(Vector other) {
-   this.bind(other, 1);
-  }
-
-  @Override
-  /**
-   * Implements release using the {@link #bind} method.
+   * Implements release using the {@link #convolve} method.
    */
   public void release(Vector other) {
-     this.bind(other, -1);
+    IncompatibleVectorsException.checkVectorsCompatible(this, other);
+    ComplexVector complexOther = (ComplexVector) other;
+    this.convolve(complexOther, -1);
   }
 
   /**

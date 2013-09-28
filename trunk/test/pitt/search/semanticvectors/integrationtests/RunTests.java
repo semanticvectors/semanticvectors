@@ -49,7 +49,7 @@ import org.junit.runner.notification.Failure;
 import pitt.search.lucene.IndexFilePositions;
 import pitt.search.lucene.LuceneIndexFromTriples;
 import pitt.search.semanticvectors.VectorStoreTranslater;
-import pitt.search.semanticvectors.VerbatimLogger;
+import pitt.search.semanticvectors.utils.VerbatimLogger;
 
 /**
  * Class for running unit tests and regression tests.

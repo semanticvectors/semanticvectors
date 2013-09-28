@@ -171,19 +171,19 @@ public class ComplexVectorUtils {
 
   /**
    * Renders each circular component of vec1 orthogonal to the corresponding component of vec2
-   * Both vectors are in CARTESIAN mode.
+   * Both vectors are in put into CARTESIAN mode.
    */
   public static void renderOrthogonal(
       ComplexVector vec1, ComplexVector vec2) {
     IncompatibleVectorsException.checkVectorsCompatible(vec1, vec2);
-    assert(vec1.getOpMode() == ComplexVector.Mode.CARTESIAN);
-    assert(vec2.getOpMode() == ComplexVector.Mode.CARTESIAN);
+    if (vec1.getOpMode() != ComplexVector.Mode.CARTESIAN) vec1.toCartesian();
+    if (vec2.getOpMode() != ComplexVector.Mode.CARTESIAN) vec2.toCartesian();
 
     float[] coordinates1 = vec1.getCoordinates();
     float[] coordinates2 = vec2.getCoordinates();
 
     for (int i = 0; i < vec1.getDimension()*2; i+=2) {  
-      double resultThisPair= coordinates1[i] * coordinates2[i];
+      double resultThisPair = coordinates1[i] * coordinates2[i];
       resultThisPair += coordinates1[i+1] * coordinates2[i+1];
 
       double norm1 = coordinates1[i] * coordinates1[i];

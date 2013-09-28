@@ -41,6 +41,8 @@ import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.logging.Logger;
 
+import pitt.search.semanticvectors.utils.VerbatimLogger;
+import pitt.search.semanticvectors.vectors.RealVector;
 /** Imports must include the declarations of all enums used as flag values */
 import pitt.search.semanticvectors.vectors.VectorType;
 import pitt.search.semanticvectors.CompoundVectorBuilder.VectorLookupSyntax;
@@ -94,6 +96,9 @@ public class FlagConfig {
     this.makeFlagsCompatible();
   }
 
+  /** Sets the binding method used for real vectors, see {@link RealVector#BIND_METHOD}. */
+  public RealVector.BindMethod realbindmethod = RealVector.BindMethod.CONVOLUTION; 
+  
   public int seedlength = 10;
   /** Number of nonzero entries in a sparse random vector, default value 10 except for
    * when {@link #vectortype()} is {@link VectorType#BINARY}, in which case default of
@@ -467,6 +472,14 @@ public class FlagConfig {
     }
     
     if (searchvectorfile == "") searchvectorfile = queryvectorfile;
+    
+    // This is a potentially dangerous pattern! An alternative would be to make this setting
+    // part of each real vector, as with complex Modes. But they aren't so nice either.
+    // Let's avoid getting too committed to either approach and refactor at will.
+    // dwiddows, 2013-09-27.
+    if (vectortype == VectorType.REAL && realbindmethod == RealVector.BindMethod.PERMUTATION) {
+      RealVector.setBindType(RealVector.BindMethod.PERMUTATION);
+    }
   }
 
 }

@@ -183,7 +183,7 @@
      we have a good way of shipping development extensions without
      introducing dependencies on any more libraries to install. -->
   <target name="compile-ext" depends="compile">
-    <javac srcdir="${extdir}"
+    <javac srcdir="${extdir}/pitt"
            destdir="${buildclassesdir}"
            debug="on"
            classpathref="compile.classpath"

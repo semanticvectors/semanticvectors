@@ -36,6 +36,8 @@ package pitt.search.semanticvectors;
 import java.io.IOException;
 import java.lang.IllegalArgumentException;
 
+import pitt.search.semanticvectors.utils.VerbatimLogger;
+
 /**
  * Class providing command-line interface for transforming vector
  * store between the optimized Lucene format and plain text.

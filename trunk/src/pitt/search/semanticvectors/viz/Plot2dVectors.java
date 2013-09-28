@@ -34,7 +34,7 @@
    SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 **/
 
-package pitt.util.vectors;
+package pitt.search.semanticvectors.viz;
 
 import java.awt.Dimension;
 import java.awt.Graphics;

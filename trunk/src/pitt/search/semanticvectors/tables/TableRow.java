@@ -1,11 +1,8 @@
 package pitt.search.semanticvectors.tables;
 
-import java.util.Random;
-
 import pitt.search.semanticvectors.FlagConfig;
 import pitt.search.semanticvectors.ObjectVector;
 import pitt.search.semanticvectors.VectorStoreOrthographical;
-import pitt.search.semanticvectors.hashing.Bobcat;
 import pitt.search.semanticvectors.vectors.Vector;
 import pitt.search.semanticvectors.vectors.VectorFactory;
 

@@ -50,6 +50,7 @@ import org.apache.lucene.util.BytesRef;
 
 import pitt.search.semanticvectors.hashing.Bobcat;
 import pitt.search.semanticvectors.orthography.NumberRepresentation;
+import pitt.search.semanticvectors.utils.VerbatimLogger;
 import pitt.search.semanticvectors.vectors.ComplexVector;
 import pitt.search.semanticvectors.vectors.ComplexVector.Mode;
 import pitt.search.semanticvectors.vectors.PermutationUtils;
@@ -90,7 +91,7 @@ public class TermTermVectorsFromLucene implements VectorStore {
   private VectorStoreRAM numberVectors;
   private VectorStore indexVectors;
   private LuceneUtils luceneUtils;
-  
+
   /**
    * Used to store permutations we'll use in training.  If positional method is one of the
    * permutations, this contains the shift for all the focus positions.
@@ -109,7 +110,7 @@ public class TermTermVectorsFromLucene implements VectorStore {
   /**
    * @return The object's indexReader.
    */
- // public IndexReader getIndexReader(){ return this.luceneIndexReader; }
+  // public IndexReader getIndexReader(){ return this.luceneIndexReader; }
 
   /**
    * @return The object's basicTermVectors.
@@ -189,20 +190,17 @@ public class TermTermVectorsFromLucene implements VectorStore {
         flagConfig.vectortype(), flagConfig.dimension(), 1);
   }
 
-  private void trainTermTermVectors() throws IOException, RuntimeException {
-    
-	  LuceneUtils.compressIndex(flagConfig.luceneindexpath());
-	  
-	  luceneUtils = new LuceneUtils(flagConfig);
-	  
-	  // Check that the Lucene index contains Term Positions.
-	  FieldInfos fieldsWithPositions = luceneUtils.getFieldInfos();
-	  if (!fieldsWithPositions.hasVectors()) {
+  private void trainTermTermVectors() throws IOException, RuntimeException { 
+    LuceneUtils.compressIndex(flagConfig.luceneindexpath());
+    luceneUtils = new LuceneUtils(flagConfig);
+
+    // Check that the Lucene index contains Term Positions.
+    FieldInfos fieldsWithPositions = luceneUtils.getFieldInfos();
+    if (!fieldsWithPositions.hasVectors()) {
       throw new IOException(
           "Term-term indexing requires a Lucene index containing TermPositionVectors."
               + "\nTry rebuilding Lucene index using pitt.search.lucene.IndexFilePositions");
-	  }
-   
+    }
 
     if (flagConfig.vectortype().equals(VectorType.COMPLEX))
       ComplexVector.setDominantMode(Mode.CARTESIAN);
@@ -228,7 +226,7 @@ public class TermTermVectorsFromLucene implements VectorStore {
         Term term = new Term(fieldName, bytes);
         // Skip terms that don't pass the filter.
         if (!luceneUtils.termFilter(term)) continue;
-        
+
         tc++;
         Vector termVector = VectorFactory.createZeroVector(flagConfig.vectortype(), flagConfig.dimension());
         // Place each term vector in the vector store.
@@ -250,7 +248,7 @@ public class TermTermVectorsFromLucene implements VectorStore {
 
     // Iterate through documents.
     int numdocs = luceneUtils.getNumDocs();
-    
+
     for (int dc = 0; dc < numdocs; ++dc) {
       // Output progress counter.
       if ((dc % 10000 == 0) || (dc < 10000 && dc % 1000 == 0)) {
@@ -260,7 +258,7 @@ public class TermTermVectorsFromLucene implements VectorStore {
       for (String field: flagConfig.contentsfields()) {
         Terms terms = luceneUtils.getTermVector(dc, field);
         if (terms == null) {VerbatimLogger.severe("No term vector for document "+dc); continue; }
-	    processTermPositionVector(terms, field);
+        processTermPositionVector(terms, field);
       }
     }
 
@@ -299,39 +297,35 @@ public class TermTermVectorsFromLucene implements VectorStore {
    * term frequencies and (3) term positions within a
    * document. The index of a particular term within this array
    * will be referred to as the 'local index' in comments.
- * @throws IOException 
+   * @throws IOException 
    */
   private void processTermPositionVector(Terms terms, String field)
       throws ArrayIndexOutOfBoundsException, IOException {
-      
-	  if (terms == null) return;
-	  
-	  ArrayList<String> localTerms = new ArrayList<String>();
-	  ArrayList<Integer> freqs = new ArrayList<Integer>();
-	  Hashtable<Integer, Integer> localTermPositions = new Hashtable<Integer, Integer>();
-    
-	   TermsEnum termsEnum = terms.iterator(null);
-	    BytesRef text;
-		int termcount = 0;
-		
-	    while((text = termsEnum.next()) != null) {
-	    	
-	    	String theTerm = text.utf8ToString();
-	    	if (indexVectors.getVector(theTerm) == null) continue;
-	    	DocsAndPositionsEnum docsAndPositions = termsEnum.docsAndPositions(null, null);
-	    	if (docsAndPositions == null) return;
-	    	docsAndPositions.nextDoc();
-	    	freqs.add(docsAndPositions.freq());
-	    	localTerms.add(theTerm); 
-	    	
-	    	 for (int x = 0; x < docsAndPositions.freq(); x++)
-	    		 localTermPositions.put(new Integer(docsAndPositions.nextPosition()), termcount);
-	    	 	 
-	    
-	    	 termcount++;
-	    }
-    
- 
+    if (terms == null) return;
+
+    ArrayList<String> localTerms = new ArrayList<String>();
+    ArrayList<Integer> freqs = new ArrayList<Integer>();
+    Hashtable<Integer, Integer> localTermPositions = new Hashtable<Integer, Integer>();
+
+    TermsEnum termsEnum = terms.iterator(null);
+    BytesRef text;
+    int termcount = 0;
+
+    while((text = termsEnum.next()) != null) {
+      String theTerm = text.utf8ToString();
+      if (indexVectors.getVector(theTerm) == null) continue;
+      DocsAndPositionsEnum docsAndPositions = termsEnum.docsAndPositions(null, null);
+      if (docsAndPositions == null) return;
+      docsAndPositions.nextDoc();
+      freqs.add(docsAndPositions.freq());
+      localTerms.add(theTerm); 
+
+      for (int x = 0; x < docsAndPositions.freq(); x++) {
+        localTermPositions.put(new Integer(docsAndPositions.nextPosition()), termcount);
+      }
+
+      termcount++;
+    }
 
     // Iterate through positions adding index vectors of terms
     // occurring within window to term vector for focus term
@@ -345,18 +339,17 @@ public class TermTermVectorsFromLucene implements VectorStore {
         if (cursor == focusposn) continue;
         if (localTermPositions.get(cursor) == null) continue;
         String coterm = localTerms.get(localTermPositions.get(cursor));
-       
 
-        if (this.indexVectors.getVector(coterm) == null) 
-        {
+        if (this.indexVectors.getVector(coterm) == null) {
           continue;
         }
 
         float globalweight = luceneUtils.getGlobalTermWeight(new Term(field, coterm));
 
         // bind to appropriate position vector
-        if (flagConfig.positionalmethod() == PositionalMethod.PROXIMITY)
+        if (flagConfig.positionalmethod() == PositionalMethod.PROXIMITY) {
           indexVectors.getVector(coterm).bind(numberVectors.getVector((1+cursor-windowstart)));
+        }
 
         // calculate permutation required for either Sahlgren (2008) implementation
         // encoding word order, or encoding direction as in Burgess and Lund's HAL
@@ -375,13 +368,8 @@ public class TermTermVectorsFromLucene implements VectorStore {
           //release to appropriate position vector
           if (flagConfig.positionalmethod() == PositionalMethod.PROXIMITY)
             indexVectors.getVector(coterm).release(numberVectors.getVector((1+cursor-windowstart)));
-   
-      }
-
+        }
       } //end of current sliding window   
-      } //end of all sliding windows
-    
-    
-    
+    } //end of all sliding windows
   }
 }

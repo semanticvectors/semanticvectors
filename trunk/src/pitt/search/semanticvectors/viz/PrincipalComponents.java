@@ -34,11 +34,12 @@
    SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  **/
 
-package pitt.util.vectors;
+package pitt.search.semanticvectors.viz;
 
 import pitt.search.semanticvectors.*;
 import pitt.search.semanticvectors.vectors.IncompatibleVectorsException;
 import pitt.search.semanticvectors.vectors.RealVector;
+import pitt.search.semanticvectors.vectors.ZeroVectorException;
 import ch.akuhn.edu.mit.tedlab.*;
 
 /**
@@ -90,17 +91,17 @@ public class PrincipalComponents {
   // Now we have an object with the reduced matrices, plot some reduced vectors.
   public void plotVectors() {
     DMat reducedVectors = this.svdR.Ut;
-    ObjectVector[] plotVectors = new ObjectVector[vectorInput.length];
+    ObjectVector[] vectorsToPlot = new ObjectVector[vectorInput.length];
     int truncate = 4;
     for (int i = 0; i < vectorInput.length; i++) {
       float[] tempVec = new float[truncate];
       for (int j = 0; j < truncate; ++j) {
         tempVec[j] = (float) (reducedVectors.value[j][i]);
       }
-      plotVectors[i] = new ObjectVector(vectorInput[i].getObject().toString(),
+      vectorsToPlot[i] = new ObjectVector(vectorInput[i].getObject().toString(),
                                         new RealVector(tempVec));
     }
-    Plot2dVectors myPlot = new Plot2dVectors(plotVectors);
+    Plot2dVectors myPlot = new Plot2dVectors(vectorsToPlot);
     myPlot.createAndShowGUI();
   }
 

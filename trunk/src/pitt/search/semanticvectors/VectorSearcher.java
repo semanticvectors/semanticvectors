@@ -52,6 +52,7 @@ import pitt.search.semanticvectors.vectors.Vector;
 import pitt.search.semanticvectors.vectors.VectorFactory;
 import pitt.search.semanticvectors.vectors.VectorType;
 import pitt.search.semanticvectors.vectors.VectorUtils;
+import pitt.search.semanticvectors.vectors.ZeroVectorException;
 
 /**
  * Class for searching vector stores using different scoring functions.

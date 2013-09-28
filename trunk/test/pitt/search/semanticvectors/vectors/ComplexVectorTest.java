@@ -201,7 +201,7 @@ public class ComplexVectorTest extends TestCase {
         VectorType.COMPLEX, 5, 2, random);
     ComplexVector cv2 = (ComplexVector) VectorFactory.generateRandomVector(
         VectorType.COMPLEX, 5, 2, random);
-    cv1.bind(cv2, 1);
+    cv1.bind(cv2);
     assertArrayEquals(new short[] {2301, 1917, ZERO_INDEX, ZERO_INDEX, 9934}, cv1.getPhaseAngles());
   }
   
@@ -213,7 +213,7 @@ public class ComplexVectorTest extends TestCase {
     cv1.toDensePolar();
     ComplexVector cv2 = (ComplexVector) VectorFactory.generateRandomVector(
         VectorType.COMPLEX, 5, 2, random);
-    cv1.bind(cv2, 1);
+    cv1.bind(cv2);
     assertArrayEquals(
         new short[] {13622, ZERO_INDEX, ZERO_INDEX, ZERO_INDEX, 9934}, cv1.getPhaseAngles());
   }

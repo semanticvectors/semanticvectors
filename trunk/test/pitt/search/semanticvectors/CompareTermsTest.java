@@ -13,16 +13,28 @@ public class CompareTermsTest {
   public void testCompareTermsOrthographic() throws IOException {
     FlagConfig flagConfig = FlagConfig.getFlagConfig(
         new String[] {"-queryvectorfile", "orthographic", "foo", "foo"});
-    assertEquals(1.0, CompareTerms.RunCompareTerms(flagConfig), TOL);
+    assertEquals(1.0, CompareTerms.runCompareTerms(flagConfig), TOL);
     
     flagConfig = FlagConfig.getFlagConfig(
         new String[] {"-queryvectorfile", "orthographic", "foo", "foot"});
-    double outcome = CompareTerms.RunCompareTerms(flagConfig);
+    double outcome = CompareTerms.runCompareTerms(flagConfig);
     assertTrue(0.85 < outcome);
     
     flagConfig = FlagConfig.getFlagConfig(
         new String[] {"-queryvectorfile", "orthographic", "foo", "bar"});
-    outcome = CompareTerms.RunCompareTerms(flagConfig);
+    outcome = CompareTerms.runCompareTerms(flagConfig);
     assertTrue(0.1 > outcome);
+    
+    flagConfig = FlagConfig.getFlagConfig(
+        new String[] {"-queryvectorfile", "orthographic", "-vectortype", "real", "bad", "dab"});
+    outcome = CompareTerms.runCompareTerms(flagConfig);
+    assertEquals(0.71, outcome, TOL);
+    
+    // Permutation encoding fails to distinguish anagrams.
+    flagConfig = FlagConfig.getFlagConfig(
+        new String[] {"-queryvectorfile", "orthographic", "-vectortype", "real",
+            "-realbindmethod", "permutation", "bad", "dab"});
+    outcome = CompareTerms.runCompareTerms(flagConfig);
+    assertEquals(1, outcome, TOL);
   }
 }

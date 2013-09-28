@@ -33,7 +33,7 @@
    SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 **/
 
-package pitt.search.semanticvectors;
+package pitt.search.semanticvectors.utils;
 
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Formatter;

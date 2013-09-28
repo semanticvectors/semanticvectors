@@ -7,8 +7,8 @@ import java.util.ArrayList;
 
 import pitt.search.semanticvectors.FlagConfig;
 import pitt.search.semanticvectors.VectorStoreWriter;
-import pitt.search.semanticvectors.VerbatimLogger;
 import pitt.search.semanticvectors.utils.StringUtils;
+import pitt.search.semanticvectors.utils.VerbatimLogger;
 
 /**
  * Class that reads input data from a stream and organizes it into records and columns.

@@ -43,6 +43,7 @@ import java.util.Enumeration;
 import java.util.NoSuchElementException;
 import java.util.logging.Logger;
 
+import pitt.search.semanticvectors.utils.VerbatimLogger;
 import pitt.search.semanticvectors.vectors.Vector;
 import pitt.search.semanticvectors.vectors.VectorFactory;
 import pitt.search.semanticvectors.vectors.VectorType;

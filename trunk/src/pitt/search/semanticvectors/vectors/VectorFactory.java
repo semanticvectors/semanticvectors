@@ -49,7 +49,9 @@ public class VectorFactory {
   private static final RealVector realInstance = new RealVector(0);
   private static final ComplexVector complexInstance =
     new ComplexVector(0, ComplexVector.Mode.POLAR_SPARSE);
-
+  private static final ComplexVector complexFlatInstance =
+      new ComplexVector(0, ComplexVector.Mode.CARTESIAN);
+  
   public static Vector createZeroVector(VectorType type, int dimension) {
     switch (type) {
       case BINARY:
@@ -58,20 +60,11 @@ public class VectorFactory {
         return new RealVector(dimension);
       case COMPLEX:
         return new ComplexVector(dimension, Mode.POLAR_SPARSE);
+      case COMPLEXFLAT:
+        return new ComplexVector(dimension, Mode.CARTESIAN);
       default:
         throw new IllegalArgumentException("Unrecognized VectorType: " + type);
     }
-  }
-
-  /**
-   * Can be called by external methods that don't explicitly use VectorType enums.
-   * This design may be flawed, but it's easy to fix if need be.
-   * 
-   * @param type must be one of "binary", "real", "complex".
-   * @return new vector of the appropriate type and dimension.
-   */
-  public static Vector createZeroVector(String type, int dimension) {
-    return createZeroVector(VectorType.valueOf(type.toUpperCase()), dimension);
   }
   
   /**
@@ -96,12 +89,20 @@ public class VectorFactory {
     case REAL:
       return realInstance.generateRandomVector(dimension, numEntries, random);
     case COMPLEX:
+      ComplexVector.setDominantMode(Mode.POLAR_DENSE);
+      return complexInstance.generateRandomVector(dimension, numEntries, random);
+    case COMPLEXFLAT:
+      ComplexVector.setDominantMode(Mode.CARTESIAN);
       return complexInstance.generateRandomVector(dimension, numEntries, random);
     default:
       throw new IllegalArgumentException("Unrecognized VectorType: " + type);
     }
   }
 
+  /**
+   * Returns the size in bytes expected to be taken up by the serialization
+   * of this vector in Lucene format.
+   */
   public static int getLuceneByteSize(VectorType vectorType, int dimension) {
     switch (vectorType) {
       case BINARY:
