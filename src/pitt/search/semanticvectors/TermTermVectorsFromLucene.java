@@ -108,11 +108,6 @@ public class TermTermVectorsFromLucene implements VectorStore {
   public int getDimension() { return flagConfig.dimension(); }
 
   /**
-   * @return The object's indexReader.
-   */
-  // public IndexReader getIndexReader(){ return this.luceneIndexReader; }
-
-  /**
    * @return The object's basicTermVectors.
    */
   public VectorStore getBasicTermVectors(){ return this.termVectors; }

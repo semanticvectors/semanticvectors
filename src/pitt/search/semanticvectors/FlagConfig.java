@@ -43,10 +43,12 @@ import java.util.logging.Logger;
 
 import pitt.search.semanticvectors.utils.VerbatimLogger;
 import pitt.search.semanticvectors.vectors.RealVector;
+import pitt.search.semanticvectors.vectors.RealVector.RealBindMethod;
 /** Imports must include the declarations of all enums used as flag values */
 import pitt.search.semanticvectors.vectors.VectorType;
 import pitt.search.semanticvectors.CompoundVectorBuilder.VectorLookupSyntax;
 import pitt.search.semanticvectors.DocVectors.DocIndexingStrategy;
+import pitt.search.semanticvectors.ElementalVectorStore.ElementalGenerationMethod;
 import pitt.search.semanticvectors.LuceneUtils.TermWeight;
 import pitt.search.semanticvectors.Search.SearchType;
 import pitt.search.semanticvectors.TermTermVectorsFromLucene.PositionalMethod;
@@ -96,8 +98,13 @@ public class FlagConfig {
     this.makeFlagsCompatible();
   }
 
-  /** Sets the binding method used for real vectors, see {@link RealVector#BIND_METHOD}. */
-  public RealVector.BindMethod realbindmethod = RealVector.BindMethod.CONVOLUTION; 
+  private RealBindMethod realbindmethod = RealBindMethod.CONVOLUTION; 
+  /** The binding method used for real vectors, see {@link RealVector#BIND_METHOD}. */
+  public RealBindMethod realbindmethod() { return realbindmethod; }
+  
+  private ElementalGenerationMethod elementalmethod = ElementalGenerationMethod.RANDOM;
+  /** The method used for generating elemental vectors. */
+  public ElementalGenerationMethod elementalmethod() { return elementalmethod; }
   
   public int seedlength = 10;
   /** Number of nonzero entries in a sparse random vector, default value 10 except for
@@ -487,8 +494,8 @@ public class FlagConfig {
     // part of each real vector, as with complex Modes. But they aren't so nice either.
     // Let's avoid getting too committed to either approach and refactor at will.
     // dwiddows, 2013-09-27.
-    if (vectortype == VectorType.REAL && realbindmethod == RealVector.BindMethod.PERMUTATION) {
-      RealVector.setBindType(RealVector.BindMethod.PERMUTATION);
+    if (vectortype == VectorType.REAL && realbindmethod == RealVector.RealBindMethod.PERMUTATION) {
+      RealVector.setBindType(RealVector.RealBindMethod.PERMUTATION);
     }
   }
 

@@ -82,6 +82,7 @@ public class ComplexVector implements Vector {
    */
   private static Mode DOMINANT_MODE = Mode.POLAR_DENSE;
   public static void setDominantMode(Mode mode) {
+    if (DOMINANT_MODE == mode) return;
     if (mode == Mode.POLAR_SPARSE) {
       throw new IllegalArgumentException("POLAR_SPARSE cannot be used as dominant mode.");
     }
