@@ -46,6 +46,7 @@ import java.util.logging.Logger;
 import pitt.search.semanticvectors.utils.VerbatimLogger;
 import pitt.search.semanticvectors.vectors.Vector;
 import pitt.search.semanticvectors.vectors.ZeroVectorException;
+import pitt.search.semanticvectors.viz.PathFinder;
 
 /**
  * Command line term vector search utility. <br/>
@@ -183,13 +184,16 @@ public class Search {
      * iii. Based on search type, build query vector and perform search.
      * iv. Return LinkedList of results, usually for main() to print out.
      */
-    // Stage i. Check flagConfig for null, TODO: Check for other dependencies.
+    // Stage i. Check flagConfig for null, and there being at least some remaining query terms.
     if (flagConfig == null) {
       throw new NullPointerException("flagConfig cannot be null");
     }
-    
+    if (flagConfig.remainingArgs == null) {
+      throw new IllegalArgumentException("No query terms left after flag parsing!");
+    }
+
     String[] queryArgs = flagConfig.remainingArgs;
-    
+
     // Stage ii. Open vector stores, and Lucene utils.
     try {
       // Default VectorStore implementation is (Lucene) VectorStoreReader.
@@ -338,91 +342,91 @@ public class Search {
   }
 
   /**
+   * Writes the results out as a json-formatted graph using the {@link PathFinder} algorithm.
+   * @param flagConfig
+   * @param results
+   * @throws IOException 
+   */
+  private static void writeResultsPathfinderGraphJson(
+      FlagConfig flagConfig, List<SearchResult> results) throws IOException {
+    BufferedWriter writer = null;
+    //create a temporary file
+    File jsonFile = new File(flagConfig.jsonfile());
+    VerbatimLogger.info(
+        "Writing graph in json format to ...  " + jsonFile.getCanonicalPath() + "\n");
+    writer = new BufferedWriter(new FileWriter(jsonFile));
+    //print nodes
+    writer.write("{" +
+        "\"nodes\":[\n");
+
+    for (int z = 0; z < results.size(); z++) {
+      writer.write("{\"name\":\""+results.get(z).getObjectVector().getObject()+"\",\"group\":1}"); 
+      if (z < results.size()-1) {
+        writer.write(",");
+      }
+    }
+    writer.write("],\n");
+    writer.write("\"links\":[\n");
+
+    //generate connectivity matrix
+    double[][] links = new double[results.size()][results.size()];
+
+    for (int x =0; x < results.size(); x++) { 
+      for (int y=0; y < results.size(); y++) {
+        links[y][x] = results.get(y).getObjectVector().getVector().measureOverlap(results.get(x).getObjectVector().getVector());
+      }
+    }
+
+    int q = flagConfig.pathfinderQ();
+    if (q == -1) {
+      q = results.size() - 1;
+    }
+    double r = flagConfig.pathfinderR();
+
+    PathFinder scout = new PathFinder(q, r, links);
+    links = scout.pruned();
+
+    for (int x =0; x < results.size()-1; x++) {
+      for (int y=x+1; y < results.size(); y++) {
+        if (links[y][x] > 0) {  
+          if (x > 0 || y > x+1) writer.write(",");
+          writer.write("{\"source\":"+y+",\"target\":"+x+",\"value\":"+links[y][x]+"}\n");
+        }
+      }
+    }
+    writer.write("  ]\n}");
+    writer.close();
+  }
+
+  /**
    * Takes a user's query, creates a query vector, and searches a vector store.
    * @param args See {@link #usageMessage}
+   * @throws IllegalArgumentException
+   * @throws IOException if filesystem resources referred to in arguments are unavailable
    */
-  public static void main (String[] args) throws IllegalArgumentException {
+  public static void main (String[] args) throws IllegalArgumentException, IOException {
     FlagConfig flagConfig = null;
+    List<SearchResult> results = null;
     try {
       flagConfig = FlagConfig.getFlagConfig(args);
+      results = RunSearch(flagConfig);
     } catch (IllegalArgumentException e) {
       System.err.println(usageMessage);
       throw e;
     }
-    
-    List<SearchResult> results = RunSearch(flagConfig);
+
     // Print out results.
     if (results.size() > 0) {
       VerbatimLogger.info("Search output follows ...\n");
       for (SearchResult result: results) {
         System.out.println(
             String.format("%f:%s",
-                          result.getScore(),
-                          result.getObjectVector().getObject().toString()));
+                result.getScore(),
+                result.getObjectVector().getObject().toString()));
       }
-      
-  	if (!flagConfig.jsonfile().isEmpty())
-  	{
-  		BufferedWriter writer = null;
-          try {
-              //create a temporary file
-              File jsonFile = new File(flagConfig.jsonfile());
-
-              VerbatimLogger.info("Writing graph to graph.json ... "+jsonFile.getCanonicalPath());
-
-              writer = new BufferedWriter(new FileWriter(jsonFile));
-         
-  		//print nodes
-  		writer.write("{" +
-  			  "\"nodes\":[\n");
-  		
-  		
-  		for (int z =0; z < results.size(); z++)
-  		{ writer.write("{\"name\":\""+results.get(z).getObjectVector().getObject()+"\",\"group\":1}"); 
-  		  if (z < results.size()-1) writer.write(",");
-  		}
-  		writer.write("],\n");
-  		
-  		writer.write("\"links\":[\n");
-  		  
-  		    
-  		
-  		//generate connectivity matrix
-  		double[][] links = new double[results.size()][results.size()];
-  		
-  		for (int x =0; x < results.size(); x++) 
-  			for (int y=0; y < results.size(); y++) 
-  					links[y][x] = results.get(y).getObjectVector().getVector().measureOverlap(results.get(x).getObjectVector().getVector());
-  
-  		
-  		int q = flagConfig.pathfinderQ();
-  		if (q == -1) q = results.size() -1;
-  		double r = flagConfig.pathfinderR();
-  		
-  		PathFinder scout = new PathFinder(q, r, links);
-  		links = scout.pruned();
-  		
-  		for (int x =0; x < results.size()-1; x++) 
-  			for (int y=x+1; y < results.size(); y++) 
-  				if (links[y][x] > 0)
-  				{  
-  					if (x > 0 || y > x+1) writer.write(",");
-  					writer.write("{\"source\":"+y+",\"target\":"+x+",\"value\":"+links[y][x]+"}\n");
-  							
-  				}
-  		
-  		writer.write("  ]\n}");
-  	     } catch (Exception e) {
-              e.printStackTrace();
-          } finally {
-              try {
-                  writer.close();
-              } catch (Exception e) {
-              }
-          }
-  	}
-      
-      
+      if (!flagConfig.jsonfile().isEmpty()) {
+        writeResultsPathfinderGraphJson(flagConfig, results);
+      }
     } else {
       VerbatimLogger.info("No search output.\n");
     }
