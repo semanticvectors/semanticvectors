@@ -38,6 +38,10 @@ package pitt.search.semanticvectors.vectors;
 import java.util.ArrayList;
 import java.util.logging.Logger;
 
+import cern.colt.matrix.tfcomplex.impl.DenseFComplexMatrix1D;
+import cern.colt.matrix.tfloat.impl.DenseFloatMatrix1D;
+import cern.jet.math.tfcomplex.FComplex;
+
 public class RealVectorUtils {
   private static final Logger logger = Logger.getLogger(RealVectorUtils.class.getCanonicalName());
 
@@ -76,4 +80,70 @@ public class RealVectorUtils {
     return true;
   }
   
+  /**
+   * Returns the circular convolution of the two input vectors.
+   * 
+   * See Plate, Holographic Reduced Representations, Section 3.1
+   */
+  public static RealVector fftConvolution(RealVector first, RealVector second) {
+    IncompatibleVectorsException.checkVectorsCompatible(first, second);
+    DenseFloatMatrix1D coltVec1 = new DenseFloatMatrix1D(first.getCoordinates());
+    DenseFloatMatrix1D coltVec2 = new DenseFloatMatrix1D(second.getCoordinates());
+    int dimension = first.getDimension();
+
+    
+    DenseFComplexMatrix1D fft1 = coltVec1.getFft();
+    DenseFComplexMatrix1D fft2 = coltVec2.getFft();
+
+    for (int i = 0; i < dimension; i++ ) {
+      fft1.setQuick(i, FComplex.mult(fft1.getQuick(i), fft2.getQuick(i)));
+    }
+
+    fft1.ifft(true);
+
+    DenseFloatMatrix1D coltResult = ((DenseFloatMatrix1D)(fft1.getRealPart()));
+    float[] coordinates = coltResult.elements();
+    RealVector result = new RealVector(coordinates);
+    return result;
+  }
+  
+  /**
+   * Return the normalized convolution of normalized vectors.
+   * 
+   * (This would probably be needed for inverse convolution to work, if we used scalar
+   * product rather than cosine similarity for {@link RealVector#measureOverlap(Vector)}.)
+   */
+  public static RealVector normalizedConvolution(RealVector first, RealVector second) {
+    first.normalize();
+    second.normalize();
+    RealVector convolution = fftConvolution(first, second);
+    convolution.normalize();
+    return convolution;
+  }
+
+
+  /**
+   * Returns the involution (the vector with the coordinates reversed).
+   */
+  public static RealVector getInvolution(RealVector vector) {
+    vector.sparseToDense();
+    float[] coordinates = vector.getCoordinates();
+    int dimension = vector.getDimension();
+    float[] involution = new float[dimension];
+    involution[0] = coordinates[0];
+    for (int i = 1; i < dimension; ++i) {
+      involution[i] = coordinates[dimension - i];
+    }
+    return new RealVector(involution);
+  }
+  
+  /**
+   * Returns the approximate inverse convolution, the circular correlation.
+   * Only expected to be an approximate inverse in high dimensions.
+   *
+   * See Plate, Holographic Reduced Representations, Section 3.1.3
+   */
+  public static RealVector fftApproxInvConvolution(RealVector first, RealVector second) {
+    return fftConvolution(getInvolution(first), second);
+  }
 }

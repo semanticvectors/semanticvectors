@@ -56,6 +56,8 @@ import org.apache.lucene.index.Terms;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.util.Version;
 
+import pitt.search.semanticvectors.utils.VerbatimLogger;
+
 /**
  * Class to support reading extra information from Lucene indexes,
  * including term frequency, doc frequency.
@@ -172,9 +174,7 @@ public class LuceneUtils {
 
   public Terms getTermVector(int docID, String field) throws IOException {
     return this.atomicReader.getTermVector(docID, field);
-     }
-  
- 
+  }
   
   public FieldInfos getFieldInfos() {
     return this.atomicReader.getFieldInfos();

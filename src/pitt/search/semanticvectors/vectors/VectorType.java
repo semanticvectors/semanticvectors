@@ -35,8 +35,30 @@
 
 package pitt.search.semanticvectors.vectors;
 
+/**
+ * Enumeration of the different types of coordinates that can be used for vectors, and
+ * (in the complex case), whether circular or cartesian methods are used.
+ * 
+ * @author dwiddows
+ */
 public enum VectorType {
+  /**
+   * Uses binary-valued vectors. May be slower for some operations, but highly accurate.
+   */
   BINARY,
+  /**
+   * "Standard" real-valued vectors. Performs well for many operations though bind and release
+   * are (in some cases) either lossy with respect to argument structure and binding, or
+   * inexact with respect to inverse.
+   */
   REAL,
-  COMPLEX  
+  /**
+   * Complex-valued vectors, default "polar" version, normalized to coordinates on the unit circle,
+   * and compared using angular differences.
+   */
+  COMPLEX,
+  /**
+   * Complex-valued vectors, normalized and compared using a hermitian scalar product.
+   */
+  COMPLEXFLAT
 }

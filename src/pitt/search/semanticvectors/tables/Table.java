@@ -1,7 +1,6 @@
 package pitt.search.semanticvectors.tables;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.Random;
 
 import pitt.search.semanticvectors.FlagConfig;

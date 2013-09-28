@@ -9,7 +9,7 @@ import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.store.FSDirectory;
 
-import pitt.search.semanticvectors.VerbatimLogger;
+import pitt.search.semanticvectors.utils.VerbatimLogger;
 
 import java.io.BufferedReader;
 import java.io.File;

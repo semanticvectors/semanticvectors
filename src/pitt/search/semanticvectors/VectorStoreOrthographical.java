@@ -31,14 +31,6 @@ public class VectorStoreOrthographical implements VectorStore, CloseableVectorSt
 
   public VectorStoreOrthographical(FlagConfig flagConfig) {
     this.flagConfig = flagConfig;
-    /*
-    if (flagConfig.vectortype() == VectorType.REAL) {
-      VerbatimLogger.warning("Not yet implemented for real vectors: " +
-      		"Changing to 4096-dimensional binary vectors.\n");
-      flagConfig.setDimension(4096);
-      flagConfig.setVectortype(VectorType.BINARY);
-    }
-    */
     this.objectVectors = new Hashtable<Object, ObjectVector>();
     this.theNumbers = new NumberRepresentation(flagConfig);
     this.letterVectors = new VectorStoreRAM(flagConfig);

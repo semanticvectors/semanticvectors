@@ -95,21 +95,6 @@ public interface Vector {
    *        list. Can be NULL in which case no permutation is applied. 
    */
   public abstract void superpose(Vector other, double weight, int[] permutation);
-  
-  /**
-   * Binds the other vector into this one. Does not necessarily guarantee that this.bind(other, 1)
-   * is equal to other.bind(this, -1).
-   * 
-   * @param direction if direction > 0, binding is on the right, otherwise it is on the left
-   */
-  public abstract void bind(Vector other, int direction);
-  
-  /**
-   * Releases the other vector from this one. 
-   * 
-   * @param direction if direction > 0, binding is on the right, otherwise it is on the left
-   */
-  public abstract void release(Vector other, int direction);
 
   /**
    * Binds the other vector to this one.
@@ -117,7 +102,7 @@ public interface Vector {
   public abstract void bind(Vector other);
  
   /**
-   * Inverse of the binding operator
+   * Inverse of the binding operator. May be an approximate inverse.
    */
   public abstract void release(Vector other);
   

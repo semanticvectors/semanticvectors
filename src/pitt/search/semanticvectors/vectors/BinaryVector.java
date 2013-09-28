@@ -531,7 +531,6 @@ public class BinaryVector implements Vector {
     return thismaximum;	
   }
 
-  @Override
   /**
    * Implements binding using permutations and XOR. 
    */
@@ -551,8 +550,6 @@ public class BinaryVector implements Vector {
     }
   }
 
-
-  @Override
   /**
    * Implements inverse of binding using permutations and XOR. 
    */
@@ -669,7 +666,7 @@ public class BinaryVector implements Vector {
 
   /**
    * approximation of error function, equation 7.1.27 from
-   * Abramowitz, M. and Stegun, I. A. (Eds.). "Repeated Integrals of the Error Function." §7.2 
+   * Abramowitz, M. and Stegun, I. A. (Eds.). "Repeated Integrals of the Error Function." S 7.2 
    * in Handbook of Mathematical Functions with Formulas, Graphs, and Mathematical Tables, 
    * 9th printing. New York: Dover, pp. 299-300, 1972.
    * error of approximation <= 5*10^-4

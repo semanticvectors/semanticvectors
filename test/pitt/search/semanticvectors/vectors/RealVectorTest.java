@@ -128,24 +128,27 @@ public class RealVectorTest extends TestCase {
   }
   
   @Test
-  public void testBindAndRelease() {
-    Vector vector1 = new RealVector(new float[] {2, 0, 0, 0});
-    Vector vector2 = new RealVector(new float[] {0, 3, 0, 0});
-    vector1.bind(vector2);
-    vector1.release(vector2);
+  public void testBindAndReleasePermutation() {
+    RealVector vector1 = new RealVector(new float[] {2, 0, 0, 0});
+    RealVector vector2 = new RealVector(new float[] {0, 3, 0, 0});
+    vector1.bindWithPermutation(vector2);
+    vector1.releaseWithPermutation(vector2);
     assertTrue(vector1.toString().contains("2.0 0.0 0.0 0.0"));
-    
+  }
+  
+  @Test
+  public void testBindAndRelease() {
     Random random = new Random();
     random.setSeed(0);
-    vector1 = VectorFactory.generateRandomVector(VectorType.REAL, 1000, 100, random);
+    Vector vector1 = VectorFactory.generateRandomVector(VectorType.REAL, 1000, 100, random);
     Vector vector1Copy = vector1.copy();
-    vector2 = VectorFactory.generateRandomVector(VectorType.REAL, 1000, 100, random);
+    Vector vector2 = VectorFactory.generateRandomVector(VectorType.REAL, 1000, 100, random);
     vector1.bind(vector2);
 
     assertEquals(0, vector1Copy.measureOverlap(vector1), 0.1);
     assertEquals(0, vector2.measureOverlap(vector1), 0.1);
     vector1.release(vector2);
-    assertEquals(1, vector1Copy.measureOverlap(vector1), TOL);
+    assertEquals(1, vector1Copy.measureOverlap(vector1), 0.3);
   }
   
   @Test

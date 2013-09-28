@@ -107,17 +107,17 @@ public class StringEdit {
       String theTerm = theNext.getObject().toString().trim();
       VectorStoreRAM OV = null;
       OV = NR.getNumberVectors(0, theTerm.length()+1);
-      
+
       Vector toAdd = getStringVector(theTerm, OV, theLetters, flagConfig);
-  	   
+
       if (flagConfig.hybridvectors())  //combine -queryvectorfile and orthographic vectors 
-      	{
-    	  toAdd.superpose(theVSR.getVector(theTerm), 1, null);
-    	  toAdd.normalize();
-    	}
-    
+      {
+        toAdd.superpose(theVSR.getVector(theTerm), 1, null);
+        toAdd.normalize();
+      }
+
       twoVSR.putVector(theTerm,toAdd);
-      
+
 
       Enumeration<ObjectVector> theNumbers = OV.getAllVectors();
       while (theNumbers.hasMoreElements()) {
@@ -160,11 +160,11 @@ public class StringEdit {
     //  System.out.println(theTerm);
     for (int q = 1; q <= theTerm.length(); q++) {
       String letter = ""+theTerm.charAt(q-1);
-       if (letter.equals("_")) 
-    	   {continue; }
-      
+      if (letter.equals("_")) 
+      {continue; }
+
       Vector posVector = theNumbers.getVector(q);
-      
+
       if (posVector == null) { 
         System.out.println(theTerm);
         System.out.println(posVector);
@@ -173,11 +173,9 @@ public class StringEdit {
         while (nation.hasMoreElements())
           System.out.println(nation.nextElement().getObject());
       }
-      
+
       Vector incoming = null;
-      
-      if (flagConfig.vectortype().equals(VectorType.BINARY) || (flagConfig.vectortype().equals(VectorType.COMPLEX)))
-      {
+
       random.setSeed(Bobcat.asLong(letter));
       incoming = VectorFactory.generateRandomVector(flagConfig.vectortype(), flagConfig.dimension(), flagConfig.seedlength, random);
 
@@ -185,26 +183,10 @@ public class StringEdit {
         //System.out.println("adding "+letter);
         theLetters.putVector(letter, incoming.copy());
       }
-
-
-      try {
-        incoming.bind(posVector);
-            } catch (Exception e) {
-        System.out.println(incoming);
-        System.out.println(posVector);
-        e.printStackTrace();
-        System.exit(0);
-      }
-      }
-      else //real vector case
-      {
-    	  int[] theShift = PermutationUtils.getShiftPermutation(flagConfig.vectortype(), flagConfig.dimension(), (int) theTerm.charAt(q-1));
-    	  incoming = VectorFactory.createZeroVector(flagConfig.vectortype(), flagConfig.dimension());
-    	  incoming.superpose(posVector, 1, theShift);
-      }
-            theVector.superpose(incoming, 1, null);     
+      incoming.bind(posVector);
+      theVector.superpose(incoming, 1, null);     
     }
-    
+
     theVector.normalize(); 
     return theVector;
   }

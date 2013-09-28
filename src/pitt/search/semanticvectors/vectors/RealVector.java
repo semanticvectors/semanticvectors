@@ -7,15 +7,15 @@
    modification, are permitted provided that the following conditions are
    met:
 
-   * Redistributions of source code must retain the above copyright
+ * Redistributions of source code must retain the above copyright
    notice, this list of conditions and the following disclaimer.
 
-   * Redistributions in binary form must reproduce the above
+ * Redistributions in binary form must reproduce the above
    copyright notice, this list of conditions and the following
    disclaimer in the documentation and/or other materials provided
    with the distribution.
 
-   * Neither the name of the University of Pittsburgh nor the names
+ * Neither the name of the University of Pittsburgh nor the names
    of its contributors may be used to endorse or promote products
    derived from this software without specific prior written
    permission.
@@ -31,7 +31,7 @@
    LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
    NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
    SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-**/
+ **/
 
 package pitt.search.semanticvectors.vectors;
 
@@ -42,21 +42,47 @@ import java.util.logging.Logger;
 import org.apache.lucene.store.IndexInput;
 import org.apache.lucene.store.IndexOutput;
 
+import pitt.search.semanticvectors.vectors.ComplexVector.Mode;
+
 /**
  * Real number implementation of Vector.
  * 
+ * <p>
  * Supports both sparse and dense formats.  Some methods automatically transform from sparse to
- * dense format.  Callers should be made aware through documentation of when this is done, since
- * there may be performance consequences.
+ * dense format. (Method documentation should cover this when there are performance consequences.
  * 
  * @author Dominic Widdows
  */
 public class RealVector implements Vector {
+  
+  /**
+   * Enumeration of binding operation options. Change at compile-time to experiment.
+   */
+  public enum BindMethod {
+    /**
+     * Uses permutation operations, as in Sahlgren et al.
+     * Fast, exact inverse, but lossy memory of slot-filling. 
+     */
+    PERMUTATION,
+    /**
+     * Uses convolution operations, as in Mewhort and Jones, BEAGLE.
+     * Slower, but optimized using Fast Fourier Transforms.
+     * Approximate inverse, but keeps memoery of slot-filling.
+     */
+    CONVOLUTION
+  }
+  
+  public static BindMethod BIND_METHOD = BindMethod.CONVOLUTION;
+  public static void setBindType(BindMethod bindMethod) {
+    logger.info("Globally setting real vector BIND_METHOD to: '" + bindMethod + "'");
+    BIND_METHOD = bindMethod;
+  }
+  
   public static final Logger logger = Logger.getLogger(RealVector.class.getCanonicalName());
 
   /** Returns {@link VectorType#REAL} */
   public VectorType getVectorType() { return VectorType.REAL; }
-  
+
   private final int dimension;
   /**
    * Dense representation.  Coordinates can be anything expressed by floats.
@@ -69,13 +95,13 @@ public class RealVector implements Vector {
    */ 
   private short[] sparseOffsets;
   private boolean isSparse;
-  
+
   protected RealVector(int dimension) {
     this.dimension = dimension;
     this.sparseOffsets = new short[0];
     this.isSparse = true;
   }
-  
+
   /**
    * Returns a new copy of this vector, in dense format.
    */
@@ -110,12 +136,12 @@ public class RealVector implements Vector {
     }
     return debugString.toString();
   }
-  
+
   @Override
   public int getDimension() {
     return dimension;
   }
-  
+
   public RealVector createZeroVector(int dimension) {
     return new RealVector(dimension);
   }
@@ -133,7 +159,7 @@ public class RealVector implements Vector {
       return true;
     }
   }
-  
+
   /**
    * Generates a basic sparse vector
    * with mainly zeros and some 1 and -1 entries (seedLength/2 of each)
@@ -154,12 +180,12 @@ public class RealVector implements Vector {
    * @return Sparse representation of basic ternary vector.
    */
   public RealVector generateRandomVector(int dimension, int seedLength, Random random) {
-     RealVector randomVector = new RealVector(dimension);
-    
-     //allow for dense random vectors, with each value initalized at random between -1 and 1
-     if (seedLength == dimension)
-    	return generateDenseRandomVector(dimension, seedLength, random);
-    
+    RealVector randomVector = new RealVector(dimension);
+
+    //allow for dense random vectors, with each value initalized at random between -1 and 1
+    if (seedLength == dimension)
+      return generateDenseRandomVector(dimension, seedLength, random);
+
     boolean[] occupiedPositions = new boolean[dimension];
     randomVector.sparseOffsets = new short[seedLength];
 
@@ -171,7 +197,7 @@ public class RealVector implements Vector {
       if (!occupiedPositions[testPlace]) {
         occupiedPositions[testPlace] = true;
         randomVector.sparseOffsets[entryCount] =
-          new Integer(testPlace + 1).shortValue();
+            new Integer(testPlace + 1).shortValue();
         entryCount++;
       }
     }
@@ -182,37 +208,37 @@ public class RealVector implements Vector {
       if (!occupiedPositions[testPlace]) {
         occupiedPositions[testPlace] = true;
         randomVector.sparseOffsets[entryCount] =
-          new Integer((1 + testPlace) * -1).shortValue();
+            new Integer((1 + testPlace) * -1).shortValue();
         entryCount++;
       }
     }
 
     return randomVector;
   }
-  
-  
+
+
   /**
    * Generates a basic dense vector
    * with values assigned at random to a real value between -1 and 1
    *
    * @return Dense representation of basic real vector.
    */
-  
-  public RealVector generateDenseRandomVector(int dimension, int seedLength, Random random) {
-    
-	  RealVector randomVector = new RealVector(dimension);
-      randomVector.sparseToDense();
- 
-      for (int q =0; q < dimension; q++)
-    	  randomVector.coordinates[q] = (float) random.nextDouble();
 
-      for (int q =0; q < dimension; q++)
-    	  if (random.nextBoolean()) randomVector.coordinates[q] *=-1;
-    
+  public RealVector generateDenseRandomVector(int dimension, int seedLength, Random random) {
+
+    RealVector randomVector = new RealVector(dimension);
+    randomVector.sparseToDense();
+
+    for (int q =0; q < dimension; q++)
+      randomVector.coordinates[q] = (float) random.nextDouble();
+
+    for (int q =0; q < dimension; q++)
+      if (random.nextBoolean()) randomVector.coordinates[q] *=-1;
+
     randomVector.normalize();  
     return randomVector;
   }
-  
+
   @Override
   /**
    * Measures overlap of two vectors using cosine similarity.
@@ -270,71 +296,81 @@ public class RealVector implements Vector {
       }
     }
   }
+
+  @Override
+  /**
+   * Implements binding depending on {@link #BIND_TYPE}
+   */
+  public void bind(Vector other) {
+    IncompatibleVectorsException.checkVectorsCompatible(this, other);
+    RealVector realOther = (RealVector) other;
+    if (isSparse) sparseToDense();
+    switch(BIND_METHOD) {
+    case PERMUTATION:
+      bindWithPermutation(realOther);
+      return;
+    case CONVOLUTION:
+      bindWithConvolution(realOther);
+      return;
+    }
+  }
   
   @Override
+  /**
+   * Implements release depending on {@link #BIND_TYPE}
+   */
+  public void release(Vector other) {
+    IncompatibleVectorsException.checkVectorsCompatible(this, other);
+    RealVector realOther = (RealVector) other;
+    if (isSparse) sparseToDense();
+    switch(BIND_METHOD) {
+    case PERMUTATION:
+      releaseWithPermutation(realOther);
+      return;
+    case CONVOLUTION:
+      releaseWithConvolution(realOther);
+      return;
+    }
+  }
+    
+  public void bindWithConvolution(RealVector realOther) {
+    RealVector result = RealVectorUtils.fftConvolution(this, realOther);
+    this.coordinates = result.coordinates;
+  }
+
+  /**
+   * Implements release using {@link RealVectorUtils#fftApproxInvConvolution}
+   */
+  public void releaseWithConvolution(RealVector other) {
+    RealVector result = RealVectorUtils.fftApproxInvConvolution(other, this);
+    this.coordinates = result.coordinates;
+  }
+
   /**
    * Implements binding as a single-shift permutation.  Currently wasteful; allocates
    * the permutation array each time.
    */
-  public void bind(Vector other, int direction) {
-    IncompatibleVectorsException.checkVectorsCompatible(this, other);
-    RealVector realOther = (RealVector) other;
-    if (isSparse) sparseToDense();
-    if (realOther.isSparse) realOther.sparseToDense();
+  public void bindWithPermutation(RealVector other) {
     RealVector result = createZeroVector(dimension);    
-    if (direction > 0) {
-      result.superpose(
-          realOther, 1, PermutationUtils.getShiftPermutation(VectorType.REAL, dimension, 1));
-      result.superpose(
-          this, 1, PermutationUtils.getShiftPermutation(VectorType.REAL, dimension, -1));
-    } else {
-      result.superpose(
-          realOther, 1, PermutationUtils.getShiftPermutation(VectorType.REAL, dimension, -1));
-      result.superpose(
-          this, 1, PermutationUtils.getShiftPermutation(VectorType.REAL, dimension, 1));
-    }
+    result.superpose(
+        other, 1, PermutationUtils.getShiftPermutation(VectorType.REAL, dimension, 1));
+    result.superpose(
+        this, 1, PermutationUtils.getShiftPermutation(VectorType.REAL, dimension, -1));
     this.coordinates = result.coordinates;
   }
-  
-  @Override
+
   /**
-   * Implements release using the {@link #bind} method.
+   * Implements release using the {@link #bindWithPermutation}.
    */
-  public void release(Vector other, int direction) {
-    IncompatibleVectorsException.checkVectorsCompatible(this, other);
-    RealVector realOther = (RealVector) other;
-    if (isSparse) sparseToDense();
-    if (realOther.isSparse) realOther.sparseToDense();
+  public void releaseWithPermutation(RealVector other) {
     RealVector result = createZeroVector(dimension);
-    if (direction > 0) {
-      this.superpose(
-          realOther, -1, PermutationUtils.getShiftPermutation(VectorType.REAL, dimension, 1));
-      result.superpose(
-          this, 1, PermutationUtils.getShiftPermutation(VectorType.REAL, dimension, 1));
-    } else {
-      result.superpose(
-          realOther, -1, PermutationUtils.getShiftPermutation(VectorType.REAL, dimension, -1));
-      result.superpose(
-          this, 1, PermutationUtils.getShiftPermutation(VectorType.REAL, dimension, -1));
-    }
+    this.superpose(
+        other, -1, PermutationUtils.getShiftPermutation(VectorType.REAL, dimension, 1));
+    result.superpose(
+        this, 1, PermutationUtils.getShiftPermutation(VectorType.REAL, dimension, 1));
     this.coordinates = result.coordinates;
   }
-  
-  @Override
-  /**
-   * Implements release using the {@link #bind} method.
-   */
-  public void bind(Vector other) {
-    this.bind(other, 1);
-  }
-  @Override
-  /**
-   * Implements release using the {@link #bind} method.
-   */
-  public void release(Vector other) {
-    this.release(other, 1);
-  }
-  
+
   @Override
   /**
    * Normalizes the vector, converting sparse to dense representations in the process.
@@ -444,8 +480,6 @@ public class RealVector implements Vector {
    */
   protected void sparseToDense() {
     if (!isSparse) {
-      logger.warning("Tryied to transform a sparse vector which is not in fact sparse."
-          + "This may be a programming error.");
       return;
     }
     coordinates = new float[dimension];
@@ -457,14 +491,20 @@ public class RealVector implements Vector {
     }
     isSparse = false;
   }
-  
+
   /**
    * Available to support access to coordinates for legacy operations.  Try not to use in new code!
    */
   public float[] getCoordinates() {
-    return coordinates;
+    if (isSparse) {
+      RealVector copy = this.copy();
+      copy.sparseToDense();
+      return copy.coordinates;
+    } else {
+      return coordinates;
+    }
   }
-  
+
   /**
    *  Available for testing and copying.  Try not to use in new code!
    */

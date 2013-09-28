@@ -40,6 +40,7 @@ import java.util.Arrays;
 import java.util.logging.Logger;
 
 import pitt.search.semanticvectors.DocVectors.DocIndexingStrategy;
+import pitt.search.semanticvectors.utils.VerbatimLogger;
 
 /**
  * Command line utility for creating semantic vector indexes using the

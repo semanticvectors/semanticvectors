@@ -38,6 +38,7 @@ package pitt.search.semanticvectors;
 import java.io.IOException;
 import java.util.logging.Logger;
 
+import pitt.search.semanticvectors.utils.VerbatimLogger;
 import pitt.search.semanticvectors.vectors.Vector;
 
 /**
@@ -83,13 +84,17 @@ public class CompareTerms{
     FlagConfig flagConfig = FlagConfig.getFlagConfig(args);
     // Logging prompt and printing score to stdout, this should enable
     // easier batch scripting to combine input and output data.
+    if (flagConfig.remainingArgs.length != 2) {
+      System.out.println("After parsing command line flags, there must be exactly two arguments.");
+      usage();
+    }
     VerbatimLogger.info(String.format(
         "Outputting similarity of '%s' with '%s':\n",
         flagConfig.remainingArgs[0], flagConfig.remainingArgs[1]));
-    System.out.println(RunCompareTerms(flagConfig));
+    System.out.println(runCompareTerms(flagConfig));
   }
     
-  public static double RunCompareTerms(FlagConfig flagConfig) throws IOException {
+  public static double runCompareTerms(FlagConfig flagConfig) throws IOException {
     String[] args = flagConfig.remainingArgs;
 
     LuceneUtils luceneUtils = null;
@@ -106,18 +111,17 @@ public class CompareTerms{
     } else {
       vecReader = new VectorStoreReaderLucene(flagConfig.queryvectorfile(), flagConfig);
       VerbatimLogger.info("Opened query vector store from file: " + flagConfig.queryvectorfile() + "\n");
-    }
-
-    if (!flagConfig.luceneindexpath().isEmpty()) {
-      try {
-        luceneUtils = new LuceneUtils(flagConfig);
-      } catch (IOException e) {
-        VerbatimLogger.info("Couldn't open Lucene index at " + flagConfig.luceneindexpath());
+      if (!flagConfig.luceneindexpath().isEmpty()) {
+        try {
+          luceneUtils = new LuceneUtils(flagConfig);
+        } catch (IOException e) {
+          VerbatimLogger.info("Couldn't open Lucene index at " + flagConfig.luceneindexpath());
+        }
       }
-    }
-    if (luceneUtils == null) {
-      VerbatimLogger.info("No Lucene index for query term weighting, "
-          + "so all query terms will have same weight.\n");
+      if (luceneUtils == null) {
+        VerbatimLogger.info("No Lucene index for query term weighting, "
+            + "so all query terms will have same weight.\n");
+      }
     }
 
     Vector vec1 = CompoundVectorBuilder.getQueryVectorFromString(
