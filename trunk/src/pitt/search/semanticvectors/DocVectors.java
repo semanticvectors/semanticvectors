@@ -82,17 +82,15 @@ public class DocVectors implements VectorStore {
   
   private static final Logger logger = Logger.getLogger(DocVectors.class.getCanonicalName());
   private FlagConfig flagConfig;
-  private VectorType vectorType;
-  private int dimension;  
   private VectorStoreRAM docVectors;
   private TermVectorsFromLucene termVectorData;
   private LuceneUtils luceneUtils;
 
-  @Override
-  public VectorType getVectorType() { return vectorType; }
+  //@Override
+  public VectorType getVectorType() { return flagConfig.vectortype(); }
 
-  @Override
-  public int getDimension() { return dimension; }
+  //@Override
+  public int getDimension() { return flagConfig.dimension(); }
 
   /**
    * Constructor that gets everything it needs from a
@@ -102,8 +100,6 @@ public class DocVectors implements VectorStore {
     this.flagConfig = flagConfig;
     this.luceneUtils = luceneUtils;
     this.termVectorData = termVectorData;
-    this.vectorType = termVectorData.getVectorType();
-    this.dimension = termVectorData.getDimension();
     this.docVectors = new VectorStoreRAM(flagConfig);
 
     /*
@@ -185,7 +181,8 @@ public class DocVectors implements VectorStore {
   private void initializeDocVectors() {
     VerbatimLogger.info("Initializing document vector store ... \n");
     for (int i = 0; i < luceneUtils.getNumDocs(); ++i) {
-      Vector docVector = VectorFactory.createZeroVector(vectorType, dimension);
+      Vector docVector = VectorFactory.createZeroVector(
+          flagConfig.vectortype(), flagConfig.dimension());
       this.docVectors.putVector(Integer.toString(i), docVector);
     }
   }

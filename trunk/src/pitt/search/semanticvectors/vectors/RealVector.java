@@ -58,7 +58,7 @@ public class RealVector implements Vector {
   /**
    * Enumeration of binding operation options. Change at compile-time to experiment.
    */
-  public enum BindMethod {
+  public enum RealBindMethod {
     /**
      * Uses permutation operations, as in Sahlgren et al.
      * Fast, exact inverse, but lossy memory of slot-filling. 
@@ -72,8 +72,8 @@ public class RealVector implements Vector {
     CONVOLUTION
   }
   
-  public static BindMethod BIND_METHOD = BindMethod.CONVOLUTION;
-  public static void setBindType(BindMethod bindMethod) {
+  public static RealBindMethod BIND_METHOD = RealBindMethod.CONVOLUTION;
+  public static void setBindType(RealBindMethod bindMethod) {
     logger.info("Globally setting real vector BIND_METHOD to: '" + bindMethod + "'");
     BIND_METHOD = bindMethod;
   }
