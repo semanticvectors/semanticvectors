@@ -35,6 +35,9 @@
 
 package pitt.search.semanticvectors;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
@@ -357,6 +360,69 @@ public class Search {
                           result.getScore(),
                           result.getObjectVector().getObject().toString()));
       }
+      
+  	if (!flagConfig.jsonfile().isEmpty())
+  	{
+  		BufferedWriter writer = null;
+          try {
+              //create a temporary file
+              File jsonFile = new File(flagConfig.jsonfile());
+
+              VerbatimLogger.info("Writing graph to graph.json ... "+jsonFile.getCanonicalPath());
+
+              writer = new BufferedWriter(new FileWriter(jsonFile));
+         
+  		//print nodes
+  		writer.write("{" +
+  			  "\"nodes\":[\n");
+  		
+  		
+  		for (int z =0; z < results.size(); z++)
+  		{ writer.write("{\"name\":\""+results.get(z).getObjectVector().getObject()+"\",\"group\":1}"); 
+  		  if (z < results.size()-1) writer.write(",");
+  		}
+  		writer.write("],\n");
+  		
+  		writer.write("\"links\":[\n");
+  		  
+  		    
+  		
+  		//generate connectivity matrix
+  		double[][] links = new double[results.size()][results.size()];
+  		
+  		for (int x =0; x < results.size(); x++) 
+  			for (int y=0; y < results.size(); y++) 
+  					links[y][x] = results.get(y).getObjectVector().getVector().measureOverlap(results.get(x).getObjectVector().getVector());
+  
+  		
+  		int q = flagConfig.pathfinderQ();
+  		if (q == -1) q = results.size() -1;
+  		double r = flagConfig.pathfinderR();
+  		
+  		PathFinder scout = new PathFinder(q, r, links);
+  		links = scout.pruned();
+  		
+  		for (int x =0; x < results.size()-1; x++) 
+  			for (int y=x+1; y < results.size(); y++) 
+  				if (links[y][x] > 0)
+  				{  
+  					if (x > 0 || y > x+1) writer.write(",");
+  					writer.write("{\"source\":"+y+",\"target\":"+x+",\"value\":"+links[y][x]+"}\n");
+  							
+  				}
+  		
+  		writer.write("  ]\n}");
+  	     } catch (Exception e) {
+              e.printStackTrace();
+          } finally {
+              try {
+                  writer.close();
+              } catch (Exception e) {
+              }
+          }
+  	}
+      
+      
     } else {
       VerbatimLogger.info("No search output.\n");
     }

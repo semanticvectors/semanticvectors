@@ -134,6 +134,16 @@ public class FlagConfig {
   /** Number of search results to return, default value 20. */
   public int numsearchresults() { return numsearchresults; }
   
+  private String jsonfile = "";
+  /** Output search results as graph representation of a connectivity matrix in JSON**/
+  public String jsonfile() { return jsonfile;}
+  
+  /** Pathfinder parameters - default q = (n-1), default r = + infinity**/
+  private int pathfinderQ = -1; 
+  public int pathfinderQ() { return pathfinderQ; }
+  private double pathfinderR = Double.POSITIVE_INFINITY;
+  public double pathfinderR() { return pathfinderR; }
+  
   private double searchresultsminscore = -1.0;
   /** Search results with similarity scores below this value will not be included in search results, default value -1. */
   public double searchresultsminscore() { return searchresultsminscore; }
