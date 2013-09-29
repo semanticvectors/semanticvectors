@@ -71,8 +71,8 @@ public class LuceneIndexFromTriples {
    */
   static void indexDoc(IndexWriter fsWriter, File triplesTextFile) throws IOException {
     BufferedReader theReader = new BufferedReader(new FileReader(triplesTextFile));
-    String lineIn = theReader.readLine();
     int linecnt = 0;
+    String lineIn;
     while ((lineIn = theReader.readLine()) != null)  {   
       java.util.StringTokenizer theTokenizer = new java.util.StringTokenizer(lineIn,"\t");
       // Output progress counter.

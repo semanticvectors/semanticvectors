@@ -222,13 +222,6 @@ public class PSI {
     FlagConfig flagConfig = FlagConfig.getFlagConfig(args);
     args = flagConfig.remainingArgs;
 
-    // Currently implemented for complex and binary vectors only
-    if (flagConfig.vectortype() == VectorType.REAL) {
-      throw new IllegalArgumentException(
-          "PSI is currently implemented for complex and binary vectors only. " +
-          "Try rerunning using -vectortype complex or binary with appropriate -dimension and -seedlength");
-    }
-
     if (flagConfig.luceneindexpath().isEmpty()) {
       throw (new IllegalArgumentException("-luceneindexpath must be set."));
     }

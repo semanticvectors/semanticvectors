@@ -110,6 +110,7 @@ public class VectorFactory {
       case REAL:
         return 4 * dimension;
       case COMPLEX:
+      case COMPLEXFLAT:
         return 8 * dimension;
       default:
         throw new IllegalArgumentException("Unrecognized VectorType: " + vectorType);
