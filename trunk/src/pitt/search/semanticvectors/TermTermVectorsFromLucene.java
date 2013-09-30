@@ -197,9 +197,6 @@ public class TermTermVectorsFromLucene implements VectorStore {
               + "\nTry rebuilding Lucene index using pitt.search.lucene.IndexFilePositions");
     }
 
-    if (flagConfig.vectortype().equals(VectorType.COMPLEX))
-      ComplexVector.setDominantMode(Mode.CARTESIAN);
-
     // If basicTermVectors was passed in, set state accordingly.
     if (indexVectors != null) {
       retraining = true;
