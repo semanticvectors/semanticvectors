@@ -39,7 +39,6 @@ import java.util.ArrayList;
 import java.util.Random;
 
 import pitt.search.semanticvectors.FlagConfig;
-import pitt.search.semanticvectors.vectors.ComplexVector.Mode;
 
 public class SemanticVectorCollider {
 
@@ -47,9 +46,7 @@ public class SemanticVectorCollider {
 	{
 		FlagConfig flagConfig = FlagConfig.getFlagConfig(args);
 	  args = flagConfig.remainingArgs;
-		
-		ComplexVector.setDominantMode(Mode.CARTESIAN);
-		
+				
 		Random random = new Random();
 		
 		

@@ -77,11 +77,13 @@ public class ComplexVector implements Vector {
 
   /** 
    * The dominant mode used for normalizing and comparing vectors.
-   * 
-   * TODO(dwiddows): Figure out how clients should be able to set this properly.
    */
   private static Mode DOMINANT_MODE = Mode.POLAR_DENSE;
-  public static void setDominantMode(Mode mode) {
+  /**
+   * Sets the dominant mode. {@link VectorType#COMPLEX} uses {@link Mode#POLAR_DENSE}
+   * and {@link VectorType#COMPLEXFLAT} uses {@link Mode#CARTESIAN}.
+   */  
+  protected static void setDominantMode(Mode mode) {
     if (DOMINANT_MODE == mode) return;
     if (mode == Mode.POLAR_SPARSE) {
       throw new IllegalArgumentException("POLAR_SPARSE cannot be used as dominant mode.");

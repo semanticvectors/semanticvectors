@@ -166,8 +166,6 @@ public class CompoundVectorBuilder {
    * @param queryString
    * @return the resulting query vector
    */
-
-
   private static Vector getVector(VectorStore semanticVectors, VectorStore elementalVectors, String term)
   {
     if (term.startsWith("E(") && term.endsWith(")"))

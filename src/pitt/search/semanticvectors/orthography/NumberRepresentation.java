@@ -132,8 +132,6 @@ public class NumberRepresentation {
     this.endRandomSeed = endSeed;
 
     this.flagConfig = flagConfig;
-    if (flagConfig.vectortype() == VectorType.COMPLEX)
-      ComplexVector.setDominantMode(Mode.CARTESIAN);
 
     // Generate a vector for the lowest number and one for the highest and make sure they
     // have no significant overlap.

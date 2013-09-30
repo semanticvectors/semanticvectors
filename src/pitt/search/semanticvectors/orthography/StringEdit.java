@@ -46,12 +46,9 @@ import pitt.search.semanticvectors.VectorSearcher;
 import pitt.search.semanticvectors.VectorStoreRAM;
 import pitt.search.semanticvectors.VectorStoreWriter;
 import pitt.search.semanticvectors.hashing.Bobcat;
-import pitt.search.semanticvectors.vectors.ComplexVector;
-import pitt.search.semanticvectors.vectors.PermutationUtils;
 import pitt.search.semanticvectors.vectors.Vector;
 import pitt.search.semanticvectors.vectors.VectorFactory;
 import pitt.search.semanticvectors.vectors.VectorType;
-import pitt.search.semanticvectors.vectors.ComplexVector.Mode;
 
 public class StringEdit {
 
@@ -154,8 +151,6 @@ public class StringEdit {
   public static Vector getStringVector(String theTerm, VectorStoreRAM theNumbers, VectorStoreRAM theLetters, FlagConfig flagConfig) {
     Vector theVector = VectorFactory.createZeroVector(flagConfig.vectortype(), flagConfig.dimension());
     Random random = new Random();
-    if (flagConfig.vectortype() == VectorType.COMPLEX)
-      ComplexVector.setDominantMode(Mode.CARTESIAN);
 
     //  System.out.println(theTerm);
     for (int q = 1; q <= theTerm.length(); q++) {

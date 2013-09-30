@@ -52,25 +52,21 @@ import pitt.search.semanticvectors.ObjectVector;
 import pitt.search.semanticvectors.VectorStoreRAM;
 import pitt.search.semanticvectors.VectorStoreWriter;
 import pitt.search.semanticvectors.hashing.Bobcat;
-import pitt.search.semanticvectors.vectors.ComplexVector;
 import pitt.search.semanticvectors.vectors.Vector;
 import pitt.search.semanticvectors.vectors.VectorFactory;
-import pitt.search.semanticvectors.vectors.ComplexVector.Mode;
 
 public class SentenceVectors {
 
   static LuceneUtils lUtils;
-  
+
   public static Vector getPhraseVector(String theSentence, VectorStoreRAM theNumbers, VectorStoreRAM termVectors, FlagConfig flagConfig)
   {
     Vector theVector = VectorFactory.createZeroVector(flagConfig.vectortype(), flagConfig.dimension());
     Random random = new Random();
-      if (flagConfig.vectortype().equals("complex"))
-        ComplexVector.setDominantMode(Mode.CARTESIAN);
-  
-      StringTokenizer theTokenizer = new StringTokenizer(theSentence, " ");
-      int allTokens = theTokenizer.countTokens();
-   
+
+    StringTokenizer theTokenizer = new StringTokenizer(theSentence, " ");
+    int allTokens = theTokenizer.countTokens();
+
     for (int q = 0; q < allTokens; q++)
     {
       String word = theTokenizer.nextToken();
@@ -78,9 +74,9 @@ public class SentenceVectors {
       float theweight = 1;
       if (lUtils != null)
         theweight = lUtils.getGlobalTermWeight(new Term(flagConfig.contentsfields()[0],word));
-      
+
       Vector incoming = termVectors.getVector(word);
-      
+
       if (incoming == null)
       {
         random.setSeed(Bobcat.asLong(word));
@@ -88,19 +84,19 @@ public class SentenceVectors {
         //System.out.println("adding "+word);
         termVectors.putVector(word, incoming.copy());
       }
-      
-      
+
+
       Vector posVector = theNumbers.getVector((q+1));
-      
+
       if (posVector == null)
       {   System.out.println(allTokens+":"+(q+1));
-        System.out.println(posVector);
-        System.exit(0);
+      System.out.println(posVector);
+      System.exit(0);
       }
-      
-      
+
+
       try {
-      incoming.bind(posVector);
+        incoming.bind(posVector);
       } catch (Exception e) 
       {
         System.out.println(incoming);
@@ -109,32 +105,32 @@ public class SentenceVectors {
         System.exit(0);
       }
       //System.out.println(letter+" "+(q+1));
-      
+
       theVector.superpose(incoming, theweight, null); 
       incoming.release(posVector);
     }
     theVector.normalize();
-    
-    
+
+
     return theVector;
   }
-  
-  
+
+
   public static void main(String[] args) throws Exception
   { 
-    
-     FlagConfig flagConfig = null;
-        try {
-          flagConfig = FlagConfig.getFlagConfig(args);
-          args = flagConfig.remainingArgs;
-        } catch (IllegalArgumentException e) {
-          throw e;
-        }
+
+    FlagConfig flagConfig = null;
+    try {
+      flagConfig = FlagConfig.getFlagConfig(args);
+      args = flagConfig.remainingArgs;
+    } catch (IllegalArgumentException e) {
+      throw e;
+    }
 
     lUtils = null;
     if (!flagConfig.luceneindexpath().isEmpty())
       lUtils = new LuceneUtils(flagConfig);
-    
+
     IndexReader indexReader = IndexReader.open(FSDirectory.open(new File(flagConfig.luceneindexpath())));
 
     int numdocs = indexReader.numDocs();
@@ -142,68 +138,68 @@ public class SentenceVectors {
     VectorStoreRAM theNumbers = new VectorStoreRAM(flagConfig);
     VectorStoreRAM theWords = new VectorStoreRAM(flagConfig);
     if (!flagConfig.initialtermvectors().equals("random")) theWords.initFromFile(flagConfig.initialtermvectors());
-    
+
     VectorStoreRAM OOV = new VectorStoreRAM(flagConfig);
-    
-    
+
+
     Hashtable<Integer, VectorStoreRAM> allNumbers = new Hashtable<Integer, VectorStoreRAM>();
     NumberRepresentation NR = new NumberRepresentation(flagConfig, "*STARTSENTENCE*", "*ENDSENTENCE*");
-    
+
     System.err.println("Numdocs "+numdocs);
     for (int x =0; x < numdocs; x++)
     {
-      
+
       if (x % 10000 == 0)
         System.err.print(x+"...");
-      
+
       Document theDoc = indexReader.document(x);
       String theSentence = theDoc.get(flagConfig.contentsfields()[0]).replaceAll("[^A-Za-z]"," ").toLowerCase();
-      
+
       StringTokenizer theTokenizer = new StringTokenizer(theSentence," ");
       int numTokens = theTokenizer.countTokens();
-      
+
       if (numTokens < 2)
         continue;
-      
+
       theNumbers = allNumbers.get(new Integer(numTokens));
-      
-      
+
+
       if (theNumbers == null)
       {
-    
-      //System.out.println("Generating number vectors for sentence of length "+numTokens);
-        
-      theNumbers = NR.getNumberVectors(0, numTokens+1); 
-      allNumbers.put(new Integer(numTokens), theNumbers);
-      
-      Enumeration<ObjectVector> newNumbers = theNumbers.getAllVectors();
-      
-      while (newNumbers.hasMoreElements())
-      {
-        ObjectVector nextObjectVector = newNumbers.nextElement();
-        if (OOV.getVector(numTokens+":"+nextObjectVector.getObject()) == null)
+
+        //System.out.println("Generating number vectors for sentence of length "+numTokens);
+
+        theNumbers = NR.getNumberVectors(0, numTokens+1); 
+        allNumbers.put(new Integer(numTokens), theNumbers);
+
+        Enumeration<ObjectVector> newNumbers = theNumbers.getAllVectors();
+
+        while (newNumbers.hasMoreElements())
         {
-          OOV.putVector(numTokens+":"+nextObjectVector.getObject(),nextObjectVector.getVector());
+          ObjectVector nextObjectVector = newNumbers.nextElement();
+          if (OOV.getVector(numTokens+":"+nextObjectVector.getObject()) == null)
+          {
+            OOV.putVector(numTokens+":"+nextObjectVector.getObject(),nextObjectVector.getVector());
+          }
         }
+
+
       }
-      
-      
-      }
-      
+
       Vector sentenceVector = getPhraseVector(theSentence, theNumbers, theWords, flagConfig);
       sentenceVectors.putVector(theSentence, sentenceVector);
-      
+
       //System.out.println(theSentence);
-      
-    
-      
+
+
+
     }
-    
+
     VectorStoreWriter.writeVectorsInLuceneFormat("sentencevectors.bin", flagConfig, sentenceVectors);
     VectorStoreWriter.writeVectorsInLuceneFormat("sentencenumbervectors.bin", flagConfig, OOV);
     VectorStoreWriter.writeVectorsInLuceneFormat("sentencetermvectors.bin", flagConfig, theWords);
   }
-  
-  
+
+
 }
 
