@@ -156,7 +156,7 @@ public class ComplexVectorTest extends TestCase {
   }
 
   @Test
-  public void testMeasureOverlap() {
+  public void testMeasurePolarOverlap() {
     int RES = CircleLookupTable.PHASE_RESOLUTION;
     short[] angles1 = { 0, 0, 0 };
     short[] angles2 = { 0, -1, (short) (RES / 4) };  // Remember that -1 angle means complex zero.
@@ -166,11 +166,11 @@ public class ComplexVectorTest extends TestCase {
     ComplexVector cv2 = new ComplexVector(angles2);
     ComplexVector cv3 = new ComplexVector(angles3);
 
-    assertEquals(1.0/3.0, cv1.measurePolarDenseOverlap(cv2), TOL);
+    assertEquals(1/3f, cv1.measurePolarDenseOverlap(cv2), TOL);
     assertEquals(0, cv1.measurePolarDenseOverlap(cv3), TOL);
     assertEquals(0, cv2.measurePolarDenseOverlap(cv3), TOL);
     assertEquals(1, cv1.measurePolarDenseOverlap(cv1), TOL);
-    assertEquals(2.0/3.0, cv2.measurePolarDenseOverlap(cv2), TOL);  // Zero entry doesn't contribute.
+    assertEquals(1, cv2.measurePolarDenseOverlap(cv2), TOL);  // Zero entry doesn't contribute.
     assertEquals(1, cv3.measurePolarDenseOverlap(cv3), TOL);
   }
   
