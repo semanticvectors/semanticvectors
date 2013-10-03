@@ -70,12 +70,6 @@ public class VectorStoreRAM implements VectorStore {
   /** Used for checking compatibility of new vectors. */
   private Vector zeroVector;
   
-  @Override
-  public VectorType getVectorType() { return vectorType; }
-  
-  @Override
-  public int getDimension() { return dimension; }
-  
   public VectorStoreRAM(FlagConfig flagConfig) {
     this.objectVectors = new Hashtable<Object, ObjectVector>();
     this.flagConfig = flagConfig;

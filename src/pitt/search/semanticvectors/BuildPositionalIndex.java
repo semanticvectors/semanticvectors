@@ -49,7 +49,7 @@ import pitt.search.semanticvectors.utils.VerbatimLogger;
 public class BuildPositionalIndex {
   public static final Logger logger = Logger.getLogger(
       BuildPositionalIndex.class.getCanonicalName());
-  static VectorStore newBasicTermVectors = null;
+  static VectorStore newElementalTermVectors = null;
 
   public static String usageMessage =
     "BuildPositionalIndex class in package pitt.search.semanticvectors"
@@ -94,7 +94,7 @@ public class BuildPositionalIndex {
       try {
         VectorStoreRAM vsr = new VectorStoreRAM(flagConfig);
         vsr.initFromFile(flagConfig.initialtermvectors());
-        newBasicTermVectors = vsr;
+        newElementalTermVectors = vsr;
         VerbatimLogger.info("Using trained index vectors from vector store " + flagConfig.initialtermvectors());
       } catch (IOException e) {
         logger.info("Could not read from vector store " + flagConfig.initialtermvectors());
@@ -103,7 +103,6 @@ public class BuildPositionalIndex {
       }
     }
 
-    String docFile = flagConfig.docvectorsfile();
     String termFile = "";
     switch (flagConfig.positionalmethod()) {
     case BASIC:
@@ -138,24 +137,24 @@ public class BuildPositionalIndex {
         + "\n");
 
     try {
-      TermTermVectorsFromLucene vecStore = new TermTermVectorsFromLucene(
-          flagConfig,
-          newBasicTermVectors);
+      TermTermVectorsFromLucene termTermIndexer = new TermTermVectorsFromLucene(
+          flagConfig, newElementalTermVectors);
       
-      VectorStoreWriter.writeVectors(termFile, flagConfig, vecStore);
+      VectorStoreWriter.writeVectors(
+          termFile, flagConfig, termTermIndexer.getSemanticTermVectors());
 
       for (int i = 1; i < flagConfig.trainingcycles(); ++i) {
-        newBasicTermVectors = vecStore.getBasicTermVectors();
+        newElementalTermVectors = termTermIndexer.getSemanticTermVectors();
         VerbatimLogger.info("\nRetraining with learned term vectors ...");
-        vecStore = new TermTermVectorsFromLucene(
+        termTermIndexer = new TermTermVectorsFromLucene(
             flagConfig,
-            newBasicTermVectors);
+            newElementalTermVectors);
       }
 
       if (flagConfig.trainingcycles() > 1) {
         termFile = termFile.replaceAll("\\..*", "") + flagConfig.trainingcycles() + ".bin";
-        docFile = "docvectors" + flagConfig.trainingcycles() + ".bin";
-        VectorStoreWriter.writeVectors(termFile, flagConfig, vecStore);
+        VectorStoreWriter.writeVectors(
+            termFile, flagConfig, termTermIndexer.getSemanticTermVectors());
       }
 
       // Incremental indexing is hardcoded into BuildPositionalIndex.
@@ -163,7 +162,7 @@ public class BuildPositionalIndex {
       //       the user should be alerted of any potential consequences.
       if (flagConfig.docindexing() != DocIndexingStrategy.NONE) {
         IncrementalDocVectors.createIncrementalDocVectors(
-            vecStore, flagConfig, new LuceneUtils(flagConfig));
+            termTermIndexer.getSemanticTermVectors(), flagConfig, new LuceneUtils(flagConfig));
       }
     }
     catch (IOException e) {

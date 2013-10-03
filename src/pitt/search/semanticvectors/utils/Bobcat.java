@@ -1,4 +1,4 @@
-package pitt.search.semanticvectors.hashing;
+package pitt.search.semanticvectors.utils;
 
 /**
  * This class has only two public static methods that return a hash code for a

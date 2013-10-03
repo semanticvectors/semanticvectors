@@ -43,7 +43,7 @@ import java.util.Random;
 import pitt.search.semanticvectors.FlagConfig;
 import pitt.search.semanticvectors.ObjectVector;
 import pitt.search.semanticvectors.VectorStoreRAM;
-import pitt.search.semanticvectors.hashing.Bobcat;
+import pitt.search.semanticvectors.utils.Bobcat;
 import pitt.search.semanticvectors.vectors.ComplexVector;
 import pitt.search.semanticvectors.vectors.ComplexVector.Mode;
 import pitt.search.semanticvectors.vectors.Vector;

@@ -37,18 +37,8 @@ public class VectorStoreOrthographical implements VectorStore, CloseableVectorSt
   }
 
   @Override
-  public VectorType getVectorType() {
-    return flagConfig.vectortype();
-  }
-
-  @Override
   public void close() {
     //dummy method to ease integration into existing command line query code
-  }
-
-  @Override
-  public int getDimension() {
-    return flagConfig.dimension();
   }
 
   public Enumeration<ObjectVector> getAllVectors() {

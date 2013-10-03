@@ -116,23 +116,23 @@ public class BuildBilingualIndex {
 
     VerbatimLogger.info("Creating bilingual indexes ...");
     try {
-      TermVectorsFromLucene vecStore1 =
+      TermVectorsFromLucene termIndexer1 =
         TermVectorsFromLucene.createTermVectorsFromLucene(actualConfigLang1, null);
       logger.info("Writing term vectors to " + termFile1);
-      VectorStoreWriter.writeVectors(termFile1, actualConfigLang1, vecStore1);
+      VectorStoreWriter.writeVectors(termFile1, actualConfigLang1, termIndexer1.getSemanticTermVectors());
       DocVectors docVectors = new DocVectors(
-          vecStore1, actualConfigLang1, new LuceneUtils(actualConfigLang1));
+          termIndexer1.getSemanticTermVectors(), actualConfigLang1, new LuceneUtils(actualConfigLang1));
       logger.info("Writing doc vectors to " + docFile1);
       VectorStoreWriter.writeVectors(docFile1, actualConfigLang1, docVectors.makeWriteableVectorStore());
 
-      VectorStore basicDocVectors = vecStore1.getBasicDocVectors();
+      VectorStore basicDocVectors = termIndexer1.getElementalDocVectors();
       System.out.println("Keeping basic doc vectors, number: " + basicDocVectors.getNumVectors());
-      TermVectorsFromLucene vecStore2 =
+      TermVectorsFromLucene termIndexer2 =
         TermVectorsFromLucene.createTermVectorsFromLucene(actualConfigLang2, basicDocVectors);
       logger.info("Writing term vectors to " + termFile2);
-      VectorStoreWriter.writeVectors(termFile2, actualConfigLang2, vecStore2);
+      VectorStoreWriter.writeVectors(termFile2, actualConfigLang2, termIndexer2.getSemanticTermVectors());
       docVectors = new DocVectors(
-          vecStore2, actualConfigLang2, new LuceneUtils(actualConfigLang2));
+          termIndexer2.getSemanticTermVectors(), actualConfigLang2, new LuceneUtils(actualConfigLang2));
       logger.info("Writing doc vectors to " + docFile2);
       VectorStoreWriter.writeVectors(docFile2, actualConfigLang2, docVectors.makeWriteableVectorStore());
     }

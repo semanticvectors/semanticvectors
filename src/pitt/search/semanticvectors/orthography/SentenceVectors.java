@@ -51,7 +51,7 @@ import pitt.search.semanticvectors.LuceneUtils;
 import pitt.search.semanticvectors.ObjectVector;
 import pitt.search.semanticvectors.VectorStoreRAM;
 import pitt.search.semanticvectors.VectorStoreWriter;
-import pitt.search.semanticvectors.hashing.Bobcat;
+import pitt.search.semanticvectors.utils.Bobcat;
 import pitt.search.semanticvectors.vectors.Vector;
 import pitt.search.semanticvectors.vectors.VectorFactory;
 

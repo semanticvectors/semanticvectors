@@ -302,7 +302,7 @@ public class ComplexVector implements Vector {
      * Measures overlap of two vectors using mean cosine of difference
      * of phase angles.
      * 
-     * If either coordinate is empty ({@see CircleLookupTable#ZERO_INDEX})
+     * If either coordinate is empty (see {@link CircleLookupTable#ZERO_INDEX})
      * then nothing is added to the score. If both coordinates are empty, the
      * number of counted dimensions is unchanged (this is so that sparse vectors
      * are self-similar).

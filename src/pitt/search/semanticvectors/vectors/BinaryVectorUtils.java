@@ -41,7 +41,7 @@ import java.util.logging.Logger;
 
 import org.apache.lucene.util.OpenBitSet;
 
-import pitt.search.semanticvectors.hashing.Bobcat;
+import pitt.search.semanticvectors.utils.Bobcat;
 
 /**
  * This class provides standard vector methods, e.g., cosine measure,

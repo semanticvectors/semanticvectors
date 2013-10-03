@@ -48,8 +48,8 @@ import org.apache.lucene.index.Terms;
 import org.apache.lucene.index.TermsEnum;
 import org.apache.lucene.util.BytesRef;
 
-import pitt.search.semanticvectors.hashing.Bobcat;
 import pitt.search.semanticvectors.orthography.NumberRepresentation;
+import pitt.search.semanticvectors.utils.Bobcat;
 import pitt.search.semanticvectors.utils.VerbatimLogger;
 import pitt.search.semanticvectors.vectors.ComplexVector;
 import pitt.search.semanticvectors.vectors.ComplexVector.Mode;
@@ -69,7 +69,7 @@ import pitt.search.semanticvectors.vectors.VectorType;
  *
  * @author Trevor Cohen, Dominic Widdows.
  */
-public class TermTermVectorsFromLucene implements VectorStore {
+public class TermTermVectorsFromLucene { //implements VectorStore {
 
   /** Different methods for creating positional indexes. */
   public enum PositionalMethod {
@@ -99,18 +99,9 @@ public class TermTermVectorsFromLucene implements VectorStore {
   private int[][] permutationCache;
 
   static final short NONEXISTENT = -1;
-
-
-  @Override
-  public VectorType getVectorType() { return flagConfig.vectortype(); }
-
-  @Override
-  public int getDimension() { return flagConfig.dimension(); }
-
-  /**
-   * @return The object's basicTermVectors.
-   */
-  public VectorStore getBasicTermVectors(){ return this.termVectors; }
+  
+  /** Returns the semantic (learned) vectors. */
+  public VectorStore getSemanticTermVectors() { return this.termVectors; }
 
   // Basic VectorStore interface methods implemented through termVectors.
   public Vector getVector(Object term) {
@@ -126,15 +117,13 @@ public class TermTermVectorsFromLucene implements VectorStore {
   }
 
   /**
-   * This constructor uses only the values passed, no parameters from Flag.
-   * @param indexVectors
+   * Constructs an instance using the given configs and elemental vectors.
    * @throws IOException
    */
   public TermTermVectorsFromLucene(
-      FlagConfig flagConfig,
-      VectorStore indexVectors) throws IOException {
+      FlagConfig flagConfig, VectorStore elementalVectors) throws IOException {
     this.flagConfig = flagConfig;
-    this.indexVectors = indexVectors;
+    this.indexVectors = elementalVectors;
 
     if (flagConfig.positionalmethod() == PositionalMethod.PERMUTATION
         || flagConfig.positionalmethod() == PositionalMethod.PERMUTATIONPLUSBASIC) {
