@@ -83,7 +83,7 @@ public class DocVectors implements VectorStore {
   private static final Logger logger = Logger.getLogger(DocVectors.class.getCanonicalName());
   private FlagConfig flagConfig;
   private VectorStoreRAM docVectors;
-  private TermVectorsFromLucene termVectorData;
+  private VectorStore termVectors;
   private LuceneUtils luceneUtils;
 
   //@Override
@@ -96,21 +96,12 @@ public class DocVectors implements VectorStore {
    * Constructor that gets everything it needs from a
    * TermVectorsFromLucene object and its corresponding FlagConfig.
    */
-  public DocVectors (TermVectorsFromLucene termVectorData, FlagConfig flagConfig, LuceneUtils luceneUtils) throws IOException {
+  public DocVectors (VectorStore termVectors, FlagConfig flagConfig, LuceneUtils luceneUtils) throws IOException {
     this.flagConfig = flagConfig;
     this.luceneUtils = luceneUtils;
-    this.termVectorData = termVectorData;
+    this.termVectors = termVectors;
     this.docVectors = new VectorStoreRAM(flagConfig);
 
-    /*
-    if (this.luceneUtils == null) {
-      //String indexReaderDir = termVectorData.getIndexReader().directory().toString();
-      //indexReaderDir = indexReaderDir.replaceAll("^[^@]+@","");
-      //indexReaderDir = indexReaderDir.replaceAll(" lockFactory=.+$","");
-      this.luceneUtils = new LuceneUtils(flagConfig);
-    }
-    */
-    
     initializeDocVectors();
     trainDocVectors();
   }
@@ -120,7 +111,7 @@ public class DocVectors implements VectorStore {
    */
   private void trainDocVectors() {
     VerbatimLogger.info("Building document vectors ... ");
-    Enumeration<ObjectVector> termEnum = termVectorData.getAllVectors();
+    Enumeration<ObjectVector> termEnum = termVectors.getAllVectors();
     try {
       int tc = 0;
       while (termEnum.hasMoreElements()) {
@@ -135,7 +126,7 @@ public class DocVectors implements VectorStore {
         String word = (String) termVectorObject.getObject();
 
         // Go through checking terms for each fieldName.
-        for (String fieldName : termVectorData.getFieldsToIndex()) {
+        for (String fieldName : flagConfig.contentsfields()) {
           Term term = new Term(fieldName, word);
           float globalweight = luceneUtils.getGlobalTermWeight(term);
           float fieldweight = 1;

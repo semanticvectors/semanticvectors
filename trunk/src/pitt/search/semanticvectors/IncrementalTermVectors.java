@@ -71,15 +71,8 @@ public class IncrementalTermVectors implements VectorStore {
       IncrementalTermVectors.class.getCanonicalName());
 
   private FlagConfig flagConfig;
-
   private VectorStoreRAM termVectorData;
   private LuceneUtils luceneUtils = null;
-
-  @Override
-  public VectorType getVectorType() { return flagConfig.vectortype(); }
-
-  @Override
-  public int getDimension() { return flagConfig.dimension(); }
 
   /**
    * Constructs new instance and creates term vectors.

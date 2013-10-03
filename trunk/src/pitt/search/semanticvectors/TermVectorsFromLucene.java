@@ -37,7 +37,6 @@ package pitt.search.semanticvectors;
 
 import java.io.IOException;
 import java.util.Enumeration;
-import java.util.Hashtable;
 import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -47,11 +46,10 @@ import org.apache.lucene.index.Term;
 import org.apache.lucene.index.TermsEnum;
 import org.apache.lucene.util.BytesRef;
 
-import pitt.search.semanticvectors.hashing.Bobcat;
+import pitt.search.semanticvectors.utils.Bobcat;
 import pitt.search.semanticvectors.utils.VerbatimLogger;
 import pitt.search.semanticvectors.vectors.Vector;
 import pitt.search.semanticvectors.vectors.VectorFactory;
-import pitt.search.semanticvectors.vectors.VectorType;
 
 /**
  * Implementation of vector store that creates term vectors by
@@ -61,73 +59,41 @@ import pitt.search.semanticvectors.vectors.VectorType;
  *
  * @author Dominic Widdows, Trevor Cohen.
  */
-public class TermVectorsFromLucene implements VectorStore {
+public class TermVectorsFromLucene {
   private static final Logger logger = Logger.getLogger(
       TermVectorsFromLucene.class.getCanonicalName());
 
   private FlagConfig flagConfig;
-  private Hashtable<String, ObjectVector> termVectors;
-  //private IndexReader indexReader;
+  private VectorStoreRAM termVectors;
   private LuceneUtils luceneUtils;
-  private VectorStore basicDocVectors;
+  private VectorStore elementalDocVectors;
 
   private TermVectorsFromLucene(FlagConfig flagConfig) {
     this.flagConfig = flagConfig;
   }
 
-  // Basic accessor methods.
-  @Override
-  public VectorType getVectorType() {
-    return flagConfig.vectortype();
-  }
-
-  @Override
-  public int getDimension() { return flagConfig.dimension(); }
-
-  /** Returns the object's basicDocVectors. */
-  public VectorStore getBasicDocVectors() { return this.basicDocVectors; }
-
-  /**
-   * @return The object's indexReader.
-   */
-  //public IndexReader getIndexReader() { return this.indexReader; }
+  /** Returns the object's elemental doc vectors. */
+  public VectorStore getElementalDocVectors() { return this.elementalDocVectors; }
 
   /** Returns the object's luceneUtils. */
   public LuceneUtils getLuceneUtils() { return this.luceneUtils; }
 
-  /**
-   * @return The object's list of Lucene fields to index.
-   * 
-   * TODO: Deprecate.
-   */
-  public String[] getFieldsToIndex() { return flagConfig.contentsfields(); }
-
-  // Implementation of basic VectorStore methods.
-  public Vector getVector(Object term) {
-    return termVectors.get(term).getVector();
-  }
-
-  public Enumeration<ObjectVector> getAllVectors() {
-    return termVectors.elements();
-  }
-
-  public int getNumVectors() {
-    return termVectors.size();
-  }
+  /** Returns the trained semantic vectors. */
+  public VectorStoreRAM getSemanticTermVectors() { return termVectors; }
 
   /**
    * Creates term vectors from a Lucene index.
    * 
-   * @param basicDocVectors The store of basic document vectors. Null
-   * is an acceptable value, in which case the constructor will build
-   * this table. If non-null, the identifiers must correspond to the Lucene doc numbers.
+   * @param elementalDocVectors The store of elemental document vectors. Null
+   * is an acceptable value, in which case the constructor will populate
+   * this store. If non-null, the identifiers must correspond to the Lucene doc numbers.
    * @throws IOException if resources on disk cannot be opened.
    */
   public static TermVectorsFromLucene createTermVectorsFromLucene(
-      FlagConfig flagConfig, VectorStore basicDocVectors)
+      FlagConfig flagConfig, VectorStore elementalDocVectors)
           throws IOException, RuntimeException {
     TermVectorsFromLucene vectorStore = new TermVectorsFromLucene(flagConfig);
-    vectorStore.basicDocVectors = basicDocVectors;
+    vectorStore.elementalDocVectors = elementalDocVectors;
     vectorStore.createTemVectorsFromLuceneImpl();
     return vectorStore;
   }
@@ -136,13 +102,12 @@ public class TermVectorsFromLucene implements VectorStore {
     LuceneUtils.compressIndex(flagConfig.luceneindexpath());
     // Create LuceneUtils Class to filter terms.
     luceneUtils = new LuceneUtils(flagConfig);
-    // indexReader = IndexReader.open(FSDirectory.open(new File(flagConfig.luceneindexpath())));
 
-    // Check that basicDocVectors is the right size.
-    if (basicDocVectors != null) {
+    // Check that elemental doc vectors is the right size.
+    if (elementalDocVectors != null) {
       logger.info("Reusing basic doc vectors; number of documents: "
-          + basicDocVectors.getNumVectors());
-      if (basicDocVectors.getNumVectors() != luceneUtils.getNumDocs()) {
+          + elementalDocVectors.getNumVectors());
+      if (elementalDocVectors.getNumVectors() != luceneUtils.getNumDocs()) {
         throw new RuntimeException("Wrong number of basicDocVectors " +
             "passed into constructor ...");
       }
@@ -153,7 +118,7 @@ public class TermVectorsFromLucene implements VectorStore {
           + luceneUtils.getNumDocs() + "\n");
       VectorStoreRAM randomBasicDocVectors = new VectorStoreRAM(flagConfig);
       randomBasicDocVectors.createNumberedRandomVectors(luceneUtils.getNumDocs(), flagConfig.seedlength(), null);
-      this.basicDocVectors = randomBasicDocVectors;
+      this.elementalDocVectors = randomBasicDocVectors;
     }
 
     trainTermVectors();
@@ -162,7 +127,7 @@ public class TermVectorsFromLucene implements VectorStore {
   // Training method for term vectors.
   private void trainTermVectors() throws IOException {
     TermsEnum termsEnum = null; // Empty terms enum, encouraged for reuse in Lucene documentation.
-    this.termVectors = new Hashtable<String, ObjectVector>();
+    this.termVectors = new VectorStoreRAM(flagConfig);
     // Iterate through an enumeration of terms and create termVector table.
     VerbatimLogger.log(Level.INFO, "Creating term vectors ...");
 
@@ -195,19 +160,19 @@ public class TermVectorsFromLucene implements VectorStore {
 
         // Initialize new termVector.
         Vector termVector = VectorFactory.createZeroVector(
-            getVectorType(), flagConfig.dimension());
+            flagConfig.vectortype(), flagConfig.dimension());
 
         DocsEnum docsEnum = luceneUtils.getDocsForTerm(term);
         while (docsEnum.nextDoc() != DocsEnum.NO_MORE_DOCS) {
           String docID = Integer.toString(docsEnum.docID());
           int freq = docsEnum.freq();
-          termVector.superpose(basicDocVectors.getVector(docID), freq, null);
+          termVector.superpose(elementalDocVectors.getVector(docID), freq, null);
         }
         termVector.normalize();
-        termVectors.put(term.text(), new ObjectVector(term.text(), termVector));
+        termVectors.putVector(term.text(), termVector);
       }
     }
-    VerbatimLogger.info("\nCreated " + termVectors.size() + " term vectors.\n");
+    VerbatimLogger.info("\nCreated " + termVectors.getNumVectors() + " term vectors.\n");
   }
 
   /**
@@ -233,7 +198,7 @@ public class TermVectorsFromLucene implements VectorStore {
     luceneUtils = new LuceneUtils(flagConfig);
 
     Random random = new Random();
-    this.termVectors = new Hashtable<String,ObjectVector>();
+    this.termVectors = new VectorStoreRAM(flagConfig);
     TermsEnum termsEnum = null; // Empty terms enum, encouraged for reuse in Lucene documentation.
 
     // For each contents field and each term in the index
@@ -258,7 +223,7 @@ public class TermVectorsFromLucene implements VectorStore {
               flagConfig.vectortype(), flagConfig.dimension(),
               flagConfig.seedlength(), random);
           // Place each term vector in the vector store.
-          this.termVectors.put(term.text(), new ObjectVector(term.text(), indexVector));
+          this.termVectors.putVector(term.text(), indexVector);
         }
       }
     } else {
@@ -269,8 +234,7 @@ public class TermVectorsFromLucene implements VectorStore {
 
       while (termEnumeration.hasMoreElements()) {
         ObjectVector next = termEnumeration.nextElement();
-        String term = next.getObject().toString();
-        this.termVectors.put(term, next);
+        this.termVectors.putVector(next.getObject(), next.getVector());
         count++;
       }
       inputReader.close();

@@ -97,24 +97,25 @@ public class BuildIndex {
     LuceneUtils luceneUtils = new LuceneUtils(flagConfig);
     
     try {
-      TermVectorsFromLucene vecStore;
+      TermVectorsFromLucene termVectorIndexer;
       if (!flagConfig.initialtermvectors().isEmpty()) {
         // If Flags.initialtermvectors="random" create elemental (random index)
         // term vectors. Recommended to iterate at least once (i.e. -trainingcycles = 2) to
         // obtain semantic term vectors.
         // Otherwise attempt to load pre-existing semantic term vectors.
         VerbatimLogger.info("Creating term vectors ... \n");
-        vecStore = TermVectorsFromLucene.createTermBasedRRIVectors(flagConfig);
+        termVectorIndexer = TermVectorsFromLucene.createTermBasedRRIVectors(flagConfig);
       } else {
         VerbatimLogger.info("Creating elemental document vectors ... \n");
-        vecStore = TermVectorsFromLucene.createTermVectorsFromLucene(flagConfig, null);
+        termVectorIndexer = TermVectorsFromLucene.createTermVectorsFromLucene(flagConfig, null);
       }
 
       // Create doc vectors and write vectors to disk.
       switch (flagConfig.docindexing()) {
       case INCREMENTAL:
-        VectorStoreWriter.writeVectors(termFile, flagConfig, vecStore);
-        IncrementalDocVectors.createIncrementalDocVectors(vecStore, flagConfig, luceneUtils);
+        VectorStoreWriter.writeVectors(termFile, flagConfig, termVectorIndexer.getSemanticTermVectors());
+        IncrementalDocVectors.createIncrementalDocVectors(
+            termVectorIndexer.getSemanticTermVectors(), flagConfig, luceneUtils);
         IncrementalTermVectors itermVectors = null;
 
         for (int i = 1; i < flagConfig.trainingcycles(); ++i) {
@@ -134,11 +135,11 @@ public class BuildIndex {
         }
           break;
       case INMEMORY:
-        DocVectors docVectors = new DocVectors(vecStore, flagConfig, luceneUtils);
+        DocVectors docVectors = new DocVectors(termVectorIndexer.getSemanticTermVectors(), flagConfig, luceneUtils);
         for (int i = 1; i < flagConfig.trainingcycles(); ++i) {
           VerbatimLogger.info("\nRetraining with learned document vectors ...");
-          vecStore = TermVectorsFromLucene.createTermVectorsFromLucene(flagConfig, docVectors);
-          docVectors = new DocVectors(vecStore, flagConfig, luceneUtils);
+          termVectorIndexer = TermVectorsFromLucene.createTermVectorsFromLucene(flagConfig, docVectors);
+          docVectors = new DocVectors(termVectorIndexer.getSemanticTermVectors(), flagConfig, luceneUtils);
         }
         // At end of training, convert document vectors from ID keys to pathname keys.
         VectorStore writeableDocVectors = docVectors.makeWriteableVectorStore();
@@ -148,14 +149,14 @@ public class BuildIndex {
           docFile = "docvectors" + flagConfig.trainingcycles() + ".bin";
         }
         VerbatimLogger.info("Writing term vectors to " + termFile + "\n");
-        VectorStoreWriter.writeVectors(termFile, flagConfig, vecStore);
+        VectorStoreWriter.writeVectors(termFile, flagConfig, termVectorIndexer.getSemanticTermVectors());
         VerbatimLogger.info("Writing doc vectors to " + docFile + "\n");
         VectorStoreWriter.writeVectors(docFile, flagConfig, writeableDocVectors);
         break;
       case NONE:
         // Write term vectors to disk even if there are no docvectors to output.
         VerbatimLogger.info("Writing term vectors to " + termFile + "\n");
-        VectorStoreWriter.writeVectors(termFile, flagConfig, vecStore);
+        VectorStoreWriter.writeVectors(termFile, flagConfig, termVectorIndexer.getSemanticTermVectors());
         break;
       default:
         throw new IllegalStateException(

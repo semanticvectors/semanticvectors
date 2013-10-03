@@ -76,12 +76,6 @@ public class VectorStoreReaderText implements CloseableVectorStore {
   private int dimension;
   private String vectorFileText;
   private BufferedReader inBuf;
-
-  @Override
-  public VectorType getVectorType() { return vectorType; }
-  
-  @Override
-  public int getDimension() { return dimension; }
   
   /**
    * Initializes a VectorStoreReaderText from a file.

@@ -4,7 +4,7 @@ import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Random;
 
-import pitt.search.semanticvectors.hashing.Bobcat;
+import pitt.search.semanticvectors.utils.Bobcat;
 import pitt.search.semanticvectors.vectors.Vector;
 import pitt.search.semanticvectors.vectors.VectorFactory;
 import pitt.search.semanticvectors.vectors.VectorType;
@@ -49,16 +49,6 @@ public class VectorStoreDeterministic implements VectorStore {
     this.objectVectors = new Hashtable<Object, ObjectVector>();
     this.vectorType = flagConfig.vectortype();
     this.dimension = flagConfig.dimension();
-  }
-
-  @Override
-  public VectorType getVectorType() {
-    return vectorType;
-  }
-
-  @Override
-  public int getDimension() {
-    return dimension;
   }
 
   public Enumeration<ObjectVector> getAllVectors() {

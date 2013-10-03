@@ -262,10 +262,9 @@ public class Search {
         }
         break;
       case BOUNDPRODUCTSUBSPACE:
-        if (queryArgs.length == 2)
-        {
+        if (queryArgs.length == 2) {
           vecSearcher = new VectorSearcher.VectorSearcherBoundProductSubSpace(
-              queryVecReader, boundVecReader, searchVecReader, luceneUtils, flagConfig, queryArgs[0],queryArgs[1]);
+              queryVecReader, boundVecReader, searchVecReader, luceneUtils, flagConfig, queryArgs[0], queryArgs[1]);
         } else {
           vecSearcher = new VectorSearcher.VectorSearcherBoundProductSubSpace(
               queryVecReader, boundVecReader, searchVecReader, luceneUtils, flagConfig, queryArgs[0]);

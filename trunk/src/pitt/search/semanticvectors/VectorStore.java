@@ -52,12 +52,12 @@ public interface VectorStore {
   /**
    * Returns the type of all vectors in the vector store.  (Implementations should enforce homogeneity.)
    */
-  public VectorType getVectorType();
+  //public VectorType getVectorType();
   
   /**
    * Returns the dimension of all vectors in the vector store.  (Implementations should enforce homogeneity.)
    */
-  public int getDimension();
+  //public int getDimension();
   
   /**
    * Returns the vector stored for this object, or {@code null} if none is present.

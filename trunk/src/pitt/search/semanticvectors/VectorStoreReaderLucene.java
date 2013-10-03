@@ -71,14 +71,7 @@ public class VectorStoreReaderLucene implements CloseableVectorStore {
   private String vectorFileName;
   private File vectorFile;
   private Directory directory;
-  private int dimension;
-  private VectorType vectorType;
-
-  @Override
-  public VectorType getVectorType() { return vectorType; }
-  
-  @Override
-  public int getDimension() { return dimension; }
+  private FlagConfig flagConfig;
   
   private ThreadLocal<IndexInput> threadLocalIndexInput;
 
@@ -87,6 +80,7 @@ public class VectorStoreReaderLucene implements CloseableVectorStore {
   }
   
   public VectorStoreReaderLucene(String vectorFileName, FlagConfig flagConfig) throws IOException {
+    this.flagConfig = flagConfig;
     this.vectorFileName = vectorFileName;
     this.vectorFile = new File(vectorFileName);
     try {
@@ -118,6 +112,7 @@ public class VectorStoreReaderLucene implements CloseableVectorStore {
   protected VectorStoreReaderLucene(ThreadLocal<IndexInput> threadLocalIndexInput, FlagConfig flagConfig)
       throws IOException {
     this.threadLocalIndexInput = threadLocalIndexInput;
+    this.flagConfig = flagConfig;
     readHeadersFromIndexInput(flagConfig);
   }
 
@@ -129,8 +124,6 @@ public class VectorStoreReaderLucene implements CloseableVectorStore {
   public void readHeadersFromIndexInput(FlagConfig flagConfig) throws IOException {
     String header = threadLocalIndexInput.get().readString();
     FlagConfig.mergeWriteableFlagsFromString(header, flagConfig);
-    this.dimension = flagConfig.dimension();
-    this.vectorType = flagConfig.vectortype();
   }
 
   public void close() {
@@ -181,13 +174,14 @@ public class VectorStoreReaderLucene implements CloseableVectorStore {
         String objectString = getIndexInput().readString();
         if (objectString.equals(stringTarget)) {
           VerbatimLogger.info("Found vector for '" + stringTarget + "'\n");
-          Vector vector = VectorFactory.createZeroVector(vectorType, dimension);
+          Vector vector = VectorFactory.createZeroVector(
+              flagConfig.vectortype(), flagConfig.dimension());
           vector.readFromLuceneStream(getIndexInput());
           return vector;
         }
         else{
           getIndexInput().seek(getIndexInput().getFilePointer()
-              + VectorFactory.getLuceneByteSize(vectorType, dimension));
+              + VectorFactory.getLuceneByteSize(flagConfig.vectortype(), flagConfig.dimension()));
         }
       }
     }
@@ -228,7 +222,7 @@ public class VectorStoreReaderLucene implements CloseableVectorStore {
 
     public ObjectVector nextElement() {
       String object = null;
-      Vector vector = VectorFactory.createZeroVector(vectorType, dimension);
+      Vector vector = VectorFactory.createZeroVector(flagConfig.vectortype(), flagConfig.dimension());
       try {
         object = indexInput.readString();
         vector.readFromLuceneStream(indexInput);

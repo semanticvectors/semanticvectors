@@ -70,37 +70,36 @@ abstract public class VectorSearcher {
    * Expand search space for dual-predicate searches
    */  
   public static VectorStore expandSearchSpace(VectorStore searchVecStore, FlagConfig flagConfig) {
-	    VectorStoreRAM nusearchspace = new VectorStoreRAM(flagConfig);
-	    Enumeration<ObjectVector> allVectors = searchVecStore.getAllVectors();
-	    ArrayList<ObjectVector> storeVectors = new ArrayList<ObjectVector>();
+    VectorStoreRAM nusearchspace = new VectorStoreRAM(flagConfig);
+    Enumeration<ObjectVector> allVectors = searchVecStore.getAllVectors();
+    ArrayList<ObjectVector> storeVectors = new ArrayList<ObjectVector>();
 
-	    while (allVectors.hasMoreElements())
-	    {
-	    	ObjectVector nextObjectVector = allVectors.nextElement();
-	    	nusearchspace.putVector(nextObjectVector.getObject(), nextObjectVector.getVector());
-	    	storeVectors.add(nextObjectVector);
-	    }
+    while (allVectors.hasMoreElements())
+    {
+      ObjectVector nextObjectVector = allVectors.nextElement();
+      nusearchspace.putVector(nextObjectVector.getObject(), nextObjectVector.getVector());
+      storeVectors.add(nextObjectVector);
+    }
 
-	    for (int x=0; x < storeVectors.size()-1; x++) {
-	    	for (int y=x; y < storeVectors.size(); y++) {
-	    		Vector vec1 = storeVectors.get(x).getVector().copy();
-	    		Vector vec2 = storeVectors.get(y).getVector().copy();
-	    		String obj1 = storeVectors.get(x).getObject().toString();
-	    		String obj2 = storeVectors.get(y).getObject().toString();
+    for (int x=0; x < storeVectors.size()-1; x++) {
+      for (int y=x; y < storeVectors.size(); y++) {
+        Vector vec1 = storeVectors.get(x).getVector().copy();
+        Vector vec2 = storeVectors.get(y).getVector().copy();
+        String obj1 = storeVectors.get(x).getObject().toString();
+        String obj2 = storeVectors.get(y).getObject().toString();
 
 
-	    		vec1.release(vec2);
-	    		nusearchspace.putVector(obj2+":"+obj1, vec1);
+        vec1.release(vec2);
+        nusearchspace.putVector(obj2+":"+obj1, vec1);
 
-	    		if (nusearchspace.getVectorType().equals(VectorType.COMPLEX))
-	    		{
-	    			vec2.release(storeVectors.get(x).getVector().copy());
-	    			nusearchspace.putVector(obj1+":"+obj2, vec2);
-	    		}
-	    	}
-	    }
-	    System.err.println("Expanding search space from "+storeVectors.size()+" to "+nusearchspace.getNumVectors());
-	    return nusearchspace;
+        if (flagConfig.vectortype().equals(VectorType.COMPLEX)) {
+          vec2.release(storeVectors.get(x).getVector().copy());
+          nusearchspace.putVector(obj1+":"+obj2, vec2);
+        }
+      }
+    }
+    System.err.println("Expanding search space from "+storeVectors.size()+" to "+nusearchspace.getNumVectors());
+    return nusearchspace;
   }
 
   /**
@@ -134,10 +133,10 @@ abstract public class VectorSearcher {
    * argument.
    * @param numResults the number of results / length of the result list.
    */
-public LinkedList<SearchResult> getNearestNeighbors(int numResults) {
+  public LinkedList<SearchResult> getNearestNeighbors(int numResults) {
     final double unsetScore = -Math.PI;
-	final int bufferSize = 1000;
-	final int indexSize = numResults + bufferSize;
+    final int bufferSize = 1000;
+    final int indexSize = numResults + bufferSize;
     LinkedList<SearchResult> results = new LinkedList<SearchResult>();
     List<SearchResult> tmpResults = new ArrayList<SearchResult>(indexSize);
     double score = -1;
@@ -149,7 +148,7 @@ public LinkedList<SearchResult> getNearestNeighbors(int numResults) {
     int pos = 0;
     for(int i=0; i < indexSize; i++)
     {
-    	tmpResults.add(new SearchResult(unsetScore, null));
+      tmpResults.add(new SearchResult(unsetScore, null));
     }
 
     Enumeration<ObjectVector> vecEnum = searchVecStore.getAllVectors();
@@ -173,17 +172,17 @@ public LinkedList<SearchResult> getNearestNeighbors(int numResults) {
         sum += score;
         sumsquared += Math.pow(score, 2);
       }
-      
+
       if (score > threshold) {
-    	  // set existing object in buffer space
-    	  tmpResults.get(numResults+pos++).set(score, testElement);
+        // set existing object in buffer space
+        tmpResults.get(numResults+pos++).set(score, testElement);
       }
 
       if(pos == bufferSize)
       {
-    	  pos = 0;
-    	  Collections.sort(tmpResults);
-    	  threshold = tmpResults.get(indexSize - 1).getScore();
+        pos = 0;
+        Collections.sort(tmpResults);
+        threshold = tmpResults.get(indexSize - 1).getScore();
       }
     }
     if (flagConfig.stdev()) results = transformToStats(results, count, sum, sumsquared);
@@ -191,12 +190,12 @@ public LinkedList<SearchResult> getNearestNeighbors(int numResults) {
     Collections.sort(tmpResults);
     for(int i = 0; i < numResults; i++)
     {
-    	SearchResult sr = tmpResults.get(i);
-    	if(sr.getScore() == unsetScore)
-    	{
-    		break;
-    	}
-    	results.add(sr);
+      SearchResult sr = tmpResults.get(i);
+      if(sr.getScore() == unsetScore)
+      {
+        break;
+      }
+      results.add(sr);
     }
     return results;
   }
@@ -215,33 +214,32 @@ public LinkedList<SearchResult> getNearestNeighbors(int numResults) {
    *
    * @param threshold minimum score required to get into results list.
    */
-  @SuppressWarnings("unchecked")
-public LinkedList<SearchResult> getAllAboveThreshold(float threshold) {
-		LinkedList<SearchResult> results = new LinkedList<SearchResult>();
-		double score;
+  public LinkedList<SearchResult> getAllAboveThreshold(float threshold) {
+    LinkedList<SearchResult> results = new LinkedList<SearchResult>();
+    double score;
 
-		Enumeration<ObjectVector> vecEnum = null;
-		vecEnum = searchVecStore.getAllVectors();
+    Enumeration<ObjectVector> vecEnum = null;
+    vecEnum = searchVecStore.getAllVectors();
 
-		while (vecEnum.hasMoreElements()) {
-	     // Test this element.
-	    ObjectVector testElement = vecEnum.nextElement();
-	    if (testElement == null) score = Float.MIN_VALUE;
-	    else
-	      {
+    while (vecEnum.hasMoreElements()) {
+      // Test this element.
+      ObjectVector testElement = vecEnum.nextElement();
+      if (testElement == null) score = Float.MIN_VALUE;
+      else
+      {
 
-	    	Vector testVector = testElement.getVector();
-	      	score = getScore(testVector);
+        Vector testVector = testElement.getVector();
+        score = getScore(testVector);
 
-	      }
+      }
 
-	     if (score > threshold || threshold == Float.MIN_VALUE) {
-				results.add(new SearchResult(score, testElement));}
-		}
+      if (score > threshold || threshold == Float.MIN_VALUE) {
+        results.add(new SearchResult(score, testElement));}
+    }
 
-		Collections.sort(results);
-		return results;
-}
+    Collections.sort(results);
+    return results;
+  }
 
   /**
    * Class for searching a vector store using cosine similarity.
@@ -307,7 +305,8 @@ public LinkedList<SearchResult> getAllAboveThreshold(float threshold) {
 
       this.queryVector = CompoundVectorBuilder.getQueryVectorFromString(queryVecStore, null, flagConfig, term1);
 
-      queryVector.release(CompoundVectorBuilder.getBoundProductQueryVectorFromString(boundVecStore, term2));
+      queryVector.release(CompoundVectorBuilder.getBoundProductQueryVectorFromString(
+          flagConfig, boundVecStore, term2));
 
       if (this.queryVector.isZeroVector()) {
         throw new ZeroVectorException("Query vector is zero ... no results.");
@@ -319,7 +318,8 @@ public LinkedList<SearchResult> getAllAboveThreshold(float threshold) {
             throws ZeroVectorException {
       super(queryVecStore, searchVecStore, luceneUtils, flagConfig);
 
-      this.queryVector = CompoundVectorBuilder.getBoundProductQueryVectorFromString(queryVecStore, boundVecStore, term1);
+      this.queryVector = CompoundVectorBuilder.getBoundProductQueryVectorFromString(
+          flagConfig, queryVecStore, boundVecStore, term1);
 
       if (this.queryVector.isZeroVector()) {
         throw new ZeroVectorException("Query vector is zero ... no results.");
@@ -327,22 +327,23 @@ public LinkedList<SearchResult> getAllAboveThreshold(float threshold) {
     }
 
     public VectorSearcherBoundProduct(VectorStore queryVecStore, VectorStore boundVecStore,
-            VectorStore searchVecStore, LuceneUtils luceneUtils, FlagConfig flagConfig, ArrayList<Vector> incomingVectors)
-                throws ZeroVectorException {
-          super(queryVecStore, searchVecStore, luceneUtils, flagConfig);
+        VectorStore searchVecStore, LuceneUtils luceneUtils, FlagConfig flagConfig, ArrayList<Vector> incomingVectors)
+            throws ZeroVectorException {
+      super(queryVecStore, searchVecStore, luceneUtils, flagConfig);
 
-          Vector theSuperposition = VectorFactory.createZeroVector(queryVecStore.getVectorType(), queryVecStore.getDimension());
+      Vector theSuperposition = VectorFactory.createZeroVector(
+          flagConfig.vectortype(), flagConfig.dimension());
 
-          for (int q = 0; q < incomingVectors.size(); q++)
-        	  theSuperposition.superpose(incomingVectors.get(q), 1, null);
+      for (int q = 0; q < incomingVectors.size(); q++)
+        theSuperposition.superpose(incomingVectors.get(q), 1, null);
 
-          theSuperposition.normalize();
-          this.queryVector = theSuperposition;
+      theSuperposition.normalize();
+      this.queryVector = theSuperposition;
 
-          if (this.queryVector.isZeroVector()) {
-            throw new ZeroVectorException("Query vector is zero ... no results.");
-          }
-        }
+      if (this.queryVector.isZeroVector()) {
+        throw new ZeroVectorException("Query vector is zero ... no results.");
+      }
+    }
 
 
     /**
@@ -376,10 +377,8 @@ public LinkedList<SearchResult> getAllAboveThreshold(float threshold) {
   /**
    * Class for searching a vector store using the bound product of a series two vectors.
    */
-  static public class VectorSearcherBoundProductSubSpace extends VectorSearcher {
-
-    ArrayList<Vector> disjunctSpace;
-    VectorType vectorType;
+  public static class VectorSearcherBoundProductSubSpace extends VectorSearcher {
+    private ArrayList<Vector> disjunctSpace;
 
     public VectorSearcherBoundProductSubSpace(VectorStore queryVecStore, VectorStore boundVecStore,
         VectorStore searchVecStore, LuceneUtils luceneUtils, FlagConfig flagConfig, String term1, String term2)
@@ -387,8 +386,6 @@ public LinkedList<SearchResult> getAllAboveThreshold(float threshold) {
       super(queryVecStore, searchVecStore, luceneUtils, flagConfig);
 
       disjunctSpace = new ArrayList<Vector>();
-      vectorType = queryVecStore.getVectorType();
-
       Vector queryVector = queryVecStore.getVector(term1).copy();
 
       if (queryVector.isZeroVector()) {
@@ -400,37 +397,27 @@ public LinkedList<SearchResult> getAllAboveThreshold(float threshold) {
     }
 
     public VectorSearcherBoundProductSubSpace(VectorStore queryVecStore, VectorStore boundVecStore,
-            VectorStore searchVecStore, LuceneUtils luceneUtils, FlagConfig flagConfig, String term1)
-                throws ZeroVectorException {
-          super(queryVecStore, searchVecStore, luceneUtils, flagConfig);
+        VectorStore searchVecStore, LuceneUtils luceneUtils, FlagConfig flagConfig, String term1)
+            throws ZeroVectorException {
+      super(queryVecStore, searchVecStore, luceneUtils, flagConfig);
 
-          disjunctSpace = new ArrayList<Vector>();
-          vectorType = queryVecStore.getVectorType();
+      disjunctSpace = new ArrayList<Vector>();
+      this.disjunctSpace = CompoundVectorBuilder.getBoundProductQuerySubspaceFromString(
+          flagConfig, queryVecStore, boundVecStore, term1);
 
-          this.disjunctSpace = CompoundVectorBuilder.getBoundProductQuerySubspaceFromString(queryVecStore, boundVecStore, term1);
-
-
-        }
+    }
 
     public VectorSearcherBoundProductSubSpace(VectorStore queryVecStore, VectorStore boundVecStore,
-            VectorStore searchVecStore, LuceneUtils luceneUtils, FlagConfig flagConfig, ArrayList<Vector> incomingDisjunctSpace)
-                throws ZeroVectorException {
-          super(queryVecStore, searchVecStore, luceneUtils, flagConfig);
+        VectorStore searchVecStore, LuceneUtils luceneUtils, FlagConfig flagConfig, ArrayList<Vector> incomingDisjunctSpace)
+            throws ZeroVectorException {
+      super(queryVecStore, searchVecStore, luceneUtils, flagConfig);
 
-          this.disjunctSpace = incomingDisjunctSpace;
-          vectorType = queryVecStore.getVectorType();
-
-
-
-        }
-
-
+      this.disjunctSpace = incomingDisjunctSpace;
+    }
 
     @Override
     public double getScore(Vector testVector) {
-      if (!vectorType.equals(VectorType.BINARY))
-        return 			  VectorUtils.compareWithProjection(testVector, disjunctSpace);
-      else return BinaryVectorUtils.compareWithProjection(testVector, disjunctSpace);
+      return VectorUtils.compareWithProjection(testVector, disjunctSpace);
     }
   }
 
@@ -455,7 +442,6 @@ public LinkedList<SearchResult> getAllAboveThreshold(float threshold) {
             throws ZeroVectorException {
       super(queryVecStore, searchVecStore, luceneUtils, flagConfig);
       this.disjunctSpace = new ArrayList<Vector>();
-      this.vectorType = queryVecStore.getVectorType();
 
       for (int i = 0; i < queryTerms.length; ++i) {
         System.out.println("\t" + queryTerms[i]);
@@ -653,7 +639,7 @@ public LinkedList<SearchResult> getAllAboveThreshold(float threshold) {
    * permuted or random index vectors as the cue terms, by taking the mean of the results
    * obtained with each of these options.
    */
-   static public class BalancedVectorSearcherPerm extends VectorSearcher {
+  static public class BalancedVectorSearcherPerm extends VectorSearcher {
     Vector oneDirection;
     Vector otherDirection;
     VectorStore searchVecStore, queryVecStore;
@@ -674,7 +660,7 @@ public LinkedList<SearchResult> getAllAboveThreshold(float threshold) {
     public BalancedVectorSearcherPerm(
         VectorStore queryVecStore, VectorStore searchVecStore, LuceneUtils luceneUtils,
         FlagConfig flagConfig, String[] queryTerms)
-        throws IllegalArgumentException, ZeroVectorException {
+            throws IllegalArgumentException, ZeroVectorException {
       super(queryVecStore, searchVecStore, luceneUtils, flagConfig);
       specialFlagConfig = flagConfig;
       specialLuceneUtils = luceneUtils;
