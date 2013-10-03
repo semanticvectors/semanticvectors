@@ -85,7 +85,7 @@ public class VectorStoreRAM implements VectorStore {
   }
   
   // Initialization routine.
-  public void initFromFile (String vectorFile) throws IOException {
+  public void initFromFile(String vectorFile) throws IOException {
     CloseableVectorStore vectorReaderDisk = VectorStoreReader.openVectorStore(vectorFile, flagConfig);
     Enumeration<ObjectVector> vectorEnumeration = vectorReaderDisk.getAllVectors();
 		
@@ -98,8 +98,11 @@ public class VectorStoreRAM implements VectorStore {
     logger.log(Level.FINE, "Cached {0} vectors.", objectVectors.size());
   }
 
-  // Initialization routine.
-  public void createRandomVectors (int numVectors, int seedLength, Random random) {
+  /**
+   * Creates the given number of vectors, with string versions of the number as keys,
+   * starting from 0, and using the provided seedlength and random number generator. 
+   */
+  public void createNumberedRandomVectors(int numVectors, int seedLength, Random random) {
     if (random == null) { random = new Random(); }
     VerbatimLogger.fine("Creating store of " + numVectors + " elemental vectors  ...\n");
     for (int i = 0; i < numVectors; ++i) {
@@ -110,17 +113,22 @@ public class VectorStoreRAM implements VectorStore {
     }
   }
   
-  // Add a single vector.
+  /**
+   * Adds a single vector with the given key and value.
+   * Overwrites any existing vector with this key.
+   */
   public void putVector(Object key, Vector vector) {
     IncompatibleVectorsException.checkVectorsCompatible(zeroVector, vector);
     ObjectVector objectVector = new ObjectVector(key, vector);
     this.objectVectors.put(key, objectVector);
   }
 
+  @Override
   public Enumeration<ObjectVector> getAllVectors() {
     return this.objectVectors.elements();
   }
 
+  @Override
   public int getNumVectors() {
     return this.objectVectors.size();
   }
@@ -143,7 +151,7 @@ public class VectorStoreRAM implements VectorStore {
     }
   }
 
-  	/**
+  /**
 	 * Given an object, return its corresponding vector and remove it from the
 	 * VectorStore. Does nothing and returns null if the object was not found.
 	 * <p>

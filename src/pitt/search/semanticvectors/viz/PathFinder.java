@@ -1,5 +1,15 @@
 package pitt.search.semanticvectors.viz;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.List;
+
+import pitt.search.semanticvectors.FlagConfig;
+import pitt.search.semanticvectors.SearchResult;
+import pitt.search.semanticvectors.utils.VerbatimLogger;
+
 /**
  * 
  * @author rschvaneveldt, tcohen
@@ -150,11 +160,69 @@ public class PathFinder {
   }
 
   /**
+   * Writes the results out as a json-formatted graph using the {@link PathFinder} algorithm.
+   * @param flagConfig
+   * @param results
+   * @throws IOException 
+   */
+  public static void writeResultsPathfinderGraphJson(
+      FlagConfig flagConfig, List<SearchResult> results) throws IOException {
+    BufferedWriter writer = null;
+    //create a temporary file
+    File jsonFile = new File(flagConfig.jsonfile());
+    VerbatimLogger.info(
+        "Writing graph in json format to ...  " + jsonFile.getCanonicalPath() + "\n");
+    writer = new BufferedWriter(new FileWriter(jsonFile));
+    //print nodes
+    writer.write("{" +
+        "\"nodes\":[\n");
+  
+    for (int z = 0; z < results.size(); z++) {
+      writer.write("{\"name\":\""+results.get(z).getObjectVector().getObject()+"\",\"group\":1}"); 
+      if (z < results.size()-1) {
+        writer.write(",");
+      }
+    }
+    writer.write("],\n");
+    writer.write("\"links\":[\n");
+  
+    //generate connectivity matrix
+    double[][] links = new double[results.size()][results.size()];
+  
+    for (int x =0; x < results.size(); x++) { 
+      for (int y=0; y < results.size(); y++) {
+        links[y][x] = results.get(y).getObjectVector().getVector().measureOverlap(results.get(x).getObjectVector().getVector());
+      }
+    }
+  
+    int q = flagConfig.pathfinderQ();
+    if (q == -1) {
+      q = results.size() - 1;
+    }
+    double r = flagConfig.pathfinderR();
+  
+    PathFinder scout = new PathFinder(q, r, links);
+    links = scout.pruned();
+  
+    for (int x =0; x < results.size()-1; x++) {
+      for (int y=x+1; y < results.size(); y++) {
+        if (links[y][x] > 0) {  
+          if (x > 0 || y > x+1) writer.write(",");
+          writer.write("{\"source\":"+y+",\"target\":"+x+",\"value\":"+links[y][x]+"}\n");
+        }
+      }
+    }
+    writer.write("  ]\n}");
+    writer.close();
+  }
+
+
+  /**
+   * Test main method.
    * 
-   * @param args
+   * TODO(dwiddows): Refactor into a test.
    */
   public static void main(String[] args) {
-    // TODO Auto-generated method stub
     //System.out.println(Math.pow(100, 0.5));
     double[][] testfl = {{1,0.95f,0.24f},{0.95f,1,0.95f},{0.24f,0.95f,1}};
     PathFinder pf = new PathFinder(8,1,testfl);

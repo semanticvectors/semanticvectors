@@ -152,7 +152,7 @@ public class TermVectorsFromLucene implements VectorStore {
       VerbatimLogger.info("Populating basic sparse doc vector store, number of vectors: "
           + luceneUtils.getNumDocs() + "\n");
       VectorStoreRAM randomBasicDocVectors = new VectorStoreRAM(flagConfig);
-      randomBasicDocVectors.createRandomVectors(luceneUtils.getNumDocs(), flagConfig.seedlength(), null);
+      randomBasicDocVectors.createNumberedRandomVectors(luceneUtils.getNumDocs(), flagConfig.seedlength(), null);
       this.basicDocVectors = randomBasicDocVectors;
     }
 
