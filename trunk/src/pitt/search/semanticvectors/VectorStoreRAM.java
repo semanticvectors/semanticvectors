@@ -91,21 +91,6 @@ public class VectorStoreRAM implements VectorStore {
     vectorReaderDisk.close();
     logger.log(Level.FINE, "Cached {0} vectors.", objectVectors.size());
   }
-
-  /**
-   * Creates the given number of vectors, with string versions of the number as keys,
-   * starting from 0, and using the provided seedlength and random number generator. 
-   */
-  public void createNumberedRandomVectors(int numVectors, int seedLength, Random random) {
-    if (random == null) { random = new Random(); }
-    VerbatimLogger.fine("Creating store of " + numVectors + " elemental vectors  ...\n");
-    for (int i = 0; i < numVectors; ++i) {
-      this.objectVectors.put(Integer.toString(i),
-                             new ObjectVector(Integer.toString(i),
-                                 VectorFactory.generateRandomVector(vectorType, dimension,
-                                                                    seedLength, random)));
-    }
-  }
   
   /**
    * Adds a single vector with the given key and value.

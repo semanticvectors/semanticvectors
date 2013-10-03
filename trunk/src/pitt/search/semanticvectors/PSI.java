@@ -49,7 +49,6 @@ import pitt.search.semanticvectors.utils.Bobcat;
 import pitt.search.semanticvectors.utils.VerbatimLogger;
 import pitt.search.semanticvectors.vectors.Vector;
 import pitt.search.semanticvectors.vectors.VectorFactory;
-import pitt.search.semanticvectors.vectors.VectorType;
 
 /**
  * Generates predication vectors incrementally.Requires as input an index containing 
@@ -62,7 +61,8 @@ import pitt.search.semanticvectors.vectors.VectorType;
 public class PSI {
   private static final Logger logger = Logger.getLogger(PSI.class.getCanonicalName());
   private FlagConfig flagConfig;
-  private VectorStoreRAM elementalVectors, semanticVectors, predicateVectors;
+  private ElementalVectorStore elementalItemVectors, predicateVectors;
+  private VectorStoreRAM semanticItemVectors;
   private static final String SUBJECT_FIELD = "subject";
   private static final String PREDICATE_FIELD = "predicate";
   private static final String OBJECT_FIELD = "object";
@@ -86,9 +86,9 @@ public class PSI {
 
   private void trainIncrementalPSIVectors() throws IOException {
     // Create elemental and semantic vectors for each concept, and elemental vectors for predicates
-    elementalVectors = new VectorStoreRAM(flagConfig);
-    semanticVectors = new VectorStoreRAM(flagConfig);
-    predicateVectors = new VectorStoreRAM(flagConfig);
+    elementalItemVectors = new ElementalVectorStore(flagConfig);
+    semanticItemVectors = new VectorStoreRAM(flagConfig);
+    predicateVectors = new ElementalVectorStore(flagConfig);
     Random random = new Random();
     flagConfig.setContentsfields(itemFields);
 
@@ -99,26 +99,17 @@ public class PSI {
       BytesRef bytes;
       while((bytes = termsEnum.next()) != null) {
         Term term = new Term(fieldName, bytes);
-        
+
         if (!luceneUtils.termFilter(term)) {
           VerbatimLogger.fine("Filtering out term: " + term + "\n");
           continue;
         }
-  
+
         if (!addedConcepts.contains(term.text())) {
           addedConcepts.add(term.text());
-          Vector semanticVector = VectorFactory.createZeroVector(
-              flagConfig.vectortype(), flagConfig.dimension());
-
-          if (flagConfig.deterministicvectors())
-            random.setSeed(Bobcat.asLong(term.text()));
-
-          Vector elementalVector = VectorFactory.generateRandomVector(
-              flagConfig.vectortype(), flagConfig.dimension(),
-              flagConfig.seedlength(), random);
-
-          semanticVectors.putVector(term.text(), semanticVector);
-          elementalVectors.putVector(term.text(), elementalVector);
+          elementalItemVectors.getVector(term.text());  // Causes vector to be created.
+          semanticItemVectors.putVector(term.text(), VectorFactory.createZeroVector(
+              flagConfig.vectortype(), flagConfig.dimension()));
         }
       }
     }
@@ -138,81 +129,76 @@ public class PSI {
       if (flagConfig.deterministicvectors())
         random.setSeed(Bobcat.asLong(term.text().trim()));
 
-      Vector elementalVector = VectorFactory.generateRandomVector(
-          flagConfig.vectortype(), flagConfig.dimension(),
-          flagConfig.seedlength(), random);
-      predicateVectors.putVector(term.text().trim(), elementalVector);
+      predicateVectors.getVector(term.text().trim());
 
       if (flagConfig.deterministicvectors())
         random.setSeed(Bobcat.asLong(term.text().trim()+"-INV"));
 
-      Vector inverseElementalVector = VectorFactory.generateRandomVector(
-          flagConfig.vectortype(), flagConfig.dimension(),
-          flagConfig.seedlength(), random);
-      predicateVectors.putVector(term.text().trim()+"-INV", inverseElementalVector);
+      // Add an inverse vector for the predicates.
+      predicateVectors.getVector(term.text().trim()+"-INV");
     }
 
     String fieldName = PREDICATION_FIELD; 
-      // Iterate through documents (each document = one predication).
-      Terms allTerms = luceneUtils.getTermsForField(fieldName);
-      termsEnum = allTerms.iterator(null);
-      while((bytes = termsEnum.next()) != null) {
-        int pc = 0;
-        Term term = new Term(fieldName, bytes);
-        pc++;
+    // Iterate through documents (each document = one predication).
+    Terms allTerms = luceneUtils.getTermsForField(fieldName);
+    termsEnum = allTerms.iterator(null);
+    while((bytes = termsEnum.next()) != null) {
+      int pc = 0;
+      Term term = new Term(fieldName, bytes);
+      pc++;
 
-        // Output progress counter.
-        if ((pc > 0) && ((pc % 10000 == 0) || ( pc < 10000 && pc % 1000 == 0 ))) {
-          VerbatimLogger.info("Processed " + pc + " unique predications ... ");
-        }
+      // Output progress counter.
+      if ((pc > 0) && ((pc % 10000 == 0) || ( pc < 10000 && pc % 1000 == 0 ))) {
+        VerbatimLogger.info("Processed " + pc + " unique predications ... ");
+      }
 
-        DocsEnum termDocs = luceneUtils.getDocsForTerm(term);
-        termDocs.nextDoc();
-        Document document = luceneUtils.getDoc(termDocs.docID());
+      DocsEnum termDocs = luceneUtils.getDocsForTerm(term);
+      termDocs.nextDoc();
+      Document document = luceneUtils.getDoc(termDocs.docID());
 
-        String subject = document.get(SUBJECT_FIELD);
-        String predicate = document.get(PREDICATE_FIELD);
-        String object = document.get(OBJECT_FIELD);
+      String subject = document.get(SUBJECT_FIELD);
+      String predicate = document.get(PREDICATE_FIELD);
+      String object = document.get(OBJECT_FIELD);
 
-        float sWeight =1;
-        float oWeight =1;
-        float pWeight =1;
+      float sWeight =1;
+      float oWeight =1;
+      float pWeight =1;
 
-        sWeight = luceneUtils.getGlobalTermWeight(new Term(SUBJECT_FIELD, subject));
-        oWeight = luceneUtils.getGlobalTermWeight(new Term(OBJECT_FIELD, object));
-        // TODO: Explain different weighting for predicates, log(occurrences of predication)
-        pWeight = (float) Math.log(1 + luceneUtils.getGlobalTermFreq(term));
+      sWeight = luceneUtils.getGlobalTermWeight(new Term(SUBJECT_FIELD, subject));
+      oWeight = luceneUtils.getGlobalTermWeight(new Term(OBJECT_FIELD, object));
+      // TODO: Explain different weighting for predicates, log(occurrences of predication)
+      pWeight = (float) Math.log(1 + luceneUtils.getGlobalTermFreq(term));
 
-        Vector subject_semanticvector = semanticVectors.getVector(subject);
-        Vector object_semanticvector = semanticVectors.getVector(object);
-        Vector subject_elementalvector = elementalVectors.getVector(subject);
-        Vector object_elementalvector = elementalVectors.getVector(object);
-        Vector predicate_vector = predicateVectors.getVector(predicate);
-        Vector predicate_vector_inv = predicateVectors.getVector(predicate+"-INV");
+      Vector subject_semanticvector = semanticItemVectors.getVector(subject);
+      Vector object_semanticvector = semanticItemVectors.getVector(object);
+      Vector subject_elementalvector = elementalItemVectors.getVector(subject);
+      Vector object_elementalvector = elementalItemVectors.getVector(object);
+      Vector predicate_vector = predicateVectors.getVector(predicate);
+      Vector predicate_vector_inv = predicateVectors.getVector(predicate+"-INV");
 
-        if (subject_semanticvector == null || object_semanticvector == null || predicate_vector == null) {	  
-          logger.info("skipping predication " + subject + " " + predicate + " " + object);
-          continue;
-        }
+      if (subject_semanticvector == null || object_semanticvector == null || predicate_vector == null) {	  
+        logger.info("skipping predication " + subject + " " + predicate + " " + object);
+        continue;
+      }
 
-        object_elementalvector.bind(predicate_vector);
-        subject_semanticvector.superpose(object_elementalvector, pWeight*oWeight, null);
-        object_elementalvector.release(predicate_vector);
+      object_elementalvector.bind(predicate_vector);
+      subject_semanticvector.superpose(object_elementalvector, pWeight*oWeight, null);
+      object_elementalvector.release(predicate_vector);
 
-        subject_elementalvector.bind(predicate_vector_inv);
-        object_semanticvector.superpose(subject_elementalvector, pWeight*sWeight, null);
-        subject_elementalvector.release(predicate_vector_inv);      
-      } // Finish iterating through predications.
-    
+      subject_elementalvector.bind(predicate_vector_inv);
+      object_semanticvector.superpose(subject_elementalvector, pWeight*sWeight, null);
+      subject_elementalvector.release(predicate_vector_inv);      
+    } // Finish iterating through predications.
+
 
     //Normalize semantic vectors
-    Enumeration<ObjectVector> e = semanticVectors.getAllVectors();
+    Enumeration<ObjectVector> e = semanticItemVectors.getAllVectors();
     while (e.hasMoreElements())	{
       e.nextElement().getVector().normalize();
     }
 
-    VectorStoreWriter.writeVectors(flagConfig.elementalvectorfile(), flagConfig, elementalVectors);
-    VectorStoreWriter.writeVectors(flagConfig.semanticvectorfile(), flagConfig, semanticVectors);
+    VectorStoreWriter.writeVectors(flagConfig.elementalvectorfile(), flagConfig, elementalItemVectors);
+    VectorStoreWriter.writeVectors(flagConfig.semanticvectorfile(), flagConfig, semanticItemVectors);
     VectorStoreWriter.writeVectors(flagConfig.predicatevectorfile(), flagConfig, predicateVectors);
 
     VerbatimLogger.info("Finished writing vectors.\n");

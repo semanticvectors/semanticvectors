@@ -38,6 +38,7 @@ package pitt.search.semanticvectors;
 import java.io.IOException;
 import java.util.logging.Logger;
 
+import pitt.search.semanticvectors.ElementalVectorStore.ElementalGenerationMethod;
 import pitt.search.semanticvectors.utils.VerbatimLogger;
 import pitt.search.semanticvectors.vectors.Vector;
 
@@ -69,7 +70,8 @@ public class CompareTerms{
       + "\n<QUERYTERMS1,2> should be lists of words, separated by spaces."
       + "\nThe quotes are mandatory unless you are comparing two single words."
       + "\nIf the term NOT is used in one of the lists, subsequent terms in "
-      + "\nthat list will be negated (as in Search class).";
+      + "\nthat list will be negated (as in Search class)."
+      + "\nUse \"-elementalmethod orthographic\" to compare strings based on orthography.\n";
   
   public static void usage(){
     System.out.println(usageMessage);
@@ -106,7 +108,7 @@ public class CompareTerms{
       throw new IllegalArgumentException();
     }
     CloseableVectorStore vecReader;
-    if (flagConfig.queryvectorfile().equals("orthographic")) {
+    if (flagConfig.elementalmethod() == ElementalGenerationMethod.ORTHOGRAPHIC) {
       vecReader = new VectorStoreOrthographical(flagConfig);
     } else {
       vecReader = new VectorStoreReaderLucene(flagConfig.queryvectorfile(), flagConfig);
