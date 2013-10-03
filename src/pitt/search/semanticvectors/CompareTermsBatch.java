@@ -63,9 +63,11 @@ import pitt.search.semanticvectors.vectors.Vector;
  requiring the overhead of reloading the lists of vectors, and can store the
  vectors in memory.
 
-
  <br> If the term NOT is used in one of the lists, subsequent terms in
  that list will be negated.
+
+ <br> The class has not been altered to support orthographic search: please contact
+ the project authors if this would be a useful addition for you.
 
  @see Search
  @author Andrew MacKinlay

@@ -39,8 +39,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Hashtable;
-import java.util.Random;
-
 import org.apache.lucene.index.DocsAndPositionsEnum;
 import org.apache.lucene.index.FieldInfos;
 import org.apache.lucene.index.Term;
@@ -49,14 +47,10 @@ import org.apache.lucene.index.TermsEnum;
 import org.apache.lucene.util.BytesRef;
 
 import pitt.search.semanticvectors.orthography.NumberRepresentation;
-import pitt.search.semanticvectors.utils.Bobcat;
 import pitt.search.semanticvectors.utils.VerbatimLogger;
-import pitt.search.semanticvectors.vectors.ComplexVector;
-import pitt.search.semanticvectors.vectors.ComplexVector.Mode;
 import pitt.search.semanticvectors.vectors.PermutationUtils;
 import pitt.search.semanticvectors.vectors.Vector;
 import pitt.search.semanticvectors.vectors.VectorFactory;
-import pitt.search.semanticvectors.vectors.VectorType;
 
 /**
  * Implementation of vector store that creates term by term
@@ -87,10 +81,11 @@ public class TermTermVectorsFromLucene { //implements VectorStore {
 
   private FlagConfig flagConfig;
   private boolean retraining = false;
-  private VectorStoreRAM termVectors;
-  private VectorStoreRAM numberVectors;
-  private VectorStore indexVectors;
+  private VectorStoreRAM semanticTermVectors;
+  private VectorStore elementalTermVectors;
   private LuceneUtils luceneUtils;
+  /** Used only with {@link PositionalMethod#PROXIMITY}. */
+  private VectorStoreRAM positionalNumberVectors;
 
   /**
    * Used to store permutations we'll use in training.  If positional method is one of the
@@ -101,37 +96,32 @@ public class TermTermVectorsFromLucene { //implements VectorStore {
   static final short NONEXISTENT = -1;
   
   /** Returns the semantic (learned) vectors. */
-  public VectorStore getSemanticTermVectors() { return this.termVectors; }
-
-  // Basic VectorStore interface methods implemented through termVectors.
-  public Vector getVector(Object term) {
-    return termVectors.getVector(term);
-  }
-
-  public Enumeration<ObjectVector> getAllVectors() {
-    return termVectors.getAllVectors();
-  }
-
-  public int getNumVectors() {
-    return termVectors.getNumVectors();
-  }
+  public VectorStore getSemanticTermVectors() { return this.semanticTermVectors; }
 
   /**
    * Constructs an instance using the given configs and elemental vectors.
    * @throws IOException
    */
   public TermTermVectorsFromLucene(
-      FlagConfig flagConfig, VectorStore elementalVectors) throws IOException {
+      FlagConfig flagConfig, VectorStore elementalTermVectors) throws IOException {
     this.flagConfig = flagConfig;
-    this.indexVectors = elementalVectors;
-
+    // Setup elemental vectors, depending on whether they were passed in or not.
+    if (elementalTermVectors != null) {
+      retraining = true;
+      this.elementalTermVectors = elementalTermVectors;
+      VerbatimLogger.info("Reusing basic term vectors; number of terms: "
+          + elementalTermVectors.getNumVectors() + "\n");
+    } else {
+      this.elementalTermVectors = new ElementalVectorStore(flagConfig);
+    }
+    
     if (flagConfig.positionalmethod() == PositionalMethod.PERMUTATION
-        || flagConfig.positionalmethod() == PositionalMethod.PERMUTATIONPLUSBASIC) {
-      initializePermutations();}
-    else if (flagConfig.positionalmethod() == PositionalMethod.DIRECTIONAL) {
-      initializeDirectionalPermutations();	  }
-    else if (flagConfig.positionalmethod() == PositionalMethod.PROXIMITY) {
-      initializeNumberRepresentations(); }
+        || flagConfig.positionalmethod() == PositionalMethod.PERMUTATIONPLUSBASIC)
+      initializePermutations();
+    else if (flagConfig.positionalmethod() == PositionalMethod.DIRECTIONAL)
+      initializeDirectionalPermutations();
+    else if (flagConfig.positionalmethod() == PositionalMethod.PROXIMITY)
+      initializeNumberRepresentations();
     trainTermTermVectors();
   }
 
@@ -149,15 +139,16 @@ public class TermTermVectorsFromLucene { //implements VectorStore {
 
   /**
    * Initialize all number vectors that might be used (i.e. one for each position in the sliding window)
+   * Used only with {@link PositionalMethod#PROXIMITY}.
    */
   private void initializeNumberRepresentations() {
     NumberRepresentation numberRepresentation = new NumberRepresentation(flagConfig);
-    numberVectors = numberRepresentation.getNumberVectors(1, 2*flagConfig.windowradius() + 2);
+    positionalNumberVectors = numberRepresentation.getNumberVectors(1, 2*flagConfig.windowradius() + 2);
     this.initializeDirectionalPermutations();
 
-    Enumeration<ObjectVector> VEN = numberVectors.getAllVectors();
+    Enumeration<ObjectVector> VEN = positionalNumberVectors.getAllVectors();
     while (VEN.hasMoreElements())
-      System.err.println(VEN.nextElement().getObject());
+      VerbatimLogger.finest("Initialized number representation: " + VEN.nextElement().getObject());
   }
 
   /**
@@ -186,16 +177,7 @@ public class TermTermVectorsFromLucene { //implements VectorStore {
               + "\nTry rebuilding Lucene index using pitt.search.lucene.IndexFilePositions");
     }
 
-    // If basicTermVectors was passed in, set state accordingly.
-    if (indexVectors != null) {
-      retraining = true;
-      VerbatimLogger.info("Reusing basic term vectors; number of terms: "
-          + indexVectors.getNumVectors() + "\n");
-    } else {
-      this.indexVectors = new VectorStoreRAM(flagConfig);
-    }
-    Random random = new Random();
-    this.termVectors = new VectorStoreRAM(flagConfig);
+    this.semanticTermVectors = new VectorStoreRAM(flagConfig);
 
     // Iterate through an enumeration of terms and allocate initial term vectors.
     // If not retraining, create random elemental vectors as well.
@@ -211,20 +193,14 @@ public class TermTermVectorsFromLucene { //implements VectorStore {
         tc++;
         Vector termVector = VectorFactory.createZeroVector(flagConfig.vectortype(), flagConfig.dimension());
         // Place each term vector in the vector store.
-        this.termVectors.putVector(term.text(), termVector);
+        this.semanticTermVectors.putVector(term.text(), termVector);
         // Do the same for random index vectors unless retraining with trained term vectors
         if (!retraining) {
-
-          if (flagConfig.deterministicvectors())
-            random.setSeed(Bobcat.asLong(term.text()));
-
-          Vector indexVector =  VectorFactory.generateRandomVector(
-              flagConfig.vectortype(), flagConfig.dimension(), flagConfig.seedlength, random);
-          ((VectorStoreRAM) this.indexVectors).putVector(term.text(), indexVector);
+          this.elementalTermVectors.getVector(term.text());
         }
       }
     }
-    VerbatimLogger.info("Created basic term vectors for " + tc + " terms (and "
+    VerbatimLogger.info("There are now elemental term vectors for " + tc + " terms (and "
         + luceneUtils.getNumDocs() + " docs).\n");
 
     // Iterate through documents.
@@ -243,26 +219,26 @@ public class TermTermVectorsFromLucene { //implements VectorStore {
       }
     }
 
-    VerbatimLogger.info("Created " + termVectors.getNumVectors() + " term vectors ...\n");
+    VerbatimLogger.info("Created " + semanticTermVectors.getNumVectors() + " term vectors ...\n");
     VerbatimLogger.info("Normalizing term vectors.\n");
-    Enumeration<ObjectVector> e = termVectors.getAllVectors();
+    Enumeration<ObjectVector> e = semanticTermVectors.getAllVectors();
     while (e.hasMoreElements())	{
       e.nextElement().getVector().normalize();
     }
 
     // If building a permutation index, these need to be written out to be reused.
     //
-    // TODO(widdows): It is odd to do this here while not writing out the semantic
+    // TODO(dwiddows): It is odd to do this here while not writing out the semantic
     // term vectors here.  We should redesign this.
     if (((flagConfig.positionalmethod() == PositionalMethod.PERMUTATION
         || flagConfig.positionalmethod() == PositionalMethod.PERMUTATIONPLUSBASIC)) 
         && !retraining) {
-      VerbatimLogger.info("Normalizing and writing random vectors to " + flagConfig.elementalvectorfile() + "\n");
-      Enumeration<ObjectVector> f = indexVectors.getAllVectors();
+      VerbatimLogger.info("Normalizing and writing elemental vectors to " + flagConfig.elementalvectorfile() + "\n");
+      Enumeration<ObjectVector> f = elementalTermVectors.getAllVectors();
       while (f.hasMoreElements())	{
         f.nextElement().getVector().normalize();
       }
-      VectorStoreWriter.writeVectors(flagConfig.elementalvectorfile(), flagConfig, this.indexVectors);
+      VectorStoreWriter.writeVectors(flagConfig.elementalvectorfile(), flagConfig, this.elementalTermVectors);
     }
   }
 
@@ -294,7 +270,7 @@ public class TermTermVectorsFromLucene { //implements VectorStore {
 
     while((text = termsEnum.next()) != null) {
       String theTerm = text.utf8ToString();
-      if (indexVectors.getVector(theTerm) == null) continue;
+      if (!luceneUtils.termFilter(new Term(field, theTerm))) continue;
       DocsAndPositionsEnum docsAndPositions = termsEnum.docsAndPositions(null, null);
       if (docsAndPositions == null) return;
       docsAndPositions.nextDoc();
@@ -321,34 +297,32 @@ public class TermTermVectorsFromLucene { //implements VectorStore {
         if (localTermPositions.get(cursor) == null) continue;
         String coterm = localTerms.get(localTermPositions.get(cursor));
 
-        if (this.indexVectors.getVector(coterm) == null) {
-          continue;
-        }
+        if (!luceneUtils.termFilter(new Term(field, coterm))) continue;
 
         float globalweight = luceneUtils.getGlobalTermWeight(new Term(field, coterm));
 
         // bind to appropriate position vector
         if (flagConfig.positionalmethod() == PositionalMethod.PROXIMITY) {
-          indexVectors.getVector(coterm).bind(numberVectors.getVector((1+cursor-windowstart)));
+          elementalTermVectors.getVector(coterm).bind(positionalNumberVectors.getVector((1+cursor-windowstart)));
         }
 
         // calculate permutation required for either Sahlgren (2008) implementation
         // encoding word order, or encoding direction as in Burgess and Lund's HAL
         if (flagConfig.positionalmethod() == PositionalMethod.BASIC
             || flagConfig.positionalmethod() == PositionalMethod.PERMUTATIONPLUSBASIC) {
-          termVectors.getVector(focusterm).superpose(indexVectors.getVector(coterm), globalweight, null);
+          semanticTermVectors.getVector(focusterm).superpose(elementalTermVectors.getVector(coterm), globalweight, null);
         }
         if (flagConfig.positionalmethod() == PositionalMethod.PERMUTATION
             || flagConfig.positionalmethod() == PositionalMethod.PERMUTATIONPLUSBASIC) {
           int[] permutation = permutationCache[cursor - focusposn + flagConfig.windowradius()];
-          termVectors.getVector(focusterm).superpose(indexVectors.getVector(coterm), globalweight, permutation);
+          semanticTermVectors.getVector(focusterm).superpose(elementalTermVectors.getVector(coterm), globalweight, permutation);
         } else if (flagConfig.positionalmethod() == PositionalMethod.DIRECTIONAL || flagConfig.positionalmethod() == PositionalMethod.PROXIMITY) {
           int[] permutation = permutationCache[(int) Math.max(0,Math.signum(cursor - focusposn))];
-          termVectors.getVector(focusterm).superpose(indexVectors.getVector(coterm), globalweight, permutation);
+          semanticTermVectors.getVector(focusterm).superpose(elementalTermVectors.getVector(coterm), globalweight, permutation);
 
           //release to appropriate position vector
           if (flagConfig.positionalmethod() == PositionalMethod.PROXIMITY)
-            indexVectors.getVector(coterm).release(numberVectors.getVector((1+cursor-windowstart)));
+            elementalTermVectors.getVector(coterm).release(positionalNumberVectors.getVector((1+cursor-windowstart)));
         }
       } //end of current sliding window   
     } //end of all sliding windows
