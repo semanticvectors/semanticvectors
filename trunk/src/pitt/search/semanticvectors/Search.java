@@ -35,9 +35,6 @@
 
 package pitt.search.semanticvectors;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
@@ -342,63 +339,6 @@ public class Search {
   }
 
   /**
-   * Writes the results out as a json-formatted graph using the {@link PathFinder} algorithm.
-   * @param flagConfig
-   * @param results
-   * @throws IOException 
-   */
-  private static void writeResultsPathfinderGraphJson(
-      FlagConfig flagConfig, List<SearchResult> results) throws IOException {
-    BufferedWriter writer = null;
-    //create a temporary file
-    File jsonFile = new File(flagConfig.jsonfile());
-    VerbatimLogger.info(
-        "Writing graph in json format to ...  " + jsonFile.getCanonicalPath() + "\n");
-    writer = new BufferedWriter(new FileWriter(jsonFile));
-    //print nodes
-    writer.write("{" +
-        "\"nodes\":[\n");
-
-    for (int z = 0; z < results.size(); z++) {
-      writer.write("{\"name\":\""+results.get(z).getObjectVector().getObject()+"\",\"group\":1}"); 
-      if (z < results.size()-1) {
-        writer.write(",");
-      }
-    }
-    writer.write("],\n");
-    writer.write("\"links\":[\n");
-
-    //generate connectivity matrix
-    double[][] links = new double[results.size()][results.size()];
-
-    for (int x =0; x < results.size(); x++) { 
-      for (int y=0; y < results.size(); y++) {
-        links[y][x] = results.get(y).getObjectVector().getVector().measureOverlap(results.get(x).getObjectVector().getVector());
-      }
-    }
-
-    int q = flagConfig.pathfinderQ();
-    if (q == -1) {
-      q = results.size() - 1;
-    }
-    double r = flagConfig.pathfinderR();
-
-    PathFinder scout = new PathFinder(q, r, links);
-    links = scout.pruned();
-
-    for (int x =0; x < results.size()-1; x++) {
-      for (int y=x+1; y < results.size(); y++) {
-        if (links[y][x] > 0) {  
-          if (x > 0 || y > x+1) writer.write(",");
-          writer.write("{\"source\":"+y+",\"target\":"+x+",\"value\":"+links[y][x]+"}\n");
-        }
-      }
-    }
-    writer.write("  ]\n}");
-    writer.close();
-  }
-
-  /**
    * Takes a user's query, creates a query vector, and searches a vector store.
    * @param args See {@link #usageMessage}
    * @throws IllegalArgumentException
@@ -425,7 +365,7 @@ public class Search {
                 result.getObjectVector().getObject().toString()));
       }
       if (!flagConfig.jsonfile().isEmpty()) {
-        writeResultsPathfinderGraphJson(flagConfig, results);
+        PathFinder.writeResultsPathfinderGraphJson(flagConfig, results);
       }
     } else {
       VerbatimLogger.info("No search output.\n");
