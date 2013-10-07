@@ -95,10 +95,11 @@ public class BuildIndex {
     String termFile = flagConfig.termvectorsfile();
     String docFile = flagConfig.docvectorsfile();
     LuceneUtils luceneUtils = new LuceneUtils(flagConfig);
-    
+
     try {
       TermVectorsFromLucene termVectorIndexer;
-      if (!flagConfig.initialtermvectors().isEmpty() && !flagConfig.initialtermvectors().equals("random")) {
+      if (!flagConfig.initialtermvectors().isEmpty()
+          && !flagConfig.initialtermvectors().equals("random")) {
         // If Flags.initialtermvectors="random" create elemental (random index)
         // term vectors. Recommended to iterate at least once (i.e. -trainingcycles = 2) to
         // obtain semantic term vectors.
@@ -124,7 +125,7 @@ public class BuildIndex {
           VectorStoreWriter.writeVectors(
               VectorStoreUtils.getStoreFileName(
                   flagConfig.termvectorsfile() + flagConfig.trainingcycles(), flagConfig),
-              flagConfig, itermVectors);
+                  flagConfig, itermVectors);
 
           // Write over previous cycle's docvectors until final
           // iteration, then rename according to number cycles
@@ -133,10 +134,7 @@ public class BuildIndex {
 
           IncrementalDocVectors.createIncrementalDocVectors(itermVectors, flagConfig, luceneUtils);
         }
-        
-       
-        
-          break;
+        break;
       case INMEMORY:
         DocVectors docVectors = new DocVectors(termVectorIndexer.getSemanticTermVectors(), flagConfig, luceneUtils);
         for (int i = 1; i < flagConfig.trainingcycles(); ++i) {

@@ -46,7 +46,6 @@ import org.apache.lucene.util.BytesRef;
 import pitt.search.semanticvectors.utils.VerbatimLogger;
 import pitt.search.semanticvectors.vectors.Vector;
 import pitt.search.semanticvectors.vectors.VectorFactory;
-import pitt.search.semanticvectors.vectors.VectorType;
 
 import java.util.Enumeration;
 import java.util.logging.Logger;
@@ -117,13 +116,13 @@ public class IncrementalTermVectors implements VectorStore {
     String parentPath = vectorFile.getParent();
     if (parentPath == null) parentPath = "";
     FSDirectory fsDirectory = FSDirectory.open(new File(parentPath));
-    IndexInput inputStream = fsDirectory.openInput(
+    IndexInput docVectorsInputStream = fsDirectory.openInput(
         VectorStoreUtils.getStoreFileName(flagConfig.docvectorsfile(), flagConfig), IOContext.DEFAULT);
 
     logger.info("Read vectors incrementally from file " + vectorFile);
 
     // Read number of dimensions from document vectors.
-    String header = inputStream.readString();
+    String header = docVectorsInputStream.readString();
     FlagConfig.mergeWriteableFlagsFromString(header, flagConfig);
 
     initializeVectorStore();
@@ -136,8 +135,8 @@ public class IncrementalTermVectors implements VectorStore {
       }
 
       Vector docVector = VectorFactory.createZeroVector(flagConfig.vectortype(), flagConfig.dimension());
-      inputStream.readString(); //ignore document name
-      docVector.readFromLuceneStream(inputStream);
+      docVectorsInputStream.readString(); //ignore document name
+      docVector.readFromLuceneStream(docVectorsInputStream);
 
       for (String fieldName : this.flagConfig.contentsfields()) {
         Terms docTerms = this.luceneUtils.getTermVector(new Integer(dc), fieldName);
@@ -177,7 +176,7 @@ public class IncrementalTermVectors implements VectorStore {
       obVec.setVector(termVector);
     }
 
-    inputStream.close();
+    docVectorsInputStream.close();
   }
 
   // Basic VectorStore interface methods implemented through termVectors.
