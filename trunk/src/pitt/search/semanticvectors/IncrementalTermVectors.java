@@ -136,7 +136,7 @@ public class IncrementalTermVectors implements VectorStore {
       }
 
       Vector docVector = VectorFactory.createZeroVector(flagConfig.vectortype(), flagConfig.dimension());
-
+      inputStream.readString(); //ignore document name
       docVector.readFromLuceneStream(inputStream);
 
       for (String fieldName : this.flagConfig.contentsfields()) {

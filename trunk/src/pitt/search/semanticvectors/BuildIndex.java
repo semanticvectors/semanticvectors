@@ -98,7 +98,7 @@ public class BuildIndex {
     
     try {
       TermVectorsFromLucene termVectorIndexer;
-      if (!flagConfig.initialtermvectors().isEmpty()) {
+      if (!flagConfig.initialtermvectors().isEmpty() && !flagConfig.initialtermvectors().equals("random")) {
         // If Flags.initialtermvectors="random" create elemental (random index)
         // term vectors. Recommended to iterate at least once (i.e. -trainingcycles = 2) to
         // obtain semantic term vectors.
@@ -133,6 +133,9 @@ public class BuildIndex {
 
           IncrementalDocVectors.createIncrementalDocVectors(itermVectors, flagConfig, luceneUtils);
         }
+        
+       
+        
           break;
       case INMEMORY:
         DocVectors docVectors = new DocVectors(termVectorIndexer.getSemanticTermVectors(), flagConfig, luceneUtils);
