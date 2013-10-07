@@ -197,7 +197,7 @@ public class TermVectorsFromLucene {
     this.termVectors = new ElementalVectorStore(flagConfig);
     TermsEnum termsEnum = null; // Empty terms enum, encouraged for reuse in Lucene documentation.
 
-    if (!flagConfig.initialtermvectors().isEmpty()) {
+    if (!flagConfig.initialtermvectors().isEmpty() && !flagConfig.initialtermvectors().equals("random")) {
       VerbatimLogger.info("Using elemental term vectors from file " + flagConfig.initialtermvectors());
       CloseableVectorStore inputReader = VectorStoreReader.openVectorStore(flagConfig.initialtermvectors(), flagConfig);
       Enumeration<ObjectVector> termEnumeration = inputReader.getAllVectors();
