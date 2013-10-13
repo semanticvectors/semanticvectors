@@ -205,4 +205,9 @@ public class IncrementalTermVectors implements VectorStore {
     VectorStore termVectors = new IncrementalTermVectors(flagConfig, new LuceneUtils(flagConfig));
     VectorStoreWriter.writeVectors(flagConfig.termvectorsfile(), flagConfig, termVectors);
   }
+  
+  @Override
+  public boolean containsVector(Object object) {
+	  return this.getVector(object) != null;
+  }
 }

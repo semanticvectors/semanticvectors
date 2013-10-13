@@ -103,4 +103,10 @@ public class VectorStoreDeterministic implements VectorStore {
        return v;
      }
    }
+   
+   @Override
+   public boolean containsVector(Object object) {
+ 	  return objectVectors.containsKey(object);
+   }
+   
 }

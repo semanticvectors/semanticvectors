@@ -220,4 +220,9 @@ public class DocVectors implements VectorStore {
   public int getNumVectors() {
     return this.docVectors.getNumVectors();
   }
+  
+  @Override
+  public boolean containsVector(Object object) {
+	  return this.getVector(object) != null;
+  }
 }

@@ -114,4 +114,9 @@ public class ElementalVectorStore implements VectorStore{
   public int getNumVectors() {
     return backingStore.getNumVectors();
   }
+  
+  @Override
+  public boolean containsVector(Object object) {
+	  return backingStore.containsVector(object);
+  }
 }
