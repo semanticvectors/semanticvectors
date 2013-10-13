@@ -220,4 +220,10 @@ public class VectorStoreReaderText implements CloseableVectorStore {
       }
     }
   }
+  
+  @Override
+  public boolean containsVector(Object object) {
+	  return this.getVector(object) != null;
+  }
+  
 }

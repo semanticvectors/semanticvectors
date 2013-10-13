@@ -148,4 +148,10 @@ public class VectorStoreRAM implements VectorStore {
       return null;
     }
   }
+  
+  @Override
+  public boolean containsVector(Object object) {
+	  return objectVectors.containsKey(object);
+  }
+  
 }

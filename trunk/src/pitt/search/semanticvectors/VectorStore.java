@@ -60,10 +60,16 @@ public interface VectorStore {
   //public int getDimension();
   
   /**
-   * Returns the vector stored for this object, or {@code null} if none is present.
+   * Returns the vector stored for this object.
    * (Support is only tested for {@code String} objects.)
    */
   public Vector getVector(Object object);
+  
+  /**
+   * Returns true if the vector store contains a vector for this object
+   * (Support is only tested for {@code String} objects.)
+   */
+  public boolean containsVector(Object object);
 
   /**
    * Returns an enumeration of all the object vectors in the store.

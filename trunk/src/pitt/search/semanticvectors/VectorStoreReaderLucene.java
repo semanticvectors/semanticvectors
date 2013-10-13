@@ -204,7 +204,7 @@ public class VectorStoreReaderLucene implements CloseableVectorStore {
     }
     return i;
   }
-
+  
   /**
    * Implements the hasMoreElements() and nextElement() methods
    * to give Enumeration interface from store on disk.
@@ -233,4 +233,10 @@ public class VectorStoreReaderLucene implements CloseableVectorStore {
       return new ObjectVector(object, vector);
     }
   }
+  
+  @Override
+  public boolean containsVector(Object object) {
+	  return this.getVector(object) != null;
+  }
+
 }

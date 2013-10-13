@@ -92,10 +92,12 @@ public class PSI {
     Random random = new Random();
     flagConfig.setContentsfields(itemFields);
 
+    HashSet<String> addedConcepts = new HashSet<String>();
+    
+    
     for (String fieldName : itemFields) {
       Terms terms = luceneUtils.getTermsForField(fieldName);
       TermsEnum termsEnum = terms.iterator(null);
-      HashSet<String> addedConcepts = new HashSet<String>();
       BytesRef bytes;
       while((bytes = termsEnum.next()) != null) {
         Term term = new Term(fieldName, bytes);
@@ -126,13 +128,7 @@ public class PSI {
         continue;
       }
 
-      if (flagConfig.deterministicvectors())
-        random.setSeed(Bobcat.asLong(term.text().trim()));
-
       predicateVectors.getVector(term.text().trim());
-
-      if (flagConfig.deterministicvectors())
-        random.setSeed(Bobcat.asLong(term.text().trim()+"-INV"));
 
       // Add an inverse vector for the predicates.
       predicateVectors.getVector(term.text().trim()+"-INV");
@@ -160,6 +156,12 @@ public class PSI {
       String predicate = document.get(PREDICATE_FIELD);
       String object = document.get(OBJECT_FIELD);
 
+      
+      if (!(elementalItemVectors.containsVector(object) && elementalItemVectors.containsVector(subject) && predicateVectors.containsVector(predicate))) {	  
+          logger.info("skipping predication " + subject + " " + predicate + " " + object);
+          continue;
+        }
+      
       float sWeight =1;
       float oWeight =1;
       float pWeight =1;
@@ -175,11 +177,6 @@ public class PSI {
       Vector object_elementalvector = elementalItemVectors.getVector(object);
       Vector predicate_vector = predicateVectors.getVector(predicate);
       Vector predicate_vector_inv = predicateVectors.getVector(predicate+"-INV");
-
-      if (subject_semanticvector == null || object_semanticvector == null || predicate_vector == null) {	  
-        logger.info("skipping predication " + subject + " " + predicate + " " + object);
-        continue;
-      }
 
       object_elementalvector.bind(predicate_vector);
       subject_semanticvector.superpose(object_elementalvector, pWeight*oWeight, null);

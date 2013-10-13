@@ -95,4 +95,10 @@ public class VectorStoreOrthographical implements VectorStore, CloseableVectorSt
       return v;
     }
   }
+  
+  @Override
+  public boolean containsVector(Object object) {
+	  return objectVectors.containsKey(object);
+  }
+  
 }
