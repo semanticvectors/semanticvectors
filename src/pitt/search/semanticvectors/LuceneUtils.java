@@ -444,13 +444,5 @@ public class LuceneUtils {
   }
   */
   
-  public static void main(String[] args) throws IOException
-  {
-	  String[] farg = {"-luceneindexpath","/home/tcohen/SEMREP13june/predication_index"};
-	  FlagConfig flagConfig = FlagConfig.getFlagConfig(farg);
-	  LuceneUtils lUtils = new LuceneUtils(flagConfig);
-	  System.out.println(lUtils.getGlobalTermFreq(new Term("subject","haloperidol")));
-  }
-  
   
 }
