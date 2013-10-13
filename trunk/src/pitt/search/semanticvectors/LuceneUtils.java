@@ -188,16 +188,10 @@ public class LuceneUtils {
    */
   public int getGlobalTermFreq(Term term) {
 	int tf = 0;
+	
     try {
-      DocsEnum docsEnum = this.getDocsForTerm(term);
-      if (docsEnum == null) {
-        logger.info("Couldn't get term frequency for term " + term.text());
-        return 1;
-      }
-      while((docsEnum.nextDoc()) != DocsEnum.NO_MORE_DOCS) {
-        tf += docsEnum.freq();
-      }
-    }
+		   tf  = (int) compositeReader.totalTermFreq(term);
+    	}
     catch (IOException e) {
       logger.info("Couldn't get term frequency for term " + term.text());
       return 1;
@@ -205,6 +199,8 @@ public class LuceneUtils {
     return tf;
   }
 
+  
+  
   /**
    * Gets a term weight for a string, adding frequency over occurrences
    * in all contents fields.
@@ -447,4 +443,14 @@ public class LuceneUtils {
     }
   }
   */
+  
+  public static void main(String[] args) throws IOException
+  {
+	  String[] farg = {"-luceneindexpath","/home/tcohen/SEMREP13june/predication_index"};
+	  FlagConfig flagConfig = FlagConfig.getFlagConfig(farg);
+	  LuceneUtils lUtils = new LuceneUtils(flagConfig);
+	  System.out.println(lUtils.getGlobalTermFreq(new Term("subject","haloperidol")));
+  }
+  
+  
 }
