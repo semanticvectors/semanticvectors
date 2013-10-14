@@ -38,14 +38,12 @@ package pitt.search.semanticvectors;
 import java.io.IOException;
 import java.util.Enumeration;
 import java.util.HashSet;
-import java.util.Random;
 import java.util.logging.Logger;
 
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.*;
 import org.apache.lucene.util.BytesRef;
 
-import pitt.search.semanticvectors.utils.Bobcat;
 import pitt.search.semanticvectors.utils.VerbatimLogger;
 import pitt.search.semanticvectors.vectors.Vector;
 import pitt.search.semanticvectors.vectors.VectorFactory;
@@ -89,7 +87,6 @@ public class PSI {
     elementalItemVectors = new ElementalVectorStore(flagConfig);
     semanticItemVectors = new VectorStoreRAM(flagConfig);
     predicateVectors = new ElementalVectorStore(flagConfig);
-    Random random = new Random();
     flagConfig.setContentsfields(itemFields);
 
     HashSet<String> addedConcepts = new HashSet<String>();

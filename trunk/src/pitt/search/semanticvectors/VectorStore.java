@@ -38,27 +38,16 @@ package pitt.search.semanticvectors;
 import java.util.Enumeration;
 
 import pitt.search.semanticvectors.vectors.Vector;
-import pitt.search.semanticvectors.vectors.VectorType;
 
 /**
    Classes implementing this interface are used to represent a collection
    of object vectors, including i. methods for accessing individual
    ObjectVectors and ii. an enumeration of all the vectors.
    
-   @author Dominic Widdows
+   @author Dominic Widdows, Trevor Cohen
    @see ObjectVector
 */
 public interface VectorStore {
-  /**
-   * Returns the type of all vectors in the vector store.  (Implementations should enforce homogeneity.)
-   */
-  //public VectorType getVectorType();
-  
-  /**
-   * Returns the dimension of all vectors in the vector store.  (Implementations should enforce homogeneity.)
-   */
-  //public int getDimension();
-  
   /**
    * Returns the vector stored for this object.
    * (Support is only tested for {@code String} objects.)
@@ -66,7 +55,7 @@ public interface VectorStore {
   public Vector getVector(Object object);
   
   /**
-   * Returns true if the vector store contains a vector for this object
+   * Returns true if the vector store already contains a vector for this object.
    * (Support is only tested for {@code String} objects.)
    */
   public boolean containsVector(Object object);

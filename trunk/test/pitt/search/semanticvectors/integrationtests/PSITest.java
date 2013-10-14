@@ -61,10 +61,7 @@ public class PSITest {
     }
   }
 
-  @Test
-  public void testBuildAndSearchPSIIndex() throws IOException, IllegalArgumentException, Exception {
-    // binary edition
-    String buildCmd = "-dimension 1000 -maxnonalphabetchars 20 -vectortype binary -luceneindexpath predication_index";
+  private int psiBuildSearchGetRank(String buildCmd, String searchCmd, String targetTerm) throws IOException {
     String[] filesToBuild = new String[] {"elementalvectors.bin", "predicatevectors.bin", "semanticvectors.bin"};
     String[] buildArgs = buildCmd.split("\\s+");
     for (String fn : filesToBuild) {
@@ -76,7 +73,6 @@ public class PSITest {
     PSI.main(buildArgs);
     for (String fn: filesToBuild) assertTrue((new File(fn)).isFile());
 
-    String searchCmd = "-searchtype boundproduct -queryvectorfile semanticvectors.bin -boundvectorfile predicatevectors.bin -searchvectorfile elementalvectors.bin -matchcase mexico HAS_CURRENCY";
     String[] searchArgs = searchCmd.split("\\s+");
     List<SearchResult> results = Search.RunSearch(FlagConfig.getFlagConfig(searchArgs));
     int rank = 1;
@@ -85,42 +81,50 @@ public class PSITest {
     } else {
       for (SearchResult result : results) {
         String term = (String) result.getObjectVector().getObject();
-        if (term.contains("mexican_peso")) break;
+        if (term.contains(targetTerm)) break;
         ++rank;
       }
     }
-    assertTrue(rank < 2);
 
     for (String fn: filesToBuild) {
       System.err.println("Deleting file: " + fn);
       assertTrue("Failed to delete file: " + fn, (new File(fn)).delete());
     }
+    return rank;
+  }
 
-    // complex edition
-    buildCmd = "-dimension 1000 -maxnonalphabetchars 20 -vectortype complex -seedlength 1000 -luceneindexpath predication_index";
-    buildArgs = buildCmd.split("\\s+");
-    for (String fn : filesToBuild) {
-      if (new File(fn).isFile()) {
-        new File(fn).delete();
-      }
-      assertFalse((new File(fn)).isFile());
-    }
-    PSI.main(buildArgs);
-    for (String fn: filesToBuild) assertTrue((new File(fn)).isFile());
-
-    results = Search.RunSearch(FlagConfig.getFlagConfig(searchArgs));
-    rank = 1;
-    if (results.isEmpty()) {
-      throw new RuntimeException("Results were empty!");
-    } else {
-      for (SearchResult result : results) {
-        String term = (String) result.getObjectVector().getObject();
-        if (term.contains("mexican_peso")) break;
-        ++rank;
-      }
-    }
+  /** Real PSI appears to not work - unsure why.
+  @Test
+  public void testBuildAndSearchRealPSIIndex() throws IOException, IllegalArgumentException {
+    String buildCmd = "-dimension 1000 -maxnonalphabetchars 20 -vectortype real -seedlength 500 -luceneindexpath predication_index";
+    String searchCmd = "-searchtype boundproduct -queryvectorfile semanticvectors.bin -boundvectorfile predicatevectors.bin -searchvectorfile elementalvectors.bin -matchcase mexico HAS_CURRENCY";
+    int rank = psiBuildSearchGetRank(buildCmd, searchCmd, "mexican_peso");
     assertTrue(rank < 2);
+  }
+  */
+  
+  @Test
+  public void testBuildAndSearchRealPermutationPSIIndex() throws IOException, IllegalArgumentException {
+    String buildCmd = "-dimension 1000 -maxnonalphabetchars 20 -vectortype real -seedlength 500 -realbindmethod permutation -luceneindexpath predication_index";
+    String searchCmd = "-searchtype boundproduct -realbindmethod permutation -queryvectorfile semanticvectors.bin -boundvectorfile predicatevectors.bin -searchvectorfile elementalvectors.bin -matchcase mexico HAS_CURRENCY";
+    int rank = psiBuildSearchGetRank(buildCmd, searchCmd, "mexican_peso");
+    assertTrue(rank < 2);
+  }
 
-    for (String fn: filesToBuild) assertTrue((new File(fn)).delete());
+  @Test
+  public void testBuildAndSearchBinaryPSIIndex() throws IOException, IllegalArgumentException {
+    String buildCmd = "-dimension 4096 -maxnonalphabetchars 20 -vectortype binary -luceneindexpath predication_index";
+    String searchCmd = "-searchtype boundproduct -queryvectorfile semanticvectors.bin -boundvectorfile predicatevectors.bin -searchvectorfile elementalvectors.bin -matchcase mexico HAS_CURRENCY";
+    int rank = psiBuildSearchGetRank(buildCmd, searchCmd, "mexican_peso");
+    assertTrue(rank < 2);
+  }
+
+  @Test
+  public void testBuildAndSearchComplexPSIIndex() throws IOException, IllegalArgumentException {
+    String buildCmd = "-dimension 1000 -maxnonalphabetchars 20 -vectortype complex -seedlength 1000 -luceneindexpath predication_index";
+    String searchCmd = "-searchtype boundproduct -queryvectorfile semanticvectors.bin -boundvectorfile predicatevectors.bin -searchvectorfile elementalvectors.bin -matchcase mexico HAS_CURRENCY";
+    int rank = psiBuildSearchGetRank(buildCmd, searchCmd, "mexican_peso");
+    assertTrue(rank < 2);
   }
 }
+
