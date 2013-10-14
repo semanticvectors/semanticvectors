@@ -98,8 +98,8 @@ public class BuildIndex {
 
     try {
       TermVectorsFromLucene termVectorIndexer;
-      if (!flagConfig.initialtermvectors().isEmpty()
-          && !flagConfig.initialtermvectors().equals("random")) {
+      if (flagConfig.initialtermvectors().isEmpty()
+          || flagConfig.initialtermvectors().equals("random")) {
         // If Flags.initialtermvectors="random" create elemental (random index)
         // term vectors. Recommended to iterate at least once (i.e. -trainingcycles = 2) to
         // obtain semantic term vectors.
