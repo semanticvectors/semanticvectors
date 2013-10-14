@@ -37,4 +37,40 @@ public class CompareTermsTest {
     outcome = CompareTerms.runCompareTerms(flagConfig);
     assertEquals(1, outcome, TOL);
   }
+  
+  @Test
+  public void testCompareTermsComplexOrthographic() throws IOException {
+    FlagConfig flagConfig = FlagConfig.getFlagConfig(
+        new String[] {"-elementalmethod", "orthographic", "-vectortype", "complex", "-seedlength", "100", "foo", "bar"});
+    double outcome = CompareTerms.runCompareTerms(flagConfig);
+    assertTrue(0.3 > outcome);
+    
+    flagConfig = FlagConfig.getFlagConfig(
+        new String[] {"-elementalmethod", "orthographic", "-vectortype", "complex", "-seedlength", "100", "foo", "oof"});
+    outcome = CompareTerms.runCompareTerms(flagConfig);
+    assertTrue(0.9 < outcome);
+    
+    flagConfig = FlagConfig.getFlagConfig(
+        new String[] {"-elementalmethod", "orthographic", "-vectortype", "complex", "-seedlength", "100", "foo", "foo"});
+    outcome = CompareTerms.runCompareTerms(flagConfig);
+    assertEquals(1, outcome, TOL);
+  }
+  
+  @Test
+  public void testCompareTermsComplexFlatOrthographic() throws IOException {    
+    FlagConfig flagConfig = FlagConfig.getFlagConfig(
+        new String[] {"-elementalmethod", "orthographic", "-vectortype", "complexflat", "-seedlength", "100", "foo", "bar"});
+    double outcome = CompareTerms.runCompareTerms(flagConfig);
+    assertTrue(0.3 > outcome);
+    
+    flagConfig = FlagConfig.getFlagConfig(
+        new String[] {"-elementalmethod", "orthographic", "-vectortype", "complexflat", "-seedlength", "100", "foo", "oof"});
+    outcome = CompareTerms.runCompareTerms(flagConfig);
+    assertTrue(0.9 < outcome);
+    
+    flagConfig = FlagConfig.getFlagConfig(
+        new String[] {"-elementalmethod", "orthographic", "-vectortype", "complexflat", "-seedlength", "100", "foo", "foo"});
+    outcome = CompareTerms.runCompareTerms(flagConfig);
+    assertEquals(1, outcome, TOL);
+  }
 }
