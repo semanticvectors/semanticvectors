@@ -80,7 +80,7 @@ public class SentenceVectors {
       if (incoming == null)
       {
         random.setSeed(Bobcat.asLong(word));
-        incoming = VectorFactory.generateRandomVector(flagConfig.vectortype(), flagConfig.dimension(), flagConfig.seedlength, random);
+        incoming = VectorFactory.generateRandomVector(flagConfig.vectortype(), flagConfig.dimension(), flagConfig.seedlength(), random);
         //System.out.println("adding "+word);
         termVectors.putVector(word, incoming.copy());
       }
