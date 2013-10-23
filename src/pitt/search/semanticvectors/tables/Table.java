@@ -37,7 +37,7 @@ public class Table {
     this.columnTypes = new TypeSpec[columnNames.length];
     for (int i = 0; i < columnNames.length; ++i) {
       Vector columnNameVector = VectorFactory.generateRandomVector(
-          flagConfig.vectortype(), flagConfig.dimension(), flagConfig.seedlength,
+          flagConfig.vectortype(), flagConfig.dimension(), flagConfig.seedlength(),
           new Random(Bobcat.asLong(columnNames[i])));
       this.columnHeaders[i] = new ObjectVector(columnNames[i], columnNameVector);
     }

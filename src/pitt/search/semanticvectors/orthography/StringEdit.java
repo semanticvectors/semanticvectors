@@ -107,7 +107,7 @@ public class StringEdit {
 
       Vector toAdd = getStringVector(theTerm, OV, theLetters, flagConfig);
 
-      if (flagConfig.hybridvectors())  //combine -queryvectorfile and orthographic vectors 
+      if (flagConfig.hybridorthographicvectors())  //combine -queryvectorfile and orthographic vectors 
       {
         toAdd.superpose(theVSR.getVector(theTerm), 1, null);
         toAdd.normalize();
@@ -128,7 +128,7 @@ public class StringEdit {
     System.out.println(flagConfig.dimension());
     System.out.println(flagConfig.vectortype());
 
-    if (flagConfig.hybridvectors()) VectorStoreWriter.writeVectors("hybridvectors.bin", flagConfig,twoVSR);
+    if (flagConfig.hybridorthographicvectors()) VectorStoreWriter.writeVectors("hybridvectors.bin", flagConfig,twoVSR);
     else VectorStoreWriter.writeVectors("editvectors.bin", flagConfig,twoVSR);
     VectorStoreWriter.writeVectorsInLuceneFormat("numbervectors.bin", flagConfig, OOV);
     VectorStoreWriter.writeVectorsInLuceneFormat("lettervectors.bin", flagConfig, theLetters);
@@ -172,7 +172,7 @@ public class StringEdit {
       Vector incoming = null;
 
       random.setSeed(Bobcat.asLong(letter));
-      incoming = VectorFactory.generateRandomVector(flagConfig.vectortype(), flagConfig.dimension(), flagConfig.seedlength, random);
+      incoming = VectorFactory.generateRandomVector(flagConfig.vectortype(), flagConfig.dimension(), flagConfig.seedlength(), random);
 
       if (theLetters.getVector(letter) == null) {
         //System.out.println("adding "+letter);

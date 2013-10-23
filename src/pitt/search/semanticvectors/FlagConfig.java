@@ -106,7 +106,7 @@ public class FlagConfig {
   /** The method used for generating elemental vectors. */
   public ElementalGenerationMethod elementalmethod() { return elementalmethod; }
   
-  public int seedlength = 10;
+  private int seedlength = 10;
   /** Number of nonzero entries in a sparse random vector, default value 10 except for
    * when {@link #vectortype()} is {@link VectorType#BINARY}, in which case default of
    * {@link #dimension()} / 2 is enforced by {@link #makeFlagsCompatible()}.
@@ -129,14 +129,10 @@ public class FlagConfig {
   /** If {@code true}, terms containing only numeric characters are filtered out during indexing, default value {@code true}. */
   public boolean filteroutnumbers() { return filteroutnumbers; }
 
-  private boolean hybridvectors = false;
+  private boolean hybridorthographicvectors = false;
   /** If {@code true}, the StringEdit Class will produce hybrid vectors where each term vector = orthographic vector + semantic vector (from -queryvectorfile), default value {@code false}. */
-  public boolean hybridvectors() { return hybridvectors; }
-  
-  private boolean deterministicvectors = false;
-  /** If {@code true}, deterministic vectors will be used throughout indexing, using {@code pitt.search.semanticvectors.hashing}. */
-  public boolean deterministicvectors() { return deterministicvectors; }
-  
+  public boolean hybridorthographicvectors() { return hybridorthographicvectors; }
+
   private int numsearchresults = 20;
   /** Number of search results to return, default value 20. */
   public int numsearchresults() { return numsearchresults; }
