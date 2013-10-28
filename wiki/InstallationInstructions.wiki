@@ -48,7 +48,7 @@ As well as the Lucene and Java prerequisites, you will also need to install [htt
 
 ==Compiling from Source - Most Recent Development Installation==
 
-_As of Revision 931, the main trunk depends on Lucene 4.3. This requires dependencies on lucene-analyzers-common and lucene-queryparser, as well as core and demos. These packages are included in Lucene 4.3., so it's just a question of adding these to your classpath. This requirement will soon apply to the main package distribution as well as for checking out from source._
+_As of Revision 931, the main trunk depends on Lucene 4.3 and ParallelColt. This requires dependencies on lucene-analyzers-common and lucene-queryparser, as well as core and demos. These packages are included in Lucene 4.3., so it's a question of adding these to your classpath. ParallelColt must be installed and included separately. These requirements will soon apply to the main package distribution as well as for checking out from source._
 
 If you might be making changes to the code, or want to try out new features that are checked in but not yet in the numbered releases, please consider checking out the most recent version from the svn repository. If you make changes that turn out to be useful, please write to us and tell us about them, and we'll probably urge you to submit them to the repository.
 
