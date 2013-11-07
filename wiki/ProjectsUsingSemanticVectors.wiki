@@ -14,3 +14,6 @@ Ulli Waltinger, Irene Cramer, and Tonio Wandmacher.
 Proceedings of the Annual Meeting of the Cognitive Science Society - CogSci 2009, Amsterdam (NL), 2009.
 
 http://www.ulliwaltinger.de/pdf/Cogsci2009_From-Social%20Networks-To-Distributional-Properties_WaltingerCramerWandmacher.pdf
+
+A Semantic Space for Archaeology: Towards Descriptive Ontologies for Archaeology. Georgia Burnett (with thanks to Brian Ballsun-Stanton).
+https://www.fedarch.org/wordpress/what-does-a-23-thousand-bigram-word-cloud-look-like-an-honours-thesis/
