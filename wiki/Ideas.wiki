@@ -6,7 +6,8 @@ There are many natural ideas and suggestions for things to try with SemanticVect
 
 == Engineering TODOs and Suggestions ==
 
- * Make the project work with Maven (see also [https://groups.google.com/forum/#!topic/semanticvectors/qCy0PaL7Nuo Maven artifact discussion]).
+ * Make the project work with Maven (in progress - see https://code.google.com/p/semanticvectors/issues/detail?id=73).
+
  * Make a couple of small user interfaces for demos (Swing client, simple Web client).
 
 These are things Dominic hopes to get round to. Any other engineer who jumps in before me and tackles any of these successfully could be paid in [http://linkedin.com LinkedIn] endorsements, letters of reference, drinks, chocolate - you choose.
