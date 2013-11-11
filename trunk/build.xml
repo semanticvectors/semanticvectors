@@ -35,14 +35,14 @@
   </condition>
 
   <property name="basedir" value="."/>
-  <property name="builddir" value="${basedir}/build"/>
+  <property name="builddir" value="${basedir}/target"/>
   <property name="buildclassesdir" value="${builddir}/classes"/>
   <property name="distdir" value="${basedir}/dist"/>
   <property name="distname" value="semanticvectors-${version}"/>
   <property name="docdir" value="${basedir}/doc"/>  
-  <property name="srcdir" value="${basedir}/src"/>
-  <property name="testdir" value="${basedir}/test"/>
-  <property name="testtmpdir" value="${testdir}/testdata/tmp"/>
+  <property name="srcdir" value="${basedir}/src/main/java"/>
+  <property name="testdir" value="${basedir}/src/test/java"/>
+  <property name="testtmpdir" value="${basedir}/tmp"/>
   <property name="extdir" value="${basedir}/src-ext"/>
   <property name="dist-doc.dir" value="./../javadoc/latest-stable-test"/>
 
@@ -65,16 +65,7 @@
     <mkdir dir="${distdir}"/>
   </target>
 
-  <target name="compile-deps" depends="init">
-    <javac srcdir="./thirdparty"
-           destdir="${buildclassesdir}"
-           debug="on"
-           classpathref="compile.classpath"
-           includeantruntime="false"
-           />
-  </target>
-
-  <target name="compile" depends="init,compile-deps">
+  <target name="compile" depends="init">
     <javac srcdir="${srcdir}"
            classpathref="compile.classpath"
            destdir="${buildclassesdir}"
@@ -129,6 +120,8 @@
     <delete dir="${builddir}"/>
     <delete dir="${distdir}"/>
     <delete dir="${testtmpdir}"/>
+    <delete dir="positional_index"/>
+    <delete dir="predication_index"/>
     <!-- Only delete html files from ${docdir} - don't delete
          directories since this is part of svn tree -->
     <delete>    
@@ -164,9 +157,9 @@
   <target name="run-integration-tests" depends="compile-tests,jardist">
   	<!-- This test configuration includes some quick and dirty filesystem
       	 operations to make sure that the working dir starts and finishes empty. -->
-    <delete dir="${testtmpdir}"/>
-    <mkdir dir="${testtmpdir}"/>
-    <java fork="true" dir="${basedir}"
+    <delete dir="positional_index"/>
+    <delete dir="predication_index"/>
+    <java fork="true"
           classpathref="run.classpath"
           classname="pitt.search.semanticvectors.integrationtests.RunTests"/>
     <!--
