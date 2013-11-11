@@ -1,0 +1,89 @@
+<project>
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>pitt.search</groupId>
+  <artifactId>semanticvectors</artifactId>
+  <version>4.1</version>
+
+  <licenses>
+    <license>
+      <name>The (New) BSD License</name>
+      <url>http://opensource.org/licenses/BSD-3-Clause</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+
+  <properties>
+    <luceneversion>4.5.0</luceneversion>
+    <!-- Override using "mvn install -DskipTests=false". -->
+    <skipTests>true</skipTests>
+  </properties>
+
+  <build>
+    <plugins>
+      <plugin>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>2.4.1</version>
+        <configuration>
+          <skipTests>${skipTests}</skipTests>
+        </configuration>
+      </plugin>
+      <plugin>
+	<artifactId>maven-clean-plugin</artifactId>
+	<version>2.5</version>
+	<configuration>
+	  <filesets>
+            <fileset>
+              <directory>predication_index</directory>
+	    </fileset>
+	    <fileset>
+              <directory>positional_index</directory>
+	    </fileset>
+	    <fileset>
+              <directory>.</directory>
+              <includes>
+		<include>testtermvectors.txt</include>
+              </includes>
+            </fileset>
+	  </filesets>
+	</configuration>
+      </plugin>
+    </plugins>
+  </build>
+
+  <dependencies>  
+    <dependency>  
+      <groupId>org.apache.lucene</groupId>  
+      <artifactId>lucene-core</artifactId>
+      <version>${luceneversion}</version>  
+    </dependency>  
+    <dependency>  
+      <groupId>org.apache.lucene</groupId>  
+      <artifactId>lucene-demo</artifactId>
+      <version>${luceneversion}</version>  
+    </dependency>  
+    <dependency>  
+      <groupId>org.apache.lucene</groupId>  
+      <artifactId>lucene-analyzers-common</artifactId>
+      <version>${luceneversion}</version>  
+    </dependency>  
+    <dependency>  
+      <groupId>org.apache.lucene</groupId>  
+      <artifactId>lucene-queryparser</artifactId>
+      <version>${luceneversion}</version>  
+    </dependency> 
+    <dependency> 
+      <groupId>net.sourceforge.parallelcolt</groupId>
+      <artifactId>parallelcolt</artifactId>
+      <version>0.10.0</version>
+    </dependency>
+    <dependency>
+      <groupId>junit</groupId>  
+      <artifactId>junit</artifactId>  
+      <version>4.11</version>  
+      <scope>test</scope>  
+    </dependency>  
+  </dependencies>
+</project>
+
+
+
