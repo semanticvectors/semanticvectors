@@ -39,7 +39,7 @@
   <property name="buildclassesdir" value="${builddir}/classes"/>
   <property name="distdir" value="${basedir}/dist"/>
   <property name="distname" value="semanticvectors-${version}"/>
-  <property name="docdir" value="${basedir}/doc"/>  
+  <property name="docdir" value="${basedir}/target/site/apidocs/"/>  
   <property name="srcdir" value="${basedir}/src/main/java"/>
   <property name="testdir" value="${basedir}/src/test/java"/>
   <property name="testtmpdir" value="${basedir}/tmp"/>
@@ -122,13 +122,6 @@
     <delete dir="${testtmpdir}"/>
     <delete dir="positional_index"/>
     <delete dir="predication_index"/>
-    <!-- Only delete html files from ${docdir} - don't delete
-         directories since this is part of svn tree -->
-    <delete>    
-      <fileset dir="${docdir}">
-        <include name="**/*.html"/>
-      </fileset>
-    </delete>
   </target>
 
   <!-- Compile and run tests. -->
