@@ -74,8 +74,7 @@ abstract public class VectorSearcher {
     Enumeration<ObjectVector> allVectors = searchVecStore.getAllVectors();
     ArrayList<ObjectVector> storeVectors = new ArrayList<ObjectVector>();
 
-    while (allVectors.hasMoreElements())
-    {
+    while (allVectors.hasMoreElements()) {
       ObjectVector nextObjectVector = allVectors.nextElement();
       nusearchspace.putVector(nextObjectVector.getObject(), nextObjectVector.getVector());
       storeVectors.add(nextObjectVector);
@@ -87,7 +86,6 @@ abstract public class VectorSearcher {
         Vector vec2 = storeVectors.get(y).getVector().copy();
         String obj1 = storeVectors.get(x).getObject().toString();
         String obj2 = storeVectors.get(y).getObject().toString();
-
 
         vec1.release(vec2);
         nusearchspace.putVector(obj2+":"+obj1, vec1);
