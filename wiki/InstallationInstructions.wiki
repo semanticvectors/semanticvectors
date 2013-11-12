@@ -44,7 +44,7 @@ As well as the Lucene and Java prerequisites, you will also need to install [htt
    * create a file build.properties that contains a line `libdir=directorypath` where `directorypath` is the path to the directory that contains the jars
    * create a directory with the name `lib` in the current directory and add the jar files to that  directory
  * Compile just by typing `ant` at the command line. This should create `build` and `doc` directories. The compiles classes are in the `build` directory. 
- * Make sure that either the resulting `build/classes` directory or `build/*.jar` file is in your `CLASSPATH`.
+ * Make sure that either the resulting `target/classes` directory or `target/*.jar` file is in your `CLASSPATH`.
 
 ==Compiling from Source - Most Recent Development Installation==
 
