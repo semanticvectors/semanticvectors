@@ -77,8 +77,19 @@ public class VectorStoreRAM implements VectorStore {
     this.dimension = flagConfig.dimension();
     zeroVector = VectorFactory.createZeroVector(vectorType, dimension);
   }
+    
+  /**
+   * Returns a new vector store, initialized from disk with the given vectorFile.
+   *
+   * Dimension and vector type from store on disk may overwrite any previous values in flagConfig.
+   **/
+  public static VectorStoreRAM readFromFile(FlagConfig flagConfig, String vectorFile) throws IOException {
+    VectorStoreRAM store = new VectorStoreRAM(flagConfig);
+    store.initFromFile(vectorFile);
+    return store;
+  }
   
-  // Initialization routine.
+  /** Initializes a vector store from disk. */
   public void initFromFile(String vectorFile) throws IOException {
     CloseableVectorStore vectorReaderDisk = VectorStoreReader.openVectorStore(vectorFile, flagConfig);
     Enumeration<ObjectVector> vectorEnumeration = vectorReaderDisk.getAllVectors();
