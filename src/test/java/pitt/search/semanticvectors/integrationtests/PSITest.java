@@ -93,7 +93,7 @@ public class PSITest {
     return rank;
   }
 
-  /** Real PSI appears to not work - unsure why.
+  /* Real PSI appears to not work - unsure why.
   @Test
   public void testBuildAndSearchRealPSIIndex() throws IOException, IllegalArgumentException {
     String buildCmd = "-dimension 1000 -maxnonalphabetchars 20 -vectortype real -seedlength 500 -luceneindexpath ";
