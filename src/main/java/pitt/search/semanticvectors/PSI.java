@@ -153,37 +153,35 @@ public class PSI {
       String predicate = document.get(PREDICATE_FIELD);
       String object = document.get(OBJECT_FIELD);
 
-      
-      if (!(elementalItemVectors.containsVector(object) && elementalItemVectors.containsVector(subject) && predicateVectors.containsVector(predicate))) {	  
+      if (!(elementalItemVectors.containsVector(object)
+          && elementalItemVectors.containsVector(subject)
+          && predicateVectors.containsVector(predicate))) {	  
           logger.info("skipping predication " + subject + " " + predicate + " " + object);
           continue;
         }
       
-      float sWeight =1;
-      float oWeight =1;
-      float pWeight =1;
+      float sWeight = 1;
+      float oWeight = 1;
+      float pWeight = 1;
 
       sWeight = luceneUtils.getGlobalTermWeight(new Term(SUBJECT_FIELD, subject));
       oWeight = luceneUtils.getGlobalTermWeight(new Term(OBJECT_FIELD, object));
       // TODO: Explain different weighting for predicates, log(occurrences of predication)
       pWeight = (float) Math.log(1 + luceneUtils.getGlobalTermFreq(term));
 
-      Vector subject_semanticvector = semanticItemVectors.getVector(subject);
-      Vector object_semanticvector = semanticItemVectors.getVector(object);
-      Vector subject_elementalvector = elementalItemVectors.getVector(subject);
-      Vector object_elementalvector = elementalItemVectors.getVector(object);
-      Vector predicate_vector = predicateVectors.getVector(predicate);
-      Vector predicate_vector_inv = predicateVectors.getVector(predicate+"-INV");
+      Vector subjectSemanticvector = semanticItemVectors.getVector(subject).copy();
+      Vector objectSemanticvector = semanticItemVectors.getVector(object).copy();
+      Vector subjectElementalvector = elementalItemVectors.getVector(subject).copy();
+      Vector objectElementalvector = elementalItemVectors.getVector(object).copy();
+      Vector predicateVector = predicateVectors.getVector(predicate);
+      Vector predicateVectorInv = predicateVectors.getVector(predicate+"-INV");
 
-      object_elementalvector.bind(predicate_vector);
-      subject_semanticvector.superpose(object_elementalvector, pWeight*oWeight, null);
-      object_elementalvector.release(predicate_vector);
+      objectElementalvector.bind(predicateVector);
+      subjectSemanticvector.superpose(objectElementalvector, pWeight*oWeight, null);
 
-      subject_elementalvector.bind(predicate_vector_inv);
-      object_semanticvector.superpose(subject_elementalvector, pWeight*sWeight, null);
-      subject_elementalvector.release(predicate_vector_inv);      
+      subjectElementalvector.bind(predicateVectorInv);
+      objectSemanticvector.superpose(subjectElementalvector, pWeight*sWeight, null);
     } // Finish iterating through predications.
-
 
     //Normalize semantic vectors
     Enumeration<ObjectVector> e = semanticItemVectors.getAllVectors();
