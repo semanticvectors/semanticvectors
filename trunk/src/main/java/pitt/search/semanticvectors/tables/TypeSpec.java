@@ -24,7 +24,7 @@ public class TypeSpec {
   private Vector minBookendVector;
   private Vector maxBookendVector;
   
-  /** Returns the {@link type}. */
+  /** Returns the type. */
   public Object getType() {
     return type;
   }
@@ -39,14 +39,14 @@ public class TypeSpec {
     return sb.toString();
   }
   
-  /** Returns the {@link minDoubleValue} if {@link type} is {@link DOUBLE}. */
+  /** Returns the minDoubleValue if type is {@link SupportedType#DOUBLE}. */
   public double getMinDoubleValue() {
     if (type != SupportedType.DOUBLE)
       throw new IllegalArgumentException("Must have type DOUBLE, not " + type);
     return minDoubleValue;
   }
   
-  /** Returns the {@link maxDoubleValue} if {@link type} is {@link DOUBLE}. */
+  /** Returns the maxDoubleValue if type is {@link SupportedType#DOUBLE}. */
   public double getMaxDoubleValue() {
     if (type != SupportedType.DOUBLE)
       throw new IllegalArgumentException("Must have type DOUBLE, not " + type);
@@ -70,7 +70,7 @@ public class TypeSpec {
   
   /**
    * Adds a new example to this TypeSpec. If the new example won't parse as any other {@link SupportedType},
-   * the {@link #type} is set to {@link SupportedType#STRING}. If it parses as a compatible type, the
+   * the internal type is set to {@link SupportedType#STRING}. If it parses as a compatible type, the
    * min and max values are modified accordingly.
    */
   public void addExample(String example) {

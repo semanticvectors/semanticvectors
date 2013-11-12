@@ -84,9 +84,9 @@ public class PathFinder {
 
   /**
    * Constructor that implements the PathFinder network pruning algorithm
-   *@param double q : maximum path lenth
-   *@param double r : the Minkowski distance factor 
-   *@param double[][] similarities: a connectivity matrix
+   *@param q maximum path lenth
+   *@param r the Minkowski distance factor 
+   *@param dish a connectivity matrix
    */
   public PathFinder(int q, double r, double[][] dish)
   { 
