@@ -72,7 +72,7 @@ If this fails or is too daunting (which it may be, there's a lot going on and ge
 
 === Command-Line Flags===
 
-For more on configuration options, see CommandLineFlags. The main useful way to see the full list is (I'm afraid!) just to read the [https://code.google.com/p/semanticvectors/source/browse/trunk/src/pitt/search/semanticvectors/Flags.java source file].
+For more on configuration options, see CommandLineFlags.
 
 == Training Cycles ==
 
