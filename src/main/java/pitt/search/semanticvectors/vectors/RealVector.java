@@ -67,7 +67,7 @@ public class RealVector implements Vector {
     /**
      * Uses convolution operations, as in Mewhort and Jones, BEAGLE.
      * Slower, but optimized using Fast Fourier Transforms.
-     * Approximate inverse, but keeps memoery of slot-filling.
+     * Approximate inverse, but keeps memory of slot-filling.
      */
     CONVOLUTION
   }
@@ -441,8 +441,9 @@ public class RealVector implements Vector {
    */
   public String writeToString() {
     StringBuilder builder = new StringBuilder();
+    float[] denseCoordinates = this.getCoordinates();
     for (int i = 0; i < dimension; ++i) {
-      builder.append(Float.toString(coordinates[i]));
+      builder.append(Float.toString(denseCoordinates[i]));
       if (i != dimension - 1) {
         builder.append("|");
       }
