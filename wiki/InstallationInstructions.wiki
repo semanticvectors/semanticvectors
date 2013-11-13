@@ -54,7 +54,7 @@ If you might be making changes to the code, or want to try out new features that
 
 To checkout from source, see the  [http://code.google.com/p/semanticvectors/source/checkout checkout instructions]. You will need to use [http://subversion.apache.org/ SVN] to checkout the code (for Eclipse users, try [http://subclipse.tigris.org/ Subclipse]).
 
-To build the project, use `ant` as described above, and make sure that either the resulting `build/classes` directory or `build/*.jar` file is in your `CLASSPATH`.
+To build the project, use `ant` as described above, and make sure that either the resulting `target/classes` directory or `target/*.jar` file is in your `CLASSPATH`.
 
 If this fails or is too daunting (which it may be, there's a lot going on and getting everything to work together eventually becomes cumbersome), please don't hesitate to contact the project developers and we'll try to help out or make a new numbered release with the development features you need.
 
