@@ -93,15 +93,13 @@ public class PSITest {
     return rank;
   }
 
-  /* Real PSI appears to not work - unsure why.
   @Test
   public void testBuildAndSearchRealPSIIndex() throws IOException, IllegalArgumentException {
-    String buildCmd = "-dimension 1000 -maxnonalphabetchars 20 -vectortype real -seedlength 500 -luceneindexpath ";
+    String buildCmd = "-dimension 1000 -maxnonalphabetchars 20 -vectortype real -seedlength 500 -luceneindexpath predication_index";
     String searchCmd = "-searchtype boundproduct -queryvectorfile semanticvectors.bin -boundvectorfile predicatevectors.bin -searchvectorfile elementalvectors.bin -matchcase mexico HAS_CURRENCY";
     int rank = psiBuildSearchGetRank(buildCmd, searchCmd, "mexican_peso");
     assertTrue(rank < 2);
   }
-  */
   
   @Test
   public void testBuildAndSearchRealPermutationPSIIndex() throws IOException, IllegalArgumentException {

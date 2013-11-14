@@ -9,10 +9,14 @@ import java.util.List;
 import java.util.Map;
 
 import pitt.search.semanticvectors.FlagConfig;
+import pitt.search.semanticvectors.LuceneUtils;
 import pitt.search.semanticvectors.ObjectVector;
+import pitt.search.semanticvectors.VectorSearcher;
+import pitt.search.semanticvectors.VectorSearcher.VectorSearcherCosine;
 import pitt.search.semanticvectors.VectorStore;
 import pitt.search.semanticvectors.VectorStoreRAM;
 import pitt.search.semanticvectors.vectors.Vector;
+import pitt.search.semanticvectors.vectors.VectorUtils;
 
 /**
  * Experiment for trying to recover the "type" of a semantic vector in a PSI model.
@@ -85,9 +89,30 @@ public class PSITypeLister {
     }
     return result;
   }
-    
+  
+  public static void notUsDollar(PSITypeLister typeLister, FlagConfig flagConfig) {
+    Vector usa = typeLister.elementalVectors.getVector("east_timor");
+    Vector dollar = typeLister.semanticVectors.getVector("united_states_dollar");
+    Vector usesCurrency = typeLister.predicateVectors.getVector("HAS_CURRENCY-INV");
+    Vector countryUsesDollar = dollar.copy();
+    countryUsesDollar.release(usesCurrency);
+    ArrayList<Vector> setToNegate = new ArrayList<>();
+    setToNegate.add(countryUsesDollar);
+    setToNegate.add(usa);
+    VectorUtils.orthogonalizeVectors(setToNegate);
+    countryUsesDollar.normalize();
+    for (ObjectVector testVector : Collections.list(
+        typeLister.elementalVectors.getAllVectors())) {
+      double score = testVector.getVector().measureOverlap(countryUsesDollar);
+      if (score > flagConfig.searchresultsminscore()) {
+        System.out.println(score + " : " + testVector.getObject());
+      }
+    }
+  }
+  
   public static void main(String[] args) throws IOException {
     PSITypeLister typeLister = new PSITypeLister(args);
-    typeLister.printBestRelations();
+    //typeLister.printBestRelations();
+    notUsDollar(typeLister, FlagConfig.getFlagConfig(args));
   }
 }

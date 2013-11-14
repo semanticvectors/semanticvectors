@@ -176,15 +176,13 @@ public class PSI {
       Vector predicateVector = predicateVectors.getVector(predicate);
       Vector predicateVectorInv = predicateVectors.getVector(predicate+"-INV");
 
-      // TODO: Check if this bind and release in-place distorts with apprpximate
-      // inverses, particularly with real vectors.
-      objectElementalvector.bind(predicateVector);
-      subjectSemanticvector.superpose(objectElementalvector, pWeight*oWeight, null);
-      objectElementalvector.release(predicateVector); 
+      Vector objToAdd = objectElementalvector.copy();
+      objToAdd.bind(predicateVector);
+      subjectSemanticvector.superpose(objToAdd, pWeight*oWeight, null);
 
-      subjectElementalvector.bind(predicateVectorInv);
-      objectSemanticvector.superpose(subjectElementalvector, pWeight*sWeight, null);
-      subjectElementalvector.release(predicateVectorInv);  
+      Vector subjToAdd = subjectElementalvector.copy();
+      subjToAdd.bind(predicateVectorInv);
+      objectSemanticvector.superpose(subjToAdd, pWeight*sWeight, null);
     } // Finish iterating through predications.
 
     //Normalize semantic vectors
