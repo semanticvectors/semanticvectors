@@ -169,18 +169,22 @@ public class PSI {
       // TODO: Explain different weighting for predicates, log(occurrences of predication)
       pWeight = (float) Math.log(1 + luceneUtils.getGlobalTermFreq(term));
 
-      Vector subjectSemanticvector = semanticItemVectors.getVector(subject).copy();
-      Vector objectSemanticvector = semanticItemVectors.getVector(object).copy();
-      Vector subjectElementalvector = elementalItemVectors.getVector(subject).copy();
-      Vector objectElementalvector = elementalItemVectors.getVector(object).copy();
+      Vector subjectSemanticvector = semanticItemVectors.getVector(subject);
+      Vector objectSemanticvector = semanticItemVectors.getVector(object);
+      Vector subjectElementalvector = elementalItemVectors.getVector(subject);
+      Vector objectElementalvector = elementalItemVectors.getVector(object);
       Vector predicateVector = predicateVectors.getVector(predicate);
       Vector predicateVectorInv = predicateVectors.getVector(predicate+"-INV");
 
+      // TODO: Check if this bind and release in-place distorts with apprpximate
+      // inverses, particularly with real vectors.
       objectElementalvector.bind(predicateVector);
       subjectSemanticvector.superpose(objectElementalvector, pWeight*oWeight, null);
+      objectElementalvector.release(predicateVector); 
 
       subjectElementalvector.bind(predicateVectorInv);
       objectSemanticvector.superpose(subjectElementalvector, pWeight*sWeight, null);
+      subjectElementalvector.release(predicateVectorInv);  
     } // Finish iterating through predications.
 
     //Normalize semantic vectors
