@@ -46,11 +46,9 @@ import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 
 import pitt.search.semanticvectors.utils.VerbatimLogger;
-import pitt.search.semanticvectors.vectors.BinaryVectorUtils;
 import pitt.search.semanticvectors.vectors.PermutationUtils;
 import pitt.search.semanticvectors.vectors.Vector;
 import pitt.search.semanticvectors.vectors.VectorFactory;
-import pitt.search.semanticvectors.vectors.VectorType;
 import pitt.search.semanticvectors.vectors.VectorUtils;
 
 /**
@@ -74,7 +72,6 @@ public class CompoundVectorBuilder {
   
   private VectorStore vecReader;
   private LuceneUtils lUtils;
-  private FlagConfig flagConfig;
 
   private static final Logger logger =
       Logger.getLogger(CompoundVectorBuilder.class.getCanonicalName());

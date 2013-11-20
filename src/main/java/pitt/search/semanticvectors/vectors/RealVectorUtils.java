@@ -35,7 +35,7 @@
 
 package pitt.search.semanticvectors.vectors;
 
-import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Logger;
 
 import cern.colt.matrix.tfcomplex.impl.DenseFComplexMatrix1D;
@@ -54,13 +54,13 @@ public class RealVectorUtils {
    * vector is orthogonal to all the others, this can be used as a negation function to give an
    * vector for vectors[last] NOT (vectors[0] OR ... OR vectors[last - 1].
    *
-   * @param vectors ArrayList of real vectors to be orthogonalized in place.
+   * @param list ArrayList of real vectors to be orthogonalized in place.
    */
-  public static boolean orthogonalizeVectors(ArrayList<Vector> vectors) {
-    int dimension = vectors.get(0).getDimension();
+  public static boolean orthogonalizeVectors(List<Vector> list) {
+    int dimension = list.get(0).getDimension();
     // Go up through vectors in turn, parameterized by k.
-    for (int k = 0; k < vectors.size(); ++k) {
-      Vector kthVector = vectors.get(k);
+    for (int k = 0; k < list.size(); ++k) {
+      Vector kthVector = list.get(k);
       if (kthVector.getVectorType() != VectorType.REAL) throw new IncompatibleVectorsException();
       kthVector.normalize();
       if (kthVector.getDimension() != dimension) {
@@ -69,7 +69,7 @@ public class RealVectorUtils {
       }
       // Go up to vector k, parameterized by j.
       for (int j = 0; j < k; ++j) {
-        Vector jthVector = vectors.get(j);
+        Vector jthVector = list.get(j);
         double dotProduct = kthVector.measureOverlap(jthVector);
         // Subtract relevant amount from kth vector.
         kthVector.superpose(jthVector, -dotProduct, null);

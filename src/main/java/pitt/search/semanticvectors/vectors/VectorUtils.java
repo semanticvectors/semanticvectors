@@ -36,6 +36,7 @@
 package pitt.search.semanticvectors.vectors;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 import java.util.logging.Logger;
 
@@ -94,22 +95,21 @@ public class VectorUtils {
    * negation function to give an vector for
    * vectors[last] NOT (vectors[0] OR ... OR vectors[last - 1].
    *
-   * @param vectors ArrayList of vectors (which are themselves arrays of
-   * floats) to be orthogonalized in place.
+   * @param list vectors to be orthogonalized in place.
    */
-  public static void orthogonalizeVectors(ArrayList<Vector> vectors) {
-    switch (vectors.get(0).getVectorType()) {
+  public static void orthogonalizeVectors(List<Vector> list) {
+    switch (list.get(0).getVectorType()) {
     case REAL:
-      RealVectorUtils.orthogonalizeVectors(vectors);
+      RealVectorUtils.orthogonalizeVectors(list);
       break;
     case COMPLEX:
-      ComplexVectorUtils.orthogonalizeVectors(vectors);
+      ComplexVectorUtils.orthogonalizeVectors(list);
       break;
     case BINARY:
-      BinaryVectorUtils.orthogonalizeVectors(vectors);
+      BinaryVectorUtils.orthogonalizeVectors(list);
       break;
     default:
-      throw new IncompatibleVectorsException("Type not recognized: " + vectors.get(0).getVectorType());
+      throw new IncompatibleVectorsException("Type not recognized: " + list.get(0).getVectorType());
     }
   }
   
