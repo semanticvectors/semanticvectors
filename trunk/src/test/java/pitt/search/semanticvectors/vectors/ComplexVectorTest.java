@@ -36,6 +36,7 @@
 package pitt.search.semanticvectors.vectors;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Random;
 
 import org.apache.lucene.store.IOContext;
@@ -216,6 +217,15 @@ public class ComplexVectorTest extends TestCase {
     cv1.bind(cv2);
     assertArrayEquals(
         new short[] {13622, ZERO_INDEX, ZERO_INDEX, ZERO_INDEX, 9934}, cv1.getPhaseAngles());
+  }
+  
+  @Test
+  public void testComplexOrthogonalize() {
+    short ZERO_INDEX = CircleLookupTable.ZERO_INDEX;
+    ComplexVector cv = new ComplexVector(new short[] {ZERO_INDEX, 0});
+    ComplexVector cv2 = new ComplexVector(new short[] {0, 0});
+    VectorUtils.orthogonalizeVectors(Arrays.asList(new Vector[] {cv, cv2}));
+    assertArrayEquals(new short[] {0, ZERO_INDEX}, cv2.getPhaseAngles());
   }
 
   @Test

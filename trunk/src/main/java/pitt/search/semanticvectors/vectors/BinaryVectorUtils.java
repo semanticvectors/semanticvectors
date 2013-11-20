@@ -36,6 +36,7 @@
 package pitt.search.semanticvectors.vectors;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 import java.util.logging.Logger;
 
@@ -62,15 +63,14 @@ public class BinaryVectorUtils {
    * negation function to give an vector for
    * vectors[last] NOT (vectors[0] OR ... OR vectors[last - 1].
    *
-   * @param vectors ArrayList of vectors (which are themselves arrays of
-   * floats) to be orthogonalized in place.
+   * @param vectors to be orthogonalized in place.
    */
-  public static boolean orthogonalizeVectors(ArrayList<Vector> vectors) {
-    long dimension = vectors.get(0).getDimension();
+  public static boolean orthogonalizeVectors(List<Vector> list) {
+    long dimension = list.get(0).getDimension();
 
     // Go up through vectors in turn, parameterized by k.
-    for (int k = 0; k < vectors.size(); ++k) {
-      Vector kthVector = vectors.get(k);
+    for (int k = 0; k < list.size(); ++k) {
+      Vector kthVector = list.get(k);
 
       if (kthVector.getDimension() != dimension) {
         System.err.println("In orthogonalizeVector: not all vectors have required dimension.");
@@ -78,7 +78,7 @@ public class BinaryVectorUtils {
       }
       // Go up to vector k, parameterized by j.
       for (int j = 0; j < k; ++j) {
-        Vector jthVector = vectors.get(j);
+        Vector jthVector = list.get(j);
         sampleSubtract(((BinaryVector) kthVector).bitSet, ((BinaryVector) jthVector).bitSet); 
 
       }

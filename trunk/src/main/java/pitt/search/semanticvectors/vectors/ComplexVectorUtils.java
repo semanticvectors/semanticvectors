@@ -1,6 +1,7 @@
 package pitt.search.semanticvectors.vectors;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Logger;
 
 import pitt.search.semanticvectors.vectors.ComplexVector.Mode;
@@ -144,14 +145,13 @@ public class ComplexVectorUtils {
    * negation function to give an vector for
    * vectors[last] NOT (vectors[0] OR ... OR vectors[last - 1].
    *
-   * @param vectors ArrayList of vectors (which are themselves arrays of
-   * floats) to be orthogonalized in place.
+   * @param vectors to be orthogonalized
    */
-  public static boolean orthogonalizeVectors(ArrayList<Vector> vectors) {    
-    int dimension = vectors.get(0).getDimension();
+  public static boolean orthogonalizeVectors(List<Vector> list) {    
+    int dimension = list.get(0).getDimension();
     // Go up through vectors in turn, parameterized by k.
-    for (int k = 0; k < vectors.size(); ++k) {
-      Vector kthVector = vectors.get(k);
+    for (int k = 0; k < list.size(); ++k) {
+      Vector kthVector = list.get(k);
       kthVector.normalize();
       if (kthVector.getDimension() != dimension) {
         logger.warning("In orthogonalizeVector: not all vectors have required dimension.");
@@ -159,7 +159,7 @@ public class ComplexVectorUtils {
       }
       // Go up to vector k, parameterized by j.
       for (int j = 0; j < k; ++j) {
-        Vector jthVector = vectors.get(j);
+        Vector jthVector = list.get(j);
         renderOrthogonal( (ComplexVector) kthVector, (ComplexVector) jthVector);
         // And renormalize each time.
         kthVector.normalize();

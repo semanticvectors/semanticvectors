@@ -91,16 +91,16 @@ public class PSITypeLister {
   }
   
   public static void notUsDollar(PSITypeLister typeLister, FlagConfig flagConfig) {
-    Vector usa = typeLister.elementalVectors.getVector("east_timor");
+    Vector usa = typeLister.elementalVectors.getVector("united_states");
     Vector dollar = typeLister.semanticVectors.getVector("united_states_dollar");
     Vector usesCurrency = typeLister.predicateVectors.getVector("HAS_CURRENCY-INV");
     Vector countryUsesDollar = dollar.copy();
     countryUsesDollar.release(usesCurrency);
     ArrayList<Vector> setToNegate = new ArrayList<>();
-    setToNegate.add(countryUsesDollar);
     setToNegate.add(usa);
+    setToNegate.add(countryUsesDollar);
     VectorUtils.orthogonalizeVectors(setToNegate);
-    countryUsesDollar.normalize();
+    //countryUsesDollar.normalize();
     for (ObjectVector testVector : Collections.list(
         typeLister.elementalVectors.getAllVectors())) {
       double score = testVector.getVector().measureOverlap(countryUsesDollar);
