@@ -34,17 +34,6 @@
 			</plugin>
 
 			<plugin>
-				<!-- Run using "mvn test -DskipTests=false". Some integration tests are 
-					flaky, which is why skipTests defaults to ture above. -->
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<version>2.1</version>
-				<configuration>
-					<source>1.7</source>
-					<target>1.7</target>
-				</configuration>
-			</plugin>
-			<plugin>
 				<artifactId>maven-surefire-plugin</artifactId>
 				<version>2.4.1</version>
 				<configuration>
