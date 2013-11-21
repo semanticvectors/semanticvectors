@@ -63,7 +63,7 @@ public class BinaryVectorUtils {
    * negation function to give an vector for
    * vectors[last] NOT (vectors[0] OR ... OR vectors[last - 1].
    *
-   * @param vectors to be orthogonalized in place.
+   * @param list vectors to be orthogonalized in place.
    */
   public static boolean orthogonalizeVectors(List<Vector> list) {
     long dimension = list.get(0).getDimension();

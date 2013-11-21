@@ -145,7 +145,7 @@ public class ComplexVectorUtils {
    * negation function to give an vector for
    * vectors[last] NOT (vectors[0] OR ... OR vectors[last - 1].
    *
-   * @param vectors to be orthogonalized
+   * @param list vectors to be orthogonalized
    */
   public static boolean orthogonalizeVectors(List<Vector> list) {    
     int dimension = list.get(0).getDimension();
