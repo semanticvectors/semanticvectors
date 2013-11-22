@@ -70,14 +70,6 @@ public class Search {
      */
     SUM,
 
-    /**
-     * Build a query as with {@link SearchType#SUM} option, but quantize to sparse vectors before
-     * taking scalar product at search time. This can be used to give a guide to how
-     * much similarities are changed by only using the most significant coordinates
-     * of a vector. Also uses {@link VectorSearcher.VectorSearcherCosine}.
-     */
-    SPARSESUM, 
-
     /** 
      * "Quantum disjunction" - get vectors for each query term, create a
      * representation for the subspace spanned by these vectors, and score by
@@ -162,7 +154,7 @@ public class Search {
       + "\n    termvectors.bin in local directory."
       + "\n-luceneindexpath argument is needed if to get term weights from"
       + "\n    term frequency, doc frequency, etc. in lucene index."
-      + "\n-searchtype can be one of SUM, SPARSESUM, SUBSPACE, MAXSIM,"
+      + "\n-searchtype can be one of SUM, SUBSPACE, MAXSIM, ANALOGY, "
       + "\n    BALANCEDPERMUTATION, PERMUTATION, PRINTQUERY"
       + "\n<QUERYTERMS> should be a list of words, separated by spaces."
       + "\n    If the term NOT is used, terms after that will be negated.";
