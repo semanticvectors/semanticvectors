@@ -42,6 +42,7 @@ import java.util.logging.Logger;
 
 import pitt.search.semanticvectors.utils.VerbatimLogger;
 import pitt.search.semanticvectors.vectors.Vector;
+import pitt.search.semanticvectors.vectors.VectorFactory;
 import pitt.search.semanticvectors.vectors.ZeroVectorException;
 import pitt.search.semanticvectors.viz.PathFinder;
 
@@ -70,6 +71,14 @@ public class Search {
      */
     SUM,
 
+    /**
+     * Build a query as with {@link SearchType#SUM} option, but quantize to sparse vectors before
+     * taking scalar product at search time. This can be used to give a guide to how
+     * much similarities are changed by only using the most significant coordinates
+     * of a vector. Also uses {@link VectorSearcher.VectorSearcherCosine}.
+     */
+    SPARSESUM, 
+
     /** 
      * "Quantum disjunction" - get vectors for each query term, create a
      * representation for the subspace spanned by these vectors, and score by
@@ -86,6 +95,13 @@ public class Search {
     MAXSIM,
 
     /**
+     * "Farthest conjunction" - get vectors for each query term, score by measuring
+     * distance to each term and taking the maximum.
+     * Uses {@link VectorSearcher.VectorSearcherMaxSim}.
+        */
+    MINSIM,
+
+    /**
      * Uses permutation of coordinates to model typed relationships, as
      * introduced by Sahlgren at al. (2008).
      * 
@@ -98,6 +114,8 @@ public class Search {
      * 
      * <p>Uses {@link VectorSearcher.VectorSearcherPerm}.
      */
+    
+    
     PERMUTATION,
 
     /**
@@ -113,6 +131,12 @@ public class Search {
      * Uses {@link VectorSearcher.VectorSearcherBoundProduct}.
      */
     BOUNDPRODUCT,
+    
+    /**
+     * Used for Predication Semantic Indexing, see {@link PSI}.
+     * Finds minimum similarity across query terms to seek middle terms
+     */
+    BOUNDMINIMUM,
 
     /**
      * Binds vectors to facilitate search across multiple relationship paths.
@@ -154,7 +178,7 @@ public class Search {
       + "\n    termvectors.bin in local directory."
       + "\n-luceneindexpath argument is needed if to get term weights from"
       + "\n    term frequency, doc frequency, etc. in lucene index."
-      + "\n-searchtype can be one of SUM, SUBSPACE, MAXSIM, ANALOGY, "
+      + "\n-searchtype can be one of SUM, SPARSESUM, SUBSPACE, MAXSIM, MINSIM"
       + "\n    BALANCEDPERMUTATION, PERMUTATION, PRINTQUERY"
       + "\n<QUERYTERMS> should be a list of words, separated by spaces."
       + "\n    If the term NOT is used, terms after that will be negated.";
@@ -244,6 +268,10 @@ public class Search {
         vecSearcher = new VectorSearcher.VectorSearcherMaxSim(
             queryVecReader, searchVecReader, luceneUtils, flagConfig, queryArgs);
         break;
+      case MINSIM:
+          vecSearcher = new VectorSearcher.VectorSearcherMinSim(
+              queryVecReader, searchVecReader, luceneUtils, flagConfig, queryArgs);
+          break;
       case BOUNDPRODUCT:
         if (queryArgs.length == 2) {
           vecSearcher = new VectorSearcher.VectorSearcherBoundProduct(
@@ -262,6 +290,15 @@ public class Search {
               queryVecReader, boundVecReader, searchVecReader, luceneUtils, flagConfig, queryArgs[0]);
         }
         break;
+      case BOUNDMINIMUM:
+          if (queryArgs.length == 2) {
+            vecSearcher = new VectorSearcher.VectorSearcherBoundMinimum(
+                queryVecReader, boundVecReader, searchVecReader, luceneUtils, flagConfig, queryArgs[0], queryArgs[1]);
+          } else {
+            vecSearcher = new VectorSearcher.VectorSearcherBoundMinimum(
+                queryVecReader, boundVecReader, searchVecReader, luceneUtils, flagConfig, queryArgs[0]);
+          }
+          break;
       case PERMUTATION:
         vecSearcher = new VectorSearcher.VectorSearcherPerm(
             queryVecReader, searchVecReader, luceneUtils, flagConfig, queryArgs);
@@ -354,9 +391,47 @@ public class Search {
             String.format("%f:%s",
                 result.getScore(),
                 result.getObjectVector().getObject().toString()));
-      }
+        
+        if (flagConfig.boundvectorfile().isEmpty() && flagConfig.elementalvectorfile().isEmpty())
+        {
+        	
+        	Vector queryVector = VectorFactory.createZeroVector(flagConfig.vectortype(), flagConfig.dimension());
+        	VectorSearcher.VectorSearcherBoundProduct predicateFinder;
+			try {
+				predicateFinder = new VectorSearcher.VectorSearcherBoundProduct(VectorStoreReader.openVectorStore(flagConfig.semanticvectorfile(), flagConfig), VectorStoreReader.openVectorStore(flagConfig.boundvectorfile(), flagConfig), null, flagConfig, queryVector);
+			
+            
+        	List<SearchResult> bestPredicates = predicateFinder.getNearestNeighbors(1);
+            
+        	if (bestPredicates.size() > 0)
+             {
+             
+              
+              String pred 	= bestPredicates.get(0).getObjectVector().getObject().toString();
+             System.out.println(pred);
+             }
+        	
+			} catch (ZeroVectorException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+        
+      }}
       if (!flagConfig.jsonfile().isEmpty()) {
-        PathFinder.writeResultsPathfinderGraphJson(flagConfig, results);
+      
+    	  if (flagConfig.boundvectorfile().isEmpty() || flagConfig.elementalvectorfile().equals("elementalvectors") || flagConfig.semanticvectorfile().equals("semanticvectors"))
+              PathFinder.writeResultsPathfinderGraphJson(flagConfig, results);
+          else 
+          {
+              VectorStoreRAM elementalVectors = new VectorStoreRAM(flagConfig);
+              elementalVectors.initFromFile(flagConfig.elementalvectorfile());
+              VectorStoreRAM semanticVectors = new VectorStoreRAM(flagConfig);
+              semanticVectors.initFromFile(flagConfig.elementalvectorfile());
+              VectorStoreRAM predicateVectors = new VectorStoreRAM(flagConfig);
+              predicateVectors.initFromFile(flagConfig.elementalvectorfile());
+              
+        	  PathFinder.writeResultsPathfinderGraphJson(flagConfig, results, VectorStoreReader.openVectorStore(flagConfig.semanticvectorfile(), flagConfig), VectorStoreReader.openVectorStore(flagConfig.elementalvectorfile(), flagConfig), VectorStoreReader.openVectorStore(flagConfig.boundvectorfile(), flagConfig), new LuceneUtils(flagConfig)); 
+          }
       }
     } else {
       VerbatimLogger.info("No search output.\n");

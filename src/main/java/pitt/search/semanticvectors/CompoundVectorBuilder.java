@@ -45,6 +45,7 @@ import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 
+import pitt.search.semanticvectors.Search.SearchType;
 import pitt.search.semanticvectors.utils.VerbatimLogger;
 import pitt.search.semanticvectors.vectors.PermutationUtils;
 import pitt.search.semanticvectors.vectors.Vector;
@@ -257,7 +258,7 @@ public class CompoundVectorBuilder {
    * @return List of vectors that are basis elements for subspace
    */
   public static ArrayList<Vector> getBoundProductQuerySubSpaceFromString(
-      VectorStore vecReader, Vector conceptVector, String queryString) {
+      FlagConfig flagConfig, VectorStore vecReader, Vector conceptVector, String queryString) {
     ArrayList<Vector> disjunctSpace = new ArrayList<Vector>();
     // Split initially at "+" to construct derive components.
     StringTokenizer subspaceTokenizer = new StringTokenizer(queryString,"+");
@@ -276,7 +277,7 @@ public class CompoundVectorBuilder {
       disjunctSpace.add(copyConceptVector);  
     }
 
-    VectorUtils.orthogonalizeVectors(disjunctSpace);
+    if (flagConfig.searchtype() != SearchType.BOUNDMINIMUM) VectorUtils.orthogonalizeVectors(disjunctSpace);
     return disjunctSpace;
   }
 
@@ -316,7 +317,7 @@ public class CompoundVectorBuilder {
       disjunctSpace.add(boundQeryvector);
     }
 
-    VectorUtils.orthogonalizeVectors(disjunctSpace);
+    if (flagConfig.searchtype() != SearchType.BOUNDMINIMUM) VectorUtils.orthogonalizeVectors(disjunctSpace);
     return disjunctSpace;
   }
 
