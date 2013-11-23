@@ -557,6 +557,93 @@ abstract public class VectorSearcher {
   }
 
   /**
+   * Class for searching a vector store using minimum distance similarity 
+   * (i.e. the minimum across the vector cues, which may 
+   * be of use for finding middle terms).
+   */
+  static public class VectorSearcherMinSim extends VectorSearcher {
+    private ArrayList<Vector> disjunctVectors;
+    /**
+     * @param queryVecStore Vector store to use for query generation.
+     * @param searchVecStore The vector store to search.
+     * @param luceneUtils LuceneUtils object to use for query weighting. (May be null.)
+     * @param queryTerms Terms that will be parsed and used to generate a query subspace.
+     */
+    public VectorSearcherMinSim(VectorStore queryVecStore,
+        VectorStore searchVecStore,
+        LuceneUtils luceneUtils,
+        FlagConfig flagConfig,
+        String[] queryTerms)
+            throws ZeroVectorException {
+      super(queryVecStore, searchVecStore, luceneUtils, flagConfig);
+      this.disjunctVectors = new ArrayList<Vector>();
+
+      for (int i = 0; i < queryTerms.length; ++i) {
+        // There may be compound disjuncts, e.g., "A NOT B" as a single argument.
+        String[] tmpTerms = queryTerms[i].split("\\s");
+        Vector tmpVector = CompoundVectorBuilder.getQueryVector(
+            queryVecStore, luceneUtils, flagConfig, tmpTerms);
+
+        if (tmpVector != null) {
+          this.disjunctVectors.add(tmpVector);
+        }
+      }
+      if (this.disjunctVectors.size() == 0) {
+        throw new ZeroVectorException("No nonzero input vectors ... no results.");
+      }
+    }
+
+    /**
+     * @param queryVecStore Vector store to use for query generation.
+     * @param searchVecStore The vector store to search.
+     * @param luceneUtils LuceneUtils object to use for query weighting. (May be null.)
+     * @param queryTerms Terms that will be parsed and used to generate a query subspace.
+     */
+    public VectorSearcherMinSim(VectorStore queryVecStore,
+        VectorStore searchVecStore,
+        LuceneUtils luceneUtils,
+        FlagConfig flagConfig,
+        Vector[] queryTerms)
+            throws ZeroVectorException {
+      super(queryVecStore, searchVecStore, luceneUtils, flagConfig);
+      this.disjunctVectors = new ArrayList<Vector>();
+
+      for (int i = 0; i < queryTerms.length; ++i) {
+        // There may be compound disjuncts, e.g., "A NOT B" as a single argument.
+        Vector tmpVector = queryTerms[i];
+
+        if (tmpVector != null) {
+          this.disjunctVectors.add(tmpVector);
+        }
+      }
+      if (this.disjunctVectors.size() == 0) {
+        throw new ZeroVectorException("No nonzero input vectors ... no results.");
+      }
+    }
+
+
+    /**
+     * Scoring works by taking scalar product with disjunctSpace
+     * (which must by now be represented using an orthogonal basis).
+     * @param testVector Vector being tested.
+     */
+    @Override
+    public double getScore(Vector testVector) {
+      double score = -1;
+      double min_score = Double.MAX_VALUE;
+      for (int i = 0; i < disjunctVectors.size(); ++i) {
+        score = this.disjunctVectors.get(i).measureOverlap(testVector);
+        if (score < min_score) {
+          min_score = score;
+        }
+      }
+      return min_score;
+    }
+
+  }
+  
+  
+  /**
    * Class for searching a permuted vector store using cosine similarity.
    * Uses implementation of rotation for permutation proposed by Sahlgren et al 2008
    * Should find the term that appears frequently in the position p relative to the
