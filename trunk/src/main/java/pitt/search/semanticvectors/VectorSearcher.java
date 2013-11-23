@@ -183,9 +183,9 @@ abstract public class VectorSearcher {
         threshold = tmpResults.get(indexSize - 1).getScore();
       }
     }
-    if (flagConfig.stdev()) results = transformToStats(results, count, sum, sumsquared);
-
+    
     Collections.sort(tmpResults);
+    
     for(int i = 0; i < numResults; i++)
     {
       SearchResult sr = tmpResults.get(i);
@@ -195,6 +195,10 @@ abstract public class VectorSearcher {
       }
       results.add(sr);
     }
+    
+    if (flagConfig.stdev()) results = transformToStats(results, count, sum, sumsquared);
+
+    
     return results;
   }
 
@@ -805,6 +809,7 @@ abstract public class VectorSearcher {
         }
 
         if (specialFlagConfig.stdev()) {
+        System.out.println("STDEV");
           count++;
           sum += score;
           sumsquared += Math.pow(score, 2);
