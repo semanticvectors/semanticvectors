@@ -395,7 +395,7 @@ abstract public class VectorSearcher {
       }
 
       this.disjunctSpace = CompoundVectorBuilder.getBoundProductQuerySubSpaceFromString(
-          boundVecStore, queryVector, term2);
+          flagConfig, boundVecStore, queryVector, term2);
     }
 
     public VectorSearcherBoundProductSubSpace(VectorStore queryVecStore, VectorStore boundVecStore,
@@ -423,6 +423,57 @@ abstract public class VectorSearcher {
     }
   }
 
+  /**
+   * Class for searching a vector store using the bound product of a series two vectors.
+   */
+  public static class VectorSearcherBoundMinimum extends VectorSearcher {
+    private ArrayList<Vector> disjunctSpace;
+
+    public VectorSearcherBoundMinimum(VectorStore queryVecStore, VectorStore boundVecStore,
+        VectorStore searchVecStore, LuceneUtils luceneUtils, FlagConfig flagConfig, String term1, String term2)
+            throws ZeroVectorException {
+      super(queryVecStore, searchVecStore, luceneUtils, flagConfig);
+
+      disjunctSpace = new ArrayList<Vector>();
+      Vector queryVector = queryVecStore.getVector(term1).copy();
+
+      if (queryVector.isZeroVector()) {
+        throw new ZeroVectorException("Query vector is zero ... no results.");
+      }
+
+      this.disjunctSpace = CompoundVectorBuilder.getBoundProductQuerySubSpaceFromString(
+          flagConfig, boundVecStore, queryVector, term2);
+    }
+
+    public VectorSearcherBoundMinimum(VectorStore queryVecStore, VectorStore boundVecStore,
+        VectorStore searchVecStore, LuceneUtils luceneUtils, FlagConfig flagConfig, String term1)
+            throws ZeroVectorException {
+      super(queryVecStore, searchVecStore, luceneUtils, flagConfig);
+
+      disjunctSpace = new ArrayList<Vector>();
+      this.disjunctSpace = CompoundVectorBuilder.getBoundProductQuerySubspaceFromString(
+          flagConfig, queryVecStore, boundVecStore, term1);
+
+    }
+
+    public VectorSearcherBoundMinimum(VectorStore queryVecStore, VectorStore boundVecStore,
+        VectorStore searchVecStore, LuceneUtils luceneUtils, FlagConfig flagConfig, ArrayList<Vector> incomingDisjunctSpace)
+            throws ZeroVectorException {
+      super(queryVecStore, searchVecStore, luceneUtils, flagConfig);
+
+      this.disjunctSpace = incomingDisjunctSpace;
+    }
+
+    @Override
+    public double getScore(Vector testVector) {
+    	double score = Double.MAX_VALUE;
+    	for (int q=0; q < disjunctSpace.size(); q ++)
+    		score = Math.min(score, testVector.measureOverlap(disjunctSpace.get(q)));
+    	return score;
+    }
+  }
+  
+  
   /**
    * Class for searching a vector store using quantum disjunction similarity.
    */
