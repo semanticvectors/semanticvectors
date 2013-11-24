@@ -256,10 +256,16 @@ public class PathFinder {
 	    	predposition.superpose(pVectors.nextElement().getVector(), 1, null);
 	    predposition.normalize();
 	    
+	    ArrayList<Vector> resultsemanticVectors = new ArrayList<Vector>();
+	    ArrayList<Vector> resultelementalVectors = new ArrayList<Vector>();
+	    
 	    for (int z = 0; z < results.size(); z++) {
 	    	
 	    	superposition.superpose(semanticvectors.getVector(results.get(z).getObjectVector().getObject().toString()),results.get(z).getScore(),null);
 	    	onList.add(results.get(z).getObjectVector().getObject().toString());
+	    	resultsemanticVectors.add(semanticvectors.getVector(results.get(z).getObjectVector().getObject().toString()));
+	    	resultelementalVectors.add(elementalvectors.getVector(results.get(z).getObjectVector().getObject().toString()));
+	    	
 	    	writer.write("{\"name\":\""+results.get(z).getObjectVector().getObject()+"\",\"group\":1}"); 
 	       writer.write(",");
 	      
@@ -280,6 +286,9 @@ public class PathFinder {
 	       	writer.write(",");
 	       	results.add(new SearchResult(0.1, new ObjectVector(bestMiddle, semanticvectors.getVector(bestMiddle))));  
 	       	onList.add(bestMiddle);
+	       	resultsemanticVectors.add(semanticvectors.getVector(bestMiddle));
+	    	resultelementalVectors.add(elementalvectors.getVector(bestMiddle));
+	    	
          }
        	 }
        	 }
@@ -296,15 +305,12 @@ public class PathFinder {
 	    for (int x =0; x < results.size(); x++) { 
 	      for (int y=0; y < results.size(); y++) {
 	       
-	    	  if (! (semanticvectors.containsVector(results.get(y).getObjectVector().getObject()) 
-	    		  && elementalvectors.containsVector(results.get(x).getObjectVector().getObject()) 
-	    		  && semanticvectors.containsVector(results.get(x).getObjectVector().getObject())))
-	    		  continue;
+	    	  if (x==y) continue;
 	    	  
-	        Vector queryVector = semanticvectors.getVector(results.get(y).getObjectVector().getObject()).copy();
-	        Vector boundVector = elementalvectors.getVector(results.get(x).getObjectVector().getObject()).copy();
-	       boundVector.superpose(semanticvectors.getVector(results.get(x).getObjectVector().getObject()), 1, null);
-	       boundVector.normalize();
+
+	    	  
+	        Vector queryVector = resultsemanticVectors.get(y).copy();
+	        Vector boundVector = resultelementalVectors.get(x).copy();
 	        queryVector.bind(boundVector);
 	        
 	        
@@ -315,10 +321,8 @@ public class PathFinder {
 	                        if (bestPredicates.size() > 0)
 	                        {
 	                        
-	                         String subject = results.get(y).getObjectVector().getObject().toString();
 	                         String pred 	= bestPredicates.get(0).getObjectVector().getObject().toString();
-	                         String object 	= results.get(x).getObjectVector().getObject().toString();
-	  	                            
+	                                
 	                         predicate[y][x] = pred;
 	                         links[y][x] = bestPredicates.get(0).getScore();
 	                   
@@ -361,7 +365,7 @@ public class PathFinder {
 	        if (links[y][x] > 0 && links[y][x] > links[x][y]) {  
 	        
 	        	  String subject = results.get(y).getObjectVector().getObject().toString();
-		          String object 	= results.get(x).getObjectVector().getObject().toString();
+		          String object  = results.get(x).getObjectVector().getObject().toString();
 		      
 	        	if (lUtils.getDocsForTerm(new Term("predication",subject+predicate[y][x]+object)) != null  ||  lUtils.getDocsForTerm(new Term("predication",predicate[y][x].replaceAll("-INV", "")+object)) != null)
 	        	{  
