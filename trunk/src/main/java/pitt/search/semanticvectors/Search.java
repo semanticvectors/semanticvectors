@@ -426,9 +426,9 @@ public class Search {
               VectorStoreRAM elementalVectors = new VectorStoreRAM(flagConfig);
               elementalVectors.initFromFile(flagConfig.elementalvectorfile());
               VectorStoreRAM semanticVectors = new VectorStoreRAM(flagConfig);
-              semanticVectors.initFromFile(flagConfig.elementalvectorfile());
+              semanticVectors.initFromFile(flagConfig.semanticvectorfile());
               VectorStoreRAM predicateVectors = new VectorStoreRAM(flagConfig);
-              predicateVectors.initFromFile(flagConfig.elementalvectorfile());
+              predicateVectors.initFromFile(flagConfig.predicatevectorfile());
               
         	  PathFinder.writeResultsPathfinderGraphJson(flagConfig, results, VectorStoreReader.openVectorStore(flagConfig.semanticvectorfile(), flagConfig), VectorStoreReader.openVectorStore(flagConfig.elementalvectorfile(), flagConfig), VectorStoreReader.openVectorStore(flagConfig.boundvectorfile(), flagConfig), new LuceneUtils(flagConfig)); 
           }
