@@ -71,10 +71,9 @@ public class BuildIndex {
    * @throws IOException  If filesystem resources including Lucene index are unavailable.
    */
   public static void main (String[] args) throws IllegalArgumentException, IOException {
-    FlagConfig flagConfig = null;
+    FlagConfig flagConfig;
     try {
       flagConfig = FlagConfig.getFlagConfig(args);
-      args = flagConfig.remainingArgs;
     } catch (IllegalArgumentException e) {
       System.err.println(usageMessage);
       throw e;
@@ -104,10 +103,10 @@ public class BuildIndex {
         // term vectors. Recommended to iterate at least once (i.e. -trainingcycles = 2) to
         // obtain semantic term vectors.
         // Otherwise attempt to load pre-existing semantic term vectors.
-        VerbatimLogger.info("Creating term vectors ... \n");
+        VerbatimLogger.info("Creating elemental term vectors ... \n");
         termVectorIndexer = TermVectorsFromLucene.createTermBasedRRIVectors(flagConfig);
       } else {
-        VerbatimLogger.info("Creating elemental document vectors ... \n");
+        VerbatimLogger.info("Creating term vectors as superpositions of elemental document vectors ... \n");
         termVectorIndexer = TermVectorsFromLucene.createTermVectorsFromLucene(flagConfig, null);
       }
 
@@ -117,7 +116,7 @@ public class BuildIndex {
         VectorStoreWriter.writeVectors(termFile, flagConfig, termVectorIndexer.getSemanticTermVectors());
         IncrementalDocVectors.createIncrementalDocVectors(
             termVectorIndexer.getSemanticTermVectors(), flagConfig, luceneUtils);
-        IncrementalTermVectors itermVectors = null;
+        IncrementalTermVectors itermVectors;
 
         for (int i = 1; i < flagConfig.trainingcycles(); ++i) {
           itermVectors = new IncrementalTermVectors(flagConfig, luceneUtils);
@@ -126,11 +125,6 @@ public class BuildIndex {
               VectorStoreUtils.getStoreFileName(
                   flagConfig.termvectorsfile() + flagConfig.trainingcycles(), flagConfig),
                   flagConfig, itermVectors);
-
-          // Write over previous cycle's docvectors until final
-          // iteration, then rename according to number cycles
-          if (i == flagConfig.trainingcycles() - 1)
-            docFile = "docvectors" + flagConfig.trainingcycles() + ".bin";
 
           IncrementalDocVectors.createIncrementalDocVectors(itermVectors, flagConfig, luceneUtils);
         }
