@@ -147,15 +147,6 @@ public class Search {
     PRINTQUERY
   }
 
-  /** Principal vector store for finding query vectors. */
-  private static CloseableVectorStore queryVecReader = null;
-  /** Auxiliary vector store used when searching for boundproducts. Used only in some searchtypes. */
-  private static CloseableVectorStore boundVecReader = null;
-  /** 
-   * Vector store for searching. Defaults to being the same as queryVecReader.
-   * May be different from queryVecReader, e.g., when using terms to search for documents.
-   */
-  private static CloseableVectorStore searchVecReader = null;
   private static LuceneUtils luceneUtils;
 
   public static String usageMessage = "\nSearch class in package pitt.search.semanticvectors"
@@ -196,6 +187,16 @@ public class Search {
     }
 
     String[] queryArgs = flagConfig.remainingArgs;
+
+    /** Principal vector store for finding query vectors. */
+    CloseableVectorStore queryVecReader = null;
+    /** Auxiliary vector store used when searching for boundproducts. Used only in some searchtypes. */
+    CloseableVectorStore boundVecReader = null;
+    /**
+     * Vector store for searching. Defaults to being the same as queryVecReader.
+     * May be different from queryVecReader, e.g., when using terms to search for documents.
+     */
+    CloseableVectorStore searchVecReader = null;
 
     // Stage ii. Open vector stores, and Lucene utils.
     try {
@@ -323,13 +324,15 @@ public class Search {
     // opened in RunSearch but also needed in getSearchResultsVectors.
     // Really there should be a global variable for indexformat (text
     // or lucene), and general "openIndexes" and "closeIndexes" methods.
-    //queryVecReader.close();
-    //if (!(searchVecReader == queryVecReader)) {
-    //  searchVecReader.close();
-    //}
-    //if (boundVecReader != null) {
-    //  boundVecReader.close();
-    //}
+    if (queryVecReader != null) {
+       queryVecReader.close();
+    }
+    if (searchVecReader != null) {
+      searchVecReader.close();
+    }
+    if (boundVecReader != null) {
+      boundVecReader.close();
+    }
 
     return results;
   }
@@ -341,6 +344,7 @@ public class Search {
       throws IllegalArgumentException {
     List<SearchResult> results = Search.RunSearch(flagConfig);
 
+    CloseableVectorStore searchVecReader = null;
     try {
       searchVecReader = VectorStoreReader.openVectorStore(flagConfig.searchvectorfile(), flagConfig);
     } catch (IOException e) {
