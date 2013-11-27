@@ -23,9 +23,9 @@
 	</parent>
 
 	<scm>
-		<url>https://semanticvectors.googlecode.com/svn/tags/first maven release</url>
-		<connection>scm:svn:https://semanticvectors.googlecode.com/svn/tags/first maven release</connection>
-		<developerConnection>scm:svn:https://semanticvectors.googlecode.com/svn/tags/first maven release</developerConnection>
+		<url>https://semanticvectors.googlecode.com/svn/tags/semanticvectors-4.2</url>
+		<connection>scm:svn:https://semanticvectors.googlecode.com/svn/tags/semanticvectors-4.2</connection>
+		<developerConnection>scm:svn:https://semanticvectors.googlecode.com/svn/tags/semanticvectors-4.2</developerConnection>
 	</scm>
 
 	<properties>
