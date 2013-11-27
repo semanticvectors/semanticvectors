@@ -1,5 +1,9 @@
 <?xml version="1.0"?>
 <!DOCTYPE project>
+
+<!-- DEPRECATION WARNING. THIS ANT BUILD IS LIVING ALONGSIDE THE MAVEN BUILD AT THE MOMENT.
+THE MAVEN BUILD IS THE CANONICAL ONE AND THE ANT BUILD WILL BE PHASED OUT. -->
+
 <!-- 
   To make external JARs (e.g. Lucene, junit) available to this build, 
   you can do any of the following:
@@ -20,7 +24,7 @@
 			 make the release, and then increment again to next_odd_number and check
 			 in. This way when people check out from svn, they always get the
 			 most recent development version. -->
-  <property name="version" value="4.1"/>
+  <property name="version" value="4.2"/>
   <property file="build.properties" />
 
   <property environment="env"/>
