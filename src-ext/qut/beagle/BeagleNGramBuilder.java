@@ -83,11 +83,11 @@ public class BeagleNGramBuilder
 	{
 	  this.flagConfig = flagConfig;
 		utils = BeagleUtils.getInstance();
-		utils.setNormal( 0.0f, (float)(Math.sqrt(1.0/(double)flagConfig.dimension())));
+		utils.setNormal( 0.0f, (float)(Math.sqrt(1.0/(double)flagConfig.getDimension())));
 
-		phi = utils.generateColtRandomVector(flagConfig.dimension());
-		Permute1 = utils.makeScrambledIntArray(flagConfig.dimension());
-		Permute2 = utils.makeScrambledIntArray(flagConfig.dimension());
+		phi = utils.generateColtRandomVector(flagConfig.getDimension());
+		Permute1 = utils.makeScrambledIntArray(flagConfig.getDimension());
+		Permute2 = utils.makeScrambledIntArray(flagConfig.getDimension());
 	}
 
 	public static BeagleNGramBuilder getInstance(FlagConfig flagConfig)
