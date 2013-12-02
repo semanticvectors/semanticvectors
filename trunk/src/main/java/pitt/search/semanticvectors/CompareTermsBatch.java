@@ -97,7 +97,6 @@ public class CompareTermsBatch {
     FlagConfig flagConfig;
     try {
       flagConfig = FlagConfig.getFlagConfig(args);
-      args = flagConfig.remainingArgs;
     }
     catch (java.lang.IllegalArgumentException e) {
       System.err.println(usageMessage);
@@ -108,7 +107,7 @@ public class CompareTermsBatch {
     String separator = flagConfig.batchcompareseparator();
 
     VectorStoreRAM vecReader = new VectorStoreRAM(flagConfig);
-    vecReader.initFromFile(flagConfig.queryvectorfile());
+    vecReader.initFromFile(VectorStoreUtils.getStoreFileName(flagConfig.queryvectorfile(), flagConfig));
     VerbatimLogger.info(String.format(
         "Using RAM cache of vectors from file: %s\n", flagConfig.queryvectorfile()));
 

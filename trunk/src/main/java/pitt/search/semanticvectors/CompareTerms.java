@@ -111,7 +111,7 @@ public class CompareTerms{
     if (flagConfig.elementalmethod() == ElementalGenerationMethod.ORTHOGRAPHIC) {
       vecReader = new VectorStoreOrthographical(flagConfig);
     } else {
-      vecReader = new VectorStoreReaderLucene(flagConfig.queryvectorfile(), flagConfig);
+      vecReader = VectorStoreReader.openVectorStore(flagConfig.queryvectorfile(), flagConfig);
       VerbatimLogger.info("Opened query vector store from file: " + flagConfig.queryvectorfile() + "\n");
       if (!flagConfig.luceneindexpath().isEmpty()) {
         try {
@@ -133,8 +133,6 @@ public class CompareTerms{
     
     vecReader.close();
     
-    double simScore = vec1.measureOverlap(vec2);
-    return simScore;
-
+    return vec1.measureOverlap(vec2);
   }
 }
