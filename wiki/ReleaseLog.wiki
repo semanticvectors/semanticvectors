@@ -3,11 +3,20 @@
 
 Even-numbered (after the decimal point) versions are releases. Odd-numbered versions are in development. It follows that the most recent code and the `build.xml` file in the SVN repository is always odd-numbered.
 
-=== Version 3.9 ===
+=== Version 4.2 (prelease of 5.0) ===
 
-(soon to be 4.0)
+Main change is using maven instead of ant as primary build and deployment system. See http://search.maven.org/#browse%7C551784781.
+
+This has several implications to be documented in InstallationInstructions.
+
+Other changes include:
+ * Factoring out the creation of elemental vectors and introducing the new [http://semanticvectors.googlecode.com/svn/javadoc/latest-stable/pitt/search/semanticvectors/FlagConfig.html#elementalmethod() `-elementalmethod`] flag.
+ * Proper implementation of real PSI, thanks to use of ParallelColt for convolution binding operator.
+
+=== Version 4.0 ===
 
  * Upgraded to Lucene 4.3.1.
+   * This means that installation requires more lucene jars in classpath.
  * Release of OrthographicVectors.
  * Deterministic probabilistic binary normalization.
  * Fixes to bilingual search, incremental doc vectors.
