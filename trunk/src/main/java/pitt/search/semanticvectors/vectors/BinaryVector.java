@@ -819,7 +819,7 @@ public class BinaryVector implements Vector {
       positionToAdd = permutation[positionToAdd];
       newCoordinates[i] = coordinates[positionToAdd];
     }
-    bitSet.setBits(newCoordinates);
+    bitSet = new OpenBitSet(newCoordinates, newCoordinates.length);
   }
 
   // Available for testing and copying.
