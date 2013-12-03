@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>pitt.search</groupId>
 	<artifactId>semanticvectors</artifactId>
-	<version>5.1-SNAPSHOT</version>
+	<version>5.1</version>
 	<url>http://semanticvectors.googlecode.com/</url>
 
 	<licenses>
@@ -29,7 +29,7 @@
 	</scm>
 
 	<properties>
-		<luceneversion>4.5.0</luceneversion>
+		<luceneversion>4.6.0</luceneversion>
 		<!-- Override using "mvn install -DskipTests=false". -->
 		<skipTests>true</skipTests>
 		<attachDependencySources>false</attachDependencySources>
@@ -42,6 +42,11 @@
 			<artifactId>lucene-core</artifactId>
 			<version>${luceneversion}</version>
 		</dependency>
+        <dependency>
+            <groupId>org.apache.lucene</groupId>
+            <artifactId>lucene-codecs</artifactId>
+            <version>${luceneversion}</version>
+        </dependency>
 		<dependency>
 			<groupId>org.apache.lucene</groupId>
 			<artifactId>lucene-demo</artifactId>
@@ -124,7 +129,13 @@
                             <goal>shade</goal>
                         </goals>
                         <configuration>
-                            <minimizeJar>true</minimizeJar>
+                            <!-- Set to false because codec classes were missing. -->
+                            <minimizeJar>false</minimizeJar>
+                            <transformers>
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+                                    <resource>META-INF/services/org.apache.lucene.codecs.Codec</resource>
+                                </transformer>
+                            </transformers>
                         </configuration>
                     </execution>
                 </executions>

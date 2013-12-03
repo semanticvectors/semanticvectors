@@ -63,7 +63,7 @@ import pitt.search.semanticvectors.utils.VerbatimLogger;
  * including term frequency, doc frequency.
  */
 public class LuceneUtils {
-  public static final Version LUCENE_VERSION = Version.LUCENE_43;
+  public static final Version LUCENE_VERSION = Version.LUCENE_45;
 
   private static final Logger logger = Logger.getLogger(DocVectors.class.getCanonicalName());
   private FlagConfig flagConfig;
