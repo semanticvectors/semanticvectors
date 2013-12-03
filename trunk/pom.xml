@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>pitt.search</groupId>
 	<artifactId>semanticvectors</artifactId>
-	<version>4.3</version>
+	<version>5.0-SNAPSHOT</version>
 	<url>http://semanticvectors.googlecode.com/</url>
 
 	<licenses>
