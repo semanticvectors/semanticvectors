@@ -13,6 +13,11 @@ These sketch instructions presume that you're reasonably familiar with Java, Ant
  * Make sure you have a Java Development Kit (JDK) installed on your system, and that the `java` and `javac` programs can be seen from you system `PATH` variable.
    * If you type `java` and `javac` at your command line, you should see options and instructions, rather than a "Command not found" error.
    * On some systems you may need to set your `JAVA_HOME` environment variable.
+
+=== Older Installations (Versions before 5.0) ===
+
+For versions before 5.0, you have to set up the dependencies on Lucene and other packages yourself as necessary.
+
  * Make sure that you have the [http://lucene.apache.org/java/docs/ Apache Lucene] core and demo jar files (and the analyzers and queryparser jar files for Lucene and SemanticVectors versions 4.0 and higher).
    * Add the `lucene-analyzers-common-$VERSION.jar`, `lucene-core-$VERSION.jar`  `lucene-demo-$VERSION.jar`, and `lucene-queryparser-$VERSION.jar` to your `CLASSPATH`, where `$VERSION` is your Lucene version.
    * For Lucene pre-4.0 (SemanticVectors pre-4.0), only Lucene core and demo jars are required. See also LuceneCompatibility.
@@ -22,39 +27,18 @@ These sketch instructions presume that you're reasonably familiar with Java, Ant
 
 This is the simplest approach for just getting SemanticVectors working.
 
- * Download the most recent `semanticvectors-*.*.jar` distribution from this site.
+ * Download the most recent `semanticvectors-*.*.jar` distribution from this site or from [http://search.maven.org/#browse%7C1990211094 maven central].
  * Add the semanticvectors-*.*.jar file (including full path) to your `CLASSPATH`.
 
 You won't be able to alter the programs beyond the configuration that's possible with command line flags. If you want to do that, you need to build from source.
 
 == Compiling from Source - Package Installation ==
 
-===Prerequisites===
-
-As well as the Lucene and Java prerequisites, you will also need to install [http://ant.apache.org/ Apache Ant].
- * You may need to set your `ANT_HOME` environment variable as well.
-
-===Installation===
-
- * Download the most recent `semanticvectors-*.*.tar.gz` or `semanticvectors-*.*.zip` archive and expand the archive (using `tar -zxvf` or `unzip`).
- * Change directory to the new `semanticvectors-*.*` that has just been created. Check that you can see the `build.xml' file and `src/` directory.
- * The locations of the lucene core and demo jar files can be specified by one of the following methods (only setting `CLASSPATH` works for versions prior to 2010-09-21):
-   * add them to your `CLASSPATH` environment variable
-   * set the environment variable `SEMVEC_LIBDIR` to the directory that contains them
-   * create a file build.properties that contains a line `libdir=directorypath` where `directorypath` is the path to the directory that contains the jars
-   * create a directory with the name `lib` in the current directory and add the jar files to that  directory
- * Compile just by typing `ant` at the command line. This should create `build` and `doc` directories. The compiles classes are in the `build` directory. 
- * Make sure that either the resulting `target/classes` directory or `target/*.jar` file is in your `CLASSPATH`.
-
-==Compiling from Source - Most Recent Development Installation==
-
-_As of Revision 986, the project source distribution builds under Maven depends on Lucene 4.3 and ParallelColt. The instructions, currently under test and soon to become official, are now "checkout the project from source, install maven, and run_ `mvn clean install`".
+ * Install maven.
+ * [https://code.google.com/p/semanticvectors/source/checkout Checkout the project] from source.
+ * Run `mvn clean install`.
 
 If you might be making changes to the code, or want to try out new features that are checked in but not yet in the numbered releases, please consider checking out the most recent version from the svn repository. If you make changes that turn out to be useful, please write to us and tell us about them, and we'll probably urge you to submit them to the repository.
-
-To checkout from source, see the  [http://code.google.com/p/semanticvectors/source/checkout checkout instructions]. You will need to use [http://subversion.apache.org/ SVN] to checkout the code (for Eclipse users, try [http://subclipse.tigris.org/ Subclipse]).
-
-To build the project, use `ant` as described above, and make sure that either the resulting `target/classes` directory or `target/*.jar` file is in your `CLASSPATH`.
 
 If this fails or is too daunting (which it may be, there's a lot going on and getting everything to work together eventually becomes cumbersome), please don't hesitate to contact the project developers and we'll try to help out or make a new numbered release with the development features you need.
 
