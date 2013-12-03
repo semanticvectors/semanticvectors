@@ -1,0 +1,30 @@
+#summary Getting started with SemanticVectors.
+
+More help can be found at the InstallationInstructions page. This page is intended as just the barebones, and assumes that you are already somewhat familiar with using java at a command prompt.
+
+= Installation =
+
+== For End-Users ==
+
+ * Install java and check that you can run java at a command-prompt.
+ * Download the latest Semantic Vectors jar file from the [http://search.maven.org/ Maven Central Repository]. This is currently [https://oss.sonatype.org/content/repositories/releases/pitt/search/semanticvectors/5.2/semanticvectors-5.2.jar semanticvectors-5.2.jar].
+ * This jar file contains the Semantic Vectors binaries and dependencies. Make sure you run java with this file in your classpath, e.g., using `java -cp $PATH/TO/semanticvectors-$VERSION.jar`.
+
+== For Developers ==
+
+ * Install maven.
+ * Create a maven project with the following dependency in your `pom.xml` files:
+
+{{{
+<dependency>
+    <groupId>pitt.search</groupId>
+    <artifactId>semanticvectors</artifactId>
+    <version>$VERSION</version>
+</dependency>
+}}}
+
+ * Build as usual using `mvn install` or using your IDE.
+
+= Building and Searching Models =
+
+See [https://code.google.com/p/semanticvectors/wiki/InstallationInstructions#To_Build_and_Search_a_Model To_Build_and_Search_a_Model].
