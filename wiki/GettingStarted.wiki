@@ -2,7 +2,7 @@
 
 This page is intended as just the barebones, and assumes that you are already somewhat familiar with using java at a command prompt. More help can be found at the InstallationInstructions page. 
 
-Please note that our deployment strategy changed in December 2014, to make use of the [http://search.maven.org/ Maven Central Repository], and because code.google.com is planning to [http://google-opensource.blogspot.com/2013/05/a-change-to-google-code-download-service.html stop supporting downloads].
+Please note that our deployment strategy changed in December 2014, to use the semanticvectors artifact in the [http://search.maven.org/#search%7Cga%7C1%7Ca%3A%22semanticvectors%22 Maven Central Repository].
 
 = Installation =
 
