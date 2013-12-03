@@ -470,6 +470,8 @@ public class FlagConfig {
    * <ul><li>If {@link #vectortype()} is {@code binary}, {@link #dimension()} is a multiple of 64,
    * or is increased to be become a multiple of 64.  {@link #seedlength()} is set to be half this
    * number.</li>
+   * <li>Setting {@link #searchvectorfile()} to {@link #queryvectorfile()} unless explicitly set otherwise.</li>
+   * <li>Setting {@link RealVector#setBindType} if directed (this is something of a hack).</li>
    * </ul>
    */
   private void makeFlagsCompatible() {
