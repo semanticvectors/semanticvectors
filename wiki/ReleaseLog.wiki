@@ -5,7 +5,7 @@ Even-numbered (after the decimal point) versions are releases. Odd-numbered vers
 
 === Version 5.2 ===
 
-Main change is using maven instead of ant as primary build and deployment system. See http://search.maven.org/#browse%7C551784781.
+Main change is using maven instead of ant as primary build and deployment system. See http://search.maven.org/#browse%7C551814572.
 
 This has several implications, now documented in GettingStarted and InstallationInstructions, but these may need checking and improving.
 
