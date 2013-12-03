@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>pitt.search</groupId>
 	<artifactId>semanticvectors</artifactId>
-	<version>5.0</version>
+	<version>5.1-SNAPSHOT</version>
 	<url>http://semanticvectors.googlecode.com/</url>
 
 	<licenses>
@@ -23,9 +23,9 @@
 	</parent>
 
 	<scm>
-		<url>https://semanticvectors.googlecode.com/svn/tags/semanticvectors-5.0</url>
-		<connection>scm:svn:https://semanticvectors.googlecode.com/svn/tags/semanticvectors-5.0</connection>
-		<developerConnection>scm:svn:https://semanticvectors.googlecode.com/svn/tags/semanticvectors-5.0</developerConnection>
+		<url>https://semanticvectors.googlecode.com/svn/trunk</url>
+		<connection>scm:svn:https://semanticvectors.googlecode.com/svn/trunk</connection>
+		<developerConnection>scm:svn:https://semanticvectors.googlecode.com/svn/trunk</developerConnection>
 	</scm>
 
 	<properties>
