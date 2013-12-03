@@ -11,27 +11,17 @@
 # ./update-release-docs.sh.
 
 
-CURDIR=`pwd`
+VERSION=4.2
 DEST=../javadoc/latest-stable
-TARFILE=javadocarchive.tgz
-ant doc
+#mvn install # This should be changed to something that generates javadoc.
 svn rm --force "$DEST"
 svn ci "$DEST" -m "Removing old stuff for the new release javadocs"
-rm -f $TARFILE &>/dev/null
-cd doc
-tar zcvf ../$TARFILE --exclude='.svn' *
-cd ..
 mkdir "$DEST"
+svn add "$DEST"
 cd "$DEST"
-tar xvf "$CURDIR"/$TARFILE
-cd "$CURDIR"
-svn add --force "$DEST"
-find "$DEST" -name "*.html" | xargs -n 1 svn propset svn:mime-type text/html
-find "$DEST" -name "*.css" | xargs -n 1 svn propset svn:mime-type text/css
-find "$DEST" -name "*.gif" | xargs -n 1 svn propset svn:mime-type image/gif
-svn ci "$DEST" -m "Adding the new release javadoc files"
-rm -f $TARFILE &>/dev/null
-
-
-
-
+jar xvf ../../trunk/target/semanticvectors-$VERSION-javadoc.jar
+svn add --force .
+find . -name "*.html" | xargs -n 1 svn propset svn:mime-type text/html
+find . -name "*.css" | xargs -n 1 svn propset svn:mime-type text/css
+find . -name "*.gif" | xargs -n 1 svn propset svn:mime-type image/gif
+svn commit -m "Adding new javadoc for release version $VERSION"
