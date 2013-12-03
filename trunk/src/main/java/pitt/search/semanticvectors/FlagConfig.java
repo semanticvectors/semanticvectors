@@ -59,7 +59,7 @@ import pitt.search.semanticvectors.VectorStoreUtils.VectorStoreFormat;
  * instance to be passed to other components.
  *
  * Nearly all flags are configured once when an instance is created. Exceptions
- * are {@link #dimension} and {#link vectortype}, since these can be set
+ * are {@link #dimension()} and {#link vectortype()}, since these can be set
  * when a {@code VectorStore} is opened for reading.
  *
  * @author Dominic Widdows
@@ -467,8 +467,8 @@ public class FlagConfig {
    * 
    * <br/>
    * In practice, this means:
-   * <ul><li>If {@link vectortype} is {@code binary}, {@link dimension} is a multiple of 64,
-   * or is increased to be become a multiple of 64.  {@link seedlength} is set to be half this
+   * <ul><li>If {@link #vectortype()} is {@code binary}, {@link #dimension()} is a multiple of 64,
+   * or is increased to be become a multiple of 64.  {@link #seedlength()} is set to be half this
    * number.</li>
    * </ul>
    */
@@ -488,7 +488,7 @@ public class FlagConfig {
       }
     }
     
-    if (searchvectorfile == "") searchvectorfile = queryvectorfile;
+    if (searchvectorfile.isEmpty()) searchvectorfile = queryvectorfile;
     
     // This is a potentially dangerous pattern! An alternative would be to make this setting
     // part of each real vector, as with complex Modes. But they aren't so nice either.
