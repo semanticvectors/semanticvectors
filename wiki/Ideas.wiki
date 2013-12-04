@@ -6,7 +6,7 @@ There are many natural ideas and suggestions for things to try with SemanticVect
 
 == Engineering TODOs and Suggestions ==
 
- * Make the project work with Maven (in progress - see https://code.google.com/p/semanticvectors/issues/detail?id=73).
+ * Make the Maven build and deployment provide both full jars (including dependencies) and reduced jars (not containing dependencies). More details on the reasons for this can be found in [https://groups.google.com/forum/#!topic/semanticvectors/zoF5VGmBKo0 this thread].
 
  * Make a couple of small user interfaces for demos (Swing client, simple Web client).
 
