@@ -27,11 +27,13 @@ For minor bug fixes and nits, for people familiar with the project: skip the fir
 
 If you have a really big change / feature suggestion, please post a new thread in the [https://groups.google.com/forum/?fromgroups#!forum/semanticvectors Semantic Vectors Group].  
 
-==Tests and Coding Conventions==
+==Unit Tests and Integration Tests==
 
-Ideally, you should run the package tests using `ant testall` before you start coding. Sometimes the tests raise false alarms because you're the first to run the tests in a new environment (e.g., we had to make changes to accommodate the way Java handles files on Windows). If you do see problems, please email the project owners.
+Ideally, you should run the package tests using `mvn install -DskipTests=false` before you start coding. Sometimes the tests raise false alarms because you're the first to run the tests in a new environment (e.g., we had to make changes to accommodate the way Java handles files on Windows). If you do see problems, please email the project owners.
 
-Please test your code and changes using `ant testall` before submitting. 
+Please test your code and changes using `mvn install -DskipTests=false` before submitting. 
+
+==Coding Conventions==
 
 The coding style on the project tries to converge roughly to the old [http://www.oracle.com/technetwork/java/javase/documentation/codeconvtoc-136057.html Sun Microsystems conventions], now hosted by Oracle. In particular, opening curly braces tend to go at the end of the previous line, not the beginning of a new line. However, most code uses 2 spaces for indenting new code blocks, and 4 spaces for indenting continued lines. The basic idea is that if code is well-organized, preserving whitespace is good because you can see more in your editor at-a-glance.
 
@@ -39,4 +41,8 @@ The important thing is consistency overall: so the deal is that nobody complains
 
 ==Development Environments==
 
-Most developers use Eclipse (and Subclipse for svn) or emacs (and command-line svn). The setup is more specific for Eclipse, but you get more useful refactoring features. The unit tests run fine under Eclipse, but the integration tests don't yet (because of issues with writing to the filesystem from Eclipse tests). So if you're using Eclipse, it's best to make sure that you can build and test using `ant` as well.
+To participate in active development, you will need at least maven and svn, and of course a text editor. It's just about possible to get by with a text editor like emacs or vim, and command-line svn, but this is increasingly "doing it the hard way.", and most developers use one of the following IDEs (integrated development environments):
+
+ * [http://www.jetbrains.com/idea/ IntelliJ IDEA] from JetBrains. There is a free community edition. IntelliJ is increasingly preferred, partly because SVN and Maven are already installed.
+
+* [http://eclipse.org Eclipse]. Eclipse is also free, and popular especially with Java developers. You will have to install plugins for svn (try subclipse) and maven (try m2eclipse). 
