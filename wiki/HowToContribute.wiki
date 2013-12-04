@@ -2,6 +2,10 @@
 
 =How to Contribute to SemanticVectors=
 
+==What to Contribute==
+
+New ideas are the most welcome! But if you're looking for suggestions, or want to check if something has already been discussed, see the [Ideas] page.
+
 ==Bug Reports and Feature Requests==
 
 Use the "Issues" tab above, which takes you to https://code.google.com/p/semanticvectors/issues/list
