@@ -15,8 +15,9 @@ All users should begin by installing java and checking that you can run java at 
 
 == For Developers ==
 
- * Install maven.
- * Create a maven project with the following dependency in your `pom.xml` files:
+ * Install maven and svn (or a development environment that includes these: see [https://code.google.com/p/semanticvectors/wiki/HowToContribute#Development_Environments Development Enviroments]).
+   * To build the project from source, checkout the project from svn.
+   * To use the project as a dependency in another project, use the following dependency in your `pom.xml` file:
 
 {{{
 <dependency>
@@ -27,6 +28,8 @@ All users should begin by installing java and checking that you can run java at 
 }}}
 
  * Build as usual using `mvn install` or using your IDE.
+
+Developers will almost certainly want to read InstallationInstructions and HowToContribute as well as this page.
 
 = Building and Searching Models =
 
