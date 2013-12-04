@@ -45,4 +45,4 @@ To participate in active development, you will need at least maven and svn, and 
 
  * [http://www.jetbrains.com/idea/ IntelliJ IDEA] from JetBrains. There is a free community edition. IntelliJ is increasingly preferred, partly because SVN and Maven are already installed.
 
-* [http://eclipse.org Eclipse]. Eclipse is also free, and popular especially with Java developers. You will have to install plugins for svn (try subclipse) and maven (try m2eclipse). 
+ * [http://eclipse.org Eclipse]. Eclipse is also free, and popular especially with Java developers. You will have to install plugins for svn (try subclipse) and maven (try m2eclipse). 
