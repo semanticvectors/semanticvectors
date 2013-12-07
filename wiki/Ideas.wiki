@@ -38,8 +38,7 @@ This manifests itself in several ways, including:
   * Do we need Fast Fourier Transforms (FFTs) for binding with real vectors, or is there a way to make [PermutationSearch permutation] operators work appropriately?
   * Should complex vectors in cartesian and circular [http://semanticvectors.googlecode.com/svn/javadoc/latest-stable/pitt/search/semanticvectors/vectors/ComplexVector.Mode.html mode] be separated into separate classes? 
 
-The work on 
-[https://code.google.com/p/semanticvectors/source/browse/trunk/src/pitt/search/semanticvectors/VectorStoreOrthographical.java orthographic vectors] has exposed some of the frailties behind our existing assumptions in a very positive way, because orthographic word vectors can be combined in VSAs over different ground fields and produce markedly different results.
+The work OrthographicVectors has exposed some of the frailties behind our existing assumptions in a very positive way, because orthographic word vectors can be combined in VSAs over different ground fields and produce markedly different results.
 
 == Modeling Continuous Variables ==
 
@@ -73,4 +72,4 @@ Compare results from n-gram modelling with vector positional indexing, for smoot
 
 == Spelling Correction, Autosuggest, Autocomplete ==
 
-This would be a natural application for orthographic vectors and positional term vectors. Can these techniques be used to supplement / improve existing text suggestion / correction algorithms?
+This would be a natural application for OrthographicVectors and positional term vectors. Can these techniques be used to supplement / improve existing text suggestion / correction algorithms?
