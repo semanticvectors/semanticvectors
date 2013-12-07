@@ -39,7 +39,7 @@ This manifests itself in several ways, including:
   * Should complex vectors in cartesian and circular [http://semanticvectors.googlecode.com/svn/javadoc/latest-stable/pitt/search/semanticvectors/vectors/ComplexVector.Mode.html mode] be separated into separate classes? 
 
 The work on 
-[https://code.google.com/p/semanticvectors/source/browse/trunk/src/pitt/search/semanticvectors/VectorStoreOrthographical.java orhtographic vectors] has exposed some of the frailties behind our existing assumptions in a very positive way, because orthographic word vectors can be combined in VSAs over different ground fields and produce markedly different results.
+[https://code.google.com/p/semanticvectors/source/browse/trunk/src/pitt/search/semanticvectors/VectorStoreOrthographical.java orthographic vectors] has exposed some of the frailties behind our existing assumptions in a very positive way, because orthographic word vectors can be combined in VSAs over different ground fields and produce markedly different results.
 
 == Modeling Continuous Variables ==
 
@@ -48,6 +48,18 @@ The distributional models used in semantic vector models are by nature continuou
 More generally, there are many areas where "records" naturally include continuous variables rather than discrete textual symbols.
 
 Are the positional techniques used in orthographic vectors useful here?
+
+== Tabular data ==
+
+It's possible to create a vector for a record in a tabular dataset by binding vectors for the cell values with vectors for the column headings, and superposing these for each cell in the row. See the initial demo [https://code.google.com/p/semanticvectors/source/browse/#svn%2Ftrunk%2Fsrc%2Fmain%2Fjava%2Fpitt%2Fsearch%2Fsemanticvectors%2Ftables here]. Extending with a good model for numerical values (see continuous variables above) is a logical next step.
+
+== Negation in PSI ==
+
+Use orthogonal negation in PredicationBasedSemanticIndexing and evaluate the results.
+
+== Semantic Type Inference ==
+
+It's possible to add or infer a semantic type for concepts in PSI. See the demo in the [https://code.google.com/p/semanticvectors/source/browse/trunk/src/main/java/pitt/search/semanticvectors/experiments/PSITypeLister.java PSITypeLister]. How can these types be used for reasoning and inference?
 
 == Introduce more decomposition, clustering, classification algorithms ==
 
