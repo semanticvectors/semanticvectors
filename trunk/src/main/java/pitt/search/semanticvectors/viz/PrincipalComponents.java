@@ -115,7 +115,7 @@ public class PrincipalComponents {
     args = flagConfig.remainingArgs;
 
     // Get search results, perform clustering, and print out results.
-    ObjectVector[] resultsVectors = Search.getSearchResultVectors(flagConfig, args, flagConfig.numsearchresults());
+    ObjectVector[] resultsVectors = Search.getSearchResultVectors(flagConfig);
     PrincipalComponents pcs = new PrincipalComponents(resultsVectors);
     pcs.plotVectors();
   }
