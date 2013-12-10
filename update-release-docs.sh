@@ -11,13 +11,13 @@
 # ./update-release-docs.sh.
 
 
-VERSION=4.2
+VERSION=5.3  # Should be kept in sync with pom.xml
 DEST=../javadoc/latest-stable
-#mvn install # This should be changed to something that generates javadoc.
-svn rm --force "$DEST"
-svn ci "$DEST" -m "Removing old stuff for the new release javadocs"
-mkdir "$DEST"
-svn add "$DEST"
+mvn javadoc:jar
+#svn rm --force "$DEST"
+#svn ci "$DEST" -m "Removing old stuff for the new release javadocs"
+#mkdir "$DEST"
+#svn add "$DEST"
 cd "$DEST"
 jar xvf ../../trunk/target/semanticvectors-$VERSION-javadoc.jar
 svn add --force .
