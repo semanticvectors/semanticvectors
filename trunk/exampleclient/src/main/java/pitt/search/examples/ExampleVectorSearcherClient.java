@@ -10,8 +10,7 @@ import java.util.Scanner;
 /**
  * Example of an external project that uses {@link pitt.search.semanticvectors.VectorSearcher} directly.
  *
- * For a more full-featured example, see {@link pitt.search.semanticvectors.Search#main(String[])},
- * which uses {@link pitt.search.semanticvectors.Search#RunSearch}.
+ * For links to more examples, see https://code.google.com/p/semanticvectors/wiki/ExampleClients.
  */
 public class ExampleVectorSearcherClient {
 
