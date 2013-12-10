@@ -122,7 +122,7 @@ public class ThreadSafetyTest {
         "-queryvectorfile", "termvectors.bin", "-numsearchresults", "10",
         "-luceneindexpath", "permutation_index",
         query };
-    List<SearchResult> results = Search.RunSearch(FlagConfig.getFlagConfig(args));
+    List<SearchResult> results = Search.runSearch(FlagConfig.getFlagConfig(args));
 
     if (results.size() > 0) {
       for (SearchResult result: results) {

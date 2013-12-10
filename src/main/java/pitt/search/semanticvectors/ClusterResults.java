@@ -169,7 +169,7 @@ public class ClusterResults {
     args = flagConfig.remainingArgs;
 
     // Get search results, perform clustering, and print out results.		
-    ObjectVector[] resultsVectors = Search.getSearchResultVectors(flagConfig, args, flagConfig.numsearchresults());
+    ObjectVector[] resultsVectors = Search.getSearchResultVectors(flagConfig);
     Clusters clusters = kMeansCluster(resultsVectors, flagConfig);
     for (int i = 0; i < flagConfig.numclusters(); ++i) {
       System.out.println("Cluster " + i);

@@ -74,7 +74,7 @@ public class PSITest {
     for (String fn: filesToBuild) assertTrue((new File(fn)).isFile());
 
     String[] searchArgs = searchCmd.split("\\s+");
-    List<SearchResult> results = Search.RunSearch(FlagConfig.getFlagConfig(searchArgs));
+    List<SearchResult> results = Search.runSearch(FlagConfig.getFlagConfig(searchArgs));
     int rank = 1;
     if (results.isEmpty()) {
       throw new RuntimeException("Results were empty!");

@@ -169,10 +169,10 @@ public class Search {
    * @param flagConfig configuration object for controlling the search
    * @return list containing search results.
    */
-  public static List<SearchResult> RunSearch (FlagConfig flagConfig)
+  public static List<SearchResult> runSearch(FlagConfig flagConfig)
       throws IllegalArgumentException {
     /**
-     * The RunSearch function has four main stages:
+     * The runSearch function has four main stages:
      * i. Check flagConfig for null (but so far fails to check other dependencies).
      * ii. Open corresponding vector and lucene indexes.
      * iii. Based on search type, build query vector and perform search.
@@ -241,8 +241,8 @@ public class Search {
 
     // Stage iii. Perform search according to which searchType was selected.
     // Most options have corresponding dedicated VectorSearcher subclasses.
-    VectorSearcher vecSearcher = null;
-    LinkedList<SearchResult> results = new LinkedList<SearchResult>();
+    VectorSearcher vecSearcher;
+    LinkedList<SearchResult> results;
     VerbatimLogger.info("Searching term vectors, searchtype " + flagConfig.searchtype() + "\n");
 
     try {
@@ -321,7 +321,7 @@ public class Search {
     // ThreadSafetyTest. 
     //
     // This was not the cleanest control flow anyway, since these are
-    // opened in RunSearch but also needed in getSearchResultsVectors.
+    // opened in runSearch but also needed in getSearchResultsVectors.
     // Really there should be a global variable for indexformat (text
     // or lucene), and general "openIndexes" and "closeIndexes" methods.
     if (queryVecReader != null) {
@@ -340,9 +340,9 @@ public class Search {
   /**
    * Search wrapper that returns the list of ObjectVectors.
    */
-  public static ObjectVector[] getSearchResultVectors(FlagConfig flagConfig, String[] args, int numResults)
+  public static ObjectVector[] getSearchResultVectors(FlagConfig flagConfig)
       throws IllegalArgumentException {
-    List<SearchResult> results = Search.RunSearch(flagConfig);
+    List<SearchResult> results = Search.runSearch(flagConfig);
 
     CloseableVectorStore searchVecReader = null;
     try {
@@ -367,11 +367,11 @@ public class Search {
    * @throws IOException if filesystem resources referred to in arguments are unavailable
    */
   public static void main (String[] args) throws IllegalArgumentException, IOException {
-    FlagConfig flagConfig = null;
-    List<SearchResult> results = null;
+    FlagConfig flagConfig;
+    List<SearchResult> results;
     try {
       flagConfig = FlagConfig.getFlagConfig(args);
-      results = RunSearch(flagConfig);
+      results = runSearch(flagConfig);
     } catch (IllegalArgumentException e) {
       System.err.println(usageMessage);
       throw e;
