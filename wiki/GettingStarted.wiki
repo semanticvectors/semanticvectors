@@ -29,7 +29,7 @@ All users should begin by installing java and checking that you can run java at 
 
  * Build as usual using `mvn install` or using your IDE.
 
-Developers will almost certainly want to read InstallationInstructions and HowToContribute as well as this page.
+Developers will almost certainly want to read InstallationInstructions, HowToContribute, and perhaps ExampleClients as well as this page.
 
 = Building and Searching Models =
 
