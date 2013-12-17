@@ -20,7 +20,7 @@ Implementing incremental index updates for semantic vectors should be relatively
 
 So far, SV indexing is fast enough for most users, and much faster than Lucene indexing (in fairness, this is because Lucene does most of the actual work!). So incremental indexing has not been prioritized yet.
 
-On purely engineering grounds, incremental indexing should only be prioritized when rebuilding a SemanticVectors model is prohibitively time-consuming in the workflow "add incrementally to Lucene index, rebuild SemanticVectors model". If you're tempted to write to the mailing list requesting support for incremental indexing, please include these times and some information about how often you need to rebuild your indexes - please don't assume that incremental indexing is  necessary on purely logical grounds. 
+On purely engineering grounds, incremental indexing should only be prioritized when rebuilding a SemanticVectors model is prohibitively time-consuming in the workflow "add incrementally to Lucene index, rebuild SemanticVectors model". If you're tempted to write to the mailing list requesting support for incremental indexing, please include these times and some information about how often you need to rebuild your indexes - this will give empirical as well as logical motivation. 
 
 Other pressing scientific motivation might arise from:
   * Dated / time varying corpora (e.g., analyzing the evolution of a news story over time).
