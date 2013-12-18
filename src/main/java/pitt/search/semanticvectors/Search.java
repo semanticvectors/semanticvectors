@@ -47,7 +47,7 @@ import pitt.search.semanticvectors.vectors.ZeroVectorException;
 import pitt.search.semanticvectors.viz.PathFinder;
 
 /**
- * Command line term vector search utility. <br/>
+ * Command line term vector search utility.
  */
 public class Search {
   private static final Logger logger = Logger.getLogger(Search.class.getCanonicalName());
@@ -306,13 +306,13 @@ public class Search {
         Vector queryVector = CompoundVectorBuilder.getQueryVector(
             queryVecReader, luceneUtils, flagConfig, queryArgs);
         System.out.println(queryVector.toString());
-        return new LinkedList<SearchResult>();
+        return new LinkedList<>();
       default:
         throw new IllegalArgumentException("Unknown search type: " + flagConfig.searchtype());
       }
     } catch (ZeroVectorException zve) {
       logger.info(zve.getMessage());
-      return new LinkedList<SearchResult>();
+      return new LinkedList<>();
     }
 
     results = vecSearcher.getNearestNeighbors(flagConfig.numsearchresults());
