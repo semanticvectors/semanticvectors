@@ -35,20 +35,25 @@
 
 package pitt.search.semanticvectors.vectors;
 
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Random;
 
 import org.junit.Test;
+import pitt.search.semanticvectors.utils.StatUtils;
 
-import junit.framework.TestCase;
+import static org.junit.Assert.*;
 
-public class RealVectorTest extends TestCase {
+public class RealVectorTest {
   public static final double TOL = 0.00001;
   
   @Test
   public void testCreateZeroVectorAndOverlap() {
     Vector vector1 = VectorFactory.createZeroVector(VectorType.REAL, 2);
     assertEquals(2, vector1.getDimension());
-    assertEquals(0.0, vector1.measureOverlap(vector1));
+    assertEquals(0.0, vector1.measureOverlap(vector1), TOL);
     Vector vector2 = VectorFactory.createZeroVector(VectorType.REAL, 3);
     try {
       vector1.measureOverlap(vector2);
@@ -200,8 +205,7 @@ public class RealVectorTest extends TestCase {
     sparse2.sparseToDense();
     assertTrue(sparse2.toString().contains("-1.0 1.0 0.0"));
   }
-  
-  
+
   @Test
   public void testReadAndWriteStrings() {
     Vector vector = VectorFactory.createZeroVector(VectorType.REAL, 2);
@@ -213,5 +217,38 @@ public class RealVectorTest extends TestCase {
     }
     vector.readFromString("1.0|-2.0");
     assertEquals("1.0|-2.0", vector.writeToString());
+  }
+
+  /** Should not be run as a regular test. Creates sample similarities and writes out to files.
+   */
+  //@Test
+  public void testManySimilarities() throws IOException {
+    int[] dimensions = new int[] {2, 3, 4, 10, 20, 30, 50, 100, 1000};
+    int numTrials = 100_000;
+    for (int dimension : dimensions) {
+      ArrayList<Double> scores = new ArrayList<>();
+      for (int trial = 0; trial < numTrials; ++trial) {
+        float[] coords1 = new float[dimension];
+        float[] coords2 = new float[dimension];
+        Random random = new Random();
+        for (int i = 0; i < dimension; ++i) {
+          coords1[i] = (float) random.nextGaussian();
+          coords2[i] = (float) random.nextGaussian();
+        }
+        RealVector vector1 = new RealVector(coords1);
+        RealVector vector2 = new RealVector(coords2);
+        scores.add(vector1.measureOverlap(vector2));
+      }
+      Collections.sort(scores);
+      PrintWriter writer = new PrintWriter(
+          "C:\\Users\\Widdows\\Dropbox\\VectorReasoning\\scripts\\scores"
+              + dimension + "dim.txt", "UTF-8");
+      for (double score : scores) {
+        writer.println(score);
+      }
+      writer.close();
+      System.out.println(String.format("Dimension: %d. Mean: %f. Variance: %f.",
+          dimension, StatUtils.getMean(scores), StatUtils.getVariance(scores)));
+    }
   }
 }

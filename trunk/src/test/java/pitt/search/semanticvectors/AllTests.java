@@ -50,7 +50,7 @@ public class AllTests {
     suite.addTestSuite(VectorStoreReaderLuceneTest.class);
     suite.addTestSuite(VectorStoreRAMTest.class);
     suite.addTestSuite(VectorStoreDeterministicTest.class);
-    suite.addTestSuite(RealVectorTest.class);
+    // suite.addTestSuite(RealVectorTest.class);  Updated to JUnit 4.
     suite.addTestSuite(BinaryVectorTest.class);
     // suite.addTestSuite(CircleLookupTableTest.class);   Accidentally never checked in - TODO(widdows) redo! 
     suite.addTestSuite(ComplexVectorTest.class);
