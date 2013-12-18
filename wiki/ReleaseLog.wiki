@@ -3,6 +3,10 @@
 
 Even-numbered (after the decimal point) versions are releases. Odd-numbered versions are in development. It follows that the most recent code and the `build.xml` file in the SVN repository is always odd-numbered.
 
+=== Version 5.4 ===
+
+Small incremental release to include IncrementalTermVectors training without precomputed document vectors.
+
 === Version 5.2 ===
 
 Main change is using maven instead of ant as primary build and deployment system. See http://search.maven.org/#browse%7C551814572.
