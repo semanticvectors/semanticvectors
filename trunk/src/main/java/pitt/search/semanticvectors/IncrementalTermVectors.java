@@ -1,41 +1,42 @@
 /**
-   Copyright (c) 2008, Arizona State University.
+ Copyright (c) 2008, Arizona State University.
 
-   All rights reserved.
+ All rights reserved.
 
-   Redistribution and use in source and binary forms, with or without
-   modification, are permitted provided that the following conditions are
-   met:
+ Redistribution and use in source and binary forms, with or without
+ modification, are permitted provided that the following conditions are
+ met:
 
  * Redistributions of source code must retain the above copyright
-   notice, this list of conditions and the following disclaimer.
+ notice, this list of conditions and the following disclaimer.
 
  * Redistributions in binary form must reproduce the above
-   copyright notice, this list of conditions and the following
-   disclaimer in the documentation and/or other materials provided
-   with the distribution.
+ copyright notice, this list of conditions and the following
+ disclaimer in the documentation and/or other materials provided
+ with the distribution.
 
  * Neither the name of the University of Pittsburgh nor the names
-   of its contributors may be used to endorse or promote products
-   derived from this software without specific prior written
-   permission.
+ of its contributors may be used to endorse or promote products
+ derived from this software without specific prior written
+ permission.
 
-   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-   "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-   LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-   A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
-   CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-   EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-   PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-   PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-   LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-   NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-   SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
+ CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+ EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+ PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+ LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  **/
 
 package pitt.search.semanticvectors;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import org.apache.lucene.index.*;
 import org.apache.lucene.store.IOContext;
@@ -48,6 +49,7 @@ import pitt.search.semanticvectors.vectors.Vector;
 import pitt.search.semanticvectors.vectors.VectorFactory;
 
 import java.util.Enumeration;
+import java.util.Random;
 import java.util.logging.Logger;
 
 /**
@@ -116,15 +118,23 @@ public class IncrementalTermVectors implements VectorStore {
     String parentPath = vectorFile.getParent();
     if (parentPath == null) parentPath = "";
     FSDirectory fsDirectory = FSDirectory.open(new File(parentPath));
-    IndexInput docVectorsInputStream = fsDirectory.openInput(
-        VectorStoreUtils.getStoreFileName(flagConfig.docvectorsfile(), flagConfig), IOContext.DEFAULT);
 
-    logger.info("Read vectors incrementally from file " + vectorFile);
-
-    // Read number of dimensions from document vectors.
-    String header = docVectorsInputStream.readString();
-    FlagConfig.mergeWriteableFlagsFromString(header, flagConfig);
-
+    // The following try / except supports the use of either prepared doc vectors from a file,
+    // or random vectors if no -docvectors file exists. This conditional complexity is repeated
+    // a bit in the training routine below.
+    IndexInput docVectorsInputStream;
+    Random random = new Random();
+    try {
+      docVectorsInputStream = fsDirectory.openInput(
+          VectorStoreUtils.getStoreFileName(flagConfig.docvectorsfile(), flagConfig), IOContext.DEFAULT);
+      logger.info("Reading vectors incrementally from file " + vectorFile);
+      // Read number of dimensions and vector type from document vectors.
+      String header = docVectorsInputStream.readString();
+      FlagConfig.mergeWriteableFlagsFromString(header, flagConfig);
+    } catch (FileNotFoundException e) {
+      logger.info("No file '" + vectorFile + "' so will use random elemental vectors instead.");
+      docVectorsInputStream = null;
+    }
     initializeVectorStore();
 
     // Iterate through documents.
@@ -134,15 +144,22 @@ public class IncrementalTermVectors implements VectorStore {
         VerbatimLogger.info(dc + " ... ");
       }
 
-      Vector docVector = VectorFactory.createZeroVector(flagConfig.vectortype(), flagConfig.dimension());
-      docVectorsInputStream.readString(); //ignore document name
-      docVector.readFromLuceneStream(docVectorsInputStream);
+      Vector docVector;
+
+      if (docVectorsInputStream != null) {
+        docVector = VectorFactory.createZeroVector(flagConfig.vectortype(), flagConfig.dimension());
+        docVectorsInputStream.readString(); // ignore document name
+        docVector.readFromLuceneStream(docVectorsInputStream);
+      } else {
+        docVector = VectorFactory.generateRandomVector(
+            flagConfig.vectortype(), flagConfig.dimension(), flagConfig.seedlength(), random);
+      }
 
       for (String fieldName : this.flagConfig.contentsfields()) {
-        Terms docTerms = this.luceneUtils.getTermVector(new Integer(dc), fieldName);
+        Terms docTerms = this.luceneUtils.getTermVector(dc, fieldName);
         if (docTerms == null) {logger.severe("No term vector for document "+dc); continue; }
-        
-        TermsEnum termsEnum = docTerms.iterator(null); 
+
+        TermsEnum termsEnum = docTerms.iterator(null);
 
         BytesRef bytes;
         while ((bytes = termsEnum.next()) != null) {
@@ -156,11 +173,11 @@ public class IncrementalTermVectors implements VectorStore {
           }
           // Exclude terms that are not represented in termVectorData
           if (termVector != null && termVector.getDimension() > 0) {
-        	  DocsEnum docs = termsEnum.docs(null, null);
-              docs.nextDoc();
-    	      float freq = luceneUtils.getLocalTermWeight(docs.freq());  
-        	  
-    	      termVector.superpose(docVector, freq, null);
+            DocsEnum docs = termsEnum.docs(null, null);
+            docs.nextDoc();
+            float freq = luceneUtils.getLocalTermWeight(docs.freq());
+
+            termVector.superpose(docVector, freq, null);
           }
         }
 
@@ -171,12 +188,14 @@ public class IncrementalTermVectors implements VectorStore {
     Enumeration<ObjectVector> allVectors = termVectorData.getAllVectors();
     while (allVectors.hasMoreElements()) {
       ObjectVector obVec = allVectors.nextElement();
-      Vector termVector = obVec.getVector();  
+      Vector termVector = obVec.getVector();
       termVector.normalize();
       obVec.setVector(termVector);
     }
 
-    docVectorsInputStream.close();
+    if (docVectorsInputStream != null) {
+      docVectorsInputStream.close();
+    }
   }
 
   // Basic VectorStore interface methods implemented through termVectors.
@@ -196,7 +215,6 @@ public class IncrementalTermVectors implements VectorStore {
     FlagConfig flagConfig;
     try {
       flagConfig = FlagConfig.getFlagConfig(args);
-      args = flagConfig.remainingArgs;
     } catch (IllegalArgumentException e) {
       System.err.println(usageMessage);
       throw e;
@@ -205,9 +223,9 @@ public class IncrementalTermVectors implements VectorStore {
     VectorStore termVectors = new IncrementalTermVectors(flagConfig, new LuceneUtils(flagConfig));
     VectorStoreWriter.writeVectors(flagConfig.termvectorsfile(), flagConfig, termVectors);
   }
-  
+
   @Override
   public boolean containsVector(Object object) {
-	  return this.getVector(object) != null;
+    return this.getVector(object) != null;
   }
 }
