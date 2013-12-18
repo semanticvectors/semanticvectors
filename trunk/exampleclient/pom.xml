@@ -9,7 +9,7 @@
         <dependency>
             <groupId>pitt.search</groupId>
             <artifactId>semanticvectors</artifactId>
-            <version>5.2</version>
+            <version>5.4</version>
         </dependency>
     </dependencies>
 
