@@ -63,14 +63,14 @@ import pitt.search.semanticvectors.utils.VerbatimLogger;
  * including term frequency, doc frequency.
  */
 public class LuceneUtils {
-  public static final Version LUCENE_VERSION = Version.LUCENE_45;
+  public static final Version LUCENE_VERSION = Version.LUCENE_46;
 
   private static final Logger logger = Logger.getLogger(DocVectors.class.getCanonicalName());
   private FlagConfig flagConfig;
   private BaseCompositeReader<AtomicReader> compositeReader;
   private AtomicReader atomicReader;
   private Hashtable<Term, Float> termEntropy = new Hashtable<Term, Float>();
-  private Hashtable<Term, Float> termIDF = new Hashtable<Term, Float>();
+  private Hashtable<Term, Float> termIDF = new Hashtable<>();
   private TreeSet<String> stopwords = null;
   private TreeSet<String> startwords = null;
 
@@ -187,14 +187,20 @@ public class LuceneUtils {
    * @return Global term frequency of term, or 1 if unavailable.
    */
   public int getGlobalTermFreq(Term term) {
-	int tf = 0;
+	  int tf = 0;
 	
     try {
-		   tf  = (int) compositeReader.totalTermFreq(term);
-    	}
+		  tf  = (int) compositeReader.totalTermFreq(term);
+    }
     catch (IOException e) {
       logger.info("Couldn't get term frequency for term " + term.text());
       return 1;
+    }
+    if (tf == -1) {
+      logger.warning("Lucene StandardDirectoryReader returned -1 for term: '"
+          + term.text() + "' in field: '" + term.field() + "'. Changing to 0."
+          + "\nThis may be due to a version-mismatch and might be solved by rebuilding your Lucene index.");
+      tf = 0;
     }
     return tf;
   }

@@ -66,7 +66,8 @@ public class PSITypeLister {
       }
     }
   }
-  
+
+  /** Data structure that encodes mapping of which attributes are expected for each type. */
   static private HashMap<String, List<String>> typesToAttributes = new HashMap<>();
   static {
     typesToAttributes.put("COUNTRY",
@@ -75,7 +76,10 @@ public class PSITypeLister {
     typesToAttributes.put("CURRENCY", Arrays.asList(new String[] {"HAS_CURRENCY-INV"}));
     typesToAttributes.put("ANIMAL", Arrays.asList(new String[] {"HAS_NATIONAL_ANIMAL-INV"}));
   }
-  
+
+  /**
+   * Returns a string representing the type of an item given a list of attributes it has.
+   **/
   private String getProposedType(List<String> matchedAttributes) {
     String result = null;
     for (Map.Entry<String, List<String>> entry : typesToAttributes.entrySet()) {
@@ -89,18 +93,32 @@ public class PSITypeLister {
     }
     return result;
   }
-  
+
+  /**
+   * Separate method for hard-coded experiments on negation, included here for ease.
+   */
   public static void notUsDollar(PSITypeLister typeLister, FlagConfig flagConfig) {
     Vector usa = typeLister.elementalVectors.getVector("united_states");
     Vector dollar = typeLister.semanticVectors.getVector("united_states_dollar");
     Vector usesCurrency = typeLister.predicateVectors.getVector("HAS_CURRENCY-INV");
     Vector countryUsesDollar = dollar.copy();
     countryUsesDollar.release(usesCurrency);
+
+    System.out.println("Results without negation ...");
+    for (ObjectVector testVector : Collections.list(
+        typeLister.elementalVectors.getAllVectors())) {
+      double score = testVector.getVector().measureOverlap(countryUsesDollar);
+      if (score > flagConfig.searchresultsminscore()) {
+        System.out.println(score + " : " + testVector.getObject());
+      }
+    }
+
     ArrayList<Vector> setToNegate = new ArrayList<>();
     setToNegate.add(usa);
     setToNegate.add(countryUsesDollar);
     VectorUtils.orthogonalizeVectors(setToNegate);
-    //countryUsesDollar.normalize();
+    countryUsesDollar.normalize();
+    System.out.println("Results with negation ...");
     for (ObjectVector testVector : Collections.list(
         typeLister.elementalVectors.getAllVectors())) {
       double score = testVector.getVector().measureOverlap(countryUsesDollar);
