@@ -33,7 +33,7 @@ public class TableIndexer {
     VerbatimLogger.info("Building vector index of table in file: " + args[0] + "\n");
     BufferedReader fileReader = new BufferedReader(new FileReader(args[0]));
     String[] columnHeaders = fileReader.readLine().split(",");
-    ArrayList<String[]> dataRows = new ArrayList<String[]>();
+    ArrayList<String[]> dataRows = new ArrayList<>();
     String dataLine;
     while((dataLine = fileReader.readLine()) != null) {
       String[] dataEntries = dataLine.split(",");

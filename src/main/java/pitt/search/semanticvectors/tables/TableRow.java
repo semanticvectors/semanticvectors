@@ -18,7 +18,7 @@ public class TableRow {
   public ObjectVector rowVector;
 
   public TableRow(FlagConfig flagConfig, VectorStoreOrthographical orthographicGenerator,
-      String[] stringValues, ObjectVector[] columnHeaders) {
+      String[] stringValues, ObjectVector[] columnHeaders, TypeSpec[] columnTypes) {
     if (stringValues.length != columnHeaders.length) {
       throw new IllegalArgumentException("Arguments must have the same length.");
     }
@@ -26,13 +26,18 @@ public class TableRow {
     
     Vector accumulator = VectorFactory.createZeroVector(flagConfig.vectortype(), flagConfig.dimension());
     for (int i = 0; i < stringValues.length; ++i) {
-
-      //Vector rawStringVector = VectorFactory.generateRandomVector(
-      //    flagConfig.vectortype(), flagConfig.dimension(), flagConfig.seedlength,
-      //    new Random(Bobcat.asLong(stringValues[i])));
-      Vector rawStringVector = orthographicGenerator.getVector(stringValues[i]);
+      if (stringValues[i].isEmpty()) continue;
+      Vector valueVector = null;
+      switch (columnTypes[i].getType()) {
+        case STRING:
+          valueVector = orthographicGenerator.getVector(stringValues[i]);
+          break;
+        case DOUBLE:
+          valueVector = columnTypes[i].getDoubleValueVector(flagConfig, Double.parseDouble(stringValues[i]));
+          break;
+      }
       Vector boundColVal = columnHeaders[i].getVector().copy();
-      boundColVal.bind(rawStringVector);
+      boundColVal.bind(valueVector);
       boundColVal.normalize();
       this.rowCellVectors[i] = new ObjectVector(stringValues[i], boundColVal);
       accumulator.superpose(boundColVal, 1, null);
