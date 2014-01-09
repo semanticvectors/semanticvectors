@@ -60,7 +60,7 @@ public class Table {
   
   private void addRow(String[] rowValues) {
     TableRow newRow = new TableRow(
-        flagConfig, orthographicVectorStore, rowValues, columnHeaders);
+        flagConfig, orthographicVectorStore, rowValues, columnHeaders, columnTypes);
     rows.add(newRow);
     rowSummaryVectors.putVector(newRow.rowVector.getObject(), newRow.rowVector.getVector());
   }
@@ -72,6 +72,13 @@ public class Table {
     for (String[] entries: dataRows) {
       for (int i = 0; i < entries.length; ++i) {
         columnTypes[i].addExample(entries[i]);
+      }
+    }
+
+    // Now we've seen all values, those we know to be numeric should be prepared with bookend vectors.
+    for (int i = 0; i < columnTypes.length; ++i) {
+      if (columnTypes[i].getType() == TypeSpec.SupportedType.DOUBLE) {
+        columnTypes[i].addMinMaxVectors(flagConfig, columnHeaders[i].getObject().toString());
       }
     }
   }

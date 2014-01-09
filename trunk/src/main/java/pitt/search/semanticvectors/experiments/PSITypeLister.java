@@ -20,7 +20,9 @@ import pitt.search.semanticvectors.vectors.VectorUtils;
 
 /**
  * Experiment for trying to recover the "type" of a semantic vector in a PSI model.
- * 
+ *
+ * Also contains some experiments on negation in PSI.
+ *
  * @author dwiddows
  */
 public class PSITypeLister {
@@ -30,7 +32,7 @@ public class PSITypeLister {
   private VectorStore predicateVectors;
   
   /**
-   * Initializes a {@link FlagConfig} from args and intializes appropriate elemental,
+   * Initializes a {@link FlagConfig} from args and initializes appropriate elemental,
    * semantic, and predicate vector stores.
    */
   public PSITypeLister(String[] args) throws IOException {
@@ -98,7 +100,6 @@ public class PSITypeLister {
    * Separate method for hard-coded experiments on negation, included here for ease.
    */
   public static void notUsDollar(PSITypeLister typeLister, FlagConfig flagConfig) {
-    Vector usa = typeLister.elementalVectors.getVector("united_states");
     Vector dollar = typeLister.semanticVectors.getVector("united_states_dollar");
     Vector usesCurrency = typeLister.predicateVectors.getVector("HAS_CURRENCY-INV");
     Vector countryUsesDollar = dollar.copy();
@@ -114,6 +115,7 @@ public class PSITypeLister {
     }
 
     ArrayList<Vector> setToNegate = new ArrayList<>();
+    Vector usa = typeLister.elementalVectors.getVector("united_states");
     setToNegate.add(usa);
     setToNegate.add(countryUsesDollar);
     VectorUtils.orthogonalizeVectors(setToNegate);
@@ -130,7 +132,7 @@ public class PSITypeLister {
   
   public static void main(String[] args) throws IOException {
     PSITypeLister typeLister = new PSITypeLister(args);
-    //typeLister.printBestRelations();
-    notUsDollar(typeLister, FlagConfig.getFlagConfig(args));
+    typeLister.printBestRelations();
+    //notUsDollar(typeLister, FlagConfig.getFlagConfig(args));
   }
 }
