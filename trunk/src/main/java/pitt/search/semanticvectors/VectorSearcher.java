@@ -111,6 +111,7 @@ abstract public class VectorSearcher {
    * @param queryVecStore Vector store to use for query generation.
    * @param searchVecStore The vector store to search.
    * @param luceneUtils LuceneUtils object to use for query weighting. (May be null.)
+   * @param flagConfig Flag configuration (cannot be null).
    */
   public VectorSearcher(VectorStore queryVecStore,  VectorStore searchVecStore,
       LuceneUtils luceneUtils, FlagConfig flagConfig) {
@@ -241,6 +242,26 @@ abstract public class VectorSearcher {
 
     Collections.sort(results);
     return results;
+  }
+
+  /**
+   * Class that searches based on cosine similarity with given queryvector.
+   */
+  static public class VectorSearcherPlain extends VectorSearcher {
+    Vector queryVector;
+
+    /**
+     * Plain constructor that just fills in the query vector and vector store to be searched.
+     */
+    public VectorSearcherPlain(VectorStore searchVecStore, Vector queryVector, FlagConfig flagConfig) {
+      super(searchVecStore, searchVecStore, null, flagConfig);
+      this.queryVector = queryVector;
+    }
+
+    @Override
+    public double getScore(Vector testVector) {
+      return queryVector.measureOverlap(testVector);
+    }
   }
 
   /**

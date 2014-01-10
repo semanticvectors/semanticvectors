@@ -47,8 +47,6 @@ import org.junit.Test;
 
 public class BinaryVectorTest extends TestCase {
 
-
-
   @Test
   public void testDimensionMustMatchWhenReading() {
     BinaryVector vector = (BinaryVector) VectorFactory.createZeroVector(VectorType.BINARY, 128);

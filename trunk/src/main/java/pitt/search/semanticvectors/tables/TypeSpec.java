@@ -2,8 +2,10 @@ package pitt.search.semanticvectors.tables;
 
 import pitt.search.semanticvectors.FlagConfig;
 import pitt.search.semanticvectors.utils.Bobcat;
+import pitt.search.semanticvectors.utils.VerbatimLogger;
 import pitt.search.semanticvectors.vectors.Vector;
 import pitt.search.semanticvectors.vectors.VectorFactory;
+import pitt.search.semanticvectors.vectors.VectorUtils;
 
 import java.util.Random;
 
@@ -106,10 +108,14 @@ public class TypeSpec {
     }
     long randomSeed = Bobcat.asLong(columnName);
     Random random = new Random(randomSeed);
-    minBookendVector = VectorFactory.generateRandomVector(
-        flagConfig.vectortype(), flagConfig.dimension(), flagConfig.seedlength(), random);
-    maxBookendVector = VectorFactory.generateRandomVector(
-        flagConfig.vectortype(), flagConfig.dimension(), flagConfig.seedlength(), random);
+    while (true) {
+      minBookendVector = VectorFactory.generateRandomVector(
+          flagConfig.vectortype(), flagConfig.dimension(), flagConfig.seedlength(), random);
+      maxBookendVector = VectorFactory.generateRandomVector(
+          flagConfig.vectortype(), flagConfig.dimension(), flagConfig.seedlength(), random);
+      if (minBookendVector.measureOverlap(maxBookendVector) < 0.1) break;
+      VerbatimLogger.info("Bookend vectors too similar to each other ... repeating generation.\n");
+    }
   }
 
   /**
@@ -123,10 +129,9 @@ public class TypeSpec {
     if (value < minDoubleValue || value > maxDoubleValue) {
       throw new IllegalArgumentException("Value out of bounds: " + value);
     }
-    Vector result = VectorFactory.createZeroVector(flagConfig.vectortype(), flagConfig.dimension());
     double doubleRange = maxDoubleValue - minDoubleValue;
-    result.superpose(minBookendVector, (value - minDoubleValue) / doubleRange, null);
-    result.superpose(maxBookendVector, (maxDoubleValue - doubleRange) / doubleRange, null);
+    Vector result = VectorUtils.weightedSuperposition(minBookendVector, (value - minDoubleValue) / doubleRange,
+        maxBookendVector, (maxDoubleValue - value) / doubleRange);
     return result;
   }
 }

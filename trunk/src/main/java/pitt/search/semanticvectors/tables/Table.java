@@ -1,14 +1,13 @@
 package pitt.search.semanticvectors.tables;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Random;
 
-import pitt.search.semanticvectors.FlagConfig;
-import pitt.search.semanticvectors.ObjectVector;
-import pitt.search.semanticvectors.VectorStore;
-import pitt.search.semanticvectors.VectorStoreOrthographical;
-import pitt.search.semanticvectors.VectorStoreRAM;
+import pitt.search.semanticvectors.*;
 import pitt.search.semanticvectors.utils.Bobcat;
+import pitt.search.semanticvectors.utils.VerbatimLogger;
 import pitt.search.semanticvectors.vectors.Vector;
 import pitt.search.semanticvectors.vectors.VectorFactory;
 
@@ -26,11 +25,10 @@ public class Table {
   private FlagConfig flagConfig;
   private ObjectVector[] columnHeaders;
   private TypeSpec[] columnTypes;
-  private ArrayList<TableRow> rows;
   private VectorStoreRAM rowSummaryVectors;
   private VectorStoreOrthographical orthographicVectorStore;
 
-  public Table(FlagConfig flagConfig, String[] columnNames, ArrayList<String[]> dataRows) {
+  public Table(FlagConfig flagConfig, String[] columnNames, List<String[]> dataRows) {
     this.flagConfig = flagConfig;
     this.orthographicVectorStore = new VectorStoreOrthographical(flagConfig);
     this.columnHeaders = new ObjectVector[columnNames.length];
@@ -48,7 +46,6 @@ public class Table {
     }
     
     this.rowSummaryVectors = new VectorStoreRAM(flagConfig);
-    this.rows = new ArrayList<TableRow>();
     for (String[] dataRow: dataRows) {
       this.addRow(dataRow);
     }
@@ -57,15 +54,44 @@ public class Table {
   public VectorStore getRowVectorStore() {
     return this.rowSummaryVectors;
   }
-  
-  private void addRow(String[] rowValues) {
-    TableRow newRow = new TableRow(
-        flagConfig, orthographicVectorStore, rowValues, columnHeaders, columnTypes);
-    rows.add(newRow);
-    rowSummaryVectors.putVector(newRow.rowVector.getObject(), newRow.rowVector.getVector());
+
+  /** Returns a vector for a particular cell in the table. */
+  public Vector makeCellVector(int colIndex, String value) {
+    if (value.isEmpty()) {
+      return VectorFactory.createZeroVector(flagConfig.vectortype(), flagConfig.dimension());
+    }
+    Vector valueVector = null;
+    switch (columnTypes[colIndex].getType()) {
+      case STRING:
+        valueVector = orthographicVectorStore.getVector(value);
+        break;
+      case DOUBLE:
+        valueVector = columnTypes[colIndex].getDoubleValueVector(
+            flagConfig, Double.parseDouble(value));
+        break;
+    }
+    Vector boundColVal = columnHeaders[colIndex].getVector().copy();
+    boundColVal.bind(valueVector);
+    boundColVal.normalize();
+    return boundColVal;
   }
 
-  private void prepareTypeSchema(ArrayList<String[]> dataRows) {
+  public LinkedList<SearchResult> searchRowVectors(Vector queryVector) {
+    VectorSearcher.VectorSearcherPlain searcher = new VectorSearcher.VectorSearcherPlain(
+        getRowVectorStore(), queryVector, flagConfig);
+    return searcher.getNearestNeighbors(flagConfig.numsearchresults());
+  }
+  
+  private void addRow(String[] rowValues) {
+    Vector accumulator = VectorFactory.createZeroVector(flagConfig.vectortype(), flagConfig.dimension());
+    for (int i = 0; i < columnHeaders.length; ++i) {
+      accumulator.superpose(makeCellVector(i, rowValues[i]), 1, null);
+    }
+    accumulator.normalize();
+    rowSummaryVectors.putVector(rowValues[0], accumulator);
+  }
+
+  private void prepareTypeSchema(List<String[]> dataRows) {
     for (int i = 0; i < columnTypes.length; ++i) {
       columnTypes[i] = TypeSpec.getEmptyType();
     }
