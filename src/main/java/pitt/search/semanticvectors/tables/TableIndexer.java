@@ -6,9 +6,11 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 import pitt.search.semanticvectors.FlagConfig;
+import pitt.search.semanticvectors.SearchResult;
 import pitt.search.semanticvectors.VectorStoreWriter;
 import pitt.search.semanticvectors.utils.StringUtils;
 import pitt.search.semanticvectors.utils.VerbatimLogger;
+import pitt.search.semanticvectors.vectors.Vector;
 
 /**
  * Class that reads input data from a stream and organizes it into records and columns.
@@ -19,7 +21,21 @@ public class TableIndexer {
 
   public static final String usageMessage =
       "Usage: java pitt.search.semanticvectors.tables.TableIndexer [--args] $TABLE_CSV_FILENAME";
-  
+
+  /** Experiment in querying for a particular inauguration date. */
+  private static void queryForSpecialValues(Table table) {
+    System.out.println("Querying for time took office 1800");
+    Vector queryVector = table.makeCellVector(2, "1800");
+    for (SearchResult result : table.searchRowVectors(queryVector)) {
+      System.out.println(result.getScore() + ":" + result.getObjectVector().getObject());
+    }
+    System.out.println("Querying for year of birth 1800");
+    queryVector = table.makeCellVector(5, "1800");
+    for (SearchResult result : table.searchRowVectors(queryVector)) {
+      System.out.println(result.getScore() + ":" + result.getObjectVector().getObject());
+    }
+  }
+
   public static void main(String[] args) throws IOException {
     FlagConfig flagConfig = null;
     try {
@@ -50,5 +66,6 @@ public class TableIndexer {
     
     Table table = new Table(flagConfig, columnHeaders, dataRows);
     VectorStoreWriter.writeVectors(flagConfig.termvectorsfile(), flagConfig, table.getRowVectorStore());
+    queryForSpecialValues(table);
   }
 }
