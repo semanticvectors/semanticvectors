@@ -73,15 +73,13 @@ public class VectorUtils {
    * See also {@link BinaryVectorUtils#compareWithProjection} for the binary case.
    */
   public static double compareWithProjection(Vector testVector, ArrayList<Vector> vectors) {
-    if (testVector.getVectorType() == VectorType.BINARY) {
-      return VectorUtils.compareWithProjection(testVector, vectors);
-    } else {
+   
     float score = 0;
     for (int i = 0; i < vectors.size(); ++i) {
       score += Math.pow(testVector.measureOverlap(vectors.get(i)), 2);
     }
     return (float) Math.sqrt(score);
-    }
+    
   }
 
   /**
