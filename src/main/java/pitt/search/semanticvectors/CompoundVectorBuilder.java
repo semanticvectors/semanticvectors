@@ -164,17 +164,19 @@ public class CompoundVectorBuilder {
    * @return the resulting query vector
    */
   private static Vector getVector(
-      FlagConfig flagConfig, VectorStore semanticVectors, VectorStore elementalVectors, String term) {
+      FlagConfig flagConfig, VectorStore semanticVectors, VectorStore elementalVectors, VectorStore predicateVectors, String term) {
     if (term.startsWith("E(") && term.endsWith(")"))
       return elementalVectors.getVector(term.substring(2,term.length()-1)).copy();
     else if (term.startsWith("S(") && term.endsWith(")"))
       return semanticVectors.getVector(term.substring(2,term.length()-1)).copy();
+    else if (term.startsWith("P(") && term.endsWith(")"))
+        return predicateVectors.getVector(term.substring(2,term.length()-1)).copy();
     else return VectorFactory.createZeroVector(
         flagConfig.vectortype(), flagConfig.dimension());
   }
 
   public static Vector getBoundProductQueryVectorFromString(
-      FlagConfig flagConfig, VectorStore semanticVectors, VectorStore elementalVectors, String queryString) {
+      FlagConfig flagConfig, VectorStore elementalVectors, VectorStore semanticVectors, VectorStore predicateVectors, String queryString) {
     //allow for bundling of multiple concepts/relations - split initially at "+" to construct vectors to be superposed
     StringTokenizer bundlingTokenizer = new StringTokenizer(queryString,"+");
     Vector bundled_queryvector = VectorFactory.createZeroVector(
@@ -188,7 +190,7 @@ public class CompoundVectorBuilder {
       Vector boundQueryvector = null;
 
       //get vector for first token
-      boundQueryvector = getVector(flagConfig, semanticVectors, elementalVectors, nextToken).copy();
+      boundQueryvector = getVector(flagConfig, elementalVectors, semanticVectors, predicateVectors, nextToken).copy();
 
 
       while (bindingTokenizer.hasMoreTokens())
@@ -196,7 +198,7 @@ public class CompoundVectorBuilder {
         nextToken = bindingTokenizer.nextToken();
 
         Vector bound_queryvector2 = null;
-        bound_queryvector2 = getVector(flagConfig, semanticVectors, elementalVectors, nextToken).copy();
+        bound_queryvector2 = getVector(flagConfig, elementalVectors, semanticVectors, predicateVectors, nextToken).copy();
 
         //sequence of operations important for complex vectors and permuted binary vectors
         bound_queryvector2.release(boundQueryvector);
@@ -291,7 +293,7 @@ public class CompoundVectorBuilder {
    * @return List of vectors that are basis elements for subspace
    */
   public static ArrayList<Vector> getBoundProductQuerySubspaceFromString(
-      FlagConfig flagConfig, VectorStore semanticVectors, VectorStore elementalVectors, String queryString) {
+      FlagConfig flagConfig, VectorStore elementalVectors, VectorStore semanticVectors, VectorStore predicateVectors, String queryString) {
     ArrayList<Vector> disjunctSpace = new ArrayList<Vector>();
 
     //allow for bundling of multiple concepts/relations - split initially at "+" to construct vectors to be superposed
@@ -302,12 +304,12 @@ public class CompoundVectorBuilder {
       String nextToken = bindingTokenizer.nextToken();
       Vector boundQeryvector = null;
 
-      boundQeryvector = getVector(flagConfig, semanticVectors, elementalVectors, nextToken).copy();
+      boundQeryvector = getVector(flagConfig, semanticVectors, elementalVectors, predicateVectors, nextToken).copy();
 
       while (bindingTokenizer.hasMoreTokens()) {
         nextToken = bindingTokenizer.nextToken();
         Vector boundQueryvector2 = null;
-        boundQueryvector2 = getVector(flagConfig, semanticVectors, elementalVectors, nextToken).copy();
+        boundQueryvector2 = getVector(flagConfig, semanticVectors, elementalVectors, predicateVectors, nextToken).copy();
 
         //sequence of operations important for complex vectors
         boundQueryvector2.release(boundQeryvector);
