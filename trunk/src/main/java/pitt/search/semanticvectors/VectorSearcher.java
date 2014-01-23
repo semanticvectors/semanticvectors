@@ -336,13 +336,13 @@ abstract public class VectorSearcher {
       }
     }
 
-    public VectorSearcherBoundProduct(VectorStore queryVecStore, VectorStore boundVecStore,
+    public VectorSearcherBoundProduct(VectorStore semanticVecStore, VectorStore elementalVecStore, VectorStore predicateVecStore,
         VectorStore searchVecStore, LuceneUtils luceneUtils, FlagConfig flagConfig, String term1)
             throws ZeroVectorException {
-      super(queryVecStore, searchVecStore, luceneUtils, flagConfig);
+      super(semanticVecStore, searchVecStore, luceneUtils, flagConfig);
 
       this.queryVector = CompoundVectorBuilder.getBoundProductQueryVectorFromString(
-          flagConfig, queryVecStore, boundVecStore, term1);
+          flagConfig, elementalVecStore, semanticVecStore, predicateVecStore, term1);
 
       if (this.queryVector.isZeroVector()) {
         throw new ZeroVectorException("Query vector is zero ... no results.");
@@ -419,14 +419,14 @@ abstract public class VectorSearcher {
           flagConfig, boundVecStore, queryVector, term2);
     }
 
-    public VectorSearcherBoundProductSubSpace(VectorStore queryVecStore, VectorStore boundVecStore,
+    public VectorSearcherBoundProductSubSpace(VectorStore elementalVecStore, VectorStore semanticVecStore, VectorStore predicateVecStore,
         VectorStore searchVecStore, LuceneUtils luceneUtils, FlagConfig flagConfig, String term1)
             throws ZeroVectorException {
-      super(queryVecStore, searchVecStore, luceneUtils, flagConfig);
+      super(semanticVecStore, searchVecStore, luceneUtils, flagConfig);
 
       disjunctSpace = new ArrayList<Vector>();
       this.disjunctSpace = CompoundVectorBuilder.getBoundProductQuerySubspaceFromString(
-          flagConfig, queryVecStore, boundVecStore, term1);
+          flagConfig, elementalVecStore, semanticVecStore, predicateVecStore, term1);
 
     }
 
@@ -466,14 +466,14 @@ abstract public class VectorSearcher {
           flagConfig, boundVecStore, queryVector, term2);
     }
 
-    public VectorSearcherBoundMinimum(VectorStore queryVecStore, VectorStore boundVecStore,
+    public VectorSearcherBoundMinimum(VectorStore elementalVecStore, VectorStore semanticVecStore, VectorStore predicateVecStore, 
         VectorStore searchVecStore, LuceneUtils luceneUtils, FlagConfig flagConfig, String term1)
             throws ZeroVectorException {
-      super(queryVecStore, searchVecStore, luceneUtils, flagConfig);
+      super(semanticVecStore, searchVecStore, luceneUtils, flagConfig);
 
       disjunctSpace = new ArrayList<Vector>();
       this.disjunctSpace = CompoundVectorBuilder.getBoundProductQuerySubspaceFromString(
-          flagConfig, queryVecStore, boundVecStore, term1);
+          flagConfig, elementalVecStore, semanticVecStore, predicateVecStore, term1);
 
     }
 

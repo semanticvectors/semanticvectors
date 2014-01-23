@@ -192,6 +192,10 @@ public class Search {
     CloseableVectorStore queryVecReader = null;
     /** Auxiliary vector store used when searching for boundproducts. Used only in some searchtypes. */
     CloseableVectorStore boundVecReader = null;
+    
+    /** Auxiliary vector stores used when searching for boundproducts. Used only in some searchtypes. */
+    CloseableVectorStore elementalVecReader = null, semanticVecReader = null, predicateVecReader = null;
+    
     /**
      * Vector store for searching. Defaults to being the same as queryVecReader.
      * May be different from queryVecReader, e.g., when using terms to search for documents.
@@ -201,15 +205,33 @@ public class Search {
     // Stage ii. Open vector stores, and Lucene utils.
     try {
       // Default VectorStore implementation is (Lucene) VectorStoreReader.
-      VerbatimLogger.info("Opening query vector store from file: " + flagConfig.queryvectorfile() + "\n");
-      if (flagConfig.queryvectorfile().equals("orthographic")) queryVecReader = new VectorStoreOrthographical(flagConfig);
-      else queryVecReader = VectorStoreReader.openVectorStore(flagConfig.queryvectorfile(), flagConfig);
-
+      
+        if (flagConfig.elementalvectorfile().length() > 0 && flagConfig.semanticvectorfile().length() > 0 && flagConfig.predicatevectorfile().length() > 0) {
+            //for PSI search
+        	VerbatimLogger.info("Opening elemental query vector store from file: " + flagConfig.elementalvectorfile() + "\n");
+            VerbatimLogger.info("Opening semantic query vector store from file: " + flagConfig.semanticvectorfile() + "\n");
+            VerbatimLogger.info("Opening predicate query vector store from file: " + flagConfig.predicatevectorfile() + "\n");
+            
+            elementalVecReader = VectorStoreReader.openVectorStore(flagConfig.elementalvectorfile(), flagConfig);
+            semanticVecReader = VectorStoreReader.openVectorStore(flagConfig.semanticvectorfile(), flagConfig);
+            predicateVecReader = VectorStoreReader.openVectorStore(flagConfig.predicatevectorfile(), flagConfig);
+            
+        	}	
+        	else
+        	{
+        	VerbatimLogger.info("Opening query vector store from file: " + flagConfig.queryvectorfile() + "\n");
+        	if (flagConfig.queryvectorfile().equals("orthographic")) queryVecReader = new VectorStoreOrthographical(flagConfig);
+        	else queryVecReader = VectorStoreReader.openVectorStore(flagConfig.queryvectorfile(), flagConfig);
+        	}
+      
       if (flagConfig.boundvectorfile().length() > 0) {
         VerbatimLogger.info("Opening second query vector store from file: " + flagConfig.boundvectorfile() + "\n");
         boundVecReader = VectorStoreReader.openVectorStore(flagConfig.boundvectorfile(), flagConfig);
       }
 
+
+      
+      
       // Open second vector store if search vectors are different from query vectors.
       if (flagConfig.queryvectorfile().equals(flagConfig.searchvectorfile())
           || flagConfig.searchvectorfile().isEmpty()) {
@@ -269,7 +291,7 @@ public class Search {
               queryVecReader, boundVecReader, searchVecReader, luceneUtils, flagConfig, queryArgs[0],queryArgs[1]);
         } else {
           vecSearcher = new VectorSearcher.VectorSearcherBoundProduct(
-              queryVecReader, boundVecReader, searchVecReader, luceneUtils, flagConfig, queryArgs[0]);
+              elementalVecReader, semanticVecReader, predicateVecReader, searchVecReader, luceneUtils, flagConfig, queryArgs[0]);
         }
         break;
       case BOUNDPRODUCTSUBSPACE:
@@ -278,7 +300,7 @@ public class Search {
               queryVecReader, boundVecReader, searchVecReader, luceneUtils, flagConfig, queryArgs[0], queryArgs[1]);
         } else {
           vecSearcher = new VectorSearcher.VectorSearcherBoundProductSubSpace(
-              queryVecReader, boundVecReader, searchVecReader, luceneUtils, flagConfig, queryArgs[0]);
+              elementalVecReader, semanticVecReader, predicateVecReader, searchVecReader, luceneUtils, flagConfig, queryArgs[0]);
         }
         break;
       case BOUNDMINIMUM:
@@ -287,7 +309,7 @@ public class Search {
                 queryVecReader, boundVecReader, searchVecReader, luceneUtils, flagConfig, queryArgs[0], queryArgs[1]);
           } else {
             vecSearcher = new VectorSearcher.VectorSearcherBoundMinimum(
-                queryVecReader, boundVecReader, searchVecReader, luceneUtils, flagConfig, queryArgs[0]);
+                elementalVecReader, semanticVecReader, predicateVecReader, searchVecReader, luceneUtils, flagConfig, queryArgs[0]);
           }
           break;
       case PERMUTATION:
