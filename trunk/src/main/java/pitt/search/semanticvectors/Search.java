@@ -206,7 +206,7 @@ public class Search {
     try {
       // Default VectorStore implementation is (Lucene) VectorStoreReader.
       
-        if (flagConfig.elementalvectorfile().length() > 0 && flagConfig.semanticvectorfile().length() > 0 && flagConfig.predicatevectorfile().length() > 0) {
+        if (!flagConfig.elementalvectorfile().equals("elementalvectors") && !flagConfig.semanticvectorfile().equals("semanticvectors") && !flagConfig.predicatevectorfile().equals("predicatevectors")) {
             //for PSI search
         	VerbatimLogger.info("Opening elemental query vector store from file: " + flagConfig.elementalvectorfile() + "\n");
             VerbatimLogger.info("Opening semantic query vector store from file: " + flagConfig.semanticvectorfile() + "\n");
