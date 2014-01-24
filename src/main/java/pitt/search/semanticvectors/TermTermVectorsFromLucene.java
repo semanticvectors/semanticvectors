@@ -296,34 +296,34 @@ public class TermTermVectorsFromLucene { //implements VectorStore {
         if (cursor == focusposn) continue;
         if (localTermPositions.get(cursor) == null) continue;
         String coterm = localTerms.get(localTermPositions.get(cursor));
-
+        Vector toSuperpose = elementalTermVectors.getVector(coterm);
+        
         if (!luceneUtils.termFilter(new Term(field, coterm))) continue;
 
         float globalweight = luceneUtils.getGlobalTermWeight(new Term(field, coterm));
 
+        
         // bind to appropriate position vector
         if (flagConfig.positionalmethod() == PositionalMethod.PROXIMITY) {
-          elementalTermVectors.getVector(coterm).bind(positionalNumberVectors.getVector((1+cursor-windowstart)));
+            toSuperpose = toSuperpose.copy();
+        	toSuperpose.bind(positionalNumberVectors.getVector((1+cursor-windowstart)));
         }
 
         // calculate permutation required for either Sahlgren (2008) implementation
         // encoding word order, or encoding direction as in Burgess and Lund's HAL
         if (flagConfig.positionalmethod() == PositionalMethod.BASIC
             || flagConfig.positionalmethod() == PositionalMethod.PERMUTATIONPLUSBASIC) {
-          semanticTermVectors.getVector(focusterm).superpose(elementalTermVectors.getVector(coterm), globalweight, null);
+          semanticTermVectors.getVector(focusterm).superpose(toSuperpose, globalweight, null);
         }
         if (flagConfig.positionalmethod() == PositionalMethod.PERMUTATION
             || flagConfig.positionalmethod() == PositionalMethod.PERMUTATIONPLUSBASIC) {
           int[] permutation = permutationCache[cursor - focusposn + flagConfig.windowradius()];
-          semanticTermVectors.getVector(focusterm).superpose(elementalTermVectors.getVector(coterm), globalweight, permutation);
+          semanticTermVectors.getVector(focusterm).superpose(toSuperpose, globalweight, permutation);
         } else if (flagConfig.positionalmethod() == PositionalMethod.DIRECTIONAL || flagConfig.positionalmethod() == PositionalMethod.PROXIMITY) {
           int[] permutation = permutationCache[(int) Math.max(0,Math.signum(cursor - focusposn))];
-          semanticTermVectors.getVector(focusterm).superpose(elementalTermVectors.getVector(coterm), globalweight, permutation);
+          semanticTermVectors.getVector(focusterm).superpose(toSuperpose, globalweight, permutation);
 
-          //release to appropriate position vector
-          if (flagConfig.positionalmethod() == PositionalMethod.PROXIMITY)
-            elementalTermVectors.getVector(coterm).release(positionalNumberVectors.getVector((1+cursor-windowstart)));
-        }
+           }
       } //end of current sliding window   
     } //end of all sliding windows
   }
