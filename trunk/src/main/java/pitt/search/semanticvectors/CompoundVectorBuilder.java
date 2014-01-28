@@ -165,14 +165,24 @@ public class CompoundVectorBuilder {
    */
   private static Vector getVector(
       FlagConfig flagConfig, VectorStore semanticVectors, VectorStore elementalVectors, VectorStore predicateVectors, String term) {
-    if (term.startsWith("E(") && term.endsWith(")"))
+   
+	  try {
+		  
+		  
+		  
+	  if (term.startsWith("E(") && term.endsWith(")"))
       return elementalVectors.getVector(term.substring(2,term.length()-1)).copy();
-    else if (term.startsWith("S(") && term.endsWith(")"))
+	  else if (term.startsWith("S(") && term.endsWith(")"))
       return semanticVectors.getVector(term.substring(2,term.length()-1)).copy();
-    else if (term.startsWith("P(") && term.endsWith(")"))
-        return predicateVectors.getVector(term.substring(2,term.length()-1)).copy();
-    else return VectorFactory.createZeroVector(
-        flagConfig.vectortype(), flagConfig.dimension());
+	  else if (term.startsWith("P(") && term.endsWith(")"))
+      return predicateVectors.getVector(term.substring(2,term.length()-1)).copy();
+	  else return VectorFactory.createZeroVector(flagConfig.vectortype(), flagConfig.dimension());
+	  		
+	  		}
+	  catch (NullPointerException npe)
+	  {
+		  return VectorFactory.createZeroVector(flagConfig.vectortype(), flagConfig.dimension());
+		  }
   }
 
   public static Vector getBoundProductQueryVectorFromString(
