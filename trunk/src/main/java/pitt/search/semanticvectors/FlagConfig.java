@@ -132,11 +132,7 @@ public class FlagConfig {
   private boolean hybridvectors = false;
   /** If {@code true}, the StringEdit Class will produce hybrid vectors where each term vector = orthographic vector + semantic vector (from -queryvectorfile), default value {@code false}. */
   public boolean hybridvectors() { return hybridvectors; }
-  
-  private boolean deterministicvectors = false;
-  /** If {@code true}, deterministic vectors will be used throughout indexing, using {@code pitt.search.semanticvectors.hashing}. */
-  public boolean deterministicvectors() { return deterministicvectors; }
-  
+   
   private int numsearchresults = 20;
   /** Number of search results to return, default value 20. */
   public int numsearchresults() { return numsearchresults; }

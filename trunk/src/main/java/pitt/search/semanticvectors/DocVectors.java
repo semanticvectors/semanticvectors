@@ -134,6 +134,10 @@ public class DocVectors implements VectorStore {
           // Get any docs for this term.
           DocsEnum docsEnum = this.luceneUtils.getDocsForTerm(term);
 
+          // This may occur frequently if one term vector store is derived from multiple fields
+          if (docsEnum == null)  { continue; }
+    
+          
           while (docsEnum.nextDoc() != DocsEnum.NO_MORE_DOCS) {
             int docID = docsEnum.docID();
             // Add vector from this term, taking freq into account.
