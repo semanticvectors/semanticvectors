@@ -270,7 +270,7 @@ public class TermTermVectorsFromLucene { //implements VectorStore {
 
     while((text = termsEnum.next()) != null) {
       String theTerm = text.utf8ToString();
-      if (!luceneUtils.termFilter(new Term(field, theTerm))) continue;
+      if (!semanticTermVectors.containsVector(theTerm)) continue;
       DocsAndPositionsEnum docsAndPositions = termsEnum.docsAndPositions(null, null);
       if (docsAndPositions == null) return;
       docsAndPositions.nextDoc();
@@ -296,13 +296,11 @@ public class TermTermVectorsFromLucene { //implements VectorStore {
         if (cursor == focusposn) continue;
         if (localTermPositions.get(cursor) == null) continue;
         String coterm = localTerms.get(localTermPositions.get(cursor));
+        if (coterm == null) continue;
         Vector toSuperpose = elementalTermVectors.getVector(coterm);
         
-        if (!luceneUtils.termFilter(new Term(field, coterm))) continue;
-
         float globalweight = luceneUtils.getGlobalTermWeight(new Term(field, coterm));
-
-        
+ 
         // bind to appropriate position vector
         if (flagConfig.positionalmethod() == PositionalMethod.PROXIMITY) {
             toSuperpose = toSuperpose.copy();
