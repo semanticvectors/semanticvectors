@@ -65,7 +65,11 @@ public class PermutationUtils {
    * @return array of length given by {@link #getPermutationLength}.
    */
   public static int[] getShiftPermutation(VectorType vectorType, int dimension, int shift) {
-    int permutationLength = getPermutationLength(vectorType, dimension);
+    
+	//avoid breaking up unit circle components with complex vectors
+	if (vectorType.equals(VectorType.COMPLEX) && (shift %2 != 0)) shift+=Math.signum(shift); 
+	
+	int permutationLength = getPermutationLength(vectorType, dimension);
     int[] permutation = new int[permutationLength];
 
     for (int i = 0; i < permutationLength; ++i) {
