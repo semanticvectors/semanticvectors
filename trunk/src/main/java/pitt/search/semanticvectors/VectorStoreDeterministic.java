@@ -36,7 +36,7 @@ import pitt.search.semanticvectors.vectors.VectorType;
  * 
  * @see ObjectVector
  **/
-public class VectorStoreDeterministic implements VectorStore {
+public class VectorStoreDeterministic implements VectorStore, CloseableVectorStore {
   private FlagConfig flagConfig;
   private Hashtable<Object, ObjectVector> objectVectors;
   private Random random = new Random();
@@ -108,5 +108,11 @@ public class VectorStoreDeterministic implements VectorStore {
    public boolean containsVector(Object object) {
  	  return objectVectors.containsKey(object);
    }
+
+@Override
+public void close() {
+	// TODO Auto-generated method stub
+	
+}
    
 }

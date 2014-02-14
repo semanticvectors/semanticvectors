@@ -40,6 +40,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Logger;
 
+import pitt.search.semanticvectors.ElementalVectorStore.ElementalGenerationMethod;
 import pitt.search.semanticvectors.utils.VerbatimLogger;
 import pitt.search.semanticvectors.vectors.Vector;
 import pitt.search.semanticvectors.vectors.VectorFactory;
@@ -220,8 +221,13 @@ public class Search {
         	else
         	{
         	VerbatimLogger.info("Opening query vector store from file: " + flagConfig.queryvectorfile() + "\n");
-        	if (flagConfig.queryvectorfile().equals("orthographic")) queryVecReader = new VectorStoreOrthographical(flagConfig);
-        	else queryVecReader = VectorStoreReader.openVectorStore(flagConfig.queryvectorfile(), flagConfig);
+        	if (flagConfig.queryvectorfile().equals("deterministic")) 
+        		{
+        			if (flagConfig.elementalmethod().equals(ElementalGenerationMethod.ORTHOGRAPHIC)) queryVecReader = new VectorStoreOrthographical(flagConfig);
+        			else if (flagConfig.elementalmethod().equals(ElementalGenerationMethod.CONTENTHASH)) queryVecReader = new VectorStoreDeterministic(flagConfig);
+        			else VerbatimLogger.info("Please select either -elementalmethod orthographic OR -elementalmethod contenthash depending upon the deterministic approach you would like used.");
+        		}
+        		else queryVecReader = VectorStoreReader.openVectorStore(flagConfig.queryvectorfile(), flagConfig);
         	}
       
       if (flagConfig.boundvectorfile().length() > 0) {
