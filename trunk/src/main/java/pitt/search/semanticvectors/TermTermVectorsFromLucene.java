@@ -143,12 +143,12 @@ public class TermTermVectorsFromLucene { //implements VectorStore {
    */
   private void initializeNumberRepresentations() {
     NumberRepresentation numberRepresentation = new NumberRepresentation(flagConfig);
-    positionalNumberVectors = numberRepresentation.getNumberVectors(1, 2*flagConfig.windowradius() + 2);
+    positionalNumberVectors = numberRepresentation.getNumberVectors(1, flagConfig.windowradius() + 2);
     this.initializeDirectionalPermutations();
 
     Enumeration<ObjectVector> VEN = positionalNumberVectors.getAllVectors();
     while (VEN.hasMoreElements())
-      VerbatimLogger.finest("Initialized number representation: " + VEN.nextElement().getObject());
+      VerbatimLogger.finest("\nInitialized number representation: " + VEN.nextElement().getObject());
   }
 
   /**
@@ -293,7 +293,7 @@ public class TermTermVectorsFromLucene { //implements VectorStore {
       int windowend = Math.min(focusposn + flagConfig.windowradius(), localTermPositions.size() - 1);
 
       for (int cursor = windowstart; cursor <= windowend; cursor++) {
-        if (cursor == focusposn) continue;
+    	   if (cursor == focusposn) continue;
         if (localTermPositions.get(cursor) == null) continue;
         String coterm = localTerms.get(localTermPositions.get(cursor));
         if (coterm == null) continue;
@@ -303,9 +303,9 @@ public class TermTermVectorsFromLucene { //implements VectorStore {
  
         // bind to appropriate position vector
         if (flagConfig.positionalmethod() == PositionalMethod.PROXIMITY) {
-            toSuperpose = toSuperpose.copy();
-        	toSuperpose.bind(positionalNumberVectors.getVector((1+cursor-windowstart)));
-        }
+            toSuperpose =  elementalTermVectors.getVector(coterm).copy();
+            toSuperpose.bind(positionalNumberVectors.getVector(1+Math.abs(cursor-focusposn)));
+             }
 
         // calculate permutation required for either Sahlgren (2008) implementation
         // encoding word order, or encoding direction as in Burgess and Lund's HAL
