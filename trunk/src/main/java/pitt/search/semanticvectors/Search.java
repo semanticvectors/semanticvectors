@@ -35,6 +35,8 @@
 
 package pitt.search.semanticvectors;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
@@ -209,6 +211,16 @@ public class Search {
       
         if (!flagConfig.elementalvectorfile().equals("elementalvectors") && !flagConfig.semanticvectorfile().equals("semanticvectors") && !flagConfig.predicatevectorfile().equals("predicatevectors")) {
             //for PSI search
+        	
+        	VerbatimLogger.info("Opening query vector store from file: " + flagConfig.queryvectorfile() + "\n");
+        	if (flagConfig.queryvectorfile().equals("deterministic")) 
+        		{
+        			if (flagConfig.elementalmethod().equals(ElementalGenerationMethod.ORTHOGRAPHIC)) queryVecReader = new VectorStoreOrthographical(flagConfig);
+        			else if (flagConfig.elementalmethod().equals(ElementalGenerationMethod.CONTENTHASH)) queryVecReader = new VectorStoreDeterministic(flagConfig);
+        			else VerbatimLogger.info("Please select either -elementalmethod orthographic OR -elementalmethod contenthash depending upon the deterministic approach you would like used.");
+        		}
+        		else queryVecReader = VectorStoreReader.openVectorStore(flagConfig.queryvectorfile(), flagConfig);
+        	
         	VerbatimLogger.info("Opening elemental query vector store from file: " + flagConfig.elementalvectorfile() + "\n");
             VerbatimLogger.info("Opening semantic query vector store from file: " + flagConfig.semanticvectorfile() + "\n");
             VerbatimLogger.info("Opening predicate query vector store from file: " + flagConfig.predicatevectorfile() + "\n");
@@ -404,15 +416,28 @@ public class Search {
       System.err.println(usageMessage);
       throw e;
     }
-
+    
+    int cnt = 0;
     // Print out results.
     if (results.size() > 0) {
       VerbatimLogger.info("Search output follows ...\n");
       for (SearchResult result: results) {
-        System.out.println(
-            String.format("%f:%s",
-                result.getScore(),
-                result.getObjectVector().getObject().toString()));
+    	  
+    	  if (flagConfig.treceval() != -1) //results in trec_eval format
+    		  	System.out.println(
+    		  			String.format("%s\t%s\t%s\t%s\t%f\t%s",
+    		  				flagConfig.treceval(),
+    		  				"Q0",
+    		  				result.getObjectVector().getObject().toString(),
+    		                ++cnt,
+    		  			 	result.getScore(),
+    		  			 	"DEFAULT")
+    		  			 	 );
+    	  
+    	  else System.out.println(  //results in cosine:object format
+    			  		String.format("%f:%s",
+    			  			result.getScore(),
+    			  			result.getObjectVector().getObject().toString()));
         
         if (flagConfig.boundvectorfile().isEmpty() && flagConfig.elementalvectorfile().isEmpty())
         {

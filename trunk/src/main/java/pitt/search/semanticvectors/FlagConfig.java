@@ -129,6 +129,11 @@ public class FlagConfig {
   /** If {@code true}, terms containing only numeric characters are filtered out during indexing, default value {@code true}. */
   public boolean filteroutnumbers() { return filteroutnumbers; }
 
+  private boolean bindnotreleasehack = false;
+  /** !hack! bind instead of release when constructing queries **/
+  public boolean bindnotreleasehack() { return bindnotreleasehack; }
+  
+  
   private boolean hybridvectors = false;
   /** If {@code true}, the StringEdit Class will produce hybrid vectors where each term vector = orthographic vector + semantic vector (from -queryvectorfile), default value {@code false}. */
   public boolean hybridvectors() { return hybridvectors; }
@@ -136,6 +141,10 @@ public class FlagConfig {
   private int numsearchresults = 20;
   /** Number of search results to return, default value 20. */
   public int numsearchresults() { return numsearchresults; }
+  
+  private int treceval = -1;
+  /** Output search results in trec_eval format, with query number = treceval**/
+  public int treceval() { return treceval;}
   
   private String jsonfile = "";
   /** Output search results as graph representation of a connectivity matrix in JSON**/
@@ -496,5 +505,6 @@ public class FlagConfig {
       RealVector.setBindType(RealVector.RealBindMethod.PERMUTATION);
     }
   }
+  
 
 }
