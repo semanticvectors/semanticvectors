@@ -87,6 +87,8 @@ abstract public class VectorSearcher {
         String obj1 = storeVectors.get(x).getObject().toString();
         String obj2 = storeVectors.get(y).getObject().toString();
 
+        if (obj1.equals(obj2)) continue;
+        
         vec1.release(vec2);
         nusearchspace.putVector(obj2+":"+obj1, vec1);
 
@@ -336,7 +338,7 @@ abstract public class VectorSearcher {
       }
     }
 
-    public VectorSearcherBoundProduct(VectorStore semanticVecStore, VectorStore elementalVecStore, VectorStore predicateVecStore,
+    public VectorSearcherBoundProduct(VectorStore elementalVecStore, VectorStore semanticVecStore, VectorStore predicateVecStore,
         VectorStore searchVecStore, LuceneUtils luceneUtils, FlagConfig flagConfig, String term1)
             throws ZeroVectorException {
       super(semanticVecStore, searchVecStore, luceneUtils, flagConfig);
