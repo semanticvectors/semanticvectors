@@ -126,9 +126,17 @@ public class Search {
     BOUNDPRODUCT,
     
     /**
+     * Lucene document search, for comparison.
+     * 
+     */
+    
+    LUCENE,
+    
+    /**
      * Used for Predication Semantic Indexing, see {@link PSI}.
      * Finds minimum similarity across query terms to seek middle terms
      */
+    
     BOUNDMINIMUM,
 
     /**
@@ -342,6 +350,10 @@ public class Search {
         vecSearcher = new VectorSearcher.AnalogySearcher(
             queryVecReader, searchVecReader, luceneUtils, flagConfig, queryArgs);
         break;
+      case LUCENE:
+          vecSearcher = new VectorSearcher.VectorSearcherLucene(
+              luceneUtils, flagConfig, queryArgs);
+          break;
       case PRINTQUERY:    
         Vector queryVector = CompoundVectorBuilder.getQueryVector(
             queryVecReader, luceneUtils, flagConfig, queryArgs);
