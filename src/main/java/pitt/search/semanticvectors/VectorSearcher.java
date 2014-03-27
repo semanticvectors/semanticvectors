@@ -35,6 +35,8 @@
 
 package pitt.search.semanticvectors;
 
+import java.io.File;
+import java.io.IOException;
 import java.lang.IllegalArgumentException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -43,6 +45,17 @@ import java.util.LinkedList;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.logging.Logger;
+
+import org.apache.lucene.document.Document;
+import org.apache.lucene.index.DirectoryReader;
+import org.apache.lucene.index.IndexReader;
+import org.apache.lucene.search.BooleanQuery;
+import org.apache.lucene.search.IndexSearcher;
+import org.apache.lucene.search.ScoreDoc;
+import org.apache.lucene.search.TermQuery;
+import org.apache.lucene.search.TopDocs;
+import org.apache.lucene.store.Directory;
+import org.apache.lucene.store.FSDirectory;
 
 import pitt.search.semanticvectors.LuceneUtils;
 import pitt.search.semanticvectors.VectorStore;
@@ -925,6 +938,102 @@ abstract public class VectorSearcher {
   }
 
   /**
+   * Class for implementing Lucene search directly (no semantic vectors required)
+   */
+  static public class VectorSearcherLucene extends VectorSearcher {
+    
+	  // These "special" fields are here to enable non-static construction of these
+    // static inherited classes. It suggests that the inheritance pattern for VectorSearcher
+    // needs to be reconsidered.
+    LuceneUtils specialLuceneUtils;
+    FlagConfig specialFlagConfig;
+    String[] queryTerms;
+    IndexSearcher iSearcher;
+ 
+  /**
+   * Lucene search, no semantic vectors required
+   * @param luceneUtils LuceneUtils object to use for query weighting. (May not be null.)
+   * @param queryTerms Terms that will be parsed into a query expression
+   */
+  public VectorSearcherLucene(LuceneUtils luceneUtils,
+      FlagConfig flagConfig, String[] queryTerms)
+          throws IllegalArgumentException, ZeroVectorException {
+    
+	  super(null, null, luceneUtils, flagConfig);
+	  this.specialLuceneUtils = luceneUtils;
+	  this.specialFlagConfig = flagConfig;
+	  Directory dir;
+	try {
+		dir = FSDirectory.open(new File(flagConfig.luceneindexpath()));
+		this.iSearcher = new IndexSearcher(DirectoryReader.open(dir));
+	  
+	} catch (IOException e) {
+		logger.info("Lucene index initialization failed: "+e.getMessage());
+	}
+	  
+	  this.queryTerms = queryTerms;
+	  
+  }
+
+  /**
+   * This overrides the nearest neighbor class implemented in the abstract
+   * {@code VectorSearcher} class.
+   *
+   * WARNING: This implementation fails to respect flags used by the
+   * {@code VectorSearcher.getNearestNeighbors} method.
+   *
+   * @param numResults the number of results / length of the result list.
+   */
+  @Override
+  public LinkedList<SearchResult> getNearestNeighbors(int numResults) {
+    LinkedList<SearchResult> results = new LinkedList<SearchResult>();
+    
+    BooleanQuery mtq = new BooleanQuery();
+    
+    for (int q=0; q < queryTerms.length; q++)
+    {
+    	//add OR clause to boolean query
+    	String term = queryTerms[q];
+    	for (String field:this.specialFlagConfig.contentsfields())
+    		mtq.add(new TermQuery(new org.apache.lucene.index.Term(
+			field, term)), org.apache.lucene.search.BooleanClause.Occur.SHOULD);
+    }
+
+    TopDocs docs;
+	try {
+		docs = iSearcher.search(mtq, specialFlagConfig.numsearchresults());
+	
+	ScoreDoc[] hits2 = docs.scoreDocs;
+	
+	for (int i = 0; i < hits2.length; i++) {
+		int docId = hits2[i].doc;
+
+		// if (i < 10) {
+		// Explanation explain = iSearcher.explain(mtq, docId);
+		// System.out.println(explain);
+		// }
+		Document d = iSearcher.doc(docId);
+		float dscore = hits2[i].score;
+		results.add(new SearchResult(dscore, new ObjectVector(d.get(specialFlagConfig.docidfield()), null)));
+	}
+	} catch (IOException e) {
+		// TODO Auto-generated catch block
+		logger.info("Lucene search failed: "+e.getMessage());
+	}
+		
+  
+	
+	return results;
+  }
+
+@Override
+public double getScore(Vector testVector) {
+	// TODO Auto-generated method stub
+	return 0;
+}
+  }
+  
+  /**
    * calculates approximation of standard deviation (using a somewhat imprecise single-pass algorithm)
    * and recasts top scores as number of standard deviations from the mean (for a single search)
    *
@@ -947,4 +1056,6 @@ abstract public class VectorSearcher {
     }
     return transformedResults;
   }
+
+
 }
