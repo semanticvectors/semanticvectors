@@ -70,4 +70,20 @@ public class SearchResult implements Comparable<SearchResult> {
     else if (this.getScore() < otherSearchResult.getScore()) return 1;
     else return 0;
   }
+
+    public String toTrecString(int trecevalNumber, int cnt) {
+        return String.format("%s\t%s\t%s\t%s\t%f\t%s",
+                trecevalNumber, "Q0",
+                this.getObjectVector().getObject().toString(),
+                cnt,
+                this.getScore(),
+                "DEFAULT");
+    }
+
+     public String toSimpleString() {
+        return   //results in cosine:object format
+                String.format("%f:%s",
+                        this.getScore(),
+                        this.getObjectVector().getObject().toString());
+    }
 }

@@ -11,12 +11,7 @@ import java.util.List;
 
 import org.apache.lucene.index.Term;
 
-import pitt.search.semanticvectors.FlagConfig;
-import pitt.search.semanticvectors.LuceneUtils;
-import pitt.search.semanticvectors.ObjectVector;
-import pitt.search.semanticvectors.SearchResult;
-import pitt.search.semanticvectors.VectorSearcher;
-import pitt.search.semanticvectors.VectorStore;
+import pitt.search.semanticvectors.*;
 import pitt.search.semanticvectors.utils.VerbatimLogger;
 import pitt.search.semanticvectors.vectors.Vector;
 import pitt.search.semanticvectors.vectors.VectorFactory;
@@ -172,10 +167,32 @@ public class PathFinder {
 	    return changedatq;
 	  }
 
+    public static void pathfinderWriterWrapper(FlagConfig flagConfig, List<SearchResult> searchResults)
+      throws IOException {
+      if (flagConfig.boundvectorfile().isEmpty()
+          || flagConfig.elementalvectorfile().equals("elementalvectors")
+          || flagConfig.semanticvectorfile().equals("semanticvectors"))
+        PathFinder.writeResultsPathfinderGraphJson(flagConfig, searchResults);
+      else
+      {
+        VectorStoreRAM elementalVectors = new VectorStoreRAM(flagConfig);
+        elementalVectors.initFromFile(flagConfig.elementalvectorfile());
+        VectorStoreRAM semanticVectors = new VectorStoreRAM(flagConfig);
+        semanticVectors.initFromFile(flagConfig.semanticvectorfile());
+        VectorStoreRAM predicateVectors = new VectorStoreRAM(flagConfig);
+        predicateVectors.initFromFile(flagConfig.predicatevectorfile());
+
+        PathFinder.writeResultsPathfinderGraphJson(flagConfig, searchResults,
+            VectorStoreReader.openVectorStore(flagConfig.semanticvectorfile(), flagConfig),
+            VectorStoreReader.openVectorStore(flagConfig.elementalvectorfile(), flagConfig),
+            VectorStoreReader.openVectorStore(flagConfig.boundvectorfile(), flagConfig),
+            new LuceneUtils(flagConfig));
+      }
+    }
+
+
 	  /**
 	   * Writes the results out as a json-formatted graph using the {@link PathFinder} algorithm.
-	   * @param flagConfig
-	   * @param results
 	   * @throws IOException 
 	   */
 	  public static void writeResultsPathfinderGraphJson(
