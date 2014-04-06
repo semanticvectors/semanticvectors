@@ -212,7 +212,7 @@ public class LuceneUtils {
    * in all contents fields.
    */
   public float getGlobalTermWeightFromString(String termString) {
-    int freq = 0;
+    float freq = 0;
     for (String field: flagConfig.contentsfields())
       freq += getGlobalTermWeight(new Term(field, termString));
     return freq;
