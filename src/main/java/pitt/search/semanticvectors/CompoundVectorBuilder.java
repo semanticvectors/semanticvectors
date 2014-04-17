@@ -194,9 +194,11 @@ public class CompoundVectorBuilder {
   }
 
   public static Vector getBoundProductQueryVectorFromString(
-      FlagConfig flagConfig, VectorStore elementalVectors, VectorStore semanticVectors, VectorStore predicateVectors, String queryString) {
+      FlagConfig flagConfig, VectorStore elementalVectors, VectorStore semanticVectors, VectorStore predicateVectors, LuceneUtils lUtils, String queryString) {
     //allow for bundling of multiple concepts/relations - split initially at "+" to construct vectors to be superposed
-    
+	  
+		if (queryString.contains("|")) return getBalancedBoundProductQueryVectorFromString(flagConfig, elementalVectors, semanticVectors, predicateVectors, lUtils, queryString); 
+		
 	  
 	  
 	  StringTokenizer bundlingTokenizer = new StringTokenizer(queryString,"+");
@@ -213,10 +215,27 @@ public class CompoundVectorBuilder {
       //get vector for first token
       boundQueryvector = getVector(flagConfig, elementalVectors, semanticVectors, predicateVectors, nextToken).copy();
 
-       
+      float weight = 1;
+      
+      if (lUtils != null) {
+          weight = lUtils.getGlobalTermWeightFromString(nextToken.substring(2,nextToken.length()-1));
+          logger.log(Level.FINE, "Term {0} weight {1}", new Object[]{nextToken.substring(2,nextToken.length()-1), weight});
+        } 
+      
+      
+      
+      
       while (bindingTokenizer.hasMoreTokens())
       {
         nextToken = bindingTokenizer.nextToken();
+        
+         
+        if (lUtils != null) {
+            weight += lUtils.getGlobalTermWeightFromString(nextToken.substring(2,nextToken.length()-1));
+            logger.log(Level.FINE, "Term {0} weight {1}", new Object[]{nextToken.substring(2,nextToken.length()-1), weight});
+          } 
+        
+        
         Vector bound_queryvector2 = null;
         bound_queryvector2 = getVector(flagConfig, elementalVectors, semanticVectors, predicateVectors, nextToken).copy();
 
@@ -228,7 +247,7 @@ public class CompoundVectorBuilder {
 
       }
 
-      bundled_queryvector.superpose(boundQueryvector, 1, null);
+      bundled_queryvector.superpose(boundQueryvector, weight, null);
 
     }
 
@@ -236,6 +255,17 @@ public class CompoundVectorBuilder {
     return bundled_queryvector;
   }
 
+  
+  public static Vector getBalancedBoundProductQueryVectorFromString(FlagConfig flagConfig, VectorStore elementalVectors, VectorStore semanticVectors, VectorStore predicateVectors, LuceneUtils lUtils2, String queryString) {
+	  
+	  String[] strings = queryString.split("\\|");
+	  Vector vector1 = getBoundProductQueryVectorFromString(flagConfig, elementalVectors, semanticVectors, predicateVectors, lUtils2, strings[0]);
+	  Vector vector2 = getBoundProductQueryVectorFromString(flagConfig, elementalVectors, semanticVectors, predicateVectors, lUtils2, strings[1]);
+	  vector1.superpose(vector2, 1, null);
+	  vector1.normalize();
+	  return vector1;
+	  
+  }
 
   /**
    * Method gets a query vector from a query string of the form:
@@ -248,12 +278,17 @@ public class CompoundVectorBuilder {
    * @param queryString
    * @return the resulting query vector
    */
+  
+
+  
   public static Vector getBoundProductQueryVectorFromString(FlagConfig flagConfig, VectorStore vecReader, String queryString) {
-    // allow for bundling of multiple concepts/relations - split initially at "+" to construct vectors to be superposed
+   // allow for bundling of multiple concepts/relations - split initially at "+" to construct vectors to be superposed
     StringTokenizer bundlingTokenizer = new StringTokenizer(queryString,"+");
     Vector bundledQueryvector = VectorFactory.createZeroVector(
         flagConfig.vectortype(), flagConfig.dimension());
 
+    
+    
     while (bundlingTokenizer.hasMoreTokens()) { 
       //allow for binding of multiple concepts/relations
       StringTokenizer bindingTokenizer = new StringTokenizer(bundlingTokenizer.nextToken(),"*");
