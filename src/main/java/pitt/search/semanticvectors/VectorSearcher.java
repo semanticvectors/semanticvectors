@@ -50,6 +50,7 @@ import org.apache.lucene.document.Document;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.search.BooleanQuery;
+import org.apache.lucene.search.Explanation;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TermQuery;
@@ -357,7 +358,7 @@ abstract public class VectorSearcher {
       super(semanticVecStore, searchVecStore, luceneUtils, flagConfig);
 
       this.queryVector = CompoundVectorBuilder.getBoundProductQueryVectorFromString(
-          flagConfig, elementalVecStore, semanticVecStore, predicateVecStore, term1);
+          flagConfig, elementalVecStore, semanticVecStore, predicateVecStore, luceneUtils, term1);
 
       if (this.queryVector.isZeroVector()) {
         throw new ZeroVectorException("Query vector is zero ... no results.");
@@ -949,6 +950,7 @@ abstract public class VectorSearcher {
     FlagConfig specialFlagConfig;
     String[] queryTerms;
     IndexSearcher iSearcher;
+    VectorStoreRAM acceptableTerms;
  
   /**
    * Lucene search, no semantic vectors required
@@ -966,7 +968,11 @@ abstract public class VectorSearcher {
 	try {
 		dir = FSDirectory.open(new File(flagConfig.luceneindexpath()));
 		this.iSearcher = new IndexSearcher(DirectoryReader.open(dir));
-	  
+	    
+		if (!flagConfig.elementalvectorfile().equals("elementalvectors"))
+		{this.acceptableTerms = new VectorStoreRAM(flagConfig);
+	    acceptableTerms.initFromFile(flagConfig.elementalvectorfile());
+		}
 	} catch (IOException e) {
 		logger.info("Lucene index initialization failed: "+e.getMessage());
 	}
@@ -992,8 +998,13 @@ abstract public class VectorSearcher {
     
     for (int q=0; q < queryTerms.length; q++)
     {
+    	
     	//add OR clause to boolean query
     	String term = queryTerms[q];
+    	
+    	if (acceptableTerms != null && !acceptableTerms.containsVector(term))
+    		continue;
+    		
     	for (String field:this.specialFlagConfig.contentsfields())
     		mtq.add(new TermQuery(new org.apache.lucene.index.Term(
 			field, term)), org.apache.lucene.search.BooleanClause.Occur.SHOULD);
@@ -1008,10 +1019,11 @@ abstract public class VectorSearcher {
 	for (int i = 0; i < hits2.length; i++) {
 		int docId = hits2[i].doc;
 
-		// if (i < 10) {
-		// Explanation explain = iSearcher.explain(mtq, docId);
-		// System.out.println(explain);
-		// }
+		 if (specialFlagConfig.hybridvectors())
+		 if (i < specialFlagConfig.numsearchresults()) {
+		 Explanation explain = iSearcher.explain(mtq, docId);
+		 System.out.println(explain);
+		 }
 		Document d = iSearcher.doc(docId);
 		float dscore = hits2[i].score;
 		results.add(new SearchResult(dscore, new ObjectVector(d.get(specialFlagConfig.docidfield()), null)));
