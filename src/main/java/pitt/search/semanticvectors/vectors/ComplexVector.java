@@ -243,7 +243,7 @@ public class ComplexVector implements Vector {
       if (complexOther.isZeroVector()) return 0;
       switch (DOMINANT_MODE) {
       case CARTESIAN:
-        return measureHermitianOverlap(complexOther);
+        return measureCartesianAngularOverlap(complexOther);
       case POLAR_DENSE:
         return measurePolarDenseOverlap(complexOther);
       case POLAR_SPARSE:
@@ -276,7 +276,6 @@ public class ComplexVector implements Vector {
     protected double measureCartesianAngularOverlap(ComplexVector other) {
       toCartesian();
       other.toCartesian();
-
       double cumulativeCosine = 0;     
       for (int i = 0; i < dimension*2; i+=2) {  
         double resultThisPair= coordinates[i] * other.coordinates[i];
