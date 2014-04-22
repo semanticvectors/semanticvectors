@@ -147,8 +147,41 @@ public class TermTermVectorsFromLucene { //implements VectorStore {
     this.initializeDirectionalPermutations();
 
     Enumeration<ObjectVector> VEN = positionalNumberVectors.getAllVectors();
+    VectorStoreRAM permutedPositionalNumberVectors = new VectorStoreRAM(flagConfig);
     while (VEN.hasMoreElements())
-      VerbatimLogger.finest("\nInitialized number representation: " + VEN.nextElement().getObject());
+    {	
+    	ObjectVector objvec = VEN.nextElement();
+    	Vector temp = VectorFactory.createZeroVector(flagConfig.vectortype(), flagConfig.dimension());
+    	temp.superpose(objvec.getVector(), 1 , this.permutationCache[0]);
+    	temp.normalize();
+    	Vector temp2 = VectorFactory.createZeroVector(flagConfig.vectortype(), flagConfig.dimension());
+    	temp2.superpose(objvec.getVector(), 1 , this.permutationCache[1]);
+    	temp2.normalize();
+    	
+    	/**
+    	 * skip first (alpha) and last (omega) demarcator vectors so vectors 
+    	 * representing the beginning and end of sliding window aren't orthogonal to one another
+    	 * rename so numbers consistent with position in sliding window
+    	 */
+    	
+    	if ((int) objvec.getObject() > 1)
+    	{
+    	permutedPositionalNumberVectors.putVector(-1*( (int) objvec.getObject() - 1), temp);
+    	permutedPositionalNumberVectors.putVector((int) objvec.getObject() -1, temp2);
+    	}
+    
+    	
+    	VerbatimLogger.finest("\nInitialized number representation: " + objvec.getObject());
+    	
+    }
+    
+    try {
+		VectorStoreWriter.writeVectorsInLuceneFormat("numbervectors.bin", flagConfig, permutedPositionalNumberVectors);
+		positionalNumberVectors = permutedPositionalNumberVectors;
+	} catch (IOException e) {
+		// TODO Auto-generated catch block
+		e.printStackTrace();
+	}
   }
 
   /**
@@ -304,20 +337,21 @@ public class TermTermVectorsFromLucene { //implements VectorStore {
         // bind to appropriate position vector
         if (flagConfig.positionalmethod() == PositionalMethod.PROXIMITY) {
             toSuperpose =  elementalTermVectors.getVector(coterm).copy();
-            toSuperpose.bind(positionalNumberVectors.getVector(1+Math.abs(cursor-focusposn)));
+            toSuperpose.bind(positionalNumberVectors.getVector(cursor-focusposn));
              }
 
         // calculate permutation required for either Sahlgren (2008) implementation
         // encoding word order, or encoding direction as in Burgess and Lund's HAL
         if (flagConfig.positionalmethod() == PositionalMethod.BASIC
-            || flagConfig.positionalmethod() == PositionalMethod.PERMUTATIONPLUSBASIC) {
+            || flagConfig.positionalmethod() == PositionalMethod.PERMUTATIONPLUSBASIC
+            	||flagConfig.positionalmethod() == PositionalMethod.PROXIMITY) {
           semanticTermVectors.getVector(focusterm).superpose(toSuperpose, globalweight, null);
         }
         if (flagConfig.positionalmethod() == PositionalMethod.PERMUTATION
             || flagConfig.positionalmethod() == PositionalMethod.PERMUTATIONPLUSBASIC) {
           int[] permutation = permutationCache[cursor - focusposn + flagConfig.windowradius()];
           semanticTermVectors.getVector(focusterm).superpose(toSuperpose, globalweight, permutation);
-        } else if (flagConfig.positionalmethod() == PositionalMethod.DIRECTIONAL || flagConfig.positionalmethod() == PositionalMethod.PROXIMITY) {
+        } else if (flagConfig.positionalmethod() == PositionalMethod.DIRECTIONAL) {
           int[] permutation = permutationCache[(int) Math.max(0,Math.signum(cursor - focusposn))];
           semanticTermVectors.getVector(focusterm).superpose(toSuperpose, globalweight, permutation);
 

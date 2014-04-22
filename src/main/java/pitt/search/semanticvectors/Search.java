@@ -222,19 +222,18 @@ public class Search {
         //for PSI search
 
         VerbatimLogger.info("Opening query vector store from file: " + flagConfig.queryvectorfile() + "\n");
-        if (flagConfig.queryvectorfile().equals("deterministic"))
+        if (flagConfig.elementalvectorfile().equals("deterministic"))
         {
-          if (flagConfig.elementalmethod().equals(ElementalGenerationMethod.ORTHOGRAPHIC)) queryVecReader = new VectorStoreOrthographical(flagConfig);
-          else if (flagConfig.elementalmethod().equals(ElementalGenerationMethod.CONTENTHASH)) queryVecReader = new VectorStoreDeterministic(flagConfig);
+          if (flagConfig.elementalmethod().equals(ElementalGenerationMethod.ORTHOGRAPHIC)) elementalVecReader = new VectorStoreOrthographical(flagConfig);
+          else if (flagConfig.elementalmethod().equals(ElementalGenerationMethod.CONTENTHASH)) elementalVecReader = new VectorStoreDeterministic(flagConfig);
           else VerbatimLogger.info("Please select either -elementalmethod orthographic OR -elementalmethod contenthash depending upon the deterministic approach you would like used.");
         }
-        else queryVecReader = VectorStoreReader.openVectorStore(flagConfig.queryvectorfile(), flagConfig);
+        else elementalVecReader = VectorStoreReader.openVectorStore(flagConfig.elementalvectorfile(), flagConfig);
 
         VerbatimLogger.info("Opening elemental query vector store from file: " + flagConfig.elementalvectorfile() + "\n");
         VerbatimLogger.info("Opening semantic query vector store from file: " + flagConfig.semanticvectorfile() + "\n");
         VerbatimLogger.info("Opening predicate query vector store from file: " + flagConfig.predicatevectorfile() + "\n");
 
-        elementalVecReader = VectorStoreReader.openVectorStore(flagConfig.elementalvectorfile(), flagConfig);
         semanticVecReader = VectorStoreReader.openVectorStore(flagConfig.semanticvectorfile(), flagConfig);
         predicateVecReader = VectorStoreReader.openVectorStore(flagConfig.predicatevectorfile(), flagConfig);
 
