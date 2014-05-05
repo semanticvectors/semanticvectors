@@ -1,12 +1,12 @@
 #summary Command line flags in SemanticVectors - Developer guide.
 
-=The Current Flag-Parsing System=
+=Command-Line Flags in SemanticVectors=
 
 ==Overview==
 
-Flags can be added to the FlagConfig class, they are automatically parsed, and can then be accessed from an appropriate FlagConfig instance.
+Flags can be added to the FlagConfig class, they are automatically parsed, and can then be accessed from an appropriate FlagConfig instance. Many classes take a reference to such a FlagConfig instance as part of their state, so this information is usually accessible.
 
-The benefit of the system is that it's very easy to add and use new flags. This encourages people to experiment with semantic vectors, but it doesn't make sharing your improvements as easy and reliable as we would like.
+The benefit of the system is that it's very easy to add and use new flags. This encourages people to experiment with semantic vectors. It can lead to consistency and reliability issues, but so far (over some years) these have not been a problem as far as we know.
 
 ==List of Flags==
 
