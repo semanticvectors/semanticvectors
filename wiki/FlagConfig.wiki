@@ -2,6 +2,6 @@
 
 For description, see CommandLineFlags.
 
-See also:
-  * [http://semanticvectors.googlecode.com/svn/javadoc/latest-stable/pitt/search/semanticvectors/FlagConfig.html FlagConfig javadoc]
+See:
+  * [http://semanticvectors.googlecode.com/svn/javadoc/latest-stable/pitt/search/semanticvectors/FlagConfig.html FlagConfig javadoc] for a full list of supported flags.
   * [https://code.google.com/p/semanticvectors/source/browse/trunk/src/pitt/search/semanticvectors/FlagConfig.java Source code].
