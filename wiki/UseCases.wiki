@@ -41,4 +41,8 @@ Clustering and visualization can help to see groups of related concepts, and gen
 
 Some basic tools to get started are described on the ClusteringAndVisualization page.
 
+== Reasoning over a Knowledge Base ==
+
+See PredicationBasedSemanticIndexing.
+
 === More to come ... ===
