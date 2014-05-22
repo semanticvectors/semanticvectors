@@ -1,5 +1,7 @@
 #summary Compatibility between Apache Lucene and SemanticVectors
 
+_As of version 5.x, the main SemanticVectors jar distribution is built using Maven and includes its dependencies, so you don't have to install Lucene separately. However, if you have a different version of Lucene installed, you still need to follow the old instructions below to figure out which versions of SemanticVectors will work with your version of Lucene._ 
+
 SemanticVectors depends on Apache Lucene, but not all versions of SemanticVectors work with all versions of Apache Lucene. To find the latest (and some older) versions of Apache Lucene click [http://lucene.apache.org/java/docs/index.html here].
 
 SV 5.4 works with (at least) Lucene 4.6.0. 
