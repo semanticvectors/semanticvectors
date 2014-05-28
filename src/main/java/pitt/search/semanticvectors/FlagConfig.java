@@ -125,6 +125,12 @@ public class FlagConfig {
   /** Maximum number of nonalphabetic characters in a term for it to be indexed, default value {@link Integer#MAX_VALUE}. */
   public int maxnonalphabetchars() { return maxnonalphabetchars; }
 
+  
+  private int mintermlength = 0;
+  /** Minimum number of characters in a term  */
+  public int mintermlength() { return mintermlength; }
+
+  
   private boolean filteroutnumbers = false;
   /** If {@code true}, terms containing only numeric characters are filtered out during indexing, default value {@code true}. */
   public boolean filteroutnumbers() { return filteroutnumbers; }
