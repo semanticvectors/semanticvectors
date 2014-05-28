@@ -341,7 +341,7 @@ public class LuceneUtils {
   public boolean termFilter(Term term) {
     return termFilter(term, flagConfig.contentsfields(),
         flagConfig.minfrequency(), flagConfig.maxfrequency(),
-        flagConfig.maxnonalphabetchars(), flagConfig.filteroutnumbers());
+        flagConfig.maxnonalphabetchars(), flagConfig.filteroutnumbers(), flagConfig.mintermlength());
   }  
 
   /**
@@ -356,7 +356,7 @@ public class LuceneUtils {
    * @param maxNonAlphabet reject terms with more than this number of non-alphabetic characters
    */
   protected boolean termFilter(
-      Term term, String[] desiredFields, int minFreq, int maxFreq, int maxNonAlphabet) {
+      Term term, String[] desiredFields, int minFreq, int maxFreq, int maxNonAlphabet, int minTermLength) {
     // Field filter.
     boolean isDesiredField = false;
     for (int i = 0; i < desiredFields.length; ++i) {
@@ -377,6 +377,10 @@ public class LuceneUtils {
     if (maxNonAlphabet != -1) {
       int nonLetter = 0;
       String termText = term.text();
+      
+      //Must meet minimum term length requirement
+      if (termText.length() < minTermLength) return false;
+      
       for (int i = 0; i < termText.length(); ++i) {
         if (!Character.isLetter(termText.charAt(i)))
           nonLetter++;
@@ -406,7 +410,7 @@ public class LuceneUtils {
    * @param filterNumbers if true, filters out tokens that represent a number
    */
   private boolean termFilter(
-      Term term, String[] desiredFields, int minFreq, int maxFreq, int maxNonAlphabet, boolean filterNumbers) {
+      Term term, String[] desiredFields, int minFreq, int maxFreq, int maxNonAlphabet, boolean filterNumbers, int minTermLength) {
     // number filter
     if (filterNumbers) {
       try {
@@ -417,7 +421,7 @@ public class LuceneUtils {
         return false;
       } catch (Exception e) {}
     }
-    return termFilter(term, desiredFields, minFreq, maxFreq, maxNonAlphabet);
+    return termFilter(term, desiredFields, minFreq, maxFreq, maxNonAlphabet, minTermLength);
   }
 
   /**
