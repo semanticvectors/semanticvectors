@@ -113,6 +113,26 @@ public class PathFinder {
 	      }
 
 
+	    
+		if (q > n-2) {
+			
+			  int pass =1;
+			   
+			// Floyd's algorithm for minimum distance
+			for (int ind=0;ind< n;ind++)
+				for (int row=0;row<n;row++)
+					for (int col=0;col<n;col++){
+						double indirect = minkowski(mindis[row][ind],mindis[ind][col],r);
+						// if (indirect < minDis[row][col]) {
+						if ((mindis[row][col] - indirect) > 1e-10 ) {
+							mindis[row][col] = indirect;
+						    changedatq[row][col] = pass;
+				           
+						}
+					}
+		} else {
+			// Dijkstra's algorithm for minimum distance
+	    
 	    int pass =1;
 	    boolean changed = true;
 	    while (changed && (pass < q))
@@ -127,15 +147,15 @@ public class PathFinder {
 	            double indirect1 = minkowski(dis[row][ind],m[ind][col],r);
 	            double indirect2 = minkowski(m[row][ind],dis[ind][col],r);
 	            double indirect = Math.min(indirect1,indirect2);                              
-	            if (indirect < mindis[row][col])
+	            //if (indirect < mindis[row][col]) - replaced with line below, correction courtesy Roger Schvaneveldt
+	            if ((mindis[row][col] - indirect) > 1e-10 )
 	            {
-
 	              mindis[row][col] = indirect;
 	              changedatq[row][col] = pass;
 	              changed = true;
 	            }
 	          }
-	    }
+	    }}
 
 	    pruned = new double[n][n];
 
