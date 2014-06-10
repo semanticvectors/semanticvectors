@@ -404,16 +404,26 @@ public class PathFinder {
 	        	  String subject = results.get(y).getObjectVector().getObject().toString();
 		          String object  = results.get(x).getObjectVector().getObject().toString();
 		      
-	        	if (lUtils.getDocsForTerm(new Term("predication",subject+predicate[y][x]+object)) != null  ||  lUtils.getDocsForTerm(new Term("predication",predicate[y][x].replaceAll("-INV", "")+object)) != null)
+	        	if (lUtils.getDocsForTerm(new Term("predication",subject+predicate[y][x].replaceAll("-INV", "")+object)) != null  ||  lUtils.getDocsForTerm(new Term("predication",predicate[y][x].replaceAll("-INV", "")+object)) != null)
 	        	{  
 	        		 System.err.println(subject+predicate[y][x]+object);
 	 	        	
 	                if (wroteone) {linkString+=",";  writer.write(",");}
 	          
-	                 writer.write("{\"name\":\""+predicate[y][x]+"\",\"group\":2}");        
+	                if (predicate[y][x].endsWith("INV"))
+	                {
+	                 writer.write("{\"name\":\""+predicate[y][x].replaceAll("-INV", "")+"\",\"group\":2}");        
+	                 linkString+="{\"source\":"+x+",\"target\":"+(++nodecount)+",\"value\":"+links[y][x]+"},\n";
+	                 linkString+="{\"source\":"+nodecount+",\"target\":"+y+",\"value\":"+links[y][x]+"}\n";
+	                 wroteone = true;
+	                }
+	                else
+	                {
+	                	writer.write("{\"name\":\""+predicate[y][x]+"\",\"group\":2}");        
 	                 linkString+="{\"source\":"+y+",\"target\":"+(++nodecount)+",\"value\":"+links[y][x]+"},\n";
 	                 linkString+="{\"source\":"+nodecount+",\"target\":"+x+",\"value\":"+links[y][x]+"}\n";
 	                 wroteone = true;
+	                }
 	        	}
 	          }
 	      }
