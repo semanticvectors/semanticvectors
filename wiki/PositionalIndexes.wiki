@@ -6,6 +6,8 @@ The basic SemanticVectors indexes do not take into account word positions within
 
 Positional indexes, by contrast, iterated over the contents of a document and index terms according to which other terms they occur near. This "sliding context window" approach was pioneered by Hinrich Schutze in the Infomap Project, and by Lund and Burgess in developing the [http://hal.ucr.edu/Papers.html HAL model] (Hyperspace Analogue to Language).
 
+Methods of positional indexing that take word-order and direction into account have become more sophisticated and successful in recent years. See PermutationSearch for some more options.
+
 == Building Positional Indexes ==
 
 The process is similar to that for building the basic semantic vector indexes (see InstallationInstructions). There are two stages: building a Lucene index, and building a SemanticVector index from this. However, each stage is slightly different from the basic approach.
