@@ -6,7 +6,6 @@ import java.util.Hashtable;
 import pitt.search.semanticvectors.orthography.NumberRepresentation;
 import pitt.search.semanticvectors.orthography.StringEdit;
 import pitt.search.semanticvectors.vectors.Vector;
-import pitt.search.semanticvectors.vectors.VectorType;
 
 /**
  * This class provides methods for retrieving vectors that are computed
@@ -27,13 +26,29 @@ public class VectorStoreOrthographical implements VectorStore, CloseableVectorSt
   private Hashtable<Object, ObjectVector> objectVectors;
   private boolean cacheVectors = true;
   private NumberRepresentation theNumbers;
-  private VectorStoreRAM letterVectors;
+  private StringEdit stringVectors;
+  private VectorStore letterVectors;
 
+  /**
+   * Constructs a new orthographical vector store, defaulting to {@link VectorStoreDeterministic} for the
+   * underlying letter vectors.
+   */
   public VectorStoreOrthographical(FlagConfig flagConfig) {
+    this(flagConfig, new VectorStoreDeterministic(flagConfig));
+  }
+
+  /**
+   * Constructs a new vector store with the given arguments, initializing other data structures
+   * including {@link NumberRepresentation} and {@link StringEdit}.
+   * @param flagConfig
+   * @param letterVectors
+   */
+  public VectorStoreOrthographical(FlagConfig flagConfig, VectorStore letterVectors) {
     this.flagConfig = flagConfig;
-    this.objectVectors = new Hashtable<Object, ObjectVector>();
+    this.letterVectors = letterVectors;
+    this.objectVectors = new Hashtable<>();
     this.theNumbers = new NumberRepresentation(flagConfig);
-    this.letterVectors = new VectorStoreRAM(flagConfig);
+    this.stringVectors = new StringEdit(flagConfig, theNumbers, letterVectors);
   }
 
   @Override
@@ -84,10 +99,7 @@ public class VectorStoreOrthographical implements VectorStore, CloseableVectorSt
     if (objectVector != null) {
       return objectVector.getVector();
     } else {      
-      Vector v = StringEdit.getStringVector(
-          desiredObject.toString(),
-          theNumbers.getNumberVectors(0, desiredObject.toString().length() + 1),
-          letterVectors, flagConfig);
+      Vector v = stringVectors.getStringVector(desiredObject.toString());
 
       if (cacheVectors) {
         objectVectors.put(desiredObject, new ObjectVector(desiredObject, v));
@@ -95,7 +107,9 @@ public class VectorStoreOrthographical implements VectorStore, CloseableVectorSt
       return v;
     }
   }
-  
+
+
+
   @Override
   public boolean containsVector(Object object) {
 	  return objectVectors.containsKey(object);

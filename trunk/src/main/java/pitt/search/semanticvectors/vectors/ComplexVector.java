@@ -110,12 +110,13 @@ public class ComplexVector implements Vector {
      * equal 1.
      */
     private short[] phaseAngles;
+
     /**
      * Sparse representation using a 16 bit Java char for storing an offset (in position 2i)
      * and a corresponding phase angle (in position 2i + 1) for each element.
      * The offset is the index into the array and the phase angle is a random
      * value between 0 and 65535 representing angles between 0 and 2PI.
-     * See also {@link generateRandomVector}.
+     * See also {@link #generateRandomVector}.
      */
     private short[] sparseOffsets;
     private Mode opMode;
@@ -167,17 +168,17 @@ public class ComplexVector implements Vector {
       switch(opMode) {
       case POLAR_SPARSE :
         debugString.append("  Sparse polar.  Offsets are:\n");
-        for (short sparseOffset : sparseOffsets) debugString.append((int)sparseOffset + " ");
+        for (short sparseOffset : sparseOffsets) debugString.append((int)sparseOffset).append(" ");
         debugString.append("\n");
         break;
       case POLAR_DENSE :
         debugString.append("  Dense polar. Coordinates are:\n");
-        for (int coordinate : phaseAngles) debugString.append(coordinate + " ");
+        for (int coordinate : phaseAngles) debugString.append(coordinate).append(" ");
         debugString.append("\n");
         break;
       case CARTESIAN :
         debugString.append("  Cartesian. Coordinates are:\n");
-        for (float coordinate : coordinates) debugString.append(coordinate + " ");
+        for (float coordinate : coordinates) debugString.append(coordinate).append(" ");
         debugString.append("\n");
         break;
       }
@@ -276,9 +277,10 @@ public class ComplexVector implements Vector {
     protected double measureCartesianAngularOverlap(ComplexVector other) {
       toCartesian();
       other.toCartesian();
-      double cumulativeCosine = 0;     
+      double cumulativeCosine = 0;
+      int nonZeroDimensionPairs = 0;
       for (int i = 0; i < dimension*2; i+=2) {  
-        double resultThisPair= coordinates[i] * other.coordinates[i];
+        double resultThisPair = coordinates[i] * other.coordinates[i];
         resultThisPair += coordinates[i+1] * other.coordinates[i+1];
 
         double norm1 = coordinates[i] * coordinates[i];
@@ -290,10 +292,12 @@ public class ComplexVector implements Vector {
         norm1 = Math.sqrt(norm1);
         norm2 = Math.sqrt(norm2);
 
-        if (norm1 > 0 && norm2 > 0)
-          cumulativeCosine += resultThisPair / (norm1 * norm2);           
+        if (norm1 > 0 && norm2 > 0) {
+          cumulativeCosine += resultThisPair / (norm1 * norm2);
+          ++nonZeroDimensionPairs;
+        }
       }
-      return cumulativeCosine/dimension;
+      return (nonZeroDimensionPairs != 0) ? (cumulativeCosine / nonZeroDimensionPairs) : 0;
     }
 
 
