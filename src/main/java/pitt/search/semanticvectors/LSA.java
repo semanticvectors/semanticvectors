@@ -33,16 +33,8 @@ public class LSA {
   private static final Logger logger = Logger.getLogger(LSA.class.getCanonicalName());
 
   public static String usageMessage = "\nLSA class in package pitt.search.semanticvectors"
-        + "\nUsage: java pitt.search.semanticvectors.LSA -luceneindexpath PATH_TO_LUCENE_INDEX"
-        + "\nBuildIndex creates svd_termvectors and svd_docvectors files in local directory."
-        + "\nOther parameters that can be changed include vector length,"
-        + "\n    (number of dimension), seed length (number of non-zero"
-        + "\n    entries in basic vectors), and minimum term frequency."
-        + "\nTo change these use the command line arguments "
-        + "\n  -dimension [number of dimension]"
-        + "\n  -minfrequency [minimum term frequency]"
-        + "\n  -maxnonalphabetchars [number non-alphabet characters (-1 for any number)]"
-        + "\n  -filternumbers [true or false]";
+      + "\nUsage: java pitt.search.semanticvectors.LSA [other flags] -luceneindexpath PATH_TO_LUCENE_INDEX"
+      + "Use flags to configure dimension, min term frequency, etc. See online documentation for other available flags";
 
   private FlagConfig flagConfig;
   /** Stores the list of terms in the same order as rows in the matrix. */
@@ -78,7 +70,8 @@ public class LSA {
     // Log some of the basic properties. This could be altered to be more informative if
     // our users ever ask for different properties.
     VerbatimLogger.info("Set up LSA indexer.\n" +
-    		"Dimension: " + flagConfig.dimension() + " Minimum frequency = " + flagConfig.minfrequency()
+    		"Dimension: " + flagConfig.dimension() + " Lucene index contents field: '" + this.contentsField + "'"
+        + " Minimum frequency = " + flagConfig.minfrequency()
         + " Maximum frequency = " + flagConfig.maxfrequency()
         + " Number non-alphabet characters = " + flagConfig.maxnonalphabetchars() +  "\n");
   }
