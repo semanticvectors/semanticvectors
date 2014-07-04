@@ -59,9 +59,9 @@ import pitt.search.semanticvectors.vectors.VectorUtils;
  */
 public class NumberRepresentation {
   /** Random seed used for starting demarcator vectors. */
-  private String startRandomSeed = "*START*";
+  private final String startRandomSeed = "*START*";
   /** Random seed used for ending demarcator vectors. */
-  private String endRandomSeed = "*END*";
+  private final String endRandomSeed = "*END*";
 
   /**
    * Cache of number vectors that have been seen before.
@@ -78,44 +78,6 @@ public class NumberRepresentation {
   /** 'Right' vector, used to represent the end of each sequence of number vectors. */
   private Vector vR;
 
-  @Deprecated
-  /**
-   * A simple testing / exploration routine that generates a handful of
-   * NumberRepresentation vectors and prints out a table of their similarities.
-   * 
-   * Deprecated - see instead {@link NumberRepresentationTest}.
-   */
-  public static void main(String[] args) {
-    FlagConfig flagConfig;
-
-    try {
-      flagConfig = FlagConfig.getFlagConfig(args);
-      args = flagConfig.remainingArgs;
-    } catch (IllegalArgumentException e) {
-      System.err.println(e.getMessage());
-      throw e;
-    }
-
-    NumberRepresentation NR = new NumberRepresentation(flagConfig);
-    VectorStoreRAM VSR = NR.getNumberVectors(1,5);
-    System.out.print("\t");
-    for (int q=1; q <= VSR.getNumVectors(); q++)
-      System.out.print(q+"\t");
-    System.out.println();	
-
-    for (int q=1; q <= VSR.getNumVectors(); q++) {
-      Enumeration<ObjectVector> VEN = VSR.getAllVectors();
-      System.out.print(q);
-
-      while (VEN.hasMoreElements()) {	
-        ObjectVector OV = VEN.nextElement();
-        System.out.print("\t");
-        System.out.printf("%.2f", VSR.getVector(VSR.getNumVectors() + 1 - q).measureOverlap(OV.getVector()));
-      }
-      System.out.println();
-    }
-  }
-
   /**
    * Initializes an instance of {@link NumberRepresentation} with its start and end vectors,
    * checking that these demarcator vectors are not too close together. 
@@ -128,8 +90,8 @@ public class NumberRepresentation {
   public NumberRepresentation(FlagConfig flagConfig, String startSeed, String endSeed) {
     if (flagConfig == null) throw new NullPointerException("flagConfig cannot be null");
 
-    this.startRandomSeed = startSeed;
-    this.endRandomSeed = endSeed;
+    //this.startRandomSeed = startSeed;
+    //this.endRandomSeed = endSeed;
 
     this.flagConfig = flagConfig;
 

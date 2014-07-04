@@ -35,152 +35,65 @@
 
 package pitt.search.semanticvectors.orthography;
 
-import java.util.Enumeration;
-import java.util.LinkedList;
 import java.util.Random;
 
-import pitt.search.semanticvectors.FlagConfig;
-import pitt.search.semanticvectors.ObjectVector;
-import pitt.search.semanticvectors.SearchResult;
-import pitt.search.semanticvectors.VectorSearcher;
-import pitt.search.semanticvectors.VectorStoreRAM;
-import pitt.search.semanticvectors.VectorStoreWriter;
+import pitt.search.semanticvectors.*;
 import pitt.search.semanticvectors.utils.Bobcat;
 import pitt.search.semanticvectors.vectors.Vector;
 import pitt.search.semanticvectors.vectors.VectorFactory;
-import pitt.search.semanticvectors.vectors.VectorType;
 
+/**
+ * Class for getting "string edit" vectors that can be used to measure orthographic distance between strings.
+ */
 public class StringEdit {
 
-  public static void main(String[] args) throws Exception {
-    String[] originalArgs = args.clone();
+  private FlagConfig flagConfig;
+  private NumberRepresentation numberRepresentation;
+  private VectorStore theLetters;
 
-    FlagConfig flagConfig = null;
-    try {
-      flagConfig = FlagConfig.getFlagConfig(args);
-    } catch (IllegalArgumentException e) {
-      System.err.println(e.getMessage());
-      throw e;
-    }
+  /** Length vector, used to add a measure of total length to each vector. */
+  private Vector lengthVector;
 
-    int dimension = flagConfig.dimension();
-    VectorType vType = flagConfig.vectortype();
+  /** Constructs an instance with the given arguments.
+   *
+   * TODO: Document and check invariants around arguments, especially which can be null.
+   * */
+  public StringEdit(FlagConfig flagConfig, NumberRepresentation theNumbers, VectorStore theLetters) {
+    this.flagConfig = flagConfig;
+    this.numberRepresentation = theNumbers;
+    this.theLetters = theLetters;
 
-    VectorStoreRAM theVSR = new VectorStoreRAM(flagConfig);
-    VectorStoreRAM twoVSR = new VectorStoreRAM(flagConfig);
-
-    theVSR.initFromFile(flagConfig.queryvectorfile());
-
-    try {
-      flagConfig = FlagConfig.getFlagConfig(originalArgs);
-      args = flagConfig.remainingArgs;
-    } catch (IllegalArgumentException e) {
-      System.err.println(e.getMessage());
-      throw e;
-    }
-
-    //in case query vector file has different dimensionality or vector type
-    flagConfig.setDimension(dimension);
-    flagConfig.setVectortype(vType);
-
-    VectorStoreRAM OOV = new VectorStoreRAM(flagConfig);
-
-    System.out.println(flagConfig.minfrequency()+" "+flagConfig.maxfrequency());
-
-    //for (int q =1; q < OV.size(); q++)
-    //  for (int y= 1; y < OV.size(); y++)
-    //    System.out.println(q+":"+y+"\t"+OV.get(q).getVector().measureOverlap(OV.get(y).getVector()));
-
-    Enumeration<ObjectVector> theNum = theVSR.getAllVectors();
-    //Hashtable<Integer, VectorStoreRAM> allNumberVectors = new Hashtable<Integer, VectorStoreRAM>();
-
-    int cnt = 0;
-    VectorStoreRAM theLetters = new VectorStoreRAM(flagConfig);
-    NumberRepresentation NR = new NumberRepresentation( flagConfig);
-
-    while (theNum.hasMoreElements()) {
-      if (cnt++ % 1000 == 0) System.err.print(".."+cnt);
-      ObjectVector theNext = theNum.nextElement();
-      String theTerm = theNext.getObject().toString().trim();
-      VectorStoreRAM OV = null;
-      OV = NR.getNumberVectors(0, theTerm.length()+1);
-
-      Vector toAdd = getStringVector(theTerm, OV, theLetters, flagConfig);
-
-      if (flagConfig.hybridvectors())  //combine -queryvectorfile and orthographic vectors 
-      {
-        toAdd.superpose(theVSR.getVector(theTerm), 1, null);
-        toAdd.normalize();
-      }
-
-      twoVSR.putVector(theTerm,toAdd);
-
-
-      Enumeration<ObjectVector> theNumbers = OV.getAllVectors();
-      while (theNumbers.hasMoreElements()) {
-        ObjectVector nextObjectVector = theNumbers.nextElement();
-        if (OOV.getVector(nextObjectVector.getObject()) == null) {
-          OOV.putVector(theTerm.length()+":"+nextObjectVector.getObject(),nextObjectVector.getVector());
-        }
-      }
-    }
-
-    System.out.println(flagConfig.dimension());
-    System.out.println(flagConfig.vectortype());
-
-    if (flagConfig.hybridvectors()) VectorStoreWriter.writeVectors("hybridvectors.bin", flagConfig,twoVSR);
-    else VectorStoreWriter.writeVectors("editvectors.bin", flagConfig,twoVSR);
-    VectorStoreWriter.writeVectorsInLuceneFormat("numbervectors.bin", flagConfig, OOV);
-    VectorStoreWriter.writeVectorsInLuceneFormat("lettervectors.bin", flagConfig, theLetters);
-
-    String[] terms = { "diabets", "dibetes",  "diabetic", "dominic", "abram", "sarai", "josh" };
-
-    for (int a = 0; a < terms.length; a++) {
-      VectorStoreRAM OV = NR.getNumberVectors(0, terms[a].length() + 1);
-      VectorSearcher.VectorSearcherCosine theVSC = new VectorSearcher.VectorSearcherCosine(
-          twoVSR, twoVSR, null, flagConfig, getStringVector(terms[a], OV, theLetters, flagConfig));
-      System.out.println(terms[a]);
-      LinkedList<SearchResult> theResults = theVSC.getNearestNeighbors(10);
-
-      for (int x =0; x < theResults.size(); x++) {
-        System.out.println(theResults.get(x).getScore()+"\t"+theResults.get(x).getObjectVector().getObject());
-      }
-    }
+    Random random = new Random(Bobcat.asLong("**LENGTH**"));
+    lengthVector = VectorFactory.generateRandomVector(
+        flagConfig.vectortype(), flagConfig.dimension(), flagConfig.seedlength(), random);
   }
 
-  public static Vector getStringVector(String theTerm, VectorStoreRAM theNumbers, VectorStoreRAM theLetters, FlagConfig flagConfig) {
+  /** Returns a string vector for the term in question. */
+  public Vector getStringVector(String theTerm) {
     Vector theVector = VectorFactory.createZeroVector(flagConfig.vectortype(), flagConfig.dimension());
-    Random random = new Random();
 
-    //  System.out.println(theTerm);
-    for (int q = 1; q <= theTerm.length(); q++) {
-      String letter = ""+theTerm.charAt(q-1);
-      if (letter.equals("_")) 
-      {continue; }
+    if (theTerm.length() == 0) return theVector;
 
-      Vector posVector = theNumbers.getVector(q);
+    VectorStoreRAM positionVectors = numberRepresentation.getNumberVectors(0, theTerm.length() + 1);
 
+    for (int position = 1; position <= theTerm.length(); position++) {
+      String letter = "" + theTerm.charAt(position - 1);
+
+      Vector posVector = positionVectors.getVector(position);
       if (posVector == null) { 
-        System.out.println(theTerm);
-        System.out.println(posVector);
-        System.out.println(theTerm.length() + ":" + (q) + "\n");
-        Enumeration<ObjectVector> nation = theNumbers.getAllVectors();
-        while (nation.hasMoreElements())
-          System.out.println(nation.nextElement().getObject());
+        throw new NullPointerException("No position vector for position: " + position);
       }
 
-      Vector incoming = null;
-
-      random.setSeed(Bobcat.asLong(letter));
-      incoming = VectorFactory.generateRandomVector(flagConfig.vectortype(), flagConfig.dimension(), flagConfig.seedlength, random);
-
-      if (theLetters.getVector(letter) == null) {
-        //System.out.println("adding "+letter);
-        theLetters.putVector(letter, incoming.copy());
+      Vector letterVector = theLetters.getVector(letter).copy();
+      if (letterVector == null) {
+        throw new NullPointerException("No letter vector for letter: '" + letter + "'");
       }
-      incoming.bind(posVector);
-      theVector.superpose(incoming, 1, null);     
+
+      letterVector.bind(posVector);
+      theVector.superpose(letterVector, 1, null);
     }
+
+    theVector.superpose(this.lengthVector, theTerm.length() - 1, null);
 
     theVector.normalize(); 
     return theVector;
