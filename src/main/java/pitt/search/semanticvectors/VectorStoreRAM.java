@@ -84,6 +84,9 @@ public class VectorStoreRAM implements VectorStore {
    * Dimension and vector type from store on disk may overwrite any previous values in flagConfig.
    **/
   public static VectorStoreRAM readFromFile(FlagConfig flagConfig, String vectorFile) throws IOException {
+    if (vectorFile.isEmpty()) {
+      throw new IllegalArgumentException("vectorFile argument cannot be empty.");
+    }
     VectorStoreRAM store = new VectorStoreRAM(flagConfig);
     store.initFromFile(vectorFile);
     return store;
