@@ -90,10 +90,16 @@ public class PSI {
     flagConfig.setContentsfields(itemFields);
 
     HashSet<String> addedConcepts = new HashSet<String>();
-    
-    
+
     for (String fieldName : itemFields) {
       Terms terms = luceneUtils.getTermsForField(fieldName);
+
+      if (terms == null) {
+        throw new NullPointerException(String.format(
+            "No terms for field '%s'. Please check that index at '%s' was built correctly for use with PSI.",
+            fieldName, flagConfig.luceneindexpath()));
+      }
+
       TermsEnum termsEnum = terms.iterator(null);
       BytesRef bytes;
       while((bytes = termsEnum.next()) != null) {
@@ -203,7 +209,7 @@ public class PSI {
     args = flagConfig.remainingArgs;
 
     if (flagConfig.luceneindexpath().isEmpty()) {
-      throw (new IllegalArgumentException("-luceneindexpath must be set."));
+      throw (new IllegalArgumentException("-luceneindexpath argument must be provided."));
     }
 
     VerbatimLogger.info("Building PSI model from index in: " + flagConfig.luceneindexpath() + "\n");

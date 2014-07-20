@@ -8,15 +8,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import pitt.search.semanticvectors.FlagConfig;
-import pitt.search.semanticvectors.LuceneUtils;
-import pitt.search.semanticvectors.ObjectVector;
-import pitt.search.semanticvectors.VectorSearcher;
+import pitt.search.semanticvectors.*;
 import pitt.search.semanticvectors.VectorSearcher.VectorSearcherCosine;
-import pitt.search.semanticvectors.VectorStore;
-import pitt.search.semanticvectors.VectorStoreRAM;
 import pitt.search.semanticvectors.vectors.Vector;
 import pitt.search.semanticvectors.vectors.VectorUtils;
+import pitt.search.semanticvectors.vectors.ZeroVectorException;
 
 /**
  * Experiment for trying to recover the "type" of a semantic vector in a PSI model.
@@ -46,26 +42,25 @@ public class PSITypeLister {
    * Prints all relations between combinations of S(subject) * E(predicate) that give
    * a match with an E(object) greater than {@link FlagConfig#searchresultsminscore()}. 
    */
-  public void printBestRelations() {    
-    for (ObjectVector semanticVector : Collections.list(semanticVectors.getAllVectors())) {
-      List<String> attributes = new ArrayList<>();
-      for (ObjectVector predicateVector : Collections.list(predicateVectors.getAllVectors())) {
-        Vector probeVector = semanticVector.getVector().copy();
-        probeVector.release(predicateVector.getVector());
-        for (ObjectVector elementalVector : Collections.list(elementalVectors.getAllVectors())) {
-          double relationScore = probeVector.measureOverlap(elementalVector.getVector());
-          if (relationScore > flagConfig.searchresultsminscore()) {
-            System.out.println(String.format("\t%4.3f\t%s : %s : %s", relationScore, 
-                semanticVector.getObject(), predicateVector.getObject(), elementalVector.getObject()));
-            attributes.add((String) predicateVector.getObject());
-          }
+  public void printBestRelations(String item) {
+    Vector semanticVector = this.semanticVectors.getVector(item);
+
+    List<String> attributes = new ArrayList<>();
+    for (ObjectVector predicateVector : Collections.list(predicateVectors.getAllVectors())) {
+      Vector probeVector = semanticVector.copy();
+      probeVector.release(predicateVector.getVector());
+      for (ObjectVector elementalVector : Collections.list(elementalVectors.getAllVectors())) {
+        double relationScore = probeVector.measureOverlap(elementalVector.getVector());
+        if (relationScore > flagConfig.searchresultsminscore()) {
+          System.out.println(String.format("\t%4.3f\t%s : %s : %s", relationScore,
+              item, predicateVector.getObject(), elementalVector.getObject()));
+          attributes.add((String) predicateVector.getObject());
         }
       }
-      String type = getProposedType(attributes);
-      if (attributes.size() != 0) {
-        System.out.println(String.format("'%s' is therefore a '%s'\n",
-          semanticVector.getObject(), type));
-      }
+    }
+    String type = getProposedType(attributes);
+    if (attributes.size() != 0) {
+      System.out.println(String.format("'%s' is therefore a '%s'\n", item, type));
     }
   }
 
@@ -99,19 +94,17 @@ public class PSITypeLister {
   /**
    * Separate method for hard-coded experiments on negation, included here for ease.
    */
-  public static void notUsDollar(PSITypeLister typeLister, FlagConfig flagConfig) {
+  public static void notUsDollar(PSITypeLister typeLister, FlagConfig flagConfig) throws ZeroVectorException {
     Vector dollar = typeLister.semanticVectors.getVector("united_states_dollar");
     Vector usesCurrency = typeLister.predicateVectors.getVector("HAS_CURRENCY-INV");
     Vector countryUsesDollar = dollar.copy();
     countryUsesDollar.release(usesCurrency);
 
     System.out.println("Results without negation ...");
-    for (ObjectVector testVector : Collections.list(
-        typeLister.elementalVectors.getAllVectors())) {
-      double score = testVector.getVector().measureOverlap(countryUsesDollar);
-      if (score > flagConfig.searchresultsminscore()) {
-        System.out.println(score + " : " + testVector.getObject());
-      }
+    VectorSearcher searcher = new VectorSearcherCosine(
+        typeLister.elementalVectors, typeLister.elementalVectors, null, typeLister.flagConfig, countryUsesDollar);
+    for (SearchResult result : searcher.getNearestNeighbors(flagConfig.numsearchresults())) {
+        System.out.println(result.getScore() + " : " + result.getObjectVector().getObject());
     }
 
     ArrayList<Vector> setToNegate = new ArrayList<>();
@@ -121,18 +114,16 @@ public class PSITypeLister {
     VectorUtils.orthogonalizeVectors(setToNegate);
     countryUsesDollar.normalize();
     System.out.println("Results with negation ...");
-    for (ObjectVector testVector : Collections.list(
-        typeLister.elementalVectors.getAllVectors())) {
-      double score = testVector.getVector().measureOverlap(countryUsesDollar);
-      if (score > flagConfig.searchresultsminscore()) {
-        System.out.println(score + " : " + testVector.getObject());
-      }
+    searcher = new VectorSearcherCosine(
+        typeLister.elementalVectors, typeLister.elementalVectors, null, typeLister.flagConfig, countryUsesDollar);
+    for (SearchResult result : searcher.getNearestNeighbors(flagConfig.numsearchresults())) {
+      System.out.println(result.getScore() + " : " + result.getObjectVector().getObject());
     }
   }
   
-  public static void main(String[] args) throws IOException {
+  public static void main(String[] args) throws IOException, ZeroVectorException {
     PSITypeLister typeLister = new PSITypeLister(args);
-    typeLister.printBestRelations();
-    //notUsDollar(typeLister, FlagConfig.getFlagConfig(args));
+    //typeLister.printBestRelations("lesotho");
+    notUsDollar(typeLister, FlagConfig.getFlagConfig(args));
   }
 }
