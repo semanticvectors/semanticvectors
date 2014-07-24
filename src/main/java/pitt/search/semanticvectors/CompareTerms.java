@@ -36,11 +36,14 @@
 package pitt.search.semanticvectors;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.logging.Logger;
 
 import pitt.search.semanticvectors.ElementalVectorStore.ElementalGenerationMethod;
+import pitt.search.semanticvectors.Search.SearchType;
 import pitt.search.semanticvectors.utils.VerbatimLogger;
 import pitt.search.semanticvectors.vectors.Vector;
+import pitt.search.semanticvectors.vectors.VectorUtils;
 
 /**
  * Command line term vector comparison utility. This enables users to
@@ -107,8 +110,15 @@ public class CompareTerms{
       usage();
       throw new IllegalArgumentException();
     }
-    CloseableVectorStore vecReader;
-    if (flagConfig.elementalmethod() == ElementalGenerationMethod.ORTHOGRAPHIC) {
+    CloseableVectorStore vecReader =null, elementalVecReader=null, semanticVecReader=null, predicateVecReader=null;
+    if (flagConfig.searchtype().equals(SearchType.BOUNDPRODUCT) || flagConfig.searchtype().equals(SearchType.BOUNDPRODUCTSUBSPACE))
+    {
+    	 elementalVecReader = VectorStoreReader.openVectorStore(flagConfig.elementalvectorfile(), flagConfig);
+    	 semanticVecReader  = VectorStoreReader.openVectorStore(flagConfig.semanticvectorfile(), flagConfig);
+    	 predicateVecReader = VectorStoreReader.openVectorStore(flagConfig.predicatevectorfile(), flagConfig);
+    	
+    }
+    else if (flagConfig.elementalmethod() == ElementalGenerationMethod.ORTHOGRAPHIC) {
       vecReader = new VectorStoreOrthographical(flagConfig);
     } else {
       vecReader = VectorStoreReader.openVectorStore(flagConfig.queryvectorfile(), flagConfig);
@@ -126,12 +136,42 @@ public class CompareTerms{
       }
     }
 
-    Vector vec1 = CompoundVectorBuilder.getQueryVectorFromString(
+    Vector vec1=null, vec2=null;
+    
+    if (flagConfig.searchtype().equals(SearchType.BOUNDPRODUCT))
+    {
+    	vec1 = CompoundVectorBuilder.getBoundProductQueryVectorFromString(
+    	        flagConfig, elementalVecReader, semanticVecReader, predicateVecReader, luceneUtils, args[0]);
+    	vec2 = CompoundVectorBuilder.getBoundProductQueryVectorFromString(
+    	    	flagConfig, elementalVecReader, semanticVecReader, predicateVecReader, luceneUtils, args[1]);
+        	
+    	elementalVecReader.close();
+    	semanticVecReader.close();
+    	predicateVecReader.close();
+    } else  if (flagConfig.searchtype().equals(SearchType.BOUNDPRODUCTSUBSPACE))
+    {
+    	ArrayList<Vector> vecs1 = CompoundVectorBuilder.getBoundProductQuerySubspaceFromString(
+    	        flagConfig, elementalVecReader, semanticVecReader, predicateVecReader, args[0]);
+    	vec2 = CompoundVectorBuilder.getBoundProductQueryVectorFromString(
+    	    	flagConfig, elementalVecReader, semanticVecReader, predicateVecReader, luceneUtils, args[1]);
+        	
+    	elementalVecReader.close();
+    	semanticVecReader.close();
+    	predicateVecReader.close();
+
+    	return VectorUtils.compareWithProjection(vec2, vecs1);
+    	
+    }
+    else {
+    vec1 = CompoundVectorBuilder.getQueryVectorFromString(
         vecReader, luceneUtils, flagConfig, args[0]);
-    Vector vec2 = CompoundVectorBuilder.getQueryVectorFromString(
+    vec2 = CompoundVectorBuilder.getQueryVectorFromString(
         vecReader, luceneUtils, flagConfig, args[1]);
     
     vecReader.close();
+    }
+    
+  
     
     return vec1.measureOverlap(vec2);
   }
