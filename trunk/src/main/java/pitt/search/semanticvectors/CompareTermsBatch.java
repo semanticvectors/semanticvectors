@@ -38,9 +38,12 @@ package pitt.search.semanticvectors;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
 
+import pitt.search.semanticvectors.Search.SearchType;
 import pitt.search.semanticvectors.utils.VerbatimLogger;
 import pitt.search.semanticvectors.vectors.Vector;
+import pitt.search.semanticvectors.vectors.VectorUtils;
 
 /**
  * Command line term vector comparison utility designed to be run in
@@ -106,11 +109,23 @@ public class CompareTermsBatch {
     LuceneUtils luceneUtils = null;
     String separator = flagConfig.batchcompareseparator();
 
-    VectorStoreRAM vecReader = new VectorStoreRAM(flagConfig);
+    VectorStoreRAM vecReader =null, elementalVecReader=null, semanticVecReader=null, predicateVecReader=null;
+    if (flagConfig.searchtype().equals(SearchType.BOUNDPRODUCT) || flagConfig.searchtype().equals(SearchType.BOUNDPRODUCTSUBSPACE))
+    {
+    	 elementalVecReader = new VectorStoreRAM(flagConfig);
+    	 semanticVecReader = new VectorStoreRAM(flagConfig);
+    	 predicateVecReader = new VectorStoreRAM(flagConfig);
+    	 elementalVecReader.initFromFile(flagConfig.elementalvectorfile());
+    	 semanticVecReader.initFromFile(flagConfig.semanticvectorfile());
+    	 predicateVecReader.initFromFile(flagConfig.predicatevectorfile());
+    } else	
+    {
+    vecReader = new VectorStoreRAM(flagConfig);
     vecReader.initFromFile(VectorStoreUtils.getStoreFileName(flagConfig.queryvectorfile(), flagConfig));
     VerbatimLogger.info(String.format(
         "Using RAM cache of vectors from file: %s\n", flagConfig.queryvectorfile()));
 
+    }
     if (!flagConfig.luceneindexpath().isEmpty()) {
       try {
         luceneUtils = new LuceneUtils(flagConfig);
@@ -134,14 +149,44 @@ public class CompareTermsBatch {
         throw new IllegalArgumentException("The separator '" + separator +
             "' must occur exactly once (found " + (elems.length - 1) + " occurrences)");
       }
-      Vector vec1 = CompoundVectorBuilder.getQueryVectorFromString(
+      Vector vec1=null, vec2=null;
+      if (flagConfig.searchtype().equals(SearchType.BOUNDPRODUCT))
+      {
+      	vec1 = CompoundVectorBuilder.getBoundProductQueryVectorFromString(
+      	        flagConfig, elementalVecReader, semanticVecReader, predicateVecReader, luceneUtils, elems[0]);
+      	vec2 = CompoundVectorBuilder.getBoundProductQueryVectorFromString(
+      	    	flagConfig, elementalVecReader, semanticVecReader, predicateVecReader, luceneUtils, elems[1]);
+
+        double simScore = vec1.measureOverlap(vec2);
+        VerbatimLogger.info(String.format("Score = %7.6f. Terms: %s\n", simScore, line));
+        System.out.println(simScore);
+      	
+      } else  if (flagConfig.searchtype().equals(SearchType.BOUNDPRODUCTSUBSPACE))
+      {
+      	ArrayList<Vector> vecs1 = CompoundVectorBuilder.getBoundProductQuerySubspaceFromString(
+      	        flagConfig, elementalVecReader, semanticVecReader, predicateVecReader, elems[0]);
+      	vec2 = CompoundVectorBuilder.getBoundProductQueryVectorFromString(
+      	    	flagConfig, elementalVecReader, semanticVecReader, predicateVecReader, luceneUtils, elems[1]);
+          	
+ 
+        double simScore = 	VectorUtils.compareWithProjection(vec2, vecs1);
+        VerbatimLogger.info(String.format("Score = %7.6f. Terms: %s\n", simScore, line));
+        System.out.println(simScore);
+      
+      	
+      }
+      else {
+      
+      
+      vec1 = CompoundVectorBuilder.getQueryVectorFromString(
           vecReader, luceneUtils, flagConfig, elems[0]);
-      Vector vec2 = CompoundVectorBuilder.getQueryVectorFromString(
+      vec2 = CompoundVectorBuilder.getQueryVectorFromString(
           vecReader, luceneUtils, flagConfig, elems[1]);
 
       double simScore = vec1.measureOverlap(vec2);
       VerbatimLogger.info(String.format("Score = %7.6f. Terms: %s\n", simScore, line));
       System.out.println(simScore);
+      }
     }
   }
 }
