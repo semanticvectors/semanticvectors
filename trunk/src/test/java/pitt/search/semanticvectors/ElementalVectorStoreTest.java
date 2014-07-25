@@ -15,7 +15,7 @@ import pitt.search.semanticvectors.vectors.Vector;
 public class ElementalVectorStoreTest {
 
   @Test
-  public void testReandomElementalStores() {
+  public void testRandomElementalStores() {
     for (ElementalGenerationMethod elementalMethod : ElementalGenerationMethod.values()) {
       FlagConfig flagConfig = FlagConfig.getFlagConfig(
           new String[] {"-elementalmethod", elementalMethod.toString()});

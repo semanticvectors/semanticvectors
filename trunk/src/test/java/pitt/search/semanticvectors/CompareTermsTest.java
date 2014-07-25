@@ -22,7 +22,7 @@ public class CompareTermsTest {
     flagConfig = FlagConfig.getFlagConfig(
         new String[] {"-elementalmethod", "orthographic", "-realbindmethod", "convolution", "foo", "bar"});
     outcome = CompareTerms.runCompareTerms(flagConfig);
-    assertTrue("Expected outcome less than 0.5 but got: " + outcome, 0.5 > outcome);
+    assertTrue("Expected outcome less than 0.6 but got: " + outcome, 0.6 > outcome);
     
     flagConfig = FlagConfig.getFlagConfig(
         new String[] {"-elementalmethod", "orthographic", "-vectortype", "real", "-realbindmethod", "convolution", "bad", "dab"});

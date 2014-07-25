@@ -29,8 +29,17 @@ public class TableIndexer {
     for (SearchResult result : table.searchRowVectors(queryVector)) {
       System.out.println(result.getScore() + ":" + result.getObjectVector().getObject());
     }
-    System.out.println("Querying for year of birth 1800");
-    queryVector = table.makeCellVector(5, "1800");
+    System.out.println("Querying for year of birth 1900");
+    queryVector = table.makeCellVector(5, "1900");
+    for (SearchResult result : table.searchRowVectors(queryVector)) {
+      System.out.println(result.getScore() + ":" + result.getObjectVector().getObject());
+    }
+  }
+
+  /** Experiment in querying for a particular president's name. */
+  private static void queryForName(Table table, String name) {
+    System.out.println("Querying for name: '" + name + "'");
+    Vector queryVector = table.getRowVectorStore().getVector(name);
     for (SearchResult result : table.searchRowVectors(queryVector)) {
       System.out.println(result.getScore() + ":" + result.getObjectVector().getObject());
     }
@@ -45,7 +54,11 @@ public class TableIndexer {
       System.err.println(usageMessage);
       throw e;
     }
-    
+
+    if (flagConfig.remainingArgs.length != 1) {
+      throw new IllegalArgumentException("Wrong number of arguments after parsing command line flags.\n" + usageMessage);
+    }
+
     VerbatimLogger.info("Building vector index of table in file: " + args[0] + "\n");
     BufferedReader fileReader = new BufferedReader(new FileReader(args[0]));
     String[] columnHeaders = fileReader.readLine().split(",");
@@ -66,6 +79,9 @@ public class TableIndexer {
     
     Table table = new Table(flagConfig, columnHeaders, dataRows);
     VectorStoreWriter.writeVectors(flagConfig.termvectorsfile(), flagConfig, table.getRowVectorStore());
+
     queryForSpecialValues(table);
+    queryForName(table, "J. Adams");
+    queryForName(table, "T. Roosevelt");
   }
 }

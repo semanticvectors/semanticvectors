@@ -10,6 +10,7 @@ import pitt.search.semanticvectors.utils.Bobcat;
 import pitt.search.semanticvectors.utils.VerbatimLogger;
 import pitt.search.semanticvectors.vectors.Vector;
 import pitt.search.semanticvectors.vectors.VectorFactory;
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 /**
  * Represents a table of data. This includes:
@@ -28,9 +29,12 @@ public class Table {
   private VectorStoreRAM rowSummaryVectors;
   private VectorStoreOrthographical orthographicVectorStore;
 
+  private ElementalVectorStore randomElementalVectors;
+
   public Table(FlagConfig flagConfig, String[] columnNames, List<String[]> dataRows) {
     this.flagConfig = flagConfig;
     this.orthographicVectorStore = new VectorStoreOrthographical(flagConfig);
+    this.randomElementalVectors = new ElementalVectorStore(flagConfig);
     this.columnHeaders = new ObjectVector[columnNames.length];
     this.columnTypes = new TypeSpec[columnNames.length];
     for (int i = 0; i < columnNames.length; ++i) {
@@ -57,19 +61,40 @@ public class Table {
 
   /** Returns a vector for a particular cell in the table. */
   public Vector makeCellVector(int colIndex, String value) {
-    if (value.isEmpty()) {
+    if (value.trim().isEmpty()) {
       return VectorFactory.createZeroVector(flagConfig.vectortype(), flagConfig.dimension());
     }
+
     Vector valueVector = null;
-    switch (columnTypes[colIndex].getType()) {
-      case STRING:
-        valueVector = orthographicVectorStore.getVector(value);
-        break;
-      case DOUBLE:
-        valueVector = columnTypes[colIndex].getDoubleValueVector(
-            flagConfig, Double.parseDouble(value));
-        break;
+
+    boolean useTabular = true;
+
+    if (useTabular) {
+      switch (columnTypes[colIndex].getType()) {
+        case STRING:
+          break;
+        case DOUBLE:
+          valueVector = columnTypes[colIndex].getDoubleValueVector(
+              flagConfig, Double.parseDouble(value));
+          break;
+      }
+    } else {
+      switch (flagConfig.elementalmethod()) {
+        case RANDOM:
+          valueVector = randomElementalVectors.getVector(value);
+          break;
+        case CONTENTHASH:
+          throw new NotImplementedException();
+        case ORTHOGRAPHIC:
+          valueVector = orthographicVectorStore.getVector(value);
+          break;
+      }
     }
+
+    if (valueVector == null) {
+      return VectorFactory.createZeroVector(flagConfig.vectortype(), flagConfig.dimension());
+    }
+
     Vector boundColVal = columnHeaders[colIndex].getVector().copy();
     boundColVal.bind(valueVector);
     boundColVal.normalize();

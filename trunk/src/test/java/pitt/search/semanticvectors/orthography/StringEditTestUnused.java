@@ -15,10 +15,10 @@ import pitt.search.semanticvectors.vectors.ZeroVectorException;
  *
  * Created by dwiddows on 7/4/14.
  */
-public class StringEditTest {
+class StringEditTestUnused {
 
   // @Test - Not run until refactored.
-  public void stringEditTest() throws IOException, ZeroVectorException {
+  private void stringEditTest() throws IOException, ZeroVectorException {
     String[] args = new String[0];  // Deliberately left unfilled until this test is properly integrated.
     String[] originalArgs = args.clone();
 
