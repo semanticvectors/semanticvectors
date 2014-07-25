@@ -81,7 +81,7 @@ public class TypeSpec {
    * min and max values are modified accordingly.
    */
   public void addExample(String example) {
-    if (example.isEmpty()) return;
+    if (example.trim().isEmpty()) return;
     switch (this.type) {
     case STRING:
       return;
@@ -93,6 +93,8 @@ public class TypeSpec {
         if (newDouble > this.maxDoubleValue)
           this.maxDoubleValue = newDouble;
       } catch (NumberFormatException e) {
+        VerbatimLogger.info("Changing to string type because did not parse as following as number: '" + example + "'.\n");
+        VerbatimLogger.info("Spec was: " + this.toString() + "\n");
         this.type = SupportedType.STRING;
         return;
       }

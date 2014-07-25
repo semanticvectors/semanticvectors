@@ -409,10 +409,10 @@ public class FlagConfig {
             try {
               field.set(flagConfig, Enum.valueOf(className, args[argc + 1].toUpperCase()));
             } catch (IllegalArgumentException e) {
-              VerbatimLogger.warning(String.format(
-                  "Accepted values for '-%s' are:\n%s%n",
-                  field.getName(), Arrays.asList(className.getEnumConstants())));
-              throw e;
+              throw new IllegalArgumentException(String.format(
+                  e.getMessage() +
+                  "\nAccepted values for '-%s' are:\n%s%n",
+                  field.getName(), Arrays.asList(className.getEnumConstants()), e));
             }
           } catch (ArrayIndexOutOfBoundsException e) {
             throw new IllegalArgumentException("option -" + flagName + " requires an argument");
