@@ -42,7 +42,7 @@ public class PSITypeLister {
    * Prints all relations between combinations of S(subject) * E(predicate) that give
    * a match with an E(object) greater than {@link FlagConfig#searchresultsminscore()}. 
    */
-  public void printBestRelations(String item) {
+  public int printBestRelations(String item) {
     Vector semanticVector = this.semanticVectors.getVector(item);
 
     List<String> attributes = new ArrayList<>();
@@ -52,16 +52,18 @@ public class PSITypeLister {
       for (ObjectVector elementalVector : Collections.list(elementalVectors.getAllVectors())) {
         double relationScore = probeVector.measureOverlap(elementalVector.getVector());
         if (relationScore > flagConfig.searchresultsminscore()) {
-          System.out.println(String.format("\t%4.3f\t%s : %s : %s", relationScore,
-              item, predicateVector.getObject(), elementalVector.getObject()));
+          //System.out.println(String.format("\t%4.3f\t%s : %s : %s", relationScore,
+          //    item, predicateVector.getObject(), elementalVector.getObject()));
           attributes.add((String) predicateVector.getObject());
         }
       }
     }
     String type = getProposedType(attributes);
-    if (attributes.size() != 0) {
-      System.out.println(String.format("'%s' is therefore a '%s'\n", item, type));
+    if (attributes.size() != 0 && type.equals("COUNTRY")) {
+      System.out.println(String.format("'%s' is therefore a '%s'", item, type));
     }
+
+    return type.equals("COUNTRY") ? 1 : 0;
   }
 
   /** Data structure that encodes mapping of which attributes are expected for each type. */
@@ -104,7 +106,7 @@ public class PSITypeLister {
     VectorSearcher searcher = new VectorSearcherCosine(
         typeLister.elementalVectors, typeLister.elementalVectors, null, typeLister.flagConfig, countryUsesDollar);
     for (SearchResult result : searcher.getNearestNeighbors(flagConfig.numsearchresults())) {
-        System.out.println(result.getScore() + " : " + result.getObjectVector().getObject());
+        System.out.println(result.toTexTableString(20));
     }
 
     ArrayList<Vector> setToNegate = new ArrayList<>();
@@ -117,13 +119,19 @@ public class PSITypeLister {
     searcher = new VectorSearcherCosine(
         typeLister.elementalVectors, typeLister.elementalVectors, null, typeLister.flagConfig, countryUsesDollar);
     for (SearchResult result : searcher.getNearestNeighbors(flagConfig.numsearchresults())) {
-      System.out.println(result.getScore() + " : " + result.getObjectVector().getObject());
+      System.out.println(result.toTexTableString(20));
     }
   }
   
   public static void main(String[] args) throws IOException, ZeroVectorException {
     PSITypeLister typeLister = new PSITypeLister(args);
-    //typeLister.printBestRelations("lesotho");
-    notUsDollar(typeLister, FlagConfig.getFlagConfig(args));
+
+    int numCountries = 0;
+    for (ObjectVector vector : Collections.list(typeLister.semanticVectors.getAllVectors())) {
+      numCountries += typeLister.printBestRelations(vector.getObject().toString());
+
+    }
+    System.out.println("Number of countries: " + numCountries);
+    //notUsDollar(typeLister, FlagConfig.getFlagConfig(args));
   }
 }
