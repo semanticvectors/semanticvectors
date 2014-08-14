@@ -44,14 +44,23 @@ import java.util.Arrays;
  */
 public class StringUtils {
 
+  public static String nSpaces(int n) {
+    StringBuilder output = new StringBuilder();
+    for (int i = 0; i < n; ++i) {
+      output.append(" ");
+    }
+    return output.toString();
+  }
+
   /**
    * Returns a comma-separated join of the strings in the input.
    */
   public static String join(Iterable<String> input) {
     StringBuilder builder = new StringBuilder();
     for (String item: input) {
-      builder.append(item + ", ");
+      builder.append(item).append(", ");
     }
+    builder.setLength(builder.length() - 2);
     return builder.toString(); 
   }
   

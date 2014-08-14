@@ -42,6 +42,7 @@ import java.util.logging.Logger;
 
 import org.apache.lucene.index.DocsEnum;
 import org.apache.lucene.index.Term;
+import org.apache.lucene.index.Terms;
 import org.apache.lucene.index.TermsEnum;
 import org.apache.lucene.util.BytesRef;
 
@@ -128,10 +129,11 @@ public class TermVectorsFromLucene {
     TermsEnum termsEnum = null; // Empty terms enum, encouraged for reuse in Lucene documentation.
     this.termVectors = new VectorStoreRAM(flagConfig);
     // Iterate through an enumeration of terms and create termVector table.
-    VerbatimLogger.log(Level.INFO, "Creating semantic term vectors ...");
+    VerbatimLogger.log(Level.INFO, "Creating semantic term vectors ...\n");
 
     for (String fieldName : flagConfig.contentsfields()) {
-      TermsEnum terms = this.luceneUtils.getTermsForField(fieldName).iterator(termsEnum);
+      Terms termsForField = this.luceneUtils.getTermsForField(fieldName);
+      TermsEnum terms = termsForField.iterator(termsEnum);
       int tc = 0;
       while (terms.next() != null) {
         tc++;

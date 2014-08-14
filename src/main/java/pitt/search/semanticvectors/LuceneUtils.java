@@ -39,7 +39,9 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.TreeSet;
 import java.util.logging.Logger;
 
@@ -49,6 +51,7 @@ import org.apache.lucene.index.BaseCompositeReader;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.DocsEnum;
 import org.apache.lucene.index.FieldInfos;
+import org.apache.lucene.index.FieldInfo;
 import org.apache.lucene.index.MultiFields;
 import org.apache.lucene.index.SlowCompositeReaderWrapper;
 import org.apache.lucene.index.Term;
@@ -56,6 +59,7 @@ import org.apache.lucene.index.Terms;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.util.Version;
 
+import pitt.search.semanticvectors.utils.StringUtils;
 import pitt.search.semanticvectors.utils.VerbatimLogger;
 
 /**
@@ -163,8 +167,16 @@ public class LuceneUtils {
   public Document getDoc(int docID) throws IOException {
     return this.atomicReader.document(docID);
   }
-  
+
+  /**
+   * Gets the terms for a given field. Throws {@link java.lang.NullPointerException} if this is null.
+   */
   public Terms getTermsForField(String field) throws IOException {
+    Terms terms = atomicReader.terms(field);
+    if (terms == null) {
+      throw new NullPointerException(String.format(
+          "No terms for field: '%s'.\nKnown fields are: '%s'.", field, StringUtils.join(this.getFieldNames())));
+    }
     return atomicReader.terms(field);
   }
   
@@ -179,7 +191,15 @@ public class LuceneUtils {
   public FieldInfos getFieldInfos() {
     return this.atomicReader.getFieldInfos();
   }
-  
+
+  public List<String> getFieldNames() {
+    List<String> fieldNames = new ArrayList<>();
+    for(FieldInfo fieldName : this.atomicReader.getFieldInfos()) {
+      fieldNames.add(fieldName.name);
+    }
+    return fieldNames;
+  }
+
   /**
    * Gets the global term frequency of a term,
    * i.e. how may times it occurs in the whole corpus
