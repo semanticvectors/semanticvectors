@@ -27,12 +27,12 @@ public class TableIndexer {
     System.out.println("Querying for time took office 1800");
     Vector queryVector = table.makeCellVector(2, "1800");
     for (SearchResult result : table.searchRowVectors(queryVector)) {
-      System.out.println(result.getScore() + ":" + result.getObjectVector().getObject());
+      System.out.println(result.toTexTableString(20));
     }
     System.out.println("Querying for year of birth 1900");
     queryVector = table.makeCellVector(5, "1900");
     for (SearchResult result : table.searchRowVectors(queryVector)) {
-      System.out.println(result.getScore() + ":" + result.getObjectVector().getObject());
+      System.out.println(result.toTexTableString(20));
     }
   }
 
@@ -41,7 +41,7 @@ public class TableIndexer {
     System.out.println("Querying for name: '" + name + "'");
     Vector queryVector = table.getRowVectorStore().getVector(name);
     for (SearchResult result : table.searchRowVectors(queryVector)) {
-      System.out.println(result.getScore() + ":" + result.getObjectVector().getObject());
+      System.out.println(result.toTexTableString(20));
     }
   }
 
@@ -80,7 +80,7 @@ public class TableIndexer {
     Table table = new Table(flagConfig, columnHeaders, dataRows);
     VectorStoreWriter.writeVectors(flagConfig.termvectorsfile(), flagConfig, table.getRowVectorStore());
 
-    queryForSpecialValues(table);
+    //queryForSpecialValues(table);
     queryForName(table, "J. Adams");
     queryForName(table, "T. Roosevelt");
   }

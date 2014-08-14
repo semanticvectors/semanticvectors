@@ -67,7 +67,7 @@ public class Table {
 
     Vector valueVector = null;
 
-    boolean useTabular = true;
+    boolean useTabular = false;
 
     if (useTabular) {
       switch (columnTypes[colIndex].getType()) {
