@@ -91,6 +91,8 @@ public class LuceneUtils {
     IDF,
     /** Use log entropy: see {@link LuceneUtils#getEntropy}. */
     LOGENTROPY,
+    /** Use square root of term frequency. */
+    SQRT,
   }
 
   /**
@@ -251,6 +253,7 @@ public class LuceneUtils {
   public float getGlobalTermWeight(Term term) {
     switch (flagConfig.termweight()) {
     case NONE:
+    case SQRT:
       return 1;
     case IDF:
       return getIDF(term);
@@ -279,6 +282,8 @@ public class LuceneUtils {
       return docfreq;
     case LOGENTROPY:
       return (float) Math.log10(1+docfreq);
+    case SQRT:
+      return (float) Math.sqrt(docfreq);
     }
     VerbatimLogger.severe("Unrecognized termweight option: " + flagConfig.termweight()
         + ". Returning 1.");

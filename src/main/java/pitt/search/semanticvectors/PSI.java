@@ -173,7 +173,7 @@ public class PSI {
       sWeight = luceneUtils.getGlobalTermWeight(new Term(SUBJECT_FIELD, subject));
       oWeight = luceneUtils.getGlobalTermWeight(new Term(OBJECT_FIELD, object));
       // TODO: Explain different weighting for predicates, log(occurrences of predication)
-      pWeight = (float) Math.log(1 + luceneUtils.getGlobalTermFreq(term));
+      pWeight = luceneUtils.getLocalTermWeight(luceneUtils.getGlobalTermFreq(term));
 
       Vector subjectSemanticvector = semanticItemVectors.getVector(subject);
       Vector objectSemanticvector = semanticItemVectors.getVector(object);
