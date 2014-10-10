@@ -108,13 +108,8 @@ public class BinaryVector implements Vector {
         for (int x = 0; x < DEBUG_PRINT_LENGTH; x++) debugString.append(votingRecord.get(y).getBit(x) + " ");
         debugString.append("\n");
       }
-
-      // TODO - output count from first DEBUG_PRINT_LENGTH dimension
-      debugString.append("\nNORMALIZED: ");
-      this.normalize();
-      for (int x = 0; x < DEBUG_PRINT_LENGTH; x++) debugString.append(bitSet.getBit(x) + " ");
-      debugString.append("\n");
-
+      
+      
       // Calculate actual values for first 20 dimension
       double[] actualvals = new double[DEBUG_PRINT_LENGTH];
       debugString.append("COUNTS    : ");
@@ -128,6 +123,14 @@ public class BinaryVector implements Vector {
       for (int x = 0; x < DEBUG_PRINT_LENGTH; x++) {
         debugString.append((int) ((minimum + actualvals[x]) / Math.pow(10, decimalPlaces)) + " ");
       }
+
+      // TODO - output count from first DEBUG_PRINT_LENGTH dimension
+      debugString.append("\nNORMALIZED: ");
+      this.normalize();
+      for (int x = 0; x < DEBUG_PRINT_LENGTH; x++) debugString.append(bitSet.getBit(x) + " ");
+      debugString.append("\n");
+
+
 
       debugString.append("\nCardinality " + bitSet.cardinality()+"\n");
       debugString.append("Votes " + totalNumberOfVotes+"\n");
@@ -838,5 +841,11 @@ public class BinaryVector implements Vector {
     if (isSparse) return 0;
     return votingRecord.size();
   }
+
+//access bitset directly
+public OpenBitSet getCoordinates() {
+	// TODO Auto-generated method stub
+	return this.bitSet;
+}
 }
 
