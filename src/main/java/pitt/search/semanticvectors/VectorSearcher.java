@@ -532,7 +532,8 @@ abstract public class VectorSearcher {
             throws ZeroVectorException {
       super(queryVecStore, searchVecStore, luceneUtils, flagConfig);
       this.disjunctSpace = new ArrayList<Vector>();
-
+      this.vectorType = flagConfig.vectortype();
+      
       for (int i = 0; i < queryTerms.length; ++i) {
         System.out.println("\t" + queryTerms[i]);
         // There may be compound disjuncts, e.g., "A NOT B" as a single argument.
