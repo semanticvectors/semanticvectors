@@ -254,7 +254,7 @@ public class FlagConfig {
   public String permutedvectorfile() { return permutedvectorfile; }
   
   private String proximityvectorfile = "proxtermvectors";
-  /** "Permuted term vectors, output by -positionalmethod permutation. */
+  /** "Permuted term vectors, output by -positionalmethod proximity. */
   public String proximityvectorfile() { return proximityvectorfile; }
   
   private String directionalvectorfile ="drxntermvectors";
@@ -511,6 +511,13 @@ public class FlagConfig {
       RealVector.setBindType(RealVector.RealBindMethod.PERMUTATION);
     }
   }
+  
+  //utility method to allow control of this option without
+  //reconfiguring a FlagConfig
+public void setExpandsearchspace(boolean b) {
+	// TODO Auto-generated method stub
+	this.expandsearchspace = b;
+}
   
 
 }
