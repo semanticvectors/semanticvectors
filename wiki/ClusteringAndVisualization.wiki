@@ -50,10 +50,10 @@ There is also a basic visualization routine, implementing some of the work descr
  # In the directory with your vector indexes: `java pitt.search.semanticvectors.viz.PrincipalComponents $ARGS`.
    * `$ARGS` includes first regular semantic vectors flags, e.g., `-queryvectorfile` and `-numsearchresults`, followed by query terms.
 
-<img title="Pharoah and related words" src="https://code.google.com/p/semanticvectors/source/browse/wiki/images/pharaoh-wordplot.jpg" />
+Results should look something like the following:
+
+<img title="Pharoah and related words" src="https://semanticvectors.googlecode.com/svn/wiki/images/pharaoh-wordplot.jpg" />
 
 This routine can also be used to generate TeX output (currently this needs to be done by setting PRINT_TEX_OUTPUT to true in Plot2dVectors.java and recompiling).
-
-
 
 Note that some queries have been found to give degenerate results, all in the top left hand corner or down the left hand side. See [http://code.google.com/p/semanticvectors/issues/detail?id=39 Issue 39].
