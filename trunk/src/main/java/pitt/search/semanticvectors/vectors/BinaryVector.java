@@ -842,10 +842,17 @@ public class BinaryVector implements Vector {
     return votingRecord.size();
   }
 
-//access bitset directly
-public OpenBitSet getCoordinates() {
+  //access bitset directly
+  protected OpenBitSet getCoordinates() {
 	// TODO Auto-generated method stub
 	return this.bitSet;
 }
+
+	//access bitset directly
+	protected void setCoordinates(OpenBitSet incomingBitSet) {
+	// TODO Auto-generated method stub
+	this.bitSet = incomingBitSet;
+}
+
 }
 
