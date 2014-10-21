@@ -111,7 +111,7 @@ public class CompareTerms{
       throw new IllegalArgumentException();
     }
     CloseableVectorStore vecReader =null, elementalVecReader=null, semanticVecReader=null, predicateVecReader=null;
-    if (flagConfig.searchtype().equals(SearchType.BOUNDPRODUCT) || flagConfig.searchtype().equals(SearchType.BOUNDPRODUCTSUBSPACE))
+    if (flagConfig.searchtype().equals(SearchType.BOUNDPRODUCT) || flagConfig.searchtype().equals(SearchType.BOUNDMINIMUM) || flagConfig.searchtype().equals(SearchType.INTERSECTION) || flagConfig.searchtype().equals(SearchType.BOUNDPRODUCTSUBSPACE))
     {
     	 elementalVecReader = VectorStoreReader.openVectorStore(flagConfig.elementalvectorfile(), flagConfig);
     	 semanticVecReader  = VectorStoreReader.openVectorStore(flagConfig.semanticvectorfile(), flagConfig);
@@ -160,6 +160,22 @@ public class CompareTerms{
     	predicateVecReader.close();
 
     	return VectorUtils.compareWithProjection(vec2, vecs1);
+    	
+    }
+    else  if (flagConfig.searchtype().equals(SearchType.INTERSECTION))
+    {
+    	
+    	vec1 = CompoundVectorBuilder.getBoundProductQueryIntersectionFromString(
+    	    	flagConfig, elementalVecReader, semanticVecReader, predicateVecReader, luceneUtils, args[0]);
+        	
+    	vec2 = CompoundVectorBuilder.getBoundProductQueryIntersectionFromString(
+    	    	flagConfig, elementalVecReader, semanticVecReader, predicateVecReader, luceneUtils, args[1]);
+        	
+    	elementalVecReader.close();
+    	semanticVecReader.close();
+    	predicateVecReader.close();
+
+    	return vec1.measureOverlap(vec2);
     	
     }
     else {
