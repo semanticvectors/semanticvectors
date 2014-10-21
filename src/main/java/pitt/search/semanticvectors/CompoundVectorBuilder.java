@@ -45,11 +45,17 @@ import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 
+import org.apache.lucene.util.OpenBitSet;
+
 import pitt.search.semanticvectors.Search.SearchType;
 import pitt.search.semanticvectors.utils.VerbatimLogger;
+import pitt.search.semanticvectors.vectors.BinaryVector;
+import pitt.search.semanticvectors.vectors.BinaryVectorUtils;
+import pitt.search.semanticvectors.vectors.IncompatibleVectorsException;
 import pitt.search.semanticvectors.vectors.PermutationUtils;
 import pitt.search.semanticvectors.vectors.Vector;
 import pitt.search.semanticvectors.vectors.VectorFactory;
+import pitt.search.semanticvectors.vectors.VectorType;
 import pitt.search.semanticvectors.vectors.VectorUtils;
 
 /**
@@ -303,6 +309,79 @@ public class CompoundVectorBuilder {
     bundledQueryvector.normalize();
     return bundledQueryvector;
   }
+  
+  
+  /**
+   * Method gets a query vector from a query string of the form:
+   * concept1*relation2+concept3*relation4 
+   * 
+   * the resulting vector will be the intersection of the bound product of concept1 and relation 1, and the
+   * bound product of concept 2 and relation 2  (binaryvectors only for the moment)
+   * 
+   * @param vecReader
+   * @param queryString
+   * @return the resulting query vector
+   */
+  
+  public static Vector getBoundProductQueryIntersectionFromString(
+	      FlagConfig flagConfig, VectorStore elementalVectors, VectorStore semanticVectors, VectorStore predicateVectors, LuceneUtils lUtils, String queryString) {
+	    //find intersection of multiple concepts/relations - split initially at "+" to construct vectors to be superposed
+		 //find intersection of multiple concepts/relations - split initially at "+" to construct vectors to be superposed
+	  if (!flagConfig.vectortype().equals(VectorType.BINARY))
+	  	{ throw new IncompatibleVectorsException("Intersection construction is currently implemented for binary vectors only");}
+	  
+	  StringTokenizer bundlingTokenizer = new StringTokenizer(queryString,"+");
+	    Vector bundled_queryvector = VectorFactory.createZeroVector(
+	        flagConfig.vectortype(), flagConfig.dimension());
+	    while (bundlingTokenizer.hasMoreTokens())
+	    { 
+	      //allow for binding of multiple concepts/relations
+	      StringTokenizer bindingTokenizer = new StringTokenizer(bundlingTokenizer.nextToken(),"*");
+
+	      String nextToken = bindingTokenizer.nextToken();
+	       Vector boundQueryvector = null;
+
+	      //get vector for first token
+	      boundQueryvector = getVector(flagConfig, elementalVectors, semanticVectors, predicateVectors, nextToken).copy();
+
+	      float weight = 1;
+	      
+	      if (lUtils != null) {
+	          weight = lUtils.getGlobalTermWeightFromString(nextToken.substring(2,nextToken.length()-1));
+	          logger.log(Level.FINE, "Term {0} weight {1}", new Object[]{nextToken.substring(2,nextToken.length()-1), weight});
+	        } 
+	      
+	      
+	      while (bindingTokenizer.hasMoreTokens())
+	      {
+	        nextToken = bindingTokenizer.nextToken();
+	        
+	         
+	        if (lUtils != null) {
+	            weight += lUtils.getGlobalTermWeightFromString(nextToken.substring(2,nextToken.length()-1));
+	            logger.log(Level.FINE, "Term {0} weight {1}", new Object[]{nextToken.substring(2,nextToken.length()-1), weight});
+	          } 
+	        
+	        
+	        Vector bound_queryvector2 = null;
+	        bound_queryvector2 = getVector(flagConfig, elementalVectors, semanticVectors, predicateVectors, nextToken).copy();
+
+	        //sequence of operations important for complex vectors and permuted binary vectors
+	        if (flagConfig.bindnotreleasehack()) bound_queryvector2.bind(boundQueryvector);
+	        else bound_queryvector2.release(boundQueryvector);
+	        
+	        boundQueryvector = bound_queryvector2;
+
+	      }
+  
+	      if (bundled_queryvector.isZeroVector()) bundled_queryvector = boundQueryvector.copy();
+	      else bundled_queryvector = BinaryVectorUtils.intersection( ((BinaryVector) bundled_queryvector), ((BinaryVector) boundQueryvector));
+      
+    }
+
+    return bundled_queryvector;
+  }
+  
 
   /**
    * Method gets a query subspace from a query string of the form:

@@ -100,8 +100,37 @@ public class BinaryVectorUtils {
   }
 
   /**
+   * An attempt at modeling the intersection between two binary vectors, by randomizing the
+   * dimensions that are not common
+   */
+  public static BinaryVector intersection(BinaryVector vector,  BinaryVector vector2)
+  {
+	    OpenBitSet intersection = (OpenBitSet) vector.getCoordinates().clone();
+	    OpenBitSet uncommonGround = (OpenBitSet) vector.getCoordinates().clone();
+	    
+	    java.util.Random random = new java.util.Random();
+	    random.setSeed((long) 23); //for consistency across experiments 
+	   
+	    //everything different
+	    uncommonGround.xor(vector2.getCoordinates());
+	    
+	    //to introduce random noise
+	    for (int x =0; x < vector.getDimension(); x++) {	
+	        // if (x == 0) System.err.print(cnt+"/"+ numchanges+".."+"loop...");
+	        double change = random.nextDouble();
+	        if (uncommonGround.get(x) && change > 0.5) {
+	          intersection.fastFlip(x);
+	        }
+	      }
+
+	      BinaryVector intersectionVector = (BinaryVector) VectorFactory.createZeroVector(VectorType.BINARY, vector.getDimension());
+	      intersectionVector.setCoordinates(intersection);
+	      return intersectionVector;
+  }
+  
+  /**
    * This method provides the equivalent of orthogonalization for binary vectors. Rather than making vector k 
-   * orthogonal to vector j, we alter vector j so it has a Hamming distance of 1/n to vector k. This is the 
+   * orthogonal to vector j, we alter vector j so it has a Hamming distance of n/2 to vector k. This is the 
    * analog of orthogonality in real/complex space.
    */
   public static void sampleSubtract(OpenBitSet vector,  OpenBitSet subvector) {	

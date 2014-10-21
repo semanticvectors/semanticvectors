@@ -60,6 +60,7 @@ import org.apache.lucene.store.FSDirectory;
 
 import pitt.search.semanticvectors.LuceneUtils;
 import pitt.search.semanticvectors.VectorStore;
+import pitt.search.semanticvectors.vectors.BinaryVector;
 import pitt.search.semanticvectors.vectors.BinaryVectorUtils;
 import pitt.search.semanticvectors.vectors.IncompatibleVectorsException;
 import pitt.search.semanticvectors.vectors.Vector;
@@ -483,15 +484,12 @@ abstract public class VectorSearcher {
     }
 
     public VectorSearcherBoundMinimum(VectorStore elementalVecStore, VectorStore semanticVecStore, VectorStore predicateVecStore, 
-        VectorStore searchVecStore, LuceneUtils luceneUtils, FlagConfig flagConfig, String term1)
-            throws ZeroVectorException {
-      super(semanticVecStore, searchVecStore, luceneUtils, flagConfig);
+	        VectorStore searchVecStore, LuceneUtils luceneUtils, FlagConfig flagConfig, String term1)
+	            throws ZeroVectorException {
+	      super(semanticVecStore, searchVecStore, luceneUtils, flagConfig);
 
-      disjunctSpace = new ArrayList<Vector>();
-      this.disjunctSpace = CompoundVectorBuilder.getBoundProductQuerySubspaceFromString(
-          flagConfig, elementalVecStore, semanticVecStore, predicateVecStore, term1);
-
-    }
+	     this.disjunctSpace =  CompoundVectorBuilder.getBoundProductQuerySubspaceFromString(flagConfig, elementalVecStore, semanticVecStore, predicateVecStore, term1);
+	    }
 
     public VectorSearcherBoundMinimum(VectorStore queryVecStore, VectorStore boundVecStore,
         VectorStore searchVecStore, LuceneUtils luceneUtils, FlagConfig flagConfig, ArrayList<Vector> incomingDisjunctSpace)
@@ -502,13 +500,45 @@ abstract public class VectorSearcher {
     }
 
     @Override
-    public double getScore(Vector testVector) {
-    	double score = Double.MAX_VALUE;
-    	for (int q=0; q < disjunctSpace.size(); q ++)
-    		score = Math.min(score, testVector.measureOverlap(disjunctSpace.get(q)));
-    	return score;
+  public double getScore(Vector testVector) {
+    	double score = 0; 
+    	//find the maximum pairwise minimum (i.e. the max intersection between each pair of vectors, taken two at a time)
+    	for (int q=0; q < disjunctSpace.size(); q+=2)
+    		{ 
+    		try {
+    			//if vectors not passed as pairs
+    			if ((q+1) >= disjunctSpace.size()) score = Math.max(testVector.measureOverlap(disjunctSpace.get(q)),score);
+    			//otherwise take the best pairwise minimum across sequential pairs
+    			else score = Math.max(Math.min(testVector.measureOverlap(disjunctSpace.get(q)), testVector.measureOverlap(disjunctSpace.get(q+1))),score);
+    	    	
+    		} catch (Exception e) {e.printStackTrace();}
+    		}
+    	return score; 
     }
+    
   }
+  
+  /**
+   * Class for searching a vector store using the intersection of a set of two vectors - binary vectors only currently.
+   */
+  public static class VectorSearcherIntersection extends VectorSearcher {
+    private Vector intersection;
+  
+  public VectorSearcherIntersection(VectorStore elementalVecStore, VectorStore semanticVecStore, VectorStore predicateVecStore, 
+	        VectorStore searchVecStore, LuceneUtils luceneUtils, FlagConfig flagConfig, String term1)
+	            throws ZeroVectorException {
+	      super(semanticVecStore, searchVecStore, luceneUtils, flagConfig);
+	      
+	     this.intersection=CompoundVectorBuilder.getBoundProductQueryIntersectionFromString(flagConfig, elementalVecStore, semanticVecStore, predicateVecStore, luceneUtils, term1);   
+	    }
+  
+  
+  public double getScore(Vector testVector) {
+ 
+  	return this.intersection.measureOverlap(testVector);
+  }
+  
+}
   
   
   /**
