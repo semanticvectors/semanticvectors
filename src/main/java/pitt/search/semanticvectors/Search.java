@@ -145,6 +145,14 @@ public class Search {
      * Uses {@link VectorSearcher.VectorSearcherBoundProductSubSpace}
      */
     BOUNDPRODUCTSUBSPACE,
+    
+
+    /**
+     * Uses intersection between supplied predicate_concept combinations
+     * Implemented for binary vectors only currently
+     * Uses {@link VectorSearcher.VectorSearcherBoundProductSubSpace}
+     */
+    INTERSECTION,
 
     /**
      * Intended to support searches of the form A is to B as C is to ?, but
@@ -329,6 +337,12 @@ public class Search {
                 elementalVecReader, semanticVecReader, predicateVecReader, searchVecReader, luceneUtils, flagConfig, queryArgs[0]);
           }
           break;
+        case INTERSECTION:
+           {
+              vecSearcher = new VectorSearcher.VectorSearcherIntersection(
+                  elementalVecReader, semanticVecReader, predicateVecReader, searchVecReader, luceneUtils, flagConfig, queryArgs[0]);
+            }
+            break;
         case BOUNDMINIMUM:
           if (queryArgs.length == 2) {
             vecSearcher = new VectorSearcher.VectorSearcherBoundMinimum(
