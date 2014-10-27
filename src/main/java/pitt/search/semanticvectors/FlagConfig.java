@@ -210,7 +210,7 @@ public class FlagConfig {
 
   private VectorStoreFormat indexfileformat = VectorStoreFormat.LUCENE;
   /** Format used for serializing / deserializing vectors from disk, default lucene. */
-  VectorStoreFormat indexfileformat() { return indexfileformat; }
+  public VectorStoreFormat indexfileformat() { return indexfileformat; }
 
   private String termvectorsfile = "termvectors";
   /** File to which termvectors are written during indexing. */
@@ -221,7 +221,7 @@ public class FlagConfig {
   public String docvectorsfile() { return docvectorsfile; }
   
   private String termtermvectorsfile = "termtermvectors";
-  /** File to which docvectors are written during indexing. */
+  /** File to which term-term vectors are written during positional indexing. */
   public String termtermvectorsfile() { return termtermvectorsfile; }
   
   private String queryvectorfile = "termvectors";
