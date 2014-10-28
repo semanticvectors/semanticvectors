@@ -285,53 +285,21 @@ public class PathFinder {
 	        "\"nodes\":[\n");
 	    
 	    HashSet<String> onList = new HashSet<String>();
-	    Vector superposition = VectorFactory.createZeroVector(flagConfig.vectortype(), flagConfig.dimension());
-	    Vector predposition = VectorFactory.createZeroVector(flagConfig.vectortype(), flagConfig.dimension());
-	    
-	    Enumeration<ObjectVector> pVectors = predicatevectors.getAllVectors();
-	    while (pVectors.hasMoreElements())
-	    	predposition.superpose(pVectors.nextElement().getVector(), 1, null);
-	    predposition.normalize();
-	    
+	       
 	    ArrayList<Vector> resultsemanticVectors = new ArrayList<Vector>();
 	    ArrayList<Vector> resultelementalVectors = new ArrayList<Vector>();
 	    
 	    for (int z = 0; z < results.size(); z++) {
 	    	
-	    	superposition.superpose(semanticvectors.getVector(results.get(z).getObjectVector().getObject().toString()),results.get(z).getScore(),null);
 	    	onList.add(results.get(z).getObjectVector().getObject().toString());
 	    	resultsemanticVectors.add(semanticvectors.getVector(results.get(z).getObjectVector().getObject().toString()));
 	    	resultelementalVectors.add(elementalvectors.getVector(results.get(z).getObjectVector().getObject().toString()));
 	    	
-	    	writer.write("{\"name\":\""+results.get(z).getObjectVector().getObject()+"\",\"group\":1}"); 
+	       writer.write("{\"name\":\""+results.get(z).getObjectVector().getObject()+"\",\"group\":1}"); 
 	       writer.write(",");
 	      
 	    }
-	    
-	    superposition.normalize();
-	    superposition.bind(predposition);
-	    try{
-	    	 VectorSearcher.VectorSearcherCosine middletermFinder = new VectorSearcher.VectorSearcherCosine(semanticvectors, elementalvectors, null, flagConfig, superposition);
-       	 List<SearchResult> bestMiddles = middletermFinder.getNearestNeighbors(results.size());
-         
-       	 for (int q = 0; q < bestMiddles.size(); q++)
-       	 {String bestMiddle = bestMiddles.get(q).getObjectVector().getObject().toString();   
-         if (!onList.contains(bestMiddle))
-         {	
-        	System.out.println(bestMiddle); 
-        	writer.write("{\"name\":\""+bestMiddle+"\",\"group\":1}"); 
-	       	writer.write(",");
-	       	results.add(new SearchResult(0.1, new ObjectVector(bestMiddle, semanticvectors.getVector(bestMiddle))));  
-	       	onList.add(bestMiddle);
-	       	resultsemanticVectors.add(semanticvectors.getVector(bestMiddle));
-	    	resultelementalVectors.add(elementalvectors.getVector(bestMiddle));
-	    	
-         }
-       	 }
-       	 }
-       	 catch (ZeroVectorException zve) {}
-      
-		        
+	            
 	    //generate connectivity matrix
 	    double[][] links = new double[results.size()][results.size()];
 	    String[][] predicate = new String[results.size()][results.size()];
@@ -404,7 +372,7 @@ public class PathFinder {
 	        	  String subject = results.get(y).getObjectVector().getObject().toString();
 		          String object  = results.get(x).getObjectVector().getObject().toString();
 		      
-	        	if (lUtils.getDocsForTerm(new Term("predication",subject+predicate[y][x].replaceAll("-INV", "")+object)) != null  ||  lUtils.getDocsForTerm(new Term("predication",predicate[y][x].replaceAll("-INV", "")+object)) != null)
+	        	if (lUtils.getDocsForTerm(new Term("predication",subject+predicate[y][x].replaceAll("-INV", "")+object)) != null  ||  lUtils.getDocsForTerm(new Term("predication",object+predicate[y][x].replaceAll("-INV", "")+subject)) != null)
 	        	{  
 	        		 System.err.println(subject+predicate[y][x]+object);
 	 	        	
