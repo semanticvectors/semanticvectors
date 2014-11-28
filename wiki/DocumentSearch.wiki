@@ -46,7 +46,7 @@ For *Document to Document Search*, use commands just like those above but set `-
 
 === Lucene Term Weighting ===
 
-Any term weighting for documents is computed when the document vectors are created, as part of the index building process. So giving a `-luceneindexdir` argument when using documents as queries will not help you at all, and can cause SemanticVectors to discard your query terms (since, for example, `/files/file1.txt` isn't a term that the Lucene index recognizes). 
+Any term weighting for documents is computed when the document vectors are created, as part of the index building process. So giving a `-luceneindexpath` argument when using documents as queries will not help you at all, and can cause SemanticVectors to discard your query terms (since, for example, `/files/file1.txt` isn't a term that the Lucene index recognizes). 
 
 === Document Filtering ===
 
@@ -74,7 +74,7 @@ This question was raised in the group discussions. Can you explicitly compare a 
 
 == Programmatic / API-driven Search ==
 
-For users wishing to incorporate document search into programmatic calls, the basic ideas are the same as above, but you have to translate them into API calls instead of command-line calls.
+For users wishing to incorporate document search into programmatic calls, the basic ideas are the same as above, but you have to translate them into API calls instead of command-line calls. To see an example of how to set up such a project, see ExampleClients.
 
 For example, if you want to search for documents related to "my search terms", you might write something like the following:
 
