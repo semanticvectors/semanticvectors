@@ -129,7 +129,7 @@ public class IncrementalDocVectors {
         Terms terms = luceneUtils.getTermVector(dc, fieldName);
 
         if (terms == null) {
-          VerbatimLogger.info(
+          VerbatimLogger.fine(
               String.format("When building document vectors, no term vector for field: '%s' in document %d.", fieldName, dc));
           continue;
         }
@@ -168,7 +168,7 @@ public class IncrementalDocVectors {
       }
 
       if (docVector.isZeroVector()) {
-        logger.warning(String.format(
+        logger.severe(String.format(
             "Document vector is zero for document '%s'. This probably means that none of " +
                 "the -contentsfields were populated. this is a bad sign and should be investigated."));
         continue;
