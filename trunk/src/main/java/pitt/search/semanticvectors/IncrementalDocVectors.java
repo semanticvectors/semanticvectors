@@ -111,13 +111,29 @@ public class IncrementalDocVectors {
         VerbatimLogger.info("Processed " + dc + " documents ... ");
       }
 
-      Vector docVector = null;
+      // Get filename and path to be used as document vector ID, defaulting to doc number only if
+      // docidfield is not pupoulated.
+      String docID = Integer.toString(dc);
+      if (this.luceneUtils.getDoc(dc).getField(flagConfig.docidfield()) != null) {
+        docID = this.luceneUtils.getDoc(dc).getField(flagConfig.docidfield()).stringValue();
+        if (docID.length() == 0) {
+          logger.warning("Empty document name!!! This will cause problems ...");
+          logger.warning("Please set -docidfield to a nonempty field in your Lucene index.");
+          continue;
+        }
+      }
 
-      docVector = VectorFactory.createZeroVector(flagConfig.vectortype(), flagConfig.dimension());
+      Vector docVector = VectorFactory.createZeroVector(flagConfig.vectortype(), flagConfig.dimension());
       
       for (String fieldName: flagConfig.contentsfields()) {
         Terms terms = luceneUtils.getTermVector(dc, fieldName);
-        if (terms == null) {logger.severe("No term vector for document "+dc); continue; }
+
+        if (terms == null) {
+          VerbatimLogger.info(
+              String.format("When building document vectors, no term vector for field: '%s' in document %d.", fieldName, dc));
+          continue;
+        }
+
         TermsEnum tmp = null;
         TermsEnum termsEnum = terms.iterator(tmp);
         BytesRef bytes;
@@ -150,18 +166,17 @@ public class IncrementalDocVectors {
           }
         }
       }
-      
-      // All fields in document have been processed. Write out documentID and normalized vector.
-      // Use filename and path rather than Lucene index number for document vector.
-      if (this.luceneUtils.getDoc(dc).getField(flagConfig.docidfield()) != null) {
-        String docID = this.luceneUtils.getDoc(dc).getField(flagConfig.docidfield()).stringValue();
-        if (docID.length() == 0) {
-          logger.warning("Empty document name!!! This will cause problems ...");
-          logger.warning("Please set -docidfield to a nonempty field in your Lucene index.");
-        }
-        outputStream.writeString(docID);
+
+      if (docVector.isZeroVector()) {
+        logger.warning(String.format(
+            "Document vector is zero for document '%s'. This probably means that none of " +
+                "the -contentsfields were populated. this is a bad sign and should be investigated."));
+        continue;
       }
+
+      // All fields in document have been processed. Write out documentID and normalized vector.
       docVector.normalize();
+      outputStream.writeString(docID);
       docVector.writeToLuceneStream(outputStream);
 
     } // Finish iterating through documents.
