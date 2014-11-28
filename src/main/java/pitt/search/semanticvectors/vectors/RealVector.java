@@ -91,7 +91,7 @@ public class RealVector implements Vector {
   /** 
    * Sparse representation.  Coordinates can only be +/-1.  Array of short signed integers, 
    * indices to the array locations where a +/-1 entry is located.
-   * See also {@link generateRandomVector}.
+   * See also {@link #generateRandomVector}.
    */ 
   private short[] sparseOffsets;
   private boolean isSparse;
