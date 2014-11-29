@@ -45,8 +45,6 @@ import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 
-import org.apache.lucene.util.OpenBitSet;
-
 import pitt.search.semanticvectors.Search.SearchType;
 import pitt.search.semanticvectors.utils.VerbatimLogger;
 import pitt.search.semanticvectors.vectors.BinaryVector;
@@ -78,14 +76,14 @@ public class CompoundVectorBuilder {
   public static final String NEGATION_TOKEN = "~NOT";
   
   private VectorStore vecReader;
-  private LuceneUtils lUtils;
+  private LuceneUtils luceneUtils;
 
   private static final Logger logger =
       Logger.getLogger(CompoundVectorBuilder.class.getCanonicalName());
 
   public CompoundVectorBuilder (VectorStore vecReader, LuceneUtils lUtils) {
     this.vecReader = vecReader;
-    this.lUtils = lUtils;
+    this.luceneUtils = lUtils;
   }
 
   /**
@@ -93,7 +91,7 @@ public class CompoundVectorBuilder {
    */
   public CompoundVectorBuilder (VectorStore vecReader) {
     this.vecReader = vecReader;
-    this.lUtils = null;
+    this.luceneUtils = null;
   }
 
   /**
@@ -102,7 +100,7 @@ public class CompoundVectorBuilder {
    * denotes the query term position. E.g., "martin ? king" might pick out "luther".
    */
   public static Vector getPermutedQueryVector(VectorStore vecReader,
-      LuceneUtils lUtils,
+      LuceneUtils luceneUtils,
       FlagConfig flagConfig,
       String[] queryTerms) throws IllegalArgumentException {
 
@@ -139,8 +137,8 @@ public class CompoundVectorBuilder {
         tmpVec = vecReader.getVector(queryTerms[j]);
         int shift = j - queryTermPosition;
 
-        if (lUtils != null) {
-          weight = lUtils.getGlobalTermWeightFromString(queryTerms[j]);
+        if (luceneUtils != null) {
+          weight = luceneUtils.getGlobalTermWeightFromString(queryTerms[j]);
           logger.log(Level.FINE, "Term {0} weight {1}", new Object[]{queryTerms[j], weight});
         } else {
           weight = 1;
@@ -317,9 +315,7 @@ public class CompoundVectorBuilder {
    * 
    * the resulting vector will be the intersection of the bound product of concept1 and relation 1, and the
    * bound product of concept 2 and relation 2  (binaryvectors only for the moment)
-   * 
-   * @param vecReader
-   * @param queryString
+   *
    * @return the resulting query vector
    */
   
@@ -482,7 +478,7 @@ public class CompoundVectorBuilder {
    * efficient for multiple calls.
    * 
    * @param vecReader The vector store reader to use.
-   * @param lUtils Lucene utilities for getting term weights.
+   * @param luceneUtils Lucene utilities for getting term weights.
    * @param flagConfig FlagConfig containing any other configuration information,
    *    including vectorlookupsyntax and suppressnegatedqueries.
    * @param queryTerms Query expression, e.g., from command line.  If
@@ -491,8 +487,8 @@ public class CompoundVectorBuilder {
    * @return queryVector, a vector representing the user's query.
    */
   public static Vector getQueryVector(
-      VectorStore vecReader, LuceneUtils lUtils, FlagConfig flagConfig, String[] queryTerms) {
-    CompoundVectorBuilder builder = new CompoundVectorBuilder(vecReader, lUtils);
+      VectorStore vecReader, LuceneUtils luceneUtils, FlagConfig flagConfig, String[] queryTerms) {
+    CompoundVectorBuilder builder = new CompoundVectorBuilder(vecReader, luceneUtils);
     Vector returnVector = VectorFactory.createZeroVector(
         flagConfig.vectortype(), flagConfig.dimension());
     // Check through args to see if we need to do negation.
@@ -525,8 +521,8 @@ public class CompoundVectorBuilder {
     for (int j = 0; j < queryTerms.length; ++j) {
       Vector tmpVec = vecReader.getVector(queryTerms[j]);
 
-      if (lUtils != null) {
-        weight = lUtils.getGlobalTermWeightFromString(queryTerms[j]);
+      if (luceneUtils != null) {
+        weight = luceneUtils.getGlobalTermWeightFromString(queryTerms[j]);
       } else {
         weight = 1;
       }
@@ -566,8 +562,8 @@ public class CompoundVectorBuilder {
         if (matcher.find()) {
           Vector tmpVec = testElement.getVector();
 
-          if (lUtils != null) {
-            weight = lUtils.getGlobalTermWeightFromString(testElement.getObject().toString());
+          if (luceneUtils != null) {
+            weight = luceneUtils.getGlobalTermWeightFromString(testElement.getObject().toString());
           }
           else { weight = 1; }
 

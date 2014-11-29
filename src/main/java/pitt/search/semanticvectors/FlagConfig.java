@@ -195,9 +195,9 @@ public class FlagConfig {
   /** Tells {@link pitt.search.lucene.IndexFilePositions} to stem terms using Porter Stemmer, default value false. */
   public boolean porterstemmer() { return porterstemmer; }
 
-  private boolean usetermweightsinsearch = false;
+  private boolean usetermweightsintermsearch = false;
   /** Tells search implementations to scale each comparison score by a term weight during search, default value false. */
-  public boolean usetermweightsinsearch() { return usetermweightsinsearch; }
+  public boolean usetermweightsinsearch() { return usetermweightsintermsearch; }
  
   private boolean stdev = false;
   /** Score search results according to number of SDs above the mean across all search vectors, default false. */
