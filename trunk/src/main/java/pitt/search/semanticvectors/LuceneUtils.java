@@ -111,8 +111,9 @@ public class LuceneUtils {
     this.flagConfig = flagConfig;
     if (!flagConfig.stoplistfile().isEmpty())
       loadStopWords(flagConfig.stoplistfile());
-  }
 
+    VerbatimLogger.info("Initialized LuceneUtils from Lucene index in directory: " + flagConfig.luceneindexpath() + "\n");
+  }
 
   /**
    * Loads the stopword file into the {@link #stopwords} data structure.
@@ -227,8 +228,6 @@ public class LuceneUtils {
     return tf;
   }
 
-  
-  
   /**
    * Gets a term weight for a string, adding frequency over occurrences
    * in all contents fields.
@@ -261,7 +260,7 @@ public class LuceneUtils {
       return getEntropy(term);
     }
     VerbatimLogger.severe("Unrecognized termweight option: " + flagConfig.termweight()
-        + ". Returning 1.");
+        + ". Returning 1.\n");
     return 1;
   }
 

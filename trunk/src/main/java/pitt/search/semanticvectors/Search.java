@@ -225,7 +225,6 @@ public class Search {
     // Stage ii. Open vector stores, and Lucene utils.
     try {
       // Default VectorStore implementation is (Lucene) VectorStoreReader.
-
       if (!flagConfig.elementalvectorfile().equals("elementalvectors") && !flagConfig.semanticvectorfile().equals("semanticvectors") && !flagConfig.predicatevectorfile().equals("predicatevectors")) {
         //for PSI search
 
@@ -244,13 +243,10 @@ public class Search {
 
         semanticVecReader = VectorStoreReader.openVectorStore(flagConfig.semanticvectorfile(), flagConfig);
         predicateVecReader = VectorStoreReader.openVectorStore(flagConfig.predicatevectorfile(), flagConfig);
-
       }
-      else
-      {
+      else {
         VerbatimLogger.info("Opening query vector store from file: " + flagConfig.queryvectorfile() + "\n");
-        if (flagConfig.queryvectorfile().equals("deterministic"))
-        {
+        if (flagConfig.queryvectorfile().equals("deterministic")) {
           if (flagConfig.elementalmethod().equals(ElementalGenerationMethod.ORTHOGRAPHIC)) queryVecReader = new VectorStoreOrthographical(flagConfig);
           else if (flagConfig.elementalmethod().equals(ElementalGenerationMethod.CONTENTHASH)) queryVecReader = new VectorStoreDeterministic(flagConfig);
           else VerbatimLogger.info("Please select either -elementalmethod orthographic OR -elementalmethod contenthash depending upon the deterministic approach you would like used.");
@@ -262,9 +258,6 @@ public class Search {
         VerbatimLogger.info("Opening second query vector store from file: " + flagConfig.boundvectorfile() + "\n");
         boundVecReader = VectorStoreReader.openVectorStore(flagConfig.boundvectorfile(), flagConfig);
       }
-
-
-
 
       // Open second vector store if search vectors are different from query vectors.
       if (flagConfig.queryvectorfile().equals(flagConfig.searchvectorfile())
