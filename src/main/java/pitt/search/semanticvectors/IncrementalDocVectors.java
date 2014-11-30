@@ -117,8 +117,8 @@ public class IncrementalDocVectors {
       if (this.luceneUtils.getDoc(dc).getField(flagConfig.docidfield()) != null) {
         docID = this.luceneUtils.getDoc(dc).getField(flagConfig.docidfield()).stringValue();
         if (docID.length() == 0) {
-          logger.warning("Empty document name!!! This will cause problems ...");
-          logger.warning("Please set -docidfield to a nonempty field in your Lucene index.");
+          logger.severe("Empty document name!!! This will cause problems ...");
+          logger.severe("Please set -docidfield to a nonempty field in your Lucene index.");
           continue;
         }
       }
@@ -130,7 +130,9 @@ public class IncrementalDocVectors {
 
         if (terms == null) {
           VerbatimLogger.fine(
-              String.format("When building document vectors, no term vector for field: '%s' in document %d.", fieldName, dc));
+              String.format(
+                  "When building document vectors, no term vector for field: '%s' in document %d.",
+                  fieldName, dc));
           continue;
         }
 
@@ -170,7 +172,8 @@ public class IncrementalDocVectors {
       if (docVector.isZeroVector()) {
         logger.severe(String.format(
             "Document vector is zero for document '%s'. This probably means that none of " +
-                "the -contentsfields were populated. this is a bad sign and should be investigated."));
+                "the -contentsfields were populated. this is a bad sign and should be investigated.",
+            docID));
         continue;
       }
 
