@@ -520,14 +520,23 @@ public class CompoundVectorBuilder {
 
     for (int j = 0; j < queryTerms.length; ++j) {
       Vector tmpVec = vecReader.getVector(queryTerms[j]);
-
+      if (tmpVec != null) {
+      
       if (luceneUtils != null) {
+    	try {
         weight = luceneUtils.getGlobalTermWeightFromString(queryTerms[j]);
-      } else {
+    		}
+    	catch (Exception e)
+    	{
+    		VerbatimLogger.warning("No global weight could be evaluated for '" + queryTerms[j] + "'\n");
+    		weight = 1;
+    	}
+    	
+    	} else {
         weight = 1;
       }
 
-      if (tmpVec != null) {
+     
         queryVec.superpose(tmpVec, weight, null);
       } else {
         VerbatimLogger.warning("No vector for '" + queryTerms[j] + "'\n");
