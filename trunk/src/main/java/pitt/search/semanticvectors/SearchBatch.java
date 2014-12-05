@@ -40,9 +40,18 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.StringReader;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Logger;
+
+import org.apache.lucene.analysis.TokenStream;
+import org.apache.lucene.analysis.standard.StandardAnalyzer;
+import org.apache.lucene.analysis.standard.StandardTokenizer;
+import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
+import org.apache.lucene.analysis.tokenattributes.TermAttribute;
+import org.apache.lucene.util.Version;
 
 import pitt.search.semanticvectors.ElementalVectorStore.ElementalGenerationMethod;
 import pitt.search.semanticvectors.utils.VerbatimLogger;
@@ -297,16 +306,34 @@ public class SearchBatch {
 		
 	while (queryString != null)
 	{
+		ArrayList<String> queryTerms = new ArrayList<String>();
 		qcnt++;
-		queryArgs=queryString.split(" ");
-	
-		 // This takes the slice of args from argc to end.
-    if (!flagConfig.matchcase()) {
-      for (int i = 0; i < queryArgs.length; ++i) {
-        queryArgs[i] = queryArgs[i].toLowerCase();
-      }
-    }
-
+		
+		//have Lucene parse the query string, for consistency
+		StandardAnalyzer  analyzer = new StandardAnalyzer(Version.LUCENE_46);
+		TokenStream stream = analyzer.tokenStream(null, new StringReader(queryString));
+		CharTermAttribute cattr = stream.addAttribute(CharTermAttribute.class);
+		stream.reset();
+		
+		//for each token in the query string
+		while (stream.incrementToken()) 
+		{
+		
+			String term = cattr.toString();
+			
+			if (!luceneUtils.stoplistContains(term)) 
+			{
+				if (! flagConfig.matchcase()) term = term.toLowerCase();
+				queryTerms.add(term);
+			}
+		}
+		stream.end();
+		stream.close();
+		analyzer.close();
+	 
+		//transform to String[] array
+		queryArgs = queryTerms.toArray(new String[0]);
+		
     // Stage iii. Perform search according to which searchType was selected.
     // Most options have corresponding dedicated VectorSearcher subclasses.
     VectorSearcher vecSearcher = null;
