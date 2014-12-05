@@ -48,6 +48,7 @@ import java.util.logging.Logger;
 import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
+import org.apache.lucene.analysis.util.CharArraySet;
 import org.apache.lucene.util.Version;
 
 import pitt.search.semanticvectors.ElementalVectorStore.ElementalGenerationMethod;
@@ -305,7 +306,7 @@ public class SearchBatch {
 		qcnt++;
 		
 		//have Lucene parse the query string, for consistency
-		StandardAnalyzer  analyzer = new StandardAnalyzer(Version.LUCENE_46);
+		StandardAnalyzer  analyzer = new StandardAnalyzer(new CharArraySet(new ArrayList<String>(), true));
 		TokenStream stream = analyzer.tokenStream(null, new StringReader(queryString));
 		CharTermAttribute cattr = stream.addAttribute(CharTermAttribute.class);
 		stream.reset();
