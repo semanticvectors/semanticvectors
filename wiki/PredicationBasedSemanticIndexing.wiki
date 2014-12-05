@@ -2,8 +2,7 @@
 
 == Introduction ==
 
-For those seeking an in-depth discussion of PSI, see [http://jigpal.oxfordjournals.org/content/early/2014/12/03/jigpal.jzu028.short
-Reasoning with vectors: a continuous model for fast robust inference].
+For those seeking an in-depth discussion of PSI, see [http://jigpal.oxfordjournals.org/content/early/2014/12/03/jigpal.jzu028.short Reasoning with vectors: a continuous model for fast robust inference].
 
 Predication-based Semantic Indexing, or PSI, is an application of distributional semantic techniques to reasoning and inference. This is exciting because traditionally the areas of empirical learning and deductive inference have been treated quite separately in linguistics and artificial intelligence, but in the last few years we have seen techniques from both areas working together. PSI is one such technique.
 
@@ -116,5 +115,4 @@ PSI is also fast. Every query expression gets resolved to a vector (so far usual
 
 [http://www.puttypeg.net/papers/schizophrenias-prozac.pdf Finding Schizophrenia's Prozac: Emergent Relational Similarity in Predication Space.] Cohen, T. Widdows, D. Schvaneveldt, RW. Rindflesch, T. Proceedings of the Fifth International Symposium on Quantum Interaction, Aberdeen, UK, 2011.
 
-[http://jigpal.oxfordjournals.org/content/early/2014/12/03/jigpal.jzu028.short
-Reasoning with vectors: a continuous model for fast robust inference]. Widdows D, Cohen T, Logic Jnl IGPL, 2014.
+[http://jigpal.oxfordjournals.org/content/early/2014/12/03/jigpal.jzu028.short Reasoning with vectors: a continuous model for fast robust inference]. Widdows D, Cohen T, Logic Jnl IGPL, 2014.
