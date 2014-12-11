@@ -53,6 +53,13 @@ public class LSA {
   private LSA(String luceneIndexDir, FlagConfig flagConfig) throws IOException {
     this.flagConfig = flagConfig;    
     this.luceneUtils = new LuceneUtils(flagConfig);
+
+    if (flagConfig.contentsfields().length > 1) {
+      logger.warning(
+          "LSA implementation only supports a single -contentsfield. Only '"
+          + flagConfig.contentsfields()[0] + "' will be indexed.");
+    }
+
     this.contentsField = flagConfig.contentsfields()[0];
     
     // Find the number of docs, and if greater than dimension, set the dimension
@@ -83,15 +90,24 @@ public class LSA {
    * @returns sparse term-document matrix in the format expected by SVD library
    */
   private SMat smatFromIndex() throws IOException {
+    TermsEnum termsEnumDummy = null; // Empty terms enum, encouraged for reuse in Lucene documentation.
     SMat S;
     Terms terms = this.luceneUtils.getTermsForField(contentsField);
+    TermsEnum termsEnumForCount = terms.iterator(termsEnumDummy);
+    int numTerms = 0;
+    while (termsEnumForCount.next() != null) {
+      numTerms++;
+    }
+
     VerbatimLogger.info(String.format(
-        "There are %d terms (and %d docs).\n", terms.size(), this.luceneUtils.getNumDocs()));
-    termList = new String[(int) terms.size()];
-    int[][] baseIndex = new int[(int) terms.size()][];
+        "There are %d terms (and %d docs).\n", numTerms, this.luceneUtils.getNumDocs()));
+
+    termList = new String[numTerms];
+    int[][] baseIndex = new int[numTerms][];
     int nonZeroVals = 0, termCounter = 0;
 
-    TermsEnum termsEnum = terms.iterator(null);
+    terms = this.luceneUtils.getTermsForField(contentsField);
+    TermsEnum termsEnum = terms.iterator(termsEnumDummy);
     BytesRef bytes;
     
     // This first loop is all setup and preparing counters.
@@ -166,7 +182,7 @@ public class LSA {
     // Write out term vectors
     for (cnt = 0; cnt < vT.cols; cnt++) {
       outputStream.writeString(this.termList[cnt]);
-      Vector termVector = VectorFactory.createZeroVector(flagConfig.vectortype(), flagConfig.dimension());
+      Vector termVector;
   
       float[] tmp = new float[flagConfig.dimension()];
       for (int i = 0; i < flagConfig.dimension(); i++)
