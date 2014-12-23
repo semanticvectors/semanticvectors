@@ -145,15 +145,11 @@ public class IncrementalTermVectors implements VectorStore {
       }
 
       Vector docVector;
-
-      if (docVectorsInputStream != null) {
+      if (docVectorsInputStream.getFilePointer() < docVectorsInputStream.length() - 1) {
         docVector = VectorFactory.createZeroVector(flagConfig.vectortype(), flagConfig.dimension());
         docVectorsInputStream.readString(); // ignore document name
         docVector.readFromLuceneStream(docVectorsInputStream);
-      } else {
-        docVector = VectorFactory.generateRandomVector(
-            flagConfig.vectortype(), flagConfig.dimension(), flagConfig.seedlength(), random);
-      }
+       
 
       for (String fieldName : this.flagConfig.contentsfields()) {
         Terms docTerms = this.luceneUtils.getTermVector(dc, fieldName);
@@ -180,7 +176,7 @@ public class IncrementalTermVectors implements VectorStore {
             termVector.superpose(docVector, freq, null);
           }
         }
-
+      }
       }
     } // Finish iterating through documents.
 

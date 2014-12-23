@@ -174,7 +174,8 @@ public class IncrementalDocVectors {
             "Document vector is zero for document '%s'. This probably means that none of " +
                 "the -contentsfields were populated. this is a bad sign and should be investigated.",
             docID));
-        continue;
+        //nonetheless, write out a zero document vector so the document order in the document store
+        //remains consistent with the Lucene index
       }
 
       // All fields in document have been processed. Write out documentID and normalized vector.
