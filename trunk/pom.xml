@@ -3,7 +3,8 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>pitt.search</groupId>
     <artifactId>semanticvectors</artifactId>
-    <version>5.5</version>
+    <!-- Change this is x.y-SNAPSHOT to run mvn release:prepare -->
+    <version>5.6-SNAPSHOT</version>
     <url>http://semanticvectors.googlecode.com/</url>
 
     <licenses>
