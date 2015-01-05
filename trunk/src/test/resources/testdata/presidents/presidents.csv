@@ -1,0 +1,45 @@
+Number,Name,Party,Took office,Left office,State of birth,Born,Died,Religion,Age at inauguration,Age at death
+1,Washington,Federalist,1789,1797  ,Va.,2/22/1732,12/14/1799,Episcopalian,57,67
+2,J. Adams,Federalist,1797,1801,Mass.,10/30/1735,7/4/1826,Unitarian,61,90
+3,Jefferson,Democratic-Republican,1801,1809,Va.,4/13/1743,7/4/1826,Deist,57,83
+4,Madison,Democratic-Republican,1809,1817,Va.,3/16/1751,6/28/1836,Episcopalian,57,85
+5,Monroe,Democratic-Republican,1817,1825,Va.,4/28/1758,7/4/1831,Episcopalian,58,73
+6,J. Q. Adams,Democratic-Republican,1825,1829,Mass.,7/11/1767,2/23/1848,Unitarian,57,80
+7,Jackson,Democrat,1829,1837,S.C.,3/15/1767,6/8/1845,Presbyterian,61,78
+8,Van Buren,Democrat,1837,1841,N.Y.,12/5/1782,7/24/1862,Reformed Dutch,54,79
+9,W. H. Harrison,Whig,1841,1841,Va.,2/9/1773,4/4/1841,Episcopalian,68,68
+10,Tyler,Whig,1841,1845,Va.,3/29/1790,1/18/1862,Episcopalian,51,71
+11,Polk,Democrat,1845,1849,N.C.,11/2/1795,6/15/1849,Methodist,49,53
+12,Taylor,Whig4,1849,1850,Va.,11/24/1784,7/9/1850,Episcopalian,64,65
+13,Fillmore,Whig,1850,1853,N.Y.,1/7/1800,3/8/1874,Unitarian,50,74
+14,Pierce,Democrat,1853,1857,N.H.,11/23/1804,10/8/1869,Episcopalian,48,64
+15,Buchanan,Democrat,1857,1861,Pa.,4/23/1791,6/1/1868,Presbyterian,65,77
+16,Lincoln,Republican,1861,1865,Ky.,2/12/1809,4/15/1865,Liberal,52,56
+17,A. Johnson,Union,1865,1869,N.C.,12/29/1808,7/31/1875,,56,66
+18,Grant,Republican,1869,1877,Ohio,4/27/1822,7/23/1885,Methodist,46,63
+19,Hayes,Republican,1877,1881,Ohio,10/4/1822,1/17/1893,Methodist,54,70
+20,Garfield,Republican,1881,1881,Ohio,11/19/1831,9/19/1881,Disciples of Christ,49,49
+21,Arthur,Republican,1881,1885,Vt.,10/5/1829,11/18/1886,Episcopalian,50,56
+22,Cleveland,Democrat,1885,1889,N.J.,3/18/1837,6/24/1908,Presbyterian,47,71
+23,B. Harrison,Republican,1889,1893,Ohio,8/20/1833,3/13/1901,Presbyterian,55,67
+24,Cleveland,Democrat8,1893,1897,N.J.,3/18/1837,6/24/1908,Presbyterian,55,71
+25,McKinley,Republican5,1897,1901,Ohio,1/29/1843,9/14/1901,Methodist,54,58
+26,T. Roosevelt,Republican,1901,1909,N.Y.,10/27/1858,1/6/1919,Reformed Dutch,42,60
+27,Taft,Republican,1909,1913,Ohio,9/15/1857,3/8/1930,Unitarian,51,72
+28,Wilson,Democrat,1913,1921,Va.,12/28/1856,2/3/1924,Presbyterian,56,67
+29,Harding,Republican4,1921,1923,Ohio,11/2/1865,8/2/1923,Baptist,55,57
+30,Coolidge,Republican,1923,1929,Vt.,7/4/1872,1/5/1933,Congregationalist,51,60
+31,Hoover,Republican,1929,1933,Iowa,8/10/1874,10/20/1964,Quaker,54,90
+32,F. D. Roosevelt,Democrat4,1933,1945,N.Y.,1/30/1882,4/12/1945,Episcopalian,51,63
+33,Truman,Democrat,1945,1953,Mo.,5/8/1884,12/26/1972,Baptist,60,88
+34,Eisenhower,Republican,1953,1961,Tex.,10/14/1890,3/28/1969,Presbyterian,62,78
+35,Kennedy,Democrat5,1961,1963,Mass.,5/29/1917,11/22/1963,Roman Catholic,43,46
+36,L. B. Johnson,Democrat,1963,1969,Tex.,8/27/1908,1/22/1973,Disciples of Christ,55,64
+37,Nixon,Republican9,1969,1974,Calif.,1/9/1913,4/22/1994,Quaker,56,81
+38,Ford,Republican,1974,1977,Neb.,7/14/1913,12/26/2006,Episcopalian,61,93
+39,Carter,Democrat,1977,1981,Ga.,10/1/1924,,Southern Baptist,52,
+40,Reagan,Republican,1981,1989,Ill.,2/6/1911,6/5/2004,Disciples of Christ,69,93
+41,G.H.W. Bush,Republican,1989,1993,Mass.,6/12/1924,,Episcopalian,64,
+42,Clinton,Democrat,1993,2001,Ark.,8/19/1946,,Baptist,46,
+43,G. W. Bush,Republican,2001,2009,Conn.,7/6/1946,,Methodist,54,
+44,Obama,Democrat,2009,,Hawaii,8/4/1961,,United Church of Christ,47,

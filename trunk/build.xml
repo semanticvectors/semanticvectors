@@ -1,0 +1,189 @@
+<?xml version="1.0"?>
+<!DOCTYPE project>
+
+<!-- DEPRECATION WARNING. THIS ANT BUILD IS LIVING ALONGSIDE THE MAVEN BUILD AT THE MOMENT.
+THE MAVEN BUILD IS THE CANONICAL ONE AND THE ANT BUILD WILL BE PHASED OUT. -->
+
+<!-- 
+  To make external JARs (e.g. Lucene, junit) available to this build, 
+  you can do any of the following:
+  * add them to the CLASSPATH environment variable
+  * set the environment variable SEMVEC_LIBDIR to the directory that
+    contains them
+  * create a file build.properties and specify the directory that
+    contains the JARs with a line "libdir=directorypath"
+  * create a directory with the name "lib" in the current directory
+    and copy or link the JAR files into that directory
+-->
+  
+<project name="pitt semantic vectors" default="build-all" basedir=".">
+
+	<!-- Version number convention is that release versions are X.even_number,
+			 development versions are X.next_odd_number. When you make a release,
+			 you should increment the next_odd_number to the next even number,
+			 make the release, and then increment again to next_odd_number and check
+			 in. This way when people check out from svn, they always get the
+			 most recent development version. -->
+  <property name="version" value="5.5"/>
+  <property file="build.properties" />
+
+  <property environment="env"/>
+  <condition property="envclasspath" value="${env.CLASSPATH}" else=".">
+    <isset property="env.CLASSPATH"/>
+  </condition>
+  <condition property="libdir" value="${env.SEMVEC_LIBDIR}">
+    <isset property="env.SEMVEC_LIBDIR"/>
+  </condition>
+  <condition property="libdir" value="./lib" else=".">
+    <available file="./lib"/>
+  </condition>
+
+  <property name="basedir" value="."/>
+  <property name="builddir" value="${basedir}/target"/>
+  <property name="buildclassesdir" value="${builddir}/classes"/>
+  <property name="distdir" value="${basedir}/dist"/>
+  <property name="distname" value="semanticvectors-${version}"/>
+  <property name="docdir" value="${basedir}/target/site/apidocs/"/>  
+  <property name="srcdir" value="${basedir}/src/main/java"/>
+  <property name="testdir" value="${basedir}/src/test/java"/>
+  <property name="testtmpdir" value="${basedir}/tmp"/>
+  <property name="extdir" value="${basedir}/src-ext"/>
+  <property name="dist-doc.dir" value="./../javadoc/latest-stable-test"/>
+
+  <path id="compile.classpath">
+    <fileset dir="${libdir}">
+      <include name="*.jar" />
+    </fileset>
+    <pathelement location="${buildclassesdir}"/>
+    <pathelement path="${envclasspath}"/>
+  </path>
+  <path id="run.classpath">
+    <path refid="compile.classpath"/>
+    <pathelement location="${builddir}/${distname}.jar"/>
+  </path>
+  
+  <target name="init">
+    <mkdir dir="${docdir}"/>
+    <mkdir dir="${builddir}"/>
+    <mkdir dir="${buildclassesdir}"/>
+    <mkdir dir="${distdir}"/>
+  </target>
+
+  <target name="compile" depends="init">
+    <javac srcdir="${srcdir}"
+           classpathref="compile.classpath"
+           destdir="${buildclassesdir}"
+           debug="on"
+           includeantruntime="false"
+           />
+  </target>
+
+  <target name="doc" depends="init,compile">
+    <javadoc sourcepath="${srcdir}"
+             packagenames="pitt.search.semanticvectors,pitt.search.semanticvectors.vectors,pitt.search.lucene"
+             destdir="${docdir}"
+             classpathref="compile.classpath"
+             author="true"
+             use="true"
+             />
+  </target>
+
+  <target name="jardist" depends="compile,init">
+    <jar destfile="${builddir}/${distname}.jar" 
+         basedir="${buildclassesdir}"/>
+  </target>
+
+  <target name="tardist" depends="init">
+    <tar destfile="${distdir}/${distname}-src.tar">
+      <tarfileset dir="${basedir}"
+                  prefix="${distname}"
+                  preserveLeadingSlashes="true"
+                  includes="src/pitt/,thirdparty/">
+        <include name="build.xml"/>
+        <include name="AUTHORS"/>
+        <include name="LICENSE"/>
+      </tarfileset>
+    </tar>
+    <gzip zipfile="${distdir}/${distname}-src.tar.gz" 
+          src="${distdir}/${distname}-src.tar"/>
+  </target>
+
+  <target name="zipdist" depends="init">
+    <zip destfile="${distdir}/${distname}-src.zip">
+      <zipfileset dir="${basedir}"
+                  prefix="${distname}"
+                  includes="src/pitt/,thirdparty/">
+        <include name="build.xml"/>
+        <include name="AUTHORS"/>
+        <include name="LICENSE"/>
+      </zipfileset>
+    </zip>
+  </target>
+
+  <target name="clean" depends="init">
+    <delete dir="${builddir}"/>
+    <delete dir="${distdir}"/>
+    <delete dir="${testtmpdir}"/>
+    <delete dir="positional_index"/>
+    <delete dir="predication_index"/>
+  </target>
+
+  <!-- Compile and run tests. -->
+  <!-- Tests do not currently ship with standard distributions; to
+       compile and run tests, check out test dir from the svn repository.
+       You will also need to install junit (www.junit.org) -->
+  <target name="compile-tests" depends="compile">
+    <javac srcdir="${testdir}"
+           classpathref="compile.classpath"
+           destdir="${buildclassesdir}"
+           debug="on"
+           includeantruntime="false"
+           />
+  </target>
+	
+	<target name="run-unit-tests" depends="compile-tests,jardist">
+	  <junit fork="yes" haltonfailure="yes">
+	    <test name="pitt.search.semanticvectors.AllTests" />
+	    <formatter type="plain" usefile="false" />
+	    <classpath>
+	      <path refid="run.classpath"/>
+	    </classpath>
+	  </junit>
+	</target>
+	
+  <target name="run-integration-tests" depends="compile-tests,jardist">
+  	<!-- This test configuration includes some quick and dirty filesystem
+      	 operations to make sure that the working dir starts and finishes empty. -->
+    <delete dir="positional_index"/>
+    <delete dir="predication_index"/>
+    <java fork="true"
+          classpathref="run.classpath"
+          classname="pitt.search.semanticvectors.integrationtests.RunTests"/>
+    <!--
+    <delete dir="${testworkingdir}"/>
+    <mkdir dir="${testworkingdir}"/>
+    -->
+  </target>
+
+  <!-- Just compile and run all the tests! -->
+  <target name="testall" depends="run-unit-tests,run-integration-tests"/>
+
+
+<!-- Compile development extensions ... this is a temporary solution until
+     we have a good way of shipping development extensions without
+     introducing dependencies on any more libraries to install. -->
+  <target name="compile-ext" depends="compile">
+    <javac srcdir="${extdir}/pitt"
+           destdir="${buildclassesdir}"
+           debug="on"
+           classpathref="compile.classpath"
+           includeantruntime="false"
+           />
+  </target>
+
+<!-- Build all -->
+<!-- Does not compile and run tests (see compile-tests target above). -->
+   <target name="build-all" 
+           depends="compile, doc, jardist, tardist, zipdist"/>
+
+</project>
