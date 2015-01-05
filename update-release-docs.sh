@@ -11,7 +11,7 @@
 # ./update-release-docs.sh.
 
 
-VERSION=5.3  # Should be kept in sync with pom.xml
+VERSION=5.6  # Should be kept in sync with pom.xml
 DEST=../javadoc/latest-stable
 mvn javadoc:jar
 #svn rm --force "$DEST"
