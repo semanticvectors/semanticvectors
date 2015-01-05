@@ -3,6 +3,14 @@
 
 Even-numbered (after the decimal point) versions are releases. Odd-numbered versions are in development. It follows that the most recent code and the `build.xml` file in the SVN repository is always odd-numbered.
 
+=== Version 5.5 (release candidate) ===
+
+* Addition of Tabular datasets indexing (prototype).
+* Updated to Lucene 4.10.1 dependency.
+* Various term-weighting improvements for PSI.
+* Specific updates to LSA to remove Lucene-compatibility problems.
+* Enhancements to S(X), E(X) usage in PSI-searching interface.
+
 === Version 5.4 ===
 
 Small incremental release to include IncrementalTermVectors training without precomputed document vectors.
