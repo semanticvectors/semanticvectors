@@ -4,7 +4,7 @@
     <groupId>pitt.search</groupId>
     <artifactId>semanticvectors</artifactId>
     <!-- Change this is x.y-SNAPSHOT to run mvn release:prepare -->
-    <version>5.6</version>
+    <version>5.7</version>
     <url>http://semanticvectors.googlecode.com/</url>
 
     <licenses>
@@ -24,9 +24,9 @@
     </parent>
 
     <scm>
-        <url>https://semanticvectors.googlecode.com/svn/tags/semanticvectors-5.6</url>
-        <connection>scm:svn:https://semanticvectors.googlecode.com/svn/tags/semanticvectors-5.6</connection>
-        <developerConnection>scm:svn:https://semanticvectors.googlecode.com/svn/tags/semanticvectors-5.6</developerConnection>
+        <url>https://semanticvectors.googlecode.com/svn/trunk</url>
+        <connection>scm:svn:https://semanticvectors.googlecode.com/svn/trunk</connection>
+        <developerConnection>scm:svn:https://semanticvectors.googlecode.com/svn/trunk</developerConnection>
     </scm>
 
     <properties>
