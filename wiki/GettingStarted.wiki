@@ -2,7 +2,7 @@
 
 This page is intended as just the barebones, and assumes that you are already somewhat familiar with using java at a command prompt. More help can be found at the InstallationInstructions page. 
 
-Please note that our deployment strategy changed in December 2014, to use the semanticvectors artifact in the [http://search.maven.org/#search%7Cga%7C1%7Ca%3A%22semanticvectors%22 Maven Central Repository].
+Please note that our deployment strategy changed in December 2014, to use the semanticvectors artifact in the [https://oss.sonatype.org/#nexus-search;quick~semanticvectors Maven Central Repository].
 
 = Installation =
 
@@ -10,7 +10,7 @@ All users should begin by installing java and checking that you can run java at 
 
 == For End-Users ==
 
- * Download the latest Semantic Vectors jar file from the [http://search.maven.org/ Maven Central Repository]. This is currently [https://oss.sonatype.org/content/repositories/releases/pitt/search/semanticvectors/5.4/semanticvectors-5.4.jar semanticvectors-5.4.jar].
+ * Download the latest Semantic Vectors jar file from the [https://oss.sonatype.org/#nexus-search;quick~semanticvectors Maven Central Repository]. This is currently [https://oss.sonatype.org/content/repositories/releases/pitt/search/semanticvectors/5.6/semanticvectors-5.6.jar semanticvectors-5.6.jar].
  * This jar file contains the Semantic Vectors binaries and dependencies. Make sure you run java with this file in your classpath, e.g., using `java -cp $PATH/TO/semanticvectors-$VERSION.jar`.
 
 == For Developers ==
