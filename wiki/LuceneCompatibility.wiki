@@ -4,6 +4,8 @@ _As of version 5.x, the main SemanticVectors jar distribution is built using Mav
 
 SemanticVectors depends on Apache Lucene, but not all versions of SemanticVectors work with all versions of Apache Lucene. To find the latest (and some older) versions of Apache Lucene click [http://lucene.apache.org/java/docs/index.html here].
 
+SV 5.6 works with (at least) Lucene 4.10.0. 
+
 SV 5.4 works with (at least) Lucene 4.6.0. 
 
 SV 4.0 works with (at least) Lucene 4.5.0 and 4.3.1. (Versions in between these have not been checked explicitly.)
