@@ -37,7 +37,7 @@ public class BinaryVector implements Vector {
   public static final boolean BINARY_BINDING_WITH_PERMUTE = false;
 
 
-  private static final int DEBUG_PRINT_LENGTH = 64;
+  private static int DEBUG_PRINT_LENGTH = 64;
   private Random random;
   private final int dimension;
 
@@ -853,6 +853,11 @@ public class BinaryVector implements Vector {
 	// TODO Auto-generated method stub
 	this.bitSet = incomingBitSet;
 }
+	
+	//set DEBUG_PRINT_LENGTTH
+	public static void setDebugPrintLength(int length){
+	DEBUG_PRINT_LENGTH = length;	
+	}
 
 }
 
