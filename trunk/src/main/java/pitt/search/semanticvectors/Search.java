@@ -45,8 +45,10 @@ import java.util.logging.Logger;
 import pitt.search.semanticvectors.ElementalVectorStore.ElementalGenerationMethod;
 import pitt.search.semanticvectors.utils.PsiUtils;
 import pitt.search.semanticvectors.utils.VerbatimLogger;
+import pitt.search.semanticvectors.vectors.BinaryVector;
 import pitt.search.semanticvectors.vectors.Vector;
 import pitt.search.semanticvectors.vectors.VectorFactory;
+import pitt.search.semanticvectors.vectors.VectorType;
 import pitt.search.semanticvectors.vectors.ZeroVectorException;
 import pitt.search.semanticvectors.viz.PathFinder;
 
@@ -164,7 +166,14 @@ public class Search {
      * Builds an additive query vector (as with {@link SearchType#SUM} and prints out the query
      * vector for debugging).
      */
-    PRINTQUERY
+    PRINTQUERY,
+    
+
+    /**
+     * Builds an additive query vector (as with {@link SearchType#SUM} and prints out the query
+     * vector for debugging).
+     */
+    PRINTPSIQUERY
   }
 
   private static LuceneUtils luceneUtils;
@@ -366,6 +375,12 @@ public class Search {
               queryVecReader, luceneUtils, flagConfig, queryArgs);
           System.out.println(queryVector.toString());
           return new LinkedList<>();
+        case PRINTPSIQUERY:
+          Vector psiQueryVector = CompoundVectorBuilder.getBoundProductQueryVectorFromString(flagConfig, elementalVecReader, semanticVecReader, predicateVecReader, luceneUtils, queryArgs[0]);
+          	if (flagConfig.vectortype().equals(VectorType.BINARY))
+          		BinaryVector.setDebugPrintLength(flagConfig.dimension());
+          System.out.println(psiQueryVector.toString());
+            return new LinkedList<>();
         default:
           throw new IllegalArgumentException("Unknown search type: " + flagConfig.searchtype());
       }
