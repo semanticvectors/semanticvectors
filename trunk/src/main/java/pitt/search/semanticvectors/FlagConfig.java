@@ -275,7 +275,7 @@ public class FlagConfig {
 
   private String startlistfile = "";
   /** Path to file containing startwords, to be indexed always, no default value. */
-  public String getStartlistfile() { return startlistfile; }
+  public String startlistfile() { return startlistfile; }
   
   private String luceneindexpath = "";
   /** Path to a Lucene index. Must contain term position information for positional applications,
