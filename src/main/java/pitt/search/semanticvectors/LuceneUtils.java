@@ -112,6 +112,9 @@ public class LuceneUtils {
     if (!flagConfig.stoplistfile().isEmpty())
       loadStopWords(flagConfig.stoplistfile());
 
+    if (!flagConfig.startlistfile().isEmpty())
+        loadStartWords(flagConfig.startlistfile());
+
     VerbatimLogger.info("Initialized LuceneUtils from Lucene index in directory: " + flagConfig.luceneindexpath() + "\n");
   }
 
@@ -165,6 +168,14 @@ public class LuceneUtils {
   public boolean stoplistContains(String x) {
     if (stopwords == null) return false;
     return stopwords.contains(x);
+  }
+  
+  /**
+   * Returns false if term is not in startlist, true otherwise (including if no startlist exists).
+   */
+  public boolean startlistContains(String x) {
+    if (startwords == null) return true;
+    return startwords.contains(x);
   }
   
   public Document getDoc(int docID) throws IOException {
@@ -393,6 +404,10 @@ public class LuceneUtils {
     if (stoplistContains(term.text()))
       return false;
 
+    // Startlist (if active)
+    if (!startlistContains(term.text()))
+      return false;
+    
     if (!isDesiredField) {
       return false;
     }
