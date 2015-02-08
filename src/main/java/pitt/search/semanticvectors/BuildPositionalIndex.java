@@ -151,12 +151,6 @@ public class BuildPositionalIndex {
             newElementalTermVectors);
       }
 
-      if (flagConfig.trainingcycles() > 1) {
-        termFile = termFile.replaceAll("\\..*", "") + flagConfig.trainingcycles() + ".bin";
-        VectorStoreWriter.writeVectors(
-            termFile, flagConfig, termTermIndexer.getSemanticTermVectors());
-      }
-
       // Incremental indexing is hardcoded into BuildPositionalIndex.
       // TODO: Understand if this is an appropriate requirement, and whether
       //       the user should be alerted of any potential consequences.

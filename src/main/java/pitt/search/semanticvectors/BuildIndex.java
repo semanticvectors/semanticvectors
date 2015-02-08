@@ -146,10 +146,6 @@ public class BuildIndex {
         // At end of training, convert document vectors from ID keys to pathname keys.
         VectorStore writeableDocVectors = docVectors.makeWriteableVectorStore();
 
-        if (flagConfig.trainingcycles() > 1) {
-          termFile = "termvectors" + flagConfig.trainingcycles() + ".bin";
-          docFile = "docvectors" + flagConfig.trainingcycles() + ".bin";
-        }
         VerbatimLogger.info("Writing term vectors to " + termFile + "\n");
         VectorStoreWriter.writeVectors(termFile, flagConfig, termVectorIndexer.getSemanticTermVectors());
         VerbatimLogger.info("Writing doc vectors to " + docFile + "\n");
