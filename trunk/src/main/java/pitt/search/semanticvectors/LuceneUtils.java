@@ -174,7 +174,7 @@ public class LuceneUtils {
    * Returns false if term is not in startlist, true otherwise (including if no startlist exists).
    */
   public boolean startlistContains(String x) {
-    if (startwords == null) return true;
+    if (startwords == null) return false;
     return startwords.contains(x);
   }
   
@@ -392,7 +392,8 @@ public class LuceneUtils {
   public boolean termFilter(Term term) {
     return termFilter(term, flagConfig.contentsfields(),
         flagConfig.minfrequency(), flagConfig.maxfrequency(),
-        flagConfig.maxnonalphabetchars(), flagConfig.filteroutnumbers(), flagConfig.mintermlength());
+        flagConfig.maxnonalphabetchars(), flagConfig.filteroutnumbers(),
+        flagConfig.mintermlength());
   }  
 
   /**
@@ -421,8 +422,8 @@ public class LuceneUtils {
       return false;
 
     // Startlist (if active)
-    if (!startlistContains(term.text()))
-      return false;
+    if (startlistContains(term.text()))
+      return true;
     
     if (!isDesiredField) {
       return false;
@@ -465,7 +466,8 @@ public class LuceneUtils {
    * @param filterNumbers if true, filters out tokens that represent a number
    */
   private boolean termFilter(
-      Term term, String[] desiredFields, int minFreq, int maxFreq, int maxNonAlphabet, boolean filterNumbers, int minTermLength) {
+      Term term, String[] desiredFields, int minFreq, int maxFreq,
+      int maxNonAlphabet, boolean filterNumbers, int minTermLength) {
     // number filter
     if (filterNumbers) {
       try {
