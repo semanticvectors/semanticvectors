@@ -110,15 +110,6 @@ public class TermVectorsFromLucene {
       }
     } else {
       this.elementalDocVectors = new ElementalVectorStore(flagConfig);
-      /*
-      // Create basic doc vectors in vector store.
-      // Derived term vectors will be linear combinations of these.
-      VerbatimLogger.info("Populating basic sparse doc vector store, number of vectors: "
-          + luceneUtils.getNumDocs() + "\n");
-      VectorStoreRAM randomBasicDocVectors = new VectorStoreRAM(flagConfig);
-      randomBasicDocVectors.createNumberedRandomVectors(luceneUtils.getNumDocs(), flagConfig.seedlength(), null);
-      this.elementalDocVectors = randomBasicDocVectors;
-      */
     }
 
     trainTermVectors();
@@ -160,12 +151,11 @@ public class TermVectorsFromLucene {
         }
 
         // Initialize new termVector.
-        Vector termVector = VectorFactory.createZeroVector(
-            flagConfig.vectortype(), flagConfig.dimension());
+        Vector termVector = VectorFactory.createZeroVector(flagConfig.vectortype(), flagConfig.dimension());
 
         DocsEnum docsEnum = luceneUtils.getDocsForTerm(term);
         while (docsEnum.nextDoc() != DocsEnum.NO_MORE_DOCS) {
-          String docID = Integer.toString(docsEnum.docID());
+          String docID = luceneUtils.getExternalDocId(docsEnum.docID());
           int freq = docsEnum.freq();
           termVector.superpose(elementalDocVectors.getVector(docID), freq, null);
         }

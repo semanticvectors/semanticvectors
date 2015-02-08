@@ -182,6 +182,22 @@ public class LuceneUtils {
     return this.atomicReader.document(docID);
   }
 
+  public String getExternalDocId(int docID) throws IOException {
+    String externalDocId;
+    try {
+      externalDocId = this.getDoc(docID).getField(flagConfig.docidfield()).stringValue();
+    } catch (IOException e) {
+      logger.severe(String.format(
+          "Failed to get external doc ID from doc no. %d in Lucene index." +
+              "\nThis is almost certain to lead to problems." +
+              "\nCheck that -docidfield was set correctly and exists in the Lucene index",
+          docID));
+      throw e;
+    }
+
+    return externalDocId;
+  }
+
   /**
    * Gets the terms for a given field. Throws {@link java.lang.NullPointerException} if this is null.
    */

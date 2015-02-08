@@ -113,7 +113,7 @@ public class RegressionTests {
    
   @Test
   public void testBuildAndSearchBasicRealIndexDocs() {
-    assertTrue(3 > buildSearchGetRank("-dimension 200 -luceneindexpath positional_index",
+    assertTrue(3 > buildSearchGetRank("-dimension 200 -vectortype real -luceneindexpath positional_index",
         "-queryvectorfile termvectors.bin -searchvectorfile docvectors.bin peter",
         "src/test/resources/testdata/John/Chapter_21"));
   }

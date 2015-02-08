@@ -105,8 +105,16 @@ public class BuildIndex {
         VerbatimLogger.info("Creating elemental term vectors ... \n");
         termVectorIndexer = TermVectorsFromLucene.createTermBasedRRIVectors(flagConfig);
       } else {
+        VectorStore initialDocVectors = null;
+        if (!flagConfig.initialdocumentvectors().isEmpty()) {
+          VerbatimLogger.info(String.format(
+              "Loading initial document vectors from file: '%s'.\n", flagConfig.initialdocumentvectors()));
+          initialDocVectors = VectorStoreRAM.readFromFile(flagConfig, flagConfig.initialdocumentvectors());
+          VerbatimLogger.info(String.format(
+              "Loaded %d document vectors to use as elemental vectors.\n", initialDocVectors.getNumVectors()));
+        }
         VerbatimLogger.info("Creating term vectors as superpositions of elemental document vectors ... \n");
-        termVectorIndexer = TermVectorsFromLucene.createTermVectorsFromLucene(flagConfig, null);
+        termVectorIndexer = TermVectorsFromLucene.createTermVectorsFromLucene(flagConfig, initialDocVectors);
       }
 
       // Create doc vectors and write vectors to disk.
