@@ -24,7 +24,7 @@ THE MAVEN BUILD IS THE CANONICAL ONE AND THE ANT BUILD WILL BE PHASED OUT. -->
 			 make the release, and then increment again to next_odd_number and check
 			 in. This way when people check out from svn, they always get the
 			 most recent development version. -->
-  <property name="version" value="5.5"/>
+  <property name="version" value="5.7"/>
   <property file="build.properties" />
 
   <property environment="env"/>
