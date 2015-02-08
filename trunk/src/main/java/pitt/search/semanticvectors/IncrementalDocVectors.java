@@ -113,15 +113,7 @@ public class IncrementalDocVectors {
 
       // Get filename and path to be used as document vector ID, defaulting to doc number only if
       // docidfield is not pupoulated.
-      String docID = Integer.toString(dc);
-      if (this.luceneUtils.getDoc(dc).getField(flagConfig.docidfield()) != null) {
-        docID = this.luceneUtils.getDoc(dc).getField(flagConfig.docidfield()).stringValue();
-        if (docID.length() == 0) {
-          logger.severe("Empty document name!!! This will cause problems ...");
-          logger.severe("Please set -docidfield to a nonempty field in your Lucene index.");
-          continue;
-        }
-      }
+      String docID = luceneUtils.getExternalDocId(dc);
 
       Vector docVector = VectorFactory.createZeroVector(flagConfig.vectortype(), flagConfig.dimension());
       
@@ -131,8 +123,8 @@ public class IncrementalDocVectors {
         if (terms == null) {
           VerbatimLogger.fine(
               String.format(
-                  "When building document vectors, no term vector for field: '%s' in document %d.",
-                  fieldName, dc));
+                  "When building document vectors, no term vector for field: '%s' in document '%s'.",
+                  fieldName, docID));
           continue;
         }
 
