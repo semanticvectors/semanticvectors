@@ -174,7 +174,7 @@ public class LuceneUtils {
    * Returns false if term is not in startlist, true otherwise (including if no startlist exists).
    */
   public boolean startlistContains(String x) {
-    if (startwords == null) return false;
+    if (startwords == null) return true;
     return startwords.contains(x);
   }
   
@@ -422,8 +422,8 @@ public class LuceneUtils {
       return false;
 
     // Startlist (if active)
-    if (startlistContains(term.text()))
-      return true;
+    if (!startlistContains(term.text()))
+      return false;
     
     if (!isDesiredField) {
       return false;
