@@ -146,7 +146,6 @@ public class LuceneUtils {
    * @throws IOException If startword file cannot be read.
    */
   public void loadStartWords(String startpath) throws IOException  {
-    System.err.println("Using startword file: " + startpath);
     startwords = new TreeSet<String>();
     try {
       BufferedReader readIn = new BufferedReader(new FileReader(startpath));
@@ -155,6 +154,9 @@ public class LuceneUtils {
         startwords.add(in);
         in = readIn.readLine();
       }
+      VerbatimLogger.info(String.format(
+          "Loading startword file: '%s'. Only these %d words will be indexed.\n",
+          startpath, startwords.size()));
       readIn.close();
     }
     catch (IOException e) {
