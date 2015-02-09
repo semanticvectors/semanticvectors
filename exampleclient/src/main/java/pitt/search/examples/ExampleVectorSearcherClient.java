@@ -1,6 +1,7 @@
 package pitt.search.examples;
 
 import pitt.search.semanticvectors.*;
+import pitt.search.semanticvectors.vectors.RealVector;
 import pitt.search.semanticvectors.vectors.ZeroVectorException;
 
 import java.io.IOException;
@@ -44,6 +45,8 @@ public class ExampleVectorSearcherClient {
         LinkedList<SearchResult> results = searcher.getNearestNeighbors(10);
         for (SearchResult result : results) {
           System.out.println(result.getScore() + ":" + result.getObjectVector().getObject());
+          RealVector realVector = (RealVector) result.getObjectVector().getVector();
+          float[] coordinates = realVector.getCoordinates();
         }
       } catch (ZeroVectorException e) {
         System.out.println("No vector for term: '" + queryTerm + "'.");
