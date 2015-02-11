@@ -170,10 +170,40 @@ public class ComplexVectorUtils {
 
 
   /**
-   * Renders each circular component of vec1 orthogonal to the corresponding component of vec2
+   * Renders  vec1 orthogonal to the corresponding component of vec2
+   * where orthogonality is defined by a hermitian scalar product of 0
+   * (rather than as a mean pairwise cosine between circular vectors of 0)
    * Both vectors are in put into CARTESIAN mode.
    */
+  
+ 
   public static void renderOrthogonal(
+	      ComplexVector vec1, ComplexVector vec2) {
+	    IncompatibleVectorsException.checkVectorsCompatible(vec1, vec2);
+	    if (vec1.getOpMode() != ComplexVector.Mode.CARTESIAN) vec1.toCartesian();
+	    if (vec2.getOpMode() != ComplexVector.Mode.CARTESIAN) vec2.toCartesian();
+
+	    float[] coordinates1 = vec1.getCoordinates();
+	    float[] coordinates2 = vec2.getCoordinates();
+
+	      double cosine = vec1.measureHermitianOverlap(vec2);
+
+	     for (int i = 0 ; i < coordinates1.length; i++)
+	      coordinates1[i] = (float) (coordinates1[i] - cosine*coordinates2[i]);
+	        
+	  }
+  
+
+  /**
+   * Experimental: renders  each circular component of vec1 orthogonal 
+   * to the corresponding component of vec2
+   * 
+   * Both vectors are in put into CARTESIAN mode.
+   */
+  
+  
+  /**
+  public static void renderPairwiseOrthogonal(
       ComplexVector vec1, ComplexVector vec2) {
     IncompatibleVectorsException.checkVectorsCompatible(vec1, vec2);
     if (vec1.getOpMode() != ComplexVector.Mode.CARTESIAN) vec1.toCartesian();
@@ -204,7 +234,10 @@ public class ComplexVectorUtils {
       coordinates1[i+1] = (float) (coordinates1[i+1] - cosine*coordinates2[i+1]);
     }
   }
-
+**/
+  
+  
+  
   public static void setFloatArrayToZero(float[] array) {
     for (int i=0; i<array.length; i++) array[i] = 0.0f;
   }
