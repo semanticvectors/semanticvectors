@@ -42,6 +42,7 @@ import java.util.logging.Logger;
 import org.apache.lucene.store.IndexInput;
 import org.apache.lucene.store.IndexOutput;
 
+
 /**
  * Complex number implementation of Vector.
  * 
@@ -244,11 +245,16 @@ public class ComplexVector implements Vector {
       if (complexOther.isZeroVector()) return 0;
       switch (DOMINANT_MODE) {
       case CARTESIAN:
-        return measureCartesianAngularOverlap(complexOther);
+        //to force hermitian behavior, instead use: 
+    	if (hermitian) return measureHermitianOverlap(complexOther); 
+    	else return measureCartesianAngularOverlap(complexOther);
       case POLAR_DENSE:
-        return measurePolarDenseOverlap(complexOther);
+        //to force hermitian behavior instead use: 
+    	if (hermitian) 
+    	{toCartesian(); return measureHermitianOverlap(complexOther);}
+    	else return measurePolarDenseOverlap(complexOther);
       case POLAR_SPARSE:
-        throw new IllegalArgumentException("POLAR_DENSE is not allowed as DOMINANT_MODE.");
+        throw new IllegalArgumentException("POLAR_SPARSE is not allowed as DOMINANT_MODE.");
       default:
         return 0;
       }
@@ -258,10 +264,11 @@ public class ComplexVector implements Vector {
      * Measure overlap, again using the Hermitian / Euclidean scalar product.
      */
     protected double measureHermitianOverlap(ComplexVector other) {
+      other.toCartesian();
       double result = 0;
       double norm1 = 0;
       double norm2 = 0;
-      for (int i = 0; i < dimension; ++i) {
+      for (int i = 0; i < dimension*2; ++i) {
         result += coordinates[i] * other.coordinates[i];
         norm1 += coordinates[i] * coordinates[i];
         norm2 += other.coordinates[i] * other.coordinates[i];
@@ -337,11 +344,15 @@ public class ComplexVector implements Vector {
       if (isZeroVector()) return;
       switch (DOMINANT_MODE) {
       case CARTESIAN:
-        normalizeCartesian();
-        return;
+        //to force hermitian normalization, switch to: 
+    	  if (hermitian) normalizeHermitian(); 
+    	  else normalizeCartesian();
+    	return;
       case POLAR_DENSE:
-        toDensePolar();
-        return;
+       //to force hermitian normalization, switch to: 
+        if (hermitian) {toCartesian(); normalizeHermitian();}
+        else toDensePolar();
+    	return;    
       case POLAR_SPARSE:
         throw new IllegalArgumentException("POLAR_SPARSE is not allowed as DOMINANT_MODE.");
       default:
@@ -352,11 +363,28 @@ public class ComplexVector implements Vector {
     /**
      * Normalizes the cartesian form of the vector so that the vector formed by each real/imaginary pair has unit length 
      */
-    protected void normalizeCartesian() {
+    public void normalizeCartesian() {
       toDensePolar();
       toCartesian();
     }
 
+    /**
+     * Normalizes the cartesian form of the vector so that the vector formed by each real/imaginary pair has unit length 
+     */
+    protected void normalizeHermitian() {
+        float[] coords = this.getCoordinates();
+    	float norm = 0; 
+    	
+    	for (int x=0; x < coords.length; x++)
+    		norm+= Math.pow(coords[x], 2);
+    	
+    	norm= (float) Math.sqrt(norm);
+    	
+    	for (int x=0; x < coords.length; x++)
+    		coords[x] = coords[x]/norm;
+    	
+    }
+    
     @Override
     /**
      * Superposes other vector with this one, putting this vector into cartesian mode.
@@ -386,10 +414,10 @@ public class ComplexVector implements Vector {
       case CARTESIAN :
         return;  // Nothing to do.
       case POLAR_SPARSE :
-        sparsePolarToCartesian();
+        sparsePolarToCartesian(); 
         return;
       case POLAR_DENSE :
-        densePolarToCartesian();
+        densePolarToCartesian(); 
       }
     }
 
@@ -400,8 +428,8 @@ public class ComplexVector implements Vector {
     }
 
     private void densePolarToCartesian() {
-      assert(opMode == Mode.POLAR_DENSE);
-      coordinates = new float[dimension*2];
+    	assert(opMode == Mode.POLAR_DENSE);
+    	coordinates = new float[dimension*2];
       for (int i = 0; i < dimension; i++) {
         coordinates[2*i] = CircleLookupTable.getRealEntry(phaseAngles[i]);
         coordinates[2*i + 1] = CircleLookupTable.getImagEntry(phaseAngles[i]);
@@ -431,7 +459,7 @@ public class ComplexVector implements Vector {
       phaseAngles = new short[dimension];
       for (int i = 0; i < dimension; i++) {
         phaseAngles[i] = CircleLookupTable.phaseAngleFromCartesianTrig(
-            coordinates[2*i], coordinates[2*i + 1]);
+        coordinates[2*i], coordinates[2*i + 1]);
       }
       coordinates = null;  // Reclaim memory.
     }
@@ -459,7 +487,7 @@ public class ComplexVector implements Vector {
       IncompatibleVectorsException.checkVectorsCompatible(this, other);
       ComplexVector complexOther = (ComplexVector) other;
       this.convolve(complexOther, 1);
-    }
+       }
 
     @Override
     /**
@@ -469,7 +497,7 @@ public class ComplexVector implements Vector {
       IncompatibleVectorsException.checkVectorsCompatible(this, other);
       ComplexVector complexOther = (ComplexVector) other;
       this.convolve(complexOther, -1);
-    }
+   }
 
     /**
      * Convolves this vector with the other. If the value of direction <= 0
@@ -477,6 +505,12 @@ public class ComplexVector implements Vector {
      */
     public void convolve(ComplexVector other, int direction) {
       IncompatibleVectorsException.checkVectorsCompatible(this, other);
+      
+      // to preserve coefficients for hermitian implementation, inclode the commented code below
+       if (hermitian && this.getOpMode().equals(Mode.CARTESIAN) && other.getOpMode().equals(Mode.CARTESIAN))
+       convolveCartesian(other, direction);
+        else 
+    	  {
       toDensePolar();
       ComplexVector otherCopy = other.copy();
       otherCopy.toDensePolar();
@@ -496,7 +530,60 @@ public class ComplexVector implements Vector {
         }
         phaseAngles[i] = (short) ((phaseAngles[i] + angleToAdd) % CircleLookupTable.PHASE_RESOLUTION);
       }
-    }
+    	  }
+       }
+    
+    /**
+     * Convolves this vector with the other. If the value of direction <= 0
+     * then the correlation operation is performed, ie. convolution inverse
+     */
+    public void convolveCartesian(ComplexVector other, int direction) {
+      IncompatibleVectorsException.checkVectorsCompatible(this, other);
+     
+     //same operation, but preserve length of circular components
+  	//get lengths of circular components
+      float[] norms = new float[dimension];
+      for (int q = 0; q < dimension; q++)
+  	{
+  		
+  		float norm = 0; 
+  		norm += Math.pow(this.coordinates[q*2], 2);
+  		norm += Math.pow(this.coordinates[2*q+1], 2);
+  		norm = (float) Math.sqrt(norm);
+  		norms[q] = norm;
+  	}
+      toDensePolar();
+      ComplexVector otherCopy = other.copy();
+      otherCopy.toDensePolar();
+      short[] otherAngles = otherCopy.getPhaseAngles();
+
+      for (int i=0; i < dimension; i++) {
+        if (otherAngles[i] == CircleLookupTable.ZERO_INDEX) {
+          continue;
+        }
+        if (phaseAngles[i] == CircleLookupTable.ZERO_INDEX) {
+          phaseAngles[i] = otherAngles[i];
+          continue;
+        }
+        short angleToAdd = otherAngles[i];
+        if (direction <= 0) {
+          angleToAdd = (short) (CircleLookupTable.PHASE_RESOLUTION - angleToAdd);
+        }
+        phaseAngles[i] = (short) ((phaseAngles[i] + angleToAdd) % CircleLookupTable.PHASE_RESOLUTION);
+      }
+    	  
+      toCartesian();
+      
+      for (int q =0; q < dimension; q++)
+      { this.coordinates[q*2] *= norms[q]; 
+       this.coordinates[q*2+1] *= norms[q]; }
+      
+      normalizeHermitian();
+      
+      
+      
+       }
+    
 
     /**
      * Transforms this vector into its complement.
@@ -706,4 +793,7 @@ public class ComplexVector implements Vector {
     protected void setOpMode(Mode opMode) {
       this.opMode = opMode;
     }
+
+    //temporary - hermitian mode of operation to be properly integrated later
+    private final boolean hermitian = false;
 }

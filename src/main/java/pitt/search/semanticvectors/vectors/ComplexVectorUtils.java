@@ -202,7 +202,7 @@ public class ComplexVectorUtils {
    */
   
   
-  /**
+  
   public static void renderPairwiseOrthogonal(
       ComplexVector vec1, ComplexVector vec2) {
     IncompatibleVectorsException.checkVectorsCompatible(vec1, vec2);
@@ -234,7 +234,7 @@ public class ComplexVectorUtils {
       coordinates1[i+1] = (float) (coordinates1[i+1] - cosine*coordinates2[i+1]);
     }
   }
-**/
+
   
   
   
