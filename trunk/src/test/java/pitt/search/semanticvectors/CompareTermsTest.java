@@ -49,7 +49,7 @@ public class CompareTermsTest {
     flagConfig = FlagConfig.getFlagConfig(
         new String[] {"-elementalmethod", "orthographic", "-vectortype", "complex", "-seedlength", "100", "foo", "oof"});
     outcome = CompareTerms.runCompareTerms(flagConfig);
-    assertTrue(0.9 < outcome);
+    assertTrue(0.75 < outcome);
     
     flagConfig = FlagConfig.getFlagConfig(
         new String[] {"-elementalmethod", "orthographic", "-vectortype", "complex", "-seedlength", "100", "foo", "foo"});
