@@ -162,9 +162,10 @@ public class IncrementalDocVectors {
       }
 
       if (docVector.isZeroVector()) {
-        logger.severe(String.format(
+        logger.warning(String.format(
             "Document vector is zero for document '%s'. This probably means that none of " +
-                "the -contentsfields were populated. this is a bad sign and should be investigated.",
+                "the -contentsfields were populated, or all terms failed the LuceneUtils termsfilter." +
+                " You may want to investigate.",
             docID));
         //nonetheless, write out a zero document vector so the document order in the document store
         //remains consistent with the Lucene index

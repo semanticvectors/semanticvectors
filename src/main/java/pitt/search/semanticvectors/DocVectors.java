@@ -137,7 +137,6 @@ public class DocVectors implements VectorStore {
           // This may occur frequently if one term vector store is derived from multiple fields
           if (docsEnum == null)  { continue; }
 
-
           while (docsEnum.nextDoc() != DocsEnum.NO_MORE_DOCS) {
             String externalDocID = luceneUtils.getExternalDocId(docsEnum.docID());
             // Add vector from this term, taking freq into account.
