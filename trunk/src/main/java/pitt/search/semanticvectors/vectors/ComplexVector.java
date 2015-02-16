@@ -540,17 +540,26 @@ public class ComplexVector implements Vector {
     public void convolveCartesian(ComplexVector other, int direction) {
       IncompatibleVectorsException.checkVectorsCompatible(this, other);
      
+      
+      
      //same operation, but preserve length of circular components
   	//get lengths of circular components
       float[] norms = new float[dimension];
+      float[] otherNorms = new float[dimension];
       for (int q = 0; q < dimension; q++)
   	{
-  		
   		float norm = 0; 
+  		float othernorm = 0;
+  		
   		norm += Math.pow(this.coordinates[q*2], 2);
   		norm += Math.pow(this.coordinates[2*q+1], 2);
-  		norm = (float) Math.sqrt(norm);
+  		othernorm += Math.pow(other.coordinates[q*2], 2);
+  		othernorm += Math.pow(other.coordinates[2*q+1], 2);
+  		
+  		norm 		= (float) Math.sqrt(norm);
+  		othernorm 	= (float) Math.sqrt(othernorm);
   		norms[q] = norm;
+  		otherNorms[q] = othernorm;
   	}
       toDensePolar();
       ComplexVector otherCopy = other.copy();
@@ -575,8 +584,9 @@ public class ComplexVector implements Vector {
       toCartesian();
       
       for (int q =0; q < dimension; q++)
-      { this.coordinates[q*2] *= norms[q]; 
-       this.coordinates[q*2+1] *= norms[q]; }
+      { this.coordinates[q*2]   *= (norms[q]*otherNorms[q]); 
+        this.coordinates[q*2+1] *= (norms[q]*otherNorms[q]);
+        }
       
       normalizeHermitian();
       
