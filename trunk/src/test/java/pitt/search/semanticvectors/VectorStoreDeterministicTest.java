@@ -69,6 +69,10 @@ public class VectorStoreDeterministicTest extends TestCase  {
     assertEquals(1d, v1.measureOverlap(v2));
     assertEquals(v1.measureOverlap(v1), v1.measureOverlap(v2));
     // -0.03718622401356697 was computed when writing this test...
-    assertEquals(-0.03718622401356697d, v1.measureOverlap(v3));
+    // and 0.008059127256274223 was computed with the new generateRandomVector method
+    // for the special case when dimension==seedlength
+    System.out.println("-->"+v1.measureOverlap(v3));
+    //assertEquals(-0.03718622401356697d, v1.measureOverlap(v3));
+    assertEquals(0.008059127256274223d, v1.measureOverlap(v3));
   }
 }

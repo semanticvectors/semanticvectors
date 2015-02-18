@@ -210,7 +210,13 @@ public class ComplexVector implements Vector {
      *
      * @return Sparse representation of vector in Polar form.
      */
+    
     public ComplexVector generateRandomVector(int dimension, int numEntries, Random random) {
+    	
+      //return dense form instead, if entries = dimension
+      if (dimension == numEntries)
+    	  return generateRandomVector(dimension, random);
+    	
       ComplexVector randomVector = new ComplexVector(dimension, Mode.POLAR_SPARSE);
       boolean[] occupiedPositions = new boolean[dimension];
       randomVector.sparseOffsets = new short[numEntries*2];
@@ -231,6 +237,22 @@ public class ComplexVector implements Vector {
       }
       return randomVector;
     }
+    
+    
+    /**
+     * Generates a basic dense vector in Polar form 
+     *
+     * @return Dense representation of vector in Polar form.
+     */
+    
+    public ComplexVector generateRandomVector(int dimension, Random random) {
+        ComplexVector randomVector = new ComplexVector(dimension, Mode.POLAR_DENSE);
+       
+        for (int d=0; d < randomVector.phaseAngles.length; d++) 
+           randomVector.phaseAngles[d] = (short) random.nextInt(CircleLookupTable.PHASE_RESOLUTION);
+        
+        return randomVector;
+      }
 
     @Override
     /**
@@ -582,13 +604,14 @@ public class ComplexVector implements Vector {
       }
     	  
       toCartesian();
-      
+      double newNorm = 0;
       for (int q =0; q < dimension; q++)
-      { this.coordinates[q*2]   *= (norms[q]*otherNorms[q]); 
-        this.coordinates[q*2+1] *= (norms[q]*otherNorms[q]);
-        }
-      
+      { 
+    	this.coordinates[q*2]   *= (norms[q]*otherNorms[q]); 
+        this.coordinates[q*2+1] *= (norms[q]*otherNorms[q]);   
+      }
       normalizeHermitian();
+    
       
       
       
