@@ -38,6 +38,7 @@ package pitt.search.semanticvectors;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.FileSystems;
 import java.util.Enumeration;
 import java.util.logging.Logger;
 
@@ -86,7 +87,7 @@ public class VectorStoreReaderLucene implements CloseableVectorStore {
     try {
       String parentPath = this.vectorFile.getParent();
       if (parentPath == null) parentPath = "";
-      this.directory = FSDirectory.open(new File(parentPath));  // Old from FSDirectory impl.
+      this.directory = FSDirectory.open(FileSystems.getDefault().getPath(parentPath));  // Old from FSDirectory impl.
       // Read number of dimension from header information.
       this.threadLocalIndexInput = new ThreadLocal<IndexInput>() {
         @Override

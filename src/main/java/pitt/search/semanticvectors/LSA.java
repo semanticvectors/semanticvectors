@@ -17,6 +17,7 @@ import pitt.search.semanticvectors.vectors.VectorType;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.FileSystems;
 import java.util.logging.Logger;
 
 import ch.akuhn.edu.mit.tedlab.*;
@@ -171,7 +172,7 @@ public class LSA {
 
   private void writeOutput(DMat vT, DMat uT) throws IOException {
     // Open file and write headers.
-    FSDirectory fsDirectory = FSDirectory.open(new File("."));
+    FSDirectory fsDirectory = FSDirectory.open(FileSystems.getDefault().getPath("."));
     IndexOutput outputStream = fsDirectory.createOutput(
         VectorStoreUtils.getStoreFileName(flagConfig.termvectorsfile(), flagConfig),
         IOContext.DEFAULT);
@@ -192,7 +193,6 @@ public class LSA {
   
       termVector.writeToLuceneStream(outputStream);
     }
-    outputStream.flush();
     outputStream.close();
     VerbatimLogger.info(
         "Wrote " + cnt + " term vectors incrementally to file " + flagConfig.termvectorsfile() + ".\n");
@@ -218,7 +218,6 @@ public class LSA {
       
       docVector.writeToLuceneStream(outputStream);
     }
-    outputStream.flush();
     outputStream.close();
     VerbatimLogger.info("Wrote " + cnt + " document vectors incrementally to file "
                         + flagConfig.docvectorsfile() + ". Done.\n");

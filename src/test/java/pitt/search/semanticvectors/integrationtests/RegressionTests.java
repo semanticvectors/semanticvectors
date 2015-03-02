@@ -137,6 +137,9 @@ public class RegressionTests {
     String[] buildArgs = buildCmd.split("\\s+");
     String[] searchArgs = searchCmd.split("\\s+");
 
+    // This is a platform-specific hack to make tests involving pathnames work on either linux or windows.
+    targetResult = targetResult.replace("\\", "/");
+
     for (String fn : filesToBuild) {
       File file = new File(fn);
       if (file.isFile()) {
@@ -173,17 +176,17 @@ public class RegressionTests {
         "-queryvectorfile termtermvectors.bin simon",
         new String[] {"termtermvectors.bin", "docvectors.bin"},
         "peter");
-    assertTrue(peterRank < 5);
+    assertTrue(peterRank < 20);
   }
     
   @Test
   synchronized public void testBuildAndSearchRealPositionalIndexDocs() {
-    int chapter17Rank = positionalBuildSearchGetRank(
+    int chapter6Rank = positionalBuildSearchGetRank(
         "-dimension 200 -vectortype real -seedlength 10 -luceneindexpath positional_index",
         "-queryvectorfile termtermvectors.bin -searchvectorfile docvectors.bin bread",
         new String[] {"termtermvectors.bin", "docvectors.bin"},
-        "src/test/resources/testdata/John/Chapter_17");
-    assertTrue(chapter17Rank < 5);
+        "src/test/resources/testdata/John/Chapter_6");
+    assertEquals(1, chapter6Rank);
   }
   
   @Test
@@ -203,7 +206,7 @@ public class RegressionTests {
         "-queryvectorfile termtermvectors.bin simon",
         new String[] {"termtermvectors.bin", "docvectors.bin"},
         "peter");
-       assertTrue(peterRank < 5);
+       assertTrue(peterRank < 10);
   }
 
   // Convolution for complex directional indexing seems to really need some termweighting to work well. 
@@ -225,7 +228,7 @@ public class RegressionTests {
         "-queryvectorfile drxntermvectors.bin simon",
         new String[] {"drxntermvectors.bin", "docvectors.bin"},
         "peter");
-    assertTrue(peterRank <= 4);
+    assertTrue(peterRank <= 10);
   }
 
   @Test

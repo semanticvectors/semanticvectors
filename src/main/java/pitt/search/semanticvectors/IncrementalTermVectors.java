@@ -48,6 +48,7 @@ import pitt.search.semanticvectors.utils.VerbatimLogger;
 import pitt.search.semanticvectors.vectors.Vector;
 import pitt.search.semanticvectors.vectors.VectorFactory;
 
+import java.nio.file.FileSystems;
 import java.util.Enumeration;
 import java.util.Random;
 import java.util.logging.Logger;
@@ -117,7 +118,7 @@ public class IncrementalTermVectors implements VectorStore {
     File vectorFile = new File(flagConfig.docvectorsfile());
     String parentPath = vectorFile.getParent();
     if (parentPath == null) parentPath = "";
-    FSDirectory fsDirectory = FSDirectory.open(new File(parentPath));
+    FSDirectory fsDirectory = FSDirectory.open(FileSystems.getDefault().getPath(parentPath));
 
     // The following try / except supports the use of either prepared doc vectors from a file,
     // or random vectors if no -docvectors file exists. This conditional complexity is repeated

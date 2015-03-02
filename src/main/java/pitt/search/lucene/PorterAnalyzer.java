@@ -12,8 +12,8 @@ import static pitt.search.semanticvectors.LuceneUtils.LUCENE_VERSION;
 public class PorterAnalyzer  extends Analyzer {
 
   @Override
-  protected TokenStreamComponents createComponents(String fieldName, Reader reader) {
-    Tokenizer source = new LowerCaseTokenizer(LUCENE_VERSION, reader);
+  protected TokenStreamComponents createComponents(String s) {
+    Tokenizer source = new LowerCaseTokenizer();
     return new TokenStreamComponents(source, new PorterStemFilter(source));
   }
 
@@ -26,7 +26,7 @@ public class PorterAnalyzer  extends Analyzer {
     Logger logger = Logger.getLogger("pitt.search.lucene");
 
     String stemmedQuery = "";
-    TokenStream theTS = createComponents("", new StringReader(query)).getTokenStream();
+    TokenStream theTS = createComponents(query).getTokenStream();
 
     try {
       while (theTS.incrementToken()) {

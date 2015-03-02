@@ -38,6 +38,7 @@ package pitt.search.semanticvectors;
 import java.io.File;
 import java.io.IOException;
 import java.lang.IllegalArgumentException;
+import java.nio.file.FileSystems;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
@@ -997,7 +998,7 @@ abstract public class VectorSearcher {
 	  this.specialFlagConfig = flagConfig;
 	  Directory dir;
 	try {
-		dir = FSDirectory.open(new File(flagConfig.luceneindexpath()));
+		dir = FSDirectory.open(FileSystems.getDefault().getPath(flagConfig.luceneindexpath()));
 		this.iSearcher = new IndexSearcher(DirectoryReader.open(dir));
 	    
 		if (!flagConfig.elementalvectorfile().equals("elementalvectors"))

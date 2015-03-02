@@ -16,6 +16,9 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 /** 
  * This class takes as input a single text file with each line following the format 
@@ -26,8 +29,8 @@ import java.io.IOException;
 public class LuceneIndexFromTriples {
 
   private LuceneIndexFromTriples() {}
-  
-  static File INDEX_DIR = new File("predication_index");
+
+  static Path INDEX_DIR = FileSystems.getDefault().getPath("predication_index");
 
   /** Index all text files under a directory. */
   public static void main(String[] args) {
@@ -39,17 +42,16 @@ public class LuceneIndexFromTriples {
     FlagConfig flagConfig = FlagConfig.getFlagConfig(args);
     // Allow for the specification of a directory to write the index to.
     if (flagConfig.luceneindexpath().length() > 0) {
-      INDEX_DIR = new File(flagConfig.luceneindexpath());
+      INDEX_DIR = FileSystems.getDefault().getPath(flagConfig.luceneindexpath());
     }
-    if (INDEX_DIR.exists()) {
+    if (Files.exists(INDEX_DIR)) {
        throw new IllegalArgumentException(
-           "Cannot save index to '" + INDEX_DIR.getAbsolutePath() + "' directory, please delete it first");
+           "Cannot save index to '" + INDEX_DIR + "' directory, please delete it first");
     }
 
     try {
       // Create IndexWriter using WhiteSpaceAnalyzer without any stopword list.
-      IndexWriterConfig writerConfig = new IndexWriterConfig(
-          LUCENE_VERSION, new WhitespaceAnalyzer(LUCENE_VERSION));
+      IndexWriterConfig writerConfig = new IndexWriterConfig(new WhitespaceAnalyzer());
       IndexWriter writer = new IndexWriter(FSDirectory.open(INDEX_DIR), writerConfig);
 
       final File triplesTextFile = new File(args[0]);

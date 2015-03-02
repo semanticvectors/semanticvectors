@@ -44,6 +44,10 @@ import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Date;
 
 import static pitt.search.semanticvectors.LuceneUtils.LUCENE_VERSION;
@@ -56,7 +60,7 @@ import static pitt.search.semanticvectors.LuceneUtils.LUCENE_VERSION;
  * creation of models.
  */
 public class IndexBilingualFiles {
-	File INDEX_DIR;
+  static Path INDEX_DIR = FileSystems.getDefault().getPath("bilingual_index");
 	String LANGUAGE1;
 	String LANGUAGE2;
 
@@ -66,12 +70,9 @@ public class IndexBilingualFiles {
 	}
 
 	private void runIndexer() {
-		INDEX_DIR = new File("bilingual_index");
-		if (INDEX_DIR.exists()) {
-			if (INDEX_DIR.exists()) {
-				throw new IllegalArgumentException(
-						"Cannot save index to '" + INDEX_DIR.getAbsolutePath() + "' directory, please delete it first");
-			}
+		if (Files.exists(INDEX_DIR)) {
+      throw new IllegalArgumentException(
+          "Cannot save index to '" + INDEX_DIR + "' directory, please delete it first");
 		}
 
 		Date start = new Date();
@@ -79,10 +80,8 @@ public class IndexBilingualFiles {
 			final File docDir1 = new File(LANGUAGE1);
 			final File docDir2 = new File(LANGUAGE2);
 
-			IndexWriterConfig writerConfig = new IndexWriterConfig(
-			    LUCENE_VERSION, new StandardAnalyzer(LUCENE_VERSION));
-			IndexWriter writer = new IndexWriter(
-			    FSDirectory.open(INDEX_DIR), writerConfig);
+			IndexWriterConfig writerConfig = new IndexWriterConfig(new StandardAnalyzer());
+			IndexWriter writer = new IndexWriter(FSDirectory.open(INDEX_DIR), writerConfig);
 			System.out.println("Indexing to directory '" + INDEX_DIR + "'...");
 			runDeepIndexer(docDir1, docDir2, writer);
 

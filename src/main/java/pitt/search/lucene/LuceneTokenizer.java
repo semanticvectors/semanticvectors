@@ -30,7 +30,7 @@ public class LuceneTokenizer {
 	public static ArrayList<String> tokenize(String string) throws IOException{
 		ArrayList<String> retList = new ArrayList<String>();
 		StringReader reader = new StringReader(string);
-		StandardTokenizer tokenizer = new StandardTokenizer(LUCENE_VERSION, reader);
+		StandardTokenizer tokenizer = new StandardTokenizer();
 		while(tokenizer.incrementToken()){
 			retList.add(tokenizer.getAttribute(Token.class).toString());
 		}

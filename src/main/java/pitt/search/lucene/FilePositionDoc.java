@@ -6,6 +6,7 @@ import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.FieldType;
 import org.apache.lucene.document.StoredField;
+import org.apache.lucene.index.IndexOptions;
 
 /**
  *  This class makes a minor modification to org.apache.lucene.FileDocument
@@ -23,7 +24,7 @@ public class FilePositionDoc  {
     
     //create new FieldType to store term positions (TextField is not sufficiently configurable)
     FieldType ft = new FieldType();
-    ft.setIndexed(true);
+    ft.setIndexOptions(IndexOptions.DOCS_AND_FREQS_AND_POSITIONS_AND_OFFSETS);
     ft.setTokenized(true);
     ft.setStoreTermVectors(true);
     ft.setStoreTermVectorPositions(true);
