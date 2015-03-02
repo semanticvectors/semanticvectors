@@ -287,6 +287,14 @@ public class RealVector implements Vector {
         coordinates[positionToAdd] += entry * weight;
       }
     } else {
+      boolean anyNans = false;
+      for (int i = 0; i < dimension; ++i) {
+        if (Float.isNaN(realOther.coordinates[i])) {
+          anyNans = true;
+          break;
+        }
+      }
+      if (anyNans) return;
       for (int i = 0; i < dimension; ++i) {
         int positionToAdd = i;
         if (permutation != null) {

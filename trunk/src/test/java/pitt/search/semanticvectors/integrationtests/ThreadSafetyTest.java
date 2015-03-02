@@ -71,8 +71,10 @@ public class ThreadSafetyTest {
     String[] buildArgs = new String[] {"-dimension", "200", "-luceneindexpath", "positional_index"};
     
     File termFile = new File("termvectors.bin");
+    if (termFile.isFile()) termFile.delete();
     assertFalse(termFile.isFile());
     File docFile = new File("docvectors.bin");
+    if (docFile.isFile()) docFile.delete();
     assertFalse(docFile.isFile());
     BuildIndex.main(buildArgs);
     assertTrue(termFile.isFile());

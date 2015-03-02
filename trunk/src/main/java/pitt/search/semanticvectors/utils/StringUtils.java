@@ -60,8 +60,10 @@ public class StringUtils {
     for (String item: input) {
       builder.append(item).append(", ");
     }
-    builder.setLength(builder.length() - 2);
-    return builder.toString(); 
+    if (builder.length() >= 2) {
+      builder.setLength(builder.length() - 2);
+    }
+    return builder.toString();
   }
   
   /**

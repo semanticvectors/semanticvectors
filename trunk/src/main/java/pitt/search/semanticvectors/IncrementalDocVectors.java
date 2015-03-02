@@ -1,42 +1,43 @@
 /**
-   Copyright (c) 2008, Arizona State University.
+ Copyright (c) 2008, Arizona State University.
 
-   All rights reserved.
+ All rights reserved.
 
-   Redistribution and use in source and binary forms, with or without
-   modification, are permitted provided that the following conditions are
-   met:
+ Redistribution and use in source and binary forms, with or without
+ modification, are permitted provided that the following conditions are
+ met:
 
  * Redistributions of source code must retain the above copyright
-   notice, this list of conditions and the following disclaimer.
+ notice, this list of conditions and the following disclaimer.
 
  * Redistributions in binary form must reproduce the above
-   copyright notice, this list of conditions and the following
-   disclaimer in the documentation and/or other materials provided
-   with the distribution.
+ copyright notice, this list of conditions and the following
+ disclaimer in the documentation and/or other materials provided
+ with the distribution.
 
  * Neither the name of the University of Pittsburgh nor the names
-   of its contributors may be used to endorse or promote products
-   derived from this software without specific prior written
-   permission.
+ of its contributors may be used to endorse or promote products
+ derived from this software without specific prior written
+ permission.
 
-   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-   "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-   LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-   A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
-   CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-   EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-   PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-   PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-   LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-   NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-   SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
+ CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+ EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+ PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+ LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  **/
 
 package pitt.search.semanticvectors;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.FileSystems;
 import java.util.Arrays;
 import java.util.logging.Logger;
 
@@ -73,14 +74,14 @@ public class IncrementalDocVectors {
   /**
    * Creates incremental doc vectors, getting everything it needs from a
    * TermVectorsFromLucene object and a Lucene Index directory, and writing to a named file.
-   * 
+   *
    * @param termVectorData Vector store containing terms create doc vectors.
    * @param flagConfig Any extra flag configurations
    * @param luceneUtils Lucene Utils used for reading Lucene index
    */
   public static void createIncrementalDocVectors(
-      VectorStore termVectorData, FlagConfig flagConfig, LuceneUtils luceneUtils) 
-          throws IOException {
+      VectorStore termVectorData, FlagConfig flagConfig, LuceneUtils luceneUtils)
+      throws IOException {
     IncrementalDocVectors incrementalDocVectors = new IncrementalDocVectors();
     incrementalDocVectors.flagConfig = flagConfig;
     incrementalDocVectors.termVectorData = termVectorData;
@@ -96,18 +97,19 @@ public class IncrementalDocVectors {
         VectorStoreUtils.getStoreFileName(flagConfig.docvectorsfile(), flagConfig));
     String parentPath = vectorFile.getParent();
     if (parentPath == null) parentPath = "";
-    FSDirectory fsDirectory = FSDirectory.open(new File(parentPath));
+    FSDirectory fsDirectory = FSDirectory.open(FileSystems.getDefault().getPath(parentPath));
+
     IndexOutput outputStream = fsDirectory.createOutput(vectorFile.getName(), IOContext.DEFAULT);
 
     VerbatimLogger.info("Writing vectors incrementally to file " + vectorFile + " ... ");
 
     // Write header giving number of dimension for all vectors.
     outputStream.writeString(VectorStoreWriter.generateHeaderString(flagConfig));
-    
+
     // Iterate through documents.
     for (int dc = 0; dc < numdocs; dc++) {
       // Output progress counter.
-      if ((dc > 0) && ((dc % 10000 == 0) || ( dc < 10000 && dc % 1000 == 0 ))) {
+      if ((dc > 0) && ((dc % 10000 == 0) || (dc < 10000 && dc % 1000 == 0))) {
         VerbatimLogger.info("Processed " + dc + " documents ... ");
       }
 
@@ -116,8 +118,8 @@ public class IncrementalDocVectors {
       String docID = luceneUtils.getExternalDocId(dc);
 
       Vector docVector = VectorFactory.createZeroVector(flagConfig.vectortype(), flagConfig.dimension());
-      
-      for (String fieldName: flagConfig.contentsfields()) {
+
+      for (String fieldName : flagConfig.contentsfields()) {
         Terms terms = luceneUtils.getTermVector(dc, fieldName);
 
         if (terms == null) {
@@ -136,18 +138,18 @@ public class IncrementalDocVectors {
           String termString = term.text();
           DocsEnum docs = termsEnum.docs(null, null);
           docs.nextDoc();
-	      int freq = docs.freq();
-	     
-	      try {
+          int freq = docs.freq();
+
+          try {
             Vector termVector = termVectorData.getVector(termString);
             if (termVector != null && termVector.getDimension() > 0) {
               float localweight = luceneUtils.getLocalTermWeight(freq);
-              float globalweight = luceneUtils.getGlobalTermWeight(new Term(fieldName,termString));
+              float globalweight = luceneUtils.getGlobalTermWeight(new Term(fieldName, termString));
               float fieldweight = 1;
 
               if (flagConfig.fieldweight()) {
                 //field weight: 1/sqrt(number of terms in field)
-                fieldweight = (float) (1/Math.sqrt(terms.size()));
+                fieldweight = (float) (1 / Math.sqrt(terms.size()));
               }
 
               // Add contribution from this term, excluding terms that
@@ -163,23 +165,19 @@ public class IncrementalDocVectors {
 
       if (docVector.isZeroVector()) {
         logger.warning(String.format(
-            "Document vector is zero for document '%s'. This probably means that none of " +
+            "Outputting zero vector for document '%s'. This probably means that none of " +
                 "the -contentsfields were populated, or all terms failed the LuceneUtils termsfilter." +
                 " You may want to investigate.",
             docID));
-        //nonetheless, write out a zero document vector so the document order in the document store
-        //remains consistent with the Lucene index
       }
 
       // All fields in document have been processed. Write out documentID and normalized vector.
       docVector.normalize();
       outputStream.writeString(docID);
       docVector.writeToLuceneStream(outputStream);
-
     } // Finish iterating through documents.
 
     VerbatimLogger.info("Finished writing vectors.\n");
-    outputStream.flush();
     outputStream.close();
     fsDirectory.close();
   }

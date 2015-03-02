@@ -187,7 +187,7 @@ public class FlagConfig {
   /** Set to true if you want document vectors built from multiple fields to emphasize terms from shorter fields, default value {@code false}. */
   public boolean fieldweight() { return fieldweight; }
   
-  private TermWeight termweight = TermWeight.NONE;
+  private TermWeight termweight = TermWeight.IDF;
   /** Term weighting used when constructing document vectors, default value {@link TermWeight#NONE} */
   public LuceneUtils.TermWeight termweight() { return termweight; }
 

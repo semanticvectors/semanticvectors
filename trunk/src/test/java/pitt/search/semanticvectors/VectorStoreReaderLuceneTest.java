@@ -71,7 +71,7 @@ public class VectorStoreReaderLuceneTest extends TestCase {
     try {
       indexOutput = directory.createOutput(TEST_VECTOR_FILE, IOContext.DEFAULT);
       VectorStoreWriter.writeToIndexOutput(store, FLAG_CONFIG, indexOutput);
-      indexOutput.flush();
+      indexOutput.close();
 
       threadLocalIndexInput = new ThreadLocal<IndexInput>() {
         @Override

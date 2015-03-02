@@ -36,6 +36,8 @@
 package pitt.search.lucene;
 
 import java.io.*;
+import java.nio.file.FileSystems;
+
 import org.apache.lucene.analysis.standard.*;
 import org.apache.lucene.document.*;
 import org.apache.lucene.index.*;
@@ -93,7 +95,8 @@ public class LuceneSearch {
        large indexes, so a more scalable solution is to have the index open
        in a running webapp, rather than opening it each time in a standalone */
     try {
-      searcher = new IndexSearcher(DirectoryReader.open(FSDirectory.open(new File(luceneIndex))));
+      searcher = new IndexSearcher(DirectoryReader.open(FSDirectory.open(
+          FileSystems.getDefault().getPath(luceneIndex))));
     } catch (Exception e) {
       System.err.println("Error opening index at: '" + luceneIndex + "'");
       e.printStackTrace();
@@ -102,11 +105,11 @@ public class LuceneSearch {
 
     /* some of the rest of this code is instructed by Lucene's
      * results.jsp in the web demo */
-    StandardAnalyzer analyzer = new StandardAnalyzer(LUCENE_VERSION);
+    StandardAnalyzer analyzer = new StandardAnalyzer();
     Query query = null;
     TopDocs hits = null;
     try {
-      QueryParser qp = new QueryParser(LUCENE_VERSION, luceneField, analyzer);
+      QueryParser qp = new QueryParser(luceneField, analyzer);
       query = qp.parse(queryString);
     } catch (ParseException e) {
       System.err.println("Error when parsing query ...");

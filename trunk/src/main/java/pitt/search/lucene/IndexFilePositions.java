@@ -36,10 +36,12 @@ import static pitt.search.semanticvectors.LuceneUtils.LUCENE_VERSION;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Date;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
-import org.apache.lucene.analysis.util.CharArraySet;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.store.FSDirectory;
@@ -54,7 +56,7 @@ public class IndexFilePositions {
 
   private IndexFilePositions() {}
 
-  static File INDEX_DIR = new File("positional_index");
+  static Path INDEX_DIR = FileSystems.getDefault().getPath("positional_index");
 
   /** Index all text files under a directory. */
   public static void main(String[] args) {
@@ -68,17 +70,19 @@ public class IndexFilePositions {
     flagConfig = FlagConfig.getFlagConfig(args);
     // Allow for the specification of a directory to write the index to.
     if (flagConfig.luceneindexpath().length() > 0) {
-      INDEX_DIR = new File(flagConfig.luceneindexpath());
+      INDEX_DIR = FileSystems.getDefault().getPath(flagConfig.luceneindexpath());
     }
-    if (INDEX_DIR.exists()) {
+
+    if (Files.exists(INDEX_DIR)) {
       throw new IllegalArgumentException(
-          "Cannot save index to '" + INDEX_DIR.getAbsolutePath() + "' directory, please delete it first");
+          "Cannot save index to '" + INDEX_DIR + "' directory, please delete it first");
     }
     try {
     	IndexWriter writer;
       // Create IndexWriter using porter stemmer or no stemming. No stopword list.
-    	Analyzer analyzer = flagConfig.porterstemmer() ? new PorterAnalyzer() : new StandardAnalyzer(LUCENE_VERSION, new CharArraySet(LUCENE_VERSION, 0, false));
-      IndexWriterConfig writerConfig = new IndexWriterConfig(LUCENE_VERSION, analyzer);
+    	Analyzer analyzer = flagConfig.porterstemmer()
+          ? new PorterAnalyzer() : new StandardAnalyzer();
+      IndexWriterConfig writerConfig = new IndexWriterConfig(analyzer);
       writer = new IndexWriter(FSDirectory.open(INDEX_DIR), writerConfig);
 
     	final File docDir = new File(flagConfig.remainingArgs[0]);

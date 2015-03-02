@@ -98,7 +98,7 @@ public class PSITest {
     String buildCmd = "-dimension 1000 -maxnonalphabetchars 20 -vectortype real -seedlength 500 -luceneindexpath predication_index";
     String searchCmd = "-searchtype boundproduct -queryvectorfile semanticvectors.bin -boundvectorfile predicatevectors.bin -searchvectorfile elementalvectors.bin -matchcase mexico HAS_CURRENCY";
     int rank = psiBuildSearchGetRank(buildCmd, searchCmd, "mexican_peso");
-    assertTrue(rank < 2);
+    assertTrue(rank < 3);
   }
   
   @Test

@@ -100,13 +100,19 @@ public class BinaryVectorTest extends TestCase {
   public void testSuperposeAndNormalize() {
     BinaryVector vector = (BinaryVector) VectorFactory.createZeroVector(VectorType.BINARY, 64);
     vector.readFromString("0101010111000011110100011111110110100000001110111000011000100100");
+    assertEquals("0101010111000011110100011111110110100000001110111000011000100100", vector.writeToString());
+
+    vector.normalize();
+    assertEquals("0101010111000011110100011111110110100000001110111000011000100100", vector.writeToString());
+
     BinaryVector vector2 = (BinaryVector) VectorFactory.createZeroVector(VectorType.BINARY, 64);
     vector2.readFromString("0000111111000011110100011111110110100000001110111000011000100100");
     vector.superpose(vector2, 1000, null);
+    vector.toString();
     // This is a surprise to me - calling normalize to make the superposition "take" was
     // unexpected.
-    assertEquals("0101010111000011110100011111110110100000001110111000011000100100", vector.writeToString());
-    vector.normalize();
+    //assertEquals("0101010111000011110100011111110110100000001110111000011000100100", vector.writeToString());
+    //vector.normalize();
     assertEquals("0000111111000011110100011111110110100000001110111000011000100100", vector.writeToString());
 
     BinaryVector vector3 = (BinaryVector) VectorFactory.createZeroVector(VectorType.BINARY, 64);
@@ -196,7 +202,7 @@ public class BinaryVectorTest extends TestCase {
     try {
       IndexOutput indexOutput = directory.createOutput("binaryvectors.bin", IOContext.DEFAULT);
       vector.writeToLuceneStream(indexOutput);
-      indexOutput.flush();
+      indexOutput.close();
       IndexInput indexInput = directory.openInput("binaryvectors.bin", IOContext.DEFAULT);
       Vector vector2 = VectorFactory.createZeroVector(VectorType.BINARY, 64);
       assertEquals("0000000000000000000000000000000000000000000000000000000000000000", vector2.writeToString());

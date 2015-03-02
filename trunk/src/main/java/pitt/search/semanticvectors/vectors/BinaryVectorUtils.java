@@ -40,7 +40,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.logging.Logger;
 
-import org.apache.lucene.util.OpenBitSet;
+import org.apache.lucene.util.FixedBitSet;
 
 import pitt.search.semanticvectors.utils.Bobcat;
 
@@ -105,8 +105,8 @@ public class BinaryVectorUtils {
    */
   public static BinaryVector intersection(BinaryVector vector,  BinaryVector vector2)
   {
-	    OpenBitSet intersection = (OpenBitSet) vector.getCoordinates().clone();
-	    OpenBitSet uncommonGround = (OpenBitSet) vector.getCoordinates().clone();
+	    FixedBitSet intersection = (FixedBitSet) vector.getCoordinates().clone();
+	    FixedBitSet uncommonGround = (FixedBitSet) vector.getCoordinates().clone();
 	    
 	    java.util.Random random = new java.util.Random();
 	    random.setSeed((long) 23); //for consistency across experiments 
@@ -119,7 +119,7 @@ public class BinaryVectorUtils {
 	        // if (x == 0) System.err.print(cnt+"/"+ numchanges+".."+"loop...");
 	        double change = random.nextDouble();
 	        if (uncommonGround.get(x) && change > 0.5) {
-	          intersection.fastFlip(x);
+	          intersection.flip(x);
 	        }
 	      }
 
@@ -133,11 +133,11 @@ public class BinaryVectorUtils {
    * orthogonal to vector j, we alter vector j so it has a Hamming distance of n/2 to vector k. This is the 
    * analog of orthogonality in real/complex space.
    */
-  public static void sampleSubtract(OpenBitSet vector,  OpenBitSet subvector) {	
-    long numchanges =  vector.size()/2 - OpenBitSet.xorCount(vector, subvector); //total common bits - n/2
+  public static void sampleSubtract(FixedBitSet vector,  FixedBitSet subvector) {	
+    long numchanges =  vector.length()/2 - xorCount(vector, subvector); //total common bits - n/2
     java.util.Random random = new java.util.Random();
     random.setSeed((long) 23); //for consistency across experiments 
-    OpenBitSet commonGround = (OpenBitSet) vector.clone();
+    FixedBitSet commonGround = (FixedBitSet) vector.clone();
     //everything different
     commonGround.xor(subvector);
 
@@ -147,10 +147,10 @@ public class BinaryVectorUtils {
     if (numchanges > 0)
       for (int x =0; cnt < numchanges; x++) {	
         // if (x == 0) System.err.print(cnt+"/"+ numchanges+".."+"loop...");
-        if (x >= vector.size()) x =0;
+        if (x >= vector.length()) x =0;
         double change = random.nextDouble();
         if (!commonGround.get(x) && change > 0.5) {
-          vector.fastFlip(x);
+          vector.flip(x);
           cnt++;
         }
       }
@@ -158,10 +158,10 @@ public class BinaryVectorUtils {
     else if (numchanges < 0) {
       for (int x =0; cnt > numchanges; x++) {	
         // if (x == 0) System.err.print(cnt+"/"+ numchanges+".."+"loop...");
-        if (x >= vector.size()) x =0;
+        if (x >= vector.length()) x =0;
         double change = random.nextDouble();
         if (commonGround.get(x) && change > 0.5) {
-          vector.fastFlip(x);
+          vector.flip(x);
           cnt--;
         }
       }
@@ -171,9 +171,9 @@ public class BinaryVectorUtils {
   public static Vector weightedSuperposition(
       BinaryVector v1, double weight1, BinaryVector v2, double weight2) {
     BinaryVector conclusion = (BinaryVector) VectorFactory.createZeroVector(VectorType.BINARY, v1.getDimension());
-    OpenBitSet cVote = conclusion.bitSet;
-    OpenBitSet v1vote = v1.bitSet;
-    OpenBitSet v2vote = v2.bitSet;
+    FixedBitSet cVote = conclusion.bitSet;
+    FixedBitSet v1vote = v1.bitSet;
+    FixedBitSet v2vote = v2.bitSet;
 
     Random random = new Random();
     random.setSeed(Bobcat.asLong(v1.writeLongToString())); 
@@ -184,9 +184,13 @@ public class BinaryVectorUtils {
       if (v2vote.get(x)) probability += weight2 / (weight1 + weight2);
 
       if (random.nextDouble() <= probability)
-        cVote.fastSet(x);	
+        cVote.set(x);
     }
     return conclusion;
   }
 
+  // Have not checked that this is optimal.
+  public static long xorCount(FixedBitSet first, FixedBitSet second) {
+    return FixedBitSet.andNotCount(first, second) + FixedBitSet.andNotCount(second, first);
+  }
 }

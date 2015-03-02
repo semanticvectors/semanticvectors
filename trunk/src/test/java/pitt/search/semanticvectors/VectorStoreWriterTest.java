@@ -73,8 +73,8 @@ public class VectorStoreWriterTest extends TestCase {
     IndexOutput indexOutput = directory.createOutput("realvectors.bin", IOContext.DEFAULT);
     VectorStore store = createTestVectorStore();
     VectorStoreWriter.writeToIndexOutput(store, FLAG_CONFIG, indexOutput);
-    indexOutput.flush();
-    
+    indexOutput.close();
+
     ThreadLocal<IndexInput> threadLocalIndexInput = new ThreadLocal<IndexInput>() {
       @Override
       protected IndexInput initialValue() {

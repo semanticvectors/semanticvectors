@@ -45,6 +45,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.FileSystems;
 import java.util.Enumeration;
 
 /**
@@ -108,7 +109,7 @@ public class VectorStoreWriter {
     File vectorFile = new File(vectorFileName);
     String parentPath = vectorFile.getParent();
     if (parentPath == null) parentPath = "";
-    FSDirectory fsDirectory = FSDirectory.open(new File(parentPath));
+    FSDirectory fsDirectory = FSDirectory.open(FileSystems.getDefault().getPath(parentPath));
     IndexOutput outputStream = fsDirectory.createOutput(vectorFile.getName(), IOContext.DEFAULT);
     writeToIndexOutput(objectVectors, flagConfig, outputStream);
     outputStream.close();
@@ -117,6 +118,7 @@ public class VectorStoreWriter {
 
   /**
    * Writes the object vectors to this Lucene output stream.
+   * Caller is responsible for opening and closing stream output stream.
    */
   public static void writeToIndexOutput(VectorStore objectVectors, FlagConfig flagConfig, IndexOutput outputStream)
       throws IOException {

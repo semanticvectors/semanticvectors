@@ -236,7 +236,7 @@ public class ComplexVectorTest extends TestCase {
     try {
       IndexOutput indexOutput = directory.createOutput("complexvectors.bin", IOContext.DEFAULT);
       v1.writeToLuceneStream(indexOutput);
-      indexOutput.flush();
+      indexOutput.close();
 
       IndexInput indexInput = directory.openInput("complexvectors.bin", IOContext.DEFAULT);
       ComplexVector cv2 = new ComplexVector(3, Mode.POLAR_SPARSE);

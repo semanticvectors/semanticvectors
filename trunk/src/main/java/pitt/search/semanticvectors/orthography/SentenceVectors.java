@@ -36,12 +36,14 @@
 package pitt.search.semanticvectors.orthography;
 
 import java.io.File;
+import java.nio.file.FileSystems;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Random;
 import java.util.StringTokenizer;
 
 import org.apache.lucene.document.Document;
+import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.store.FSDirectory;
@@ -131,7 +133,8 @@ public class SentenceVectors {
     if (!flagConfig.luceneindexpath().isEmpty())
       lUtils = new LuceneUtils(flagConfig);
 
-    IndexReader indexReader = IndexReader.open(FSDirectory.open(new File(flagConfig.luceneindexpath())));
+    IndexReader indexReader = DirectoryReader.open(FSDirectory.open(
+        FileSystems.getDefault().getPath(flagConfig.luceneindexpath())));
 
     int numdocs = indexReader.numDocs();
     VectorStoreRAM sentenceVectors = new VectorStoreRAM(flagConfig);

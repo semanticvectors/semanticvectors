@@ -36,9 +36,9 @@
 package pitt.search.semanticvectors;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.nio.file.FileSystems;
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.List;
@@ -46,7 +46,7 @@ import java.util.TreeSet;
 import java.util.logging.Logger;
 
 import org.apache.lucene.document.Document;
-import org.apache.lucene.index.AtomicReader;
+import org.apache.lucene.index.LeafReader;
 import org.apache.lucene.index.BaseCompositeReader;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.DocsEnum;
@@ -67,12 +67,12 @@ import pitt.search.semanticvectors.utils.VerbatimLogger;
  * including term frequency, doc frequency.
  */
 public class LuceneUtils {
-  public static final Version LUCENE_VERSION = Version.LUCENE_46;
+  public static final Version LUCENE_VERSION = Version.LUCENE_5_0_0;
 
   private static final Logger logger = Logger.getLogger(DocVectors.class.getCanonicalName());
   private FlagConfig flagConfig;
-  private BaseCompositeReader<AtomicReader> compositeReader;
-  private AtomicReader atomicReader;
+  private BaseCompositeReader<LeafReader> compositeReader;
+  private LeafReader leafReader;
   private Hashtable<Term, Float> termEntropy = new Hashtable<Term, Float>();
   private Hashtable<Term, Float> termIDF = new Hashtable<>();
   private TreeSet<String> stopwords = null;
@@ -105,8 +105,9 @@ public class LuceneUtils {
           "-luceneindexpath is a required argument for initializing LuceneUtils instance.");
     }
 
-    this.compositeReader = DirectoryReader.open(FSDirectory.open(new File(flagConfig.luceneindexpath())));  
-    this.atomicReader =  SlowCompositeReaderWrapper.wrap(compositeReader);
+    this.compositeReader = DirectoryReader.open(
+        FSDirectory.open(FileSystems.getDefault().getPath(flagConfig.luceneindexpath())));
+    this.leafReader =  SlowCompositeReaderWrapper.wrap(compositeReader);
     MultiFields.getFields(compositeReader);
     this.flagConfig = flagConfig;
     if (!flagConfig.stoplistfile().isEmpty())
@@ -181,7 +182,7 @@ public class LuceneUtils {
   }
   
   public Document getDoc(int docID) throws IOException {
-    return this.atomicReader.document(docID);
+    return this.leafReader.document(docID);
   }
 
   public String getExternalDocId(int docID) throws IOException {
@@ -204,29 +205,29 @@ public class LuceneUtils {
    * Gets the terms for a given field. Throws {@link java.lang.NullPointerException} if this is null.
    */
   public Terms getTermsForField(String field) throws IOException {
-    Terms terms = atomicReader.terms(field);
+    Terms terms = leafReader.terms(field);
     if (terms == null) {
       throw new NullPointerException(String.format(
           "No terms for field: '%s'.\nKnown fields are: '%s'.", field, StringUtils.join(this.getFieldNames())));
     }
-    return atomicReader.terms(field);
+    return leafReader.terms(field);
   }
   
   public DocsEnum getDocsForTerm(Term term) throws IOException {
-    return this.atomicReader.termDocsEnum(term);
+    return this.leafReader.termDocsEnum(term);
   }
 
   public Terms getTermVector(int docID, String field) throws IOException {
-    return this.atomicReader.getTermVector(docID, field);
+    return this.leafReader.getTermVector(docID, field);
   }
   
   public FieldInfos getFieldInfos() {
-    return this.atomicReader.getFieldInfos();
+    return this.leafReader.getFieldInfos();
   }
 
   public List<String> getFieldNames() {
     List<String> fieldNames = new ArrayList<>();
-    for(FieldInfo fieldName : this.atomicReader.getFieldInfos()) {
+    for(FieldInfo fieldName : this.leafReader.getFieldInfos()) {
       fieldNames.add(fieldName.name);
     }
     return fieldNames;
