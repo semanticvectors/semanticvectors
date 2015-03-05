@@ -7,7 +7,7 @@ _If you know of a project that has used SemanticVectors, please leave a comment 
 ==Open Source Tools==
 
 SeldoIO's Semantic Vectors Lucene Tools, which allows creation of a Lucene index from meta data about items within a Seldon MySQL Database (e.g. movies, articles), from which a SemanticVectors index can easily be built.
-See https://github.com/SeldonIO/semantic-vectors-lucene-tools
+See https://github.com/SeldonIO/semantic-vectors-lucene-tools.
 
 
 ==Research and Related Projects==
