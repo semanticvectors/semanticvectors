@@ -4,6 +4,14 @@ See also RelatedResearch. (These pages should eventually be amalgamated but so f
 
 _If you know of a project that has used SemanticVectors, please leave a comment on this page and we'll incorporate it._
 
+==Open Source Tools==
+
+SeldoIO's Semantic Vectors Lucene Tools, which allows creation of a Lucene index from meta data about items within a Seldon MySQL Database (e.g. movies, articles), from which a SemanticVectors index can easily be built.
+See https://github.com/SeldonIO/semantic-vectors-lucene-tools
+
+
+==Research and Related Projects==
+
 Project Torngat: Building Large-Scale Semantic 'Maps of Science' with LuSql, Lucene, Semantic Vectors, R and Processing from Full-Text. 
 http://zzzoot.blogspot.com/2009/07/project-torngat-building-large-scale.html.
 
