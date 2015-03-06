@@ -62,6 +62,7 @@ import pitt.search.semanticvectors.VectorStoreDeterministic;
 import pitt.search.semanticvectors.VectorStoreRAM;
 import pitt.search.semanticvectors.VectorStoreWriter;
 import pitt.search.semanticvectors.utils.Bobcat;
+import pitt.search.semanticvectors.utils.VerbatimLogger;
 import pitt.search.semanticvectors.vectors.Vector;
 import pitt.search.semanticvectors.vectors.VectorFactory;
 
@@ -131,7 +132,7 @@ public class SentenceVectors {
     
     }
     theVector.normalize();
-
+    
 
     return theVector;
   }
@@ -274,10 +275,20 @@ public class SentenceVectors {
 
 
     }
+    
+    
 
     VectorStoreWriter.writeVectorsInLuceneFormat("sentencevectors.bin", flagConfig, sentenceVectors);
     VectorStoreWriter.writeVectorsInLuceneFormat("sentencenumbervectors.bin", flagConfig, OOV);
     VectorStoreWriter.writeVectorsInLuceneFormat("sentencetermvectors.bin", flagConfig, theWords);
+    
+    //experimental - proximity based word vectors
+    VerbatimLogger.info("\nNormalizing semantic term vectors ...\n");
+    Enumeration<ObjectVector> docEnum = semanticWords.getAllVectors();
+    while (docEnum.hasMoreElements())
+    	docEnum.nextElement().getVector().normalize();
+    
+    
     VectorStoreWriter.writeVectorsInLuceneFormat("positionalritermvectors.bin", flagConfig, semanticWords);
   }
 
