@@ -164,9 +164,10 @@ public class DocVectors implements VectorStore {
     }
 
     VerbatimLogger.info("\nNormalizing doc vectors ...\n");
-    for (int i = 0; i < luceneUtils.getNumDocs(); ++i) {
-      docVectors.getVector(luceneUtils.getExternalDocId(i)).normalize();
-    }
+    
+    Enumeration<ObjectVector> docEnum = docVectors.getAllVectors();
+    while (docEnum.hasMoreElements())
+    	docEnum.nextElement().getVector().normalize();
   }
 
   /**

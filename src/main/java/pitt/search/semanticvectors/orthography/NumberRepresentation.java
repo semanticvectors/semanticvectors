@@ -148,7 +148,11 @@ public class NumberRepresentation {
       theVSR.putVector(iStart + i, ithNumberVector);
     }
 
+    theVSR.putVector("alpha", vL);
+    theVSR.putVector("omega", vR);
+    
     numberVectorsCache.put(iStart+":"+iEnd, theVSR);
+    
     return theVSR;
   }
 }
