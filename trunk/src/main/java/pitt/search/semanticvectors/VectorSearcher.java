@@ -1076,6 +1076,63 @@ public double getScore(Vector testVector) {
 	return 0;
 }
   }
+
+  /**
+   * Class that searches based on proximity between terms.
+   * Requires document vectors build using graded vectors, as per pitt.search.orthography.SentenceVectors
+   */
+  static public class VectorSearcherProximity extends VectorSearcher {
+    ArrayList<Vector> comparisonVectors;
+    VectorStore numberVectorStore;
+    Vector numberVector1, numberVector2;
+    
+    /**
+     * Plain constructor that just fills in the query vector and vector store to be searched.
+     * @param luceneUtils 
+     */
+    public VectorSearcherProximity(VectorStore queryVecStore, VectorStore searchVecStore, VectorStore numberVectorStore, LuceneUtils luceneUtils, FlagConfig flagConfig, String[] queryTerms) {
+      super(queryVecStore, searchVecStore, null, flagConfig);
+   
+      comparisonVectors = new ArrayList<Vector>();
+      this.numberVectorStore = numberVectorStore;
+      numberVector1 = numberVectorStore.getVector("100:alpha");
+      numberVector2 = numberVectorStore.getVector("100:omega");
+      
+      
+      for (int q=0; q < queryTerms.length; q++)
+    	   if (queryVecStore.containsVector(queryTerms[q]))
+    			   comparisonVectors.add(queryVecStore.getVector(queryTerms[q]));
+    	        
+     }
+
+    @Override
+    public double getScore(Vector testVector) {
+    	double proximityScore = 0;
+    	Vector testCopy1, testCopy2;
+    	
+    	int numTests    = comparisonVectors.size();
+    	 
+    	for (int q=0; q < numTests-1; q++)
+    	{
+    			testCopy1 = testVector.copy();
+    			testCopy2 = testVector.copy();
+    			testCopy1.release(comparisonVectors.get(q));
+    			testCopy2.release(comparisonVectors.get(q+1));
+    			
+    			 double a1 = testCopy1.measureOverlap(numberVector1);
+    			 double a2 = testCopy1.measureOverlap(numberVector2);
+    			 
+    			 double o1 = testCopy2.measureOverlap(numberVector1);
+    			 double o2 = testCopy2.measureOverlap(numberVector2);
+     			
+    			proximityScore += (a1*o1+a2*o2);
+    	}
+    
+      return proximityScore;
+    }
+  }
+  
+  
   
   /**
    * calculates approximation of standard deviation (using a somewhat imprecise single-pass algorithm)
@@ -1100,6 +1157,8 @@ public double getScore(Vector testVector) {
     }
     return transformedResults;
   }
+  
+ 
 
 
 }

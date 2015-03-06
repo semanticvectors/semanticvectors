@@ -173,7 +173,16 @@ public class Search {
      * Builds an additive query vector (as with {@link SearchType#SUM} and prints out the query
      * vector for debugging).
      */
-    PRINTPSIQUERY
+    PRINTPSIQUERY, 
+    
+    /**
+     * Looks for documents in which the terms passed as parameters occur in proximity. Requires document vectors
+     * built with graded vectors, as in pitt.search.orthography.SentenceVectors
+     * 
+     */
+    
+    
+    PROXIMITY
   }
 
   private static LuceneUtils luceneUtils;
@@ -366,6 +375,10 @@ public class Search {
           vecSearcher = new VectorSearcher.AnalogySearcher(
               queryVecReader, searchVecReader, luceneUtils, flagConfig, queryArgs);
           break;
+        case PROXIMITY:
+            vecSearcher = new VectorSearcher.VectorSearcherProximity(
+                queryVecReader, searchVecReader, boundVecReader, luceneUtils, flagConfig, queryArgs);
+            break;
         case LUCENE:
           vecSearcher = new VectorSearcher.VectorSearcherLucene(
               luceneUtils, flagConfig, queryArgs);
