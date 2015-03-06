@@ -3,6 +3,15 @@
 
 Even-numbered (after the decimal point) versions are releases. Odd-numbered versions are in development. It follows that the most recent code and the `build.xml` file in the SVN repository is always odd-numbered.
 
+=== Version 5.7 (release candidate) ===
+
+ * Upgrade to Lucene 5.0.0.
+   * Includes changing OpenBitSet to FixedBitSet in BinaryVector.
+ * Change to doc vectors to make sure that we output zero vectors rather than no vectors for empty documents (e.g., all stop words).
+ * Some flag consistency changes.
+ * Set default -termweight to IDF.
+ * Internal change to use doc path rather than Lucene doc int ID as key throughout.
+
 === Version 5.6 ===
 
  * Addition of Tabular datasets indexing (prototype).
