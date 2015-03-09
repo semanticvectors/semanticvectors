@@ -18,10 +18,10 @@ public class NumberRepresentationTest {
     NumberRepresentation numberRepresentation = new NumberRepresentation(flagConfig);
     
     VectorStoreRAM vsr2 = numberRepresentation.getNumberVectors(0, 2);
-    assertEquals(3, vsr2.getNumVectors());
+    assertEquals(5, vsr2.getNumVectors());
     
     VectorStoreRAM vsr4 = numberRepresentation.getNumberVectors(0, 4);
-    assertEquals(5, vsr4.getNumVectors());
+    assertEquals(7, vsr4.getNumVectors());
     
     // The beginning and end vectors should be the same in all cases.
     assertEquals(1.0, vsr2.getVector(0).measureOverlap(vsr4.getVector(0)), TOL);
