@@ -1,6 +1,6 @@
 # Ideas #
 
-There are many natural ideas and suggestions for things to try with SemanticVectors. This page is meant to be a starting point. Feel free to add new ideas or comment on existing ones. Many ideas start as discussions in the [mailing list](https://groups.google.com/forum/?fromgroups#!forum/semanticvectors). Some ideas turn into engineering tasks and may eventually be tracked at [Issues](https://code.google.com/p/semanticvectors/issues/list).
+There are many natural ideas and suggestions for things to try with SemanticVectors. This page is meant to be a starting point. Feel free to add new ideas or comment on existing ones. Many ideas start as discussions in the [mailing list](https://groups.google.com/forum/?fromgroups#!forum/semanticvectors). Some ideas turn into engineering tasks and may eventually be tracked at [Issues](https://github.com/semanticvectors/semanticvectors/issues).
 
 ## Engineering TODOs and Suggestions ##
 
