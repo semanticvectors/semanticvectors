@@ -1,0 +1,1 @@
+[ParallelColt](https://sites.google.com/site/piotrwendykier/software/parallelcolt) is a library that SemanticVectors uses for vector operations such as Fast Fourier Transforms.

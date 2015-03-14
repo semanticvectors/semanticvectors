@@ -1,0 +1,1 @@
+See http://semanticvectors.googlecode.com/svn/javadoc/latest-stable/pitt/search/semanticvectors/BuildPositionalIndex.html
