@@ -54,7 +54,7 @@ If this fails or is too daunting (which it may be, there's a lot going on and ge
 
 ### Command-Line Flags ###
 
-For more on configuration options, see [CommandLineFlags](wiki/CommandLineFlags.md).
+For more on configuration options, see [CommandLineFlags](CommandLineFlags.md).
 
 ## Training Cycles ##
 
