@@ -161,9 +161,10 @@ public class ComplexVectorUtils {
       for (int j = 0; j < k; ++j) {
         Vector jthVector = list.get(j);
         renderOrthogonal( (ComplexVector) kthVector, (ComplexVector) jthVector);
-        // And renormalize each time.
-        kthVector.normalize();
       }
+        // And renormalize each time.... after all projections subtracted
+        kthVector.normalize();
+      
     }
     return true;
   }
