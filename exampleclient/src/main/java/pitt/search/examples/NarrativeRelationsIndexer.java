@@ -11,13 +11,16 @@ e.g.,
 
 import pitt.search.semanticvectors.*;
 import pitt.search.semanticvectors.orthography.ProportionVectors;
+import pitt.search.semanticvectors.vectors.RealVector;
 import pitt.search.semanticvectors.vectors.Vector;
+import pitt.search.semanticvectors.vectors.VectorFactory;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 
@@ -31,7 +34,7 @@ public class NarrativeRelationsIndexer {
   String VERBS_POSITIONS_OUTPUT_FILE = "verbs_positions";
 
   private ElementalVectorStore elementalVectors;
-  private List<ParsedRecord> parsedRecords = new ArrayList<>();
+  private HashMap<String, List<ParsedRecord>> parsedRecords = new HashMap<>();
   private HashMap<String, Integer> docToMaxPosition = new HashMap<>();
   private ProportionVectors proportionVectors;
 
@@ -62,7 +65,15 @@ public class NarrativeRelationsIndexer {
   private Vector getPsiTripleVector(ParsedRecord record) {
     Vector returnVector = this.elementalVectors.getVector(record.subject).copy();
     returnVector.bind(this.elementalVectors.getVector(record.predicate).copy());
-    returnVector.bind(this.elementalVectors.getVector(record.predicate).copy());
+    returnVector.bind(this.elementalVectors.getVector(record.object).copy());
+
+    /*
+    for (float coord : (((RealVector) returnVector).getCoordinates())) {
+      if (Math.abs(coord) > 100) {
+        System.out.println("Cannot have a vector this big here.");
+      }
+    }
+    */
     return returnVector;
   }
 
@@ -80,16 +91,13 @@ public class NarrativeRelationsIndexer {
   /* Parse all the records in the inputFile, skipping the header line. */
   private void parseInputFile(String inputFile) throws IOException {
     List<String> lines = Files.readAllLines(FileSystems.getDefault().getPath(inputFile), Charset.defaultCharset());
-    this.parsedRecords = new ArrayList<>();
     for (int i = 1; i < lines.size(); ++i) {
-      this.parsedRecords.add(new ParsedRecord(lines.get(i)));
-    }
-  }
+      ParsedRecord record = new ParsedRecord(lines.get(i));
+      if (!this.parsedRecords.containsKey(record.docName)) {
+        this.parsedRecords.put(record.docName, new ArrayList<ParsedRecord>());
+      }
+      this.parsedRecords.get(record.docName).add(record);
 
-  /* First pass over corpus to collect document names and lengths for later. */
-  private void getDocLengths() {
-    HashMap<String, Integer> docToMaxPosition = new HashMap<>();
-    for (ParsedRecord record : this.parsedRecords) {
       if (!this.docToMaxPosition.containsKey(record.docName) ||
           this.docToMaxPosition.containsKey(record.docName) && this.docToMaxPosition.get(record.docName) < record.position) {
         this.docToMaxPosition.put(record.docName, record.position);
@@ -104,7 +112,6 @@ public class NarrativeRelationsIndexer {
 
     // Turn all the text lines into parsed records.
     this.parseInputFile(inputFile);
-    this.getDocLengths();
 
     // Now the various indexing techniques.
     VectorStoreRAM triplesVectors = new VectorStoreRAM(flagConfig);
@@ -114,21 +121,45 @@ public class NarrativeRelationsIndexer {
     VectorStoreRAM verbsVectors = new VectorStoreRAM(flagConfig);
     VectorStoreRAM verbsPositionsVectors = new VectorStoreRAM(flagConfig);
 
-    for (ParsedRecord record : this.parsedRecords) {
-      Vector tripleVector = this.getPsiTripleVector(record);
-      triplesVectors.getVectorOrZero(record.docName).superpose(tripleVector, 1, null);
-      this.bindWithPosition(record, tripleVector);
-      triplesPositionsVectors.getVectorOrZero(record.docName).superpose(tripleVector, 1, null);
+    for (String docName : this.parsedRecords.keySet()) {
+      Vector tripleDocVector = VectorFactory.createZeroVector(flagConfig.vectortype(), flagConfig.dimension());
+      Vector tripleDocPositionVector = VectorFactory.createZeroVector(flagConfig.vectortype(), flagConfig.dimension());
+      Vector dyadDocVector = VectorFactory.createZeroVector(flagConfig.vectortype(), flagConfig.dimension());
+      Vector dyadDocPositionVector = VectorFactory.createZeroVector(flagConfig.vectortype(), flagConfig.dimension());
+      Vector verbDocVector = VectorFactory.createZeroVector(flagConfig.vectortype(), flagConfig.dimension());
+      Vector verbDocPositionVector = VectorFactory.createZeroVector(flagConfig.vectortype(), flagConfig.dimension());
 
-      Vector dyadVector = this.getPsiDyadVector(record);
-      dyadsVectors.getVectorOrZero(record.docName).superpose(dyadVector, 1, null);
-      this.bindWithPosition(record, dyadVector);
-      dyadsPositionsVectors.getVectorOrZero(record.docName).superpose(dyadVector, 1, null);
+      for (ParsedRecord record : this.parsedRecords.get(docName)) {
+        Vector tripleVector = this.getPsiTripleVector(record);
+        tripleDocVector.superpose(tripleVector, 1, null);
 
-      Vector verbVector = this.elementalVectors.getVector(record.predicate);
-      verbsVectors.getVectorOrZero(record.docName).superpose(verbVector, 1, null);
-      this.bindWithPosition(record, verbVector);
-      verbsPositionsVectors.getVectorOrZero(record.docName).superpose(verbVector, 1, null);
+        this.bindWithPosition(record, tripleVector);
+        tripleDocPositionVector.superpose(tripleVector, 1, null);
+
+        Vector dyadVector = this.getPsiDyadVector(record);
+        dyadDocVector.superpose(dyadVector, 1, null);
+        this.bindWithPosition(record, dyadVector);
+        dyadDocPositionVector.superpose(dyadVector, 1, null);
+
+        Vector verbVector = this.elementalVectors.getVector(record.predicate);
+        verbDocVector.superpose(verbVector, 1, null);
+        this.bindWithPosition(record, verbVector);
+        verbDocPositionVector.superpose(verbVector, 1, null);
+      }
+
+      triplesVectors.putVector(docName, tripleDocVector);
+      triplesPositionsVectors.putVector(docName, tripleDocPositionVector);
+      dyadsVectors.putVector(docName, dyadDocVector);
+      dyadsPositionsVectors.putVector(docName, dyadDocPositionVector);
+      verbsVectors.putVector(docName, verbDocVector);
+      verbsPositionsVectors.putVector(docName, verbDocPositionVector);
+    }
+
+    for (VectorStore vectorStore : new VectorStore[] {
+        triplesVectors, triplesPositionsVectors, dyadsVectors, dyadsPositionsVectors, verbsVectors, verbsPositionsVectors }) {
+      Enumeration<ObjectVector> vectorEnumeration = vectorStore.getAllVectors();
+      while (vectorEnumeration.hasMoreElements())
+        vectorEnumeration.nextElement().getVector().normalize();
     }
 
     writer.writeVectors(TRIPLES_OUTPUT_FILE, flagConfig, triplesVectors);
