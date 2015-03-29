@@ -8,6 +8,13 @@ target/*
 permutation_index/
 positional_index/
 predication_index/
+testtermvectors.txt
+
+#################
+## IntelliJ IDEA
+#################
+.idea/*
+*.iml
 
 #################
 ## Eclipse
@@ -225,3 +232,4 @@ pip-log.txt
 
 #Mr Developer
 .mr.developer.cfg
+.idea/uiDesigner.xml
