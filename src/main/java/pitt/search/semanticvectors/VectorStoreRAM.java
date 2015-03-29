@@ -145,6 +145,25 @@ public class VectorStoreRAM implements VectorStore {
   }
 
   /**
+   * Given an object, get its corresponding vector.
+   *
+   * <p>
+   * This implementation only works for string objects so far.
+   *
+   * @param desiredObject - the string you're searching for
+   * @return vector from the VectorStore, or new zero vector if not found.
+   */
+  public Vector getVectorOrZero(Object desiredObject) {
+    ObjectVector objectVector = this.objectVectors.get(desiredObject);
+    if (objectVector != null) {
+      return objectVector.getVector();
+    } else {
+      this.putVector(desiredObject, VectorFactory.createZeroVector(this.vectorType, this.dimension));
+      return this.getVector(desiredObject);
+    }
+  }
+
+  /**
 	 * Given an object, return its corresponding vector and remove it from the
 	 * VectorStore. Does nothing and returns null if the object was not found.
 	 * <p>
