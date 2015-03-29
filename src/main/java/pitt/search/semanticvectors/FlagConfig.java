@@ -102,7 +102,7 @@ public class FlagConfig {
   /** The binding method used for real vectors, see {@link RealVector#BIND_METHOD}. */
   public RealBindMethod realbindmethod() { return realbindmethod; }
   
-  private ElementalGenerationMethod elementalmethod = ElementalGenerationMethod.RANDOM;
+  private ElementalGenerationMethod elementalmethod = ElementalGenerationMethod.CONTENTHASH;
   /** The method used for generating elemental vectors. */
   public ElementalGenerationMethod elementalmethod() { return elementalmethod; }
   
