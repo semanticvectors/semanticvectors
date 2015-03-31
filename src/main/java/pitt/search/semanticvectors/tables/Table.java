@@ -59,6 +59,28 @@ public class Table {
     return this.rowSummaryVectors;
   }
 
+  /** Returns header vector for particular column in the table. */
+  public Vector getColumnVector(int colIndex)
+  {
+	 return columnHeaders[colIndex].getVector().copy();
+  }
+  
+  /** Returns demarcator vector for particular column in the table. */
+  public Vector getColumnAlphaVector(int colIndex)
+  {
+	  return columnTypes[colIndex].getDoubleValueVector(flagConfig, columnTypes[colIndex].getMinDoubleValue()).copy();
+  }
+
+  public Vector getColumnOmegaVector(int colIndex)
+  {
+	  return columnTypes[colIndex].getDoubleValueVector(flagConfig, columnTypes[colIndex].getMaxDoubleValue()).copy();
+  }
+  
+  public Vector getDemarcatorVector(int colIndex, double value)
+  {
+	  return columnTypes[colIndex].getDoubleValueVector(flagConfig, value).copy();
+  }  
+  
   /** Returns a vector for a particular cell in the table. */
   public Vector makeCellVector(int colIndex, String value) {
     if (value.trim().isEmpty()) {
@@ -67,16 +89,17 @@ public class Table {
 
     Vector valueVector = null;
 
-    boolean useTabular = false;
+    boolean useTabular = true;
 
     if (useTabular) {
       switch (columnTypes[colIndex].getType()) {
         case STRING:
-          break;
+        	valueVector = randomElementalVectors.getVector(value); 
+        	break;
         case DOUBLE:
-          valueVector = columnTypes[colIndex].getDoubleValueVector(
+                	valueVector = columnTypes[colIndex].getDoubleValueVector(
               flagConfig, Double.parseDouble(value));
-          break;
+            break;
       }
     } else {
       switch (flagConfig.elementalmethod()) {
@@ -84,7 +107,7 @@ public class Table {
           valueVector = randomElementalVectors.getVector(value);
           break;
         case CONTENTHASH:
-          throw new NotImplementedException();
+          //throw new NotImplementedException();
         case ORTHOGRAPHIC:
           valueVector = orthographicVectorStore.getVector(value);
           break;
@@ -97,8 +120,7 @@ public class Table {
 
     Vector boundColVal = columnHeaders[colIndex].getVector().copy();
     boundColVal.bind(valueVector);
-    boundColVal.normalize();
-    return boundColVal;
+      return boundColVal;
   }
 
   public LinkedList<SearchResult> searchRowVectors(Vector queryVector) {
@@ -107,12 +129,22 @@ public class Table {
     return searcher.getNearestNeighbors(flagConfig.numsearchresults());
   }
   
+  public LinkedList<SearchResult>  searchProxRowVectors(Vector elementalYOB, Vector elementalTTO,
+			Vector demarcatorAlpha, Vector demarcatorOmega) {
+		// TODO Auto-generated method stub
+	   	  VectorSearcher.VectorSearcherProximity searcher = new VectorSearcher.VectorSearcherProximity(
+	   			elementalYOB, elementalTTO, demarcatorAlpha, demarcatorOmega, getRowVectorStore(), flagConfig);
+	  
+	   	  return searcher.getNearestNeighbors(flagConfig.numsearchresults());
+	  
+	}
+  
   private void addRow(String[] rowValues) {
     Vector accumulator = VectorFactory.createZeroVector(flagConfig.vectortype(), flagConfig.dimension());
     for (int i = 0; i < columnHeaders.length; ++i) {
       accumulator.superpose(makeCellVector(i, rowValues[i]), 1, null);
     }
-    accumulator.normalize();
+   accumulator.normalize();
     rowSummaryVectors.putVector(rowValues[0], accumulator);
   }
 
@@ -124,13 +156,28 @@ public class Table {
       for (int i = 0; i < entries.length; ++i) {
         columnTypes[i].addExample(entries[i]);
       }
+     
     }
+      //special condition for birth/term example  (to be removed)
+      double minYear = Math.min(columnTypes[2].getMinDoubleValue(), columnTypes[5].getMinDoubleValue());
+      double maxYear = Math.max(columnTypes[2].getMaxDoubleValue(), columnTypes[5].getMaxDoubleValue());
+      columnTypes[5].setMaxDoubleValue(maxYear);
+      columnTypes[2].setMaxDoubleValue(maxYear);
+      columnTypes[5].setMinDoubleValue(minYear);
+      columnTypes[2].setMinDoubleValue(minYear);
+      System.err.println(columnTypes[5].getMaxDoubleValue()+"\t"+columnTypes[2].getMaxDoubleValue());
+      System.err.println(columnTypes[5].getMinDoubleValue()+"\t"+columnTypes[2].getMinDoubleValue());
+      
+    
 
     // Now we've seen all values, those we know to be numeric should be prepared with bookend vectors.
     for (int i = 0; i < columnTypes.length; ++i) {
       if (columnTypes[i].getType() == TypeSpec.SupportedType.DOUBLE) {
-        columnTypes[i].addMinMaxVectors(flagConfig, columnHeaders[i].getObject().toString());
+    	 columnTypes[i].addMinMaxVectors(flagConfig, "standard_demarcator");
+    //    columnTypes[i].addMinMaxVectors(flagConfig, columnHeaders[i].getObject().toString());
       }
     }
   }
+
+
 }
