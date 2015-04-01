@@ -35,6 +35,15 @@ public class TableIndexer {
       System.out.println(result.toTexTableString(20));
     }
     
+    
+    System.out.println("\nSorting in order of age upon taking office");
+    queryVector = table.getColumnAlphaVector(8).copy();
+    queryVector.bind(table.getColumnVector(8));
+    for (SearchResult result : table.searchRowVectors(queryVector)) {
+      System.out.println(result.toTexTableString(20));
+    }
+    
+    
     System.out.println("\nQuerying for proximity between year of birth and time took office");
     Vector elementalYOB  	= table.getColumnVector(5);
     Vector elementalTTO  		= table.getColumnVector(2);
