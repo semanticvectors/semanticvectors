@@ -1118,14 +1118,8 @@ public double getScore(Vector testVector) {
          numberVector1 = demarcatorAlpha.copy();
          numberVector2 = demarcatorOmega.copy();
          
-         numberVector1.normalize();
-         numberVector2.normalize();
-         
-          
-        comparisonVectors.add(elementalOne.copy());
-        comparisonVectors.add(elementalTwo.copy());	
-        comparisonVectors.get(0).normalize();
-        comparisonVectors.get(1).normalize();
+        comparisonVectors.add(elementalOne);
+        comparisonVectors.add(elementalTwo);	
         
 		// TODO Auto-generated constructor stub
 	}
@@ -1144,13 +1138,16 @@ public double getScore(Vector testVector) {
     			testCopy1.release(comparisonVectors.get(q));
     			testCopy2.release(comparisonVectors.get(q+1));
     			
+    			
     			 double a1 = testCopy1.measureOverlap(numberVector1);
     			 double a2 = testCopy1.measureOverlap(numberVector2);
     			 
     			 double o1 = testCopy2.measureOverlap(numberVector1);
     			 double o2 = testCopy2.measureOverlap(numberVector2);
      			
-    			proximityScore += a1*o1+a2*o2;
+    			//proximityScore += (a1*o1 + a2*o2);
+    			proximityScore += Math.sqrt(Math.pow((a1-o1),2) + Math.pow((a2-o2),2));
+    		  			
     	}
     
       return proximityScore;
