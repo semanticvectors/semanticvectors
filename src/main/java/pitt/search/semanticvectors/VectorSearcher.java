@@ -1105,7 +1105,26 @@ public double getScore(Vector testVector) {
     	        
      }
 
-    @Override
+    /*
+     * Constructor that allows specification of "release" vectors and demarcator vectors directly
+     */
+    public VectorSearcherProximity(Vector elementalOne, Vector elementalTwo,
+			Vector demarcatorAlpha, Vector demarcatorOmega,
+			VectorStore rowVectorStore, FlagConfig flagConfig) {
+    	 super(rowVectorStore, rowVectorStore, null, flagConfig);
+    	   
+         comparisonVectors = new ArrayList<Vector>();
+      
+         numberVector1 = demarcatorAlpha.copy();
+         numberVector2 = demarcatorOmega.copy();
+         
+        comparisonVectors.add(elementalOne);
+        comparisonVectors.add(elementalTwo);	
+        
+		// TODO Auto-generated constructor stub
+	}
+
+	@Override
     public double getScore(Vector testVector) {
     	double proximityScore = 0;
     	Vector testCopy1, testCopy2;
@@ -1119,13 +1138,16 @@ public double getScore(Vector testVector) {
     			testCopy1.release(comparisonVectors.get(q));
     			testCopy2.release(comparisonVectors.get(q+1));
     			
+    			
     			 double a1 = testCopy1.measureOverlap(numberVector1);
     			 double a2 = testCopy1.measureOverlap(numberVector2);
     			 
     			 double o1 = testCopy2.measureOverlap(numberVector1);
     			 double o2 = testCopy2.measureOverlap(numberVector2);
      			
-    			proximityScore += (a1*o1+a2*o2);
+    			//proximityScore += (a1*o1 + a2*o2);
+    			proximityScore += Math.sqrt(Math.pow((a1-o1),2) + Math.pow((a2-o2),2));
+    		  			
     	}
     
       return proximityScore;

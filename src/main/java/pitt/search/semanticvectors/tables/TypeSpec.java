@@ -5,6 +5,7 @@ import pitt.search.semanticvectors.utils.Bobcat;
 import pitt.search.semanticvectors.utils.VerbatimLogger;
 import pitt.search.semanticvectors.vectors.Vector;
 import pitt.search.semanticvectors.vectors.VectorFactory;
+import pitt.search.semanticvectors.vectors.VectorType;
 import pitt.search.semanticvectors.vectors.VectorUtils;
 
 import java.util.Random;
@@ -59,6 +60,21 @@ public class TypeSpec {
       throw new IllegalArgumentException("Must have type DOUBLE, not " + type);
     return maxDoubleValue;
   }
+  
+  /** Sets the minDoubleValue if type is {@link SupportedType#DOUBLE}. */
+  public void setMinDoubleValue(double min) {
+    if (type != SupportedType.DOUBLE)
+      throw new IllegalArgumentException("Must have type DOUBLE, not " + type);
+    minDoubleValue= min;
+  }
+  
+  /** Sets the maxDoubleValue if type is {@link SupportedType#DOUBLE}. */
+  public void setMaxDoubleValue(double max) {
+    if (type != SupportedType.DOUBLE)
+      throw new IllegalArgumentException("Must have type DOUBLE, not " + type);
+    maxDoubleValue = max;
+  }
+  
   
   /** See {@link #getEmptyType()} */
   private TypeSpec() {
@@ -115,7 +131,7 @@ public class TypeSpec {
           flagConfig.vectortype(), flagConfig.dimension(), flagConfig.seedlength(), random);
       maxBookendVector = VectorFactory.generateRandomVector(
           flagConfig.vectortype(), flagConfig.dimension(), flagConfig.seedlength(), random);
-      if (minBookendVector.measureOverlap(maxBookendVector) < 0.1) break;
+      if (minBookendVector.measureOverlap(maxBookendVector) < 0.1 || flagConfig.vectortype().equals(VectorType.BINARY) && minBookendVector.measureOverlap(maxBookendVector) < 0.01 ) break;
       VerbatimLogger.info("Bookend vectors too similar to each other ... repeating generation.\n");
     }
   }
@@ -125,15 +141,16 @@ public class TypeSpec {
    * Only for type {@link SupportedType#DOUBLE}.
    */
   public Vector getDoubleValueVector(FlagConfig flagConfig, double value) {
-    if (this.getType() != SupportedType.DOUBLE) {
+   
+	  if (this.getType() != SupportedType.DOUBLE) {
       throw new IllegalArgumentException("Bad call to getDoubleValue.");
     }
     if (value < minDoubleValue || value > maxDoubleValue) {
       throw new IllegalArgumentException("Value out of bounds: " + value);
     }
     double doubleRange = maxDoubleValue - minDoubleValue;
-    Vector result = VectorUtils.weightedSuperposition(minBookendVector, (value - minDoubleValue) / doubleRange,
-        maxBookendVector, (maxDoubleValue - value) / doubleRange);
+    Vector result = VectorUtils.weightedSuperposition(minBookendVector, (value - minDoubleValue),
+        maxBookendVector, (maxDoubleValue - value) );
     return result;
   }
 }

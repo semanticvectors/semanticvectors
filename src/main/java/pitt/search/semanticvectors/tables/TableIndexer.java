@@ -24,17 +24,41 @@ public class TableIndexer {
 
   /** Experiment in querying for a particular inauguration date. */
   private static void queryForSpecialValues(Table table) {
-    System.out.println("Querying for time took office 1800");
+    System.out.println("\nQuerying for time took office 1800");
     Vector queryVector = table.makeCellVector(2, "1800");
     for (SearchResult result : table.searchRowVectors(queryVector)) {
       System.out.println(result.toTexTableString(20));
     }
-    System.out.println("Querying for year of birth 1900");
-    queryVector = table.makeCellVector(5, "1900");
+    System.out.println("\nQuerying for year of birth 1800");
+    queryVector = table.makeCellVector(5, "1800");
     for (SearchResult result : table.searchRowVectors(queryVector)) {
       System.out.println(result.toTexTableString(20));
     }
+    
+    
+    System.out.println("\nSorting in order of age upon taking office");
+    queryVector = table.getColumnAlphaVector(8).copy();
+    queryVector.bind(table.getColumnVector(8));
+    for (SearchResult result : table.searchRowVectors(queryVector)) {
+      System.out.println(result.toTexTableString(20));
+    }
+    
+    
+    System.out.println("\nQuerying for proximity between year of birth and time took office");
+    Vector elementalYOB  	= table.getColumnVector(5);
+    Vector elementalTTO  		= table.getColumnVector(2);
+    Vector demarcatorAlpha 	= table.getColumnAlphaVector(2); //should be identical across columns on account of "standard_demarcator" seed
+     Vector demarcatorOmega	= table.getColumnOmegaVector(2); //as above
+    
+     //System.out.println(demarcatorAlpha.measureOverlap(table.getColumnAlphaVector(5)));
+     //System.out.println(table.getDemarcatorVector(2, 1950).measureOverlap( table.getDemarcatorVector(5, 1950)));
+     
+    	for (SearchResult result : table.searchProxRowVectors(elementalYOB,elementalTTO, demarcatorAlpha, demarcatorOmega))  {
+    	      System.out.println(result.getScore()+"\t"+result.getObjectVector().getObject().toString());
+        }
+    
   }
+  
 
   /** Experiment in querying for a particular president's name. */
   private static void queryForName(Table table, String name) {
@@ -80,8 +104,9 @@ public class TableIndexer {
     Table table = new Table(flagConfig, columnHeaders, dataRows);
     VectorStoreWriter.writeVectors(flagConfig.termvectorsfile(), flagConfig, table.getRowVectorStore());
 
-    //queryForSpecialValues(table);
-    queryForName(table, "J. Adams");
-    queryForName(table, "T. Roosevelt");
+    queryForSpecialValues(table);
+    //queryForName(table, "J. Adams");
+   // queryForName(table, "T. Roosevelt");
+    
   }
 }
