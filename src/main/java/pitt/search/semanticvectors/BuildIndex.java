@@ -96,6 +96,7 @@ public class BuildIndex {
     LuceneUtils luceneUtils = new LuceneUtils(flagConfig);
 
     try {
+      // Create term vectors and write them to disk.
       TermVectorsFromLucene termVectorIndexer;
       if (!flagConfig.initialtermvectors().isEmpty()) {
         // If Flags.initialtermvectors="random" create elemental (random index)
@@ -117,10 +118,12 @@ public class BuildIndex {
         termVectorIndexer = TermVectorsFromLucene.createTermVectorsFromLucene(flagConfig, initialDocVectors);
       }
 
-      // Create doc vectors and write vectors to disk.
+      VerbatimLogger.info("Writing term vectors to " + termFile + "\n");
+      VectorStoreWriter.writeVectors(termFile, flagConfig, termVectorIndexer.getSemanticTermVectors());
+
+      // Create doc vectors and write them to disk.
       switch (flagConfig.docindexing()) {
       case INCREMENTAL:
-        VectorStoreWriter.writeVectors(termFile, flagConfig, termVectorIndexer.getSemanticTermVectors());
         IncrementalDocVectors.createIncrementalDocVectors(
             termVectorIndexer.getSemanticTermVectors(), flagConfig, luceneUtils);
         IncrementalTermVectors itermVectors;
@@ -146,15 +149,10 @@ public class BuildIndex {
         // At end of training, convert document vectors from ID keys to pathname keys.
         VectorStore writeableDocVectors = docVectors.makeWriteableVectorStore();
 
-        VerbatimLogger.info("Writing term vectors to " + termFile + "\n");
-        VectorStoreWriter.writeVectors(termFile, flagConfig, termVectorIndexer.getSemanticTermVectors());
         VerbatimLogger.info("Writing doc vectors to " + docFile + "\n");
         VectorStoreWriter.writeVectors(docFile, flagConfig, writeableDocVectors);
         break;
       case NONE:
-        // Write term vectors to disk even if there are no docvectors to output.
-        VerbatimLogger.info("Writing term vectors to " + termFile + "\n");
-        VectorStoreWriter.writeVectors(termFile, flagConfig, termVectorIndexer.getSemanticTermVectors());
         break;
       default:
         throw new IllegalStateException(

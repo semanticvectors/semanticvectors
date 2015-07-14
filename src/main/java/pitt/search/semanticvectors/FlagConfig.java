@@ -291,7 +291,7 @@ public class FlagConfig {
   /** If set, use the vectors in this file for initialization instead of new random vectors. */
   public String initialdocumentvectors() { return initialdocumentvectors; }
 
-  private DocIndexingStrategy docindexing = DocIndexingStrategy.INMEMORY;
+  private DocIndexingStrategy docindexing = DocIndexingStrategy.INCREMENTAL;
   /** Memory management method used for indexing documents. */
   public DocIndexingStrategy docindexing() { return docindexing; }
 

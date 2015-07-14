@@ -101,7 +101,7 @@ public class ElementalVectorStore implements VectorStore{
       return backingStore.getVector(term);
     default:
       throw new IllegalStateException(
-          "Not a recgonized generation method: '" + flagConfig.elementalmethod() + "'");
+          "Not a recognized generation method: '" + flagConfig.elementalmethod() + "'");
     }
   }
 
