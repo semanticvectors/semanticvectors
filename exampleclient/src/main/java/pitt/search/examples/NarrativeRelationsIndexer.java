@@ -33,10 +33,17 @@ public class NarrativeRelationsIndexer {
   String VERBS_OUTPUT_FILE = "verbs";
   String VERBS_POSITIONS_OUTPUT_FILE = "verbs_positions";
 
-  private ElementalVectorStore elementalVectors;
+  private VectorStoreRAM elementalVectors;
   private HashMap<String, List<ParsedRecord>> parsedRecords = new HashMap<>();
   private HashMap<String, Integer> docToMaxPosition = new HashMap<>();
   private ProportionVectors proportionVectors;
+  private FlagConfig flagConfig;
+  private LuceneUtils luceneUtils;
+
+  private Vector vectorForString(String input) {
+    return CompoundVectorBuilder.getQueryVectorFromString(
+        this.elementalVectors, this.luceneUtils, this.flagConfig, input.toLowerCase());
+  }
 
   private static class ParsedRecord {
     String docName;
@@ -63,9 +70,9 @@ public class NarrativeRelationsIndexer {
   }
 
   private Vector getPsiTripleVector(ParsedRecord record) {
-    Vector returnVector = this.elementalVectors.getVector(record.subject).copy();
-    returnVector.bind(this.elementalVectors.getVector(record.predicate).copy());
-    returnVector.bind(this.elementalVectors.getVector(record.object).copy());
+    Vector returnVector = this.vectorForString(record.subject);
+    returnVector.bind(this.vectorForString(record.predicate));
+    returnVector.bind(this.vectorForString(record.object));
 
     /*
     for (float coord : (((RealVector) returnVector).getCoordinates())) {
@@ -78,11 +85,11 @@ public class NarrativeRelationsIndexer {
   }
 
   private Vector getPsiDyadVector(ParsedRecord record) {
-    Vector subjectRelationVector = this.elementalVectors.getVector(record.subject).copy();
-    subjectRelationVector.bind(this.elementalVectors.getVector(record.predicate).copy());
+    Vector subjectRelationVector = this.vectorForString(record.subject);
+    subjectRelationVector.bind(this.vectorForString(record.predicate));
 
-    Vector objectRelationVector = this.elementalVectors.getVector(record.predicate).copy();
-    objectRelationVector.bind(this.elementalVectors.getVector(record.object).copy());
+    Vector objectRelationVector = this.vectorForString(record.predicate);
+    objectRelationVector.bind(this.vectorForString(record.object));
 
     subjectRelationVector.superpose(objectRelationVector, 1, null);
     return subjectRelationVector;
@@ -106,8 +113,12 @@ public class NarrativeRelationsIndexer {
   }
 
   private void indexRelations(String inputFile, FlagConfig flagConfig) throws IOException {
-    this.elementalVectors = new ElementalVectorStore(flagConfig);
+    //this.elementalVectors = new ElementalVectorStore(flagConfig);
+    this.elementalVectors = VectorStoreRAM.readFromFile(
+        flagConfig, "C:\\Users\\dwiddows\\Data\\QI\\Gutterman\\termtermvectors.bin");
+    this.flagConfig = flagConfig;
     this.proportionVectors = new ProportionVectors(flagConfig);
+    this.luceneUtils = new LuceneUtils(flagConfig);
     VectorStoreWriter writer = new VectorStoreWriter();
 
     // Turn all the text lines into parsed records.
@@ -141,7 +152,7 @@ public class NarrativeRelationsIndexer {
         this.bindWithPosition(record, dyadVector);
         dyadDocPositionVector.superpose(dyadVector, 1, null);
 
-        Vector verbVector = this.elementalVectors.getVector(record.predicate);
+        Vector verbVector = this.vectorForString(record.predicate);
         verbDocVector.superpose(verbVector, 1, null);
         this.bindWithPosition(record, verbVector);
         verbDocPositionVector.superpose(verbVector, 1, null);
