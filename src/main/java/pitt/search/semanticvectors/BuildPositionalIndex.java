@@ -139,9 +139,6 @@ public class BuildPositionalIndex {
     try {
       TermTermVectorsFromLucene termTermIndexer = new TermTermVectorsFromLucene(
           flagConfig, newElementalTermVectors);
-      
-      VectorStoreWriter.writeVectors(
-          termFile, flagConfig, termTermIndexer.getSemanticTermVectors());
 
       for (int i = 1; i < flagConfig.trainingcycles(); ++i) {
         newElementalTermVectors = termTermIndexer.getSemanticTermVectors();
@@ -150,6 +147,9 @@ public class BuildPositionalIndex {
             flagConfig,
             newElementalTermVectors);
       }
+
+      VectorStoreWriter.writeVectors(
+          termFile, flagConfig, termTermIndexer.getSemanticTermVectors());
 
       // Incremental indexing is hardcoded into BuildPositionalIndex.
       // TODO: Understand if this is an appropriate requirement, and whether
