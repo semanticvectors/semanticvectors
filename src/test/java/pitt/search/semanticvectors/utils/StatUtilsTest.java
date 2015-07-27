@@ -21,4 +21,10 @@ public class StatUtilsTest extends TestCase {
     List<Double> numbers = Arrays.asList(new Double[] {0d, 1d, 2d, 3d, 4d});
     Assert.assertEquals(2d, StatUtils.getVariance(numbers), TOL);
   }
+
+  public void testSigmoid() {
+    Assert.assertEquals(0.5, StatUtils.sigmoid(0), TOL);
+    Assert.assertEquals(0, StatUtils.sigmoid(-10), 0.01);
+    Assert.assertEquals(1, StatUtils.sigmoid(10), 0.01);
+  }
 }
