@@ -32,4 +32,12 @@ public class StatUtils {
     }
     return sumSquareDiffs / numbers.size();
   }
+
+  /**
+   * Calculates sigmoid function
+   */
+  public static float sigmoid(float x) {
+    float esubx = (float) Math.pow(Math.E, -x);
+    return 1 / (1 + esubx);
+  }
 }
