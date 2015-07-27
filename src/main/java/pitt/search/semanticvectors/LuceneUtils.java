@@ -498,6 +498,19 @@ public class LuceneUtils {
   static void compressIndex(String indexDir) {
     return;
   }
+  
+  
+  /**
+   * Calculates sigmoid function
+   */
+	
+	public static float sigmoid(float x) {
+		// TODO Auto-generated method stub
+		float esubx = (float) Math.pow(Math.E, -1*x);
+		return 1/(1+esubx);
+	}
+  
+  
   /*
     try {
       IndexWriter compressor = new IndexWriter(FSDirectory.open(new File(indexDir)),
