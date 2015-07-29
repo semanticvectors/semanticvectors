@@ -101,12 +101,16 @@ public class TermVectorsFromLucene {
 
   private void createTermVectorsFromLuceneImpl() throws IOException {
     // Check that elemental doc vectors is the right size.
-    if (elementalDocVectors != null) {
+    if (this.elementalDocVectors != null) {
       logger.info("Reusing basic doc vectors; number of documents: "
-          + elementalDocVectors.getNumVectors());
-      if (elementalDocVectors.getNumVectors() != luceneUtils.getNumDocs()) {
+          + this.elementalDocVectors.getNumVectors());
+      if (this.elementalDocVectors.getNumVectors() != luceneUtils.getNumDocs()) {
         throw new RuntimeException("Wrong number of basicDocVectors " +
             "passed into constructor ...");
+      }
+
+      if (flagConfig.rescaleintraining()) {
+        this.elementalDocVectors = VectorStoreRAM.createRedistributedVectorStore(elementalDocVectors, flagConfig, 200);
       }
     } else {
       this.elementalDocVectors = new ElementalVectorStore(flagConfig);

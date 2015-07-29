@@ -150,34 +150,33 @@ public class IncrementalTermVectors implements VectorStore {
         docVector = VectorFactory.createZeroVector(flagConfig.vectortype(), flagConfig.dimension());
         docVectorsInputStream.readString(); // ignore document name
         docVector.readFromLuceneStream(docVectorsInputStream);
-       
 
-      for (String fieldName : this.flagConfig.contentsfields()) {
-        Terms docTerms = this.luceneUtils.getTermVector(dc, fieldName);
-        if (docTerms == null) {logger.severe("No term vector for document "+dc); continue; }
+        for (String fieldName : this.flagConfig.contentsfields()) {
+          Terms docTerms = this.luceneUtils.getTermVector(dc, fieldName);
+          if (docTerms == null) {logger.severe("No term vector for document "+dc); continue; }
 
-        TermsEnum termsEnum = docTerms.iterator(null);
+          TermsEnum termsEnum = docTerms.iterator(null);
 
-        BytesRef bytes;
-        while ((bytes = termsEnum.next()) != null) {
-          Vector termVector = null;
+          BytesRef bytes;
+          while ((bytes = termsEnum.next()) != null) {
+            Vector termVector = null;
 
-          try{
-            termVector = termVectorData.getVector(bytes.utf8ToString());
-          } catch (NullPointerException npe) {
-            // Don't normally print anything - too much data!
-            logger.finest(String.format("term %s not represented", bytes.utf8ToString()));
-          }
-          // Exclude terms that are not represented in termVectorData
-          if (termVector != null && termVector.getDimension() > 0) {
-            DocsEnum docs = termsEnum.docs(null, null);
-            docs.nextDoc();
-            float freq = luceneUtils.getLocalTermWeight(docs.freq());
+            try{
+              termVector = termVectorData.getVector(bytes.utf8ToString());
+            } catch (NullPointerException npe) {
+              // Don't normally print anything - too much data!
+              logger.finest(String.format("term %s not represented", bytes.utf8ToString()));
+            }
+            // Exclude terms that are not represented in termVectorData
+            if (termVector != null && termVector.getDimension() > 0) {
+              DocsEnum docs = termsEnum.docs(null, null);
+              docs.nextDoc();
+              float freq = luceneUtils.getLocalTermWeight(docs.freq());
 
-            termVector.superpose(docVector, freq, null);
+              termVector.superpose(docVector, freq, null);
+            }
           }
         }
-      }
       }
     } // Finish iterating through documents.
 
