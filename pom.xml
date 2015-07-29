@@ -176,6 +176,7 @@
             </build>
         </profile>
         <profile>
+            <!-- In order to activate shading plugin (e.g., to generate an end-user-friendly uber-jar), run "mvn package -P endUserRelease" -->
             <id>endUserRelease</id>
             <build>
                 <plugins>
