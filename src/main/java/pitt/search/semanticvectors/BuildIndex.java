@@ -118,8 +118,9 @@ public class BuildIndex {
         termVectorIndexer = TermVectorsFromLucene.createTermVectorsFromLucene(flagConfig, initialDocVectors);
       }
 
-      VerbatimLogger.info("Writing term vectors to " + termFile + "\n");
-      VectorStoreWriter.writeVectors(termFile, flagConfig, termVectorIndexer.getSemanticTermVectors());
+      // Should happen inside the loops ... I think. This has become messy. TODO: cleanup.
+      //VerbatimLogger.info("Writing term vectors to " + termFile + "\n");
+      //VectorStoreWriter.writeVectors(termFile, flagConfig, termVectorIndexer.getSemanticTermVectors());
 
       // Create doc vectors and write them to disk.
       switch (flagConfig.docindexing()) {
@@ -146,9 +147,14 @@ public class BuildIndex {
           termVectorIndexer = TermVectorsFromLucene.createTermVectorsFromLucene(flagConfig, docVectors);
           docVectors = new DocVectors(termVectorIndexer.getSemanticTermVectors(), flagConfig, luceneUtils);
         }
+
+        VectorStoreWriter.writeVectors(
+            VectorStoreUtils.getStoreFileName(
+                flagConfig.termvectorsfile() + flagConfig.trainingcycles(), flagConfig),
+            flagConfig, termVectorIndexer.getSemanticTermVectors());
+
         // At end of training, convert document vectors from ID keys to pathname keys.
         VectorStore writeableDocVectors = docVectors.makeWriteableVectorStore();
-
         VerbatimLogger.info("Writing doc vectors to " + docFile + "\n");
         VectorStoreWriter.writeVectors(docFile, flagConfig, writeableDocVectors);
         break;

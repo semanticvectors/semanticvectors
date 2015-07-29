@@ -174,7 +174,7 @@ public class FlagConfig {
   /** Number of training cycles used for Reflective Random Indexing in {@link BuildIndex}. */
   public int trainingcycles() { return trainingcycles; }
 
-  private boolean rescaleintraining = true;
+  private boolean rescaleintraining = false;
   /**
    * If true, use {@link VectorStoreRAM#createRedistributedVectorStore} to make uniform coordinate distributions
    * when using several {@link #trainingcycles}. */
