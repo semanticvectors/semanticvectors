@@ -1,4 +1,4 @@
-For description, see CommandLineFlags.
+For description of how the flag system works, see CommandLineFlags.
 
 See:
   * [FlagConfig javadoc](http://semanticvectors.googlecode.com/svn/javadoc/latest-stable/pitt/search/semanticvectors/FlagConfig.html) for a full list of supported flags.
