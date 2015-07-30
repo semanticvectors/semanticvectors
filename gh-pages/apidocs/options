@@ -1,0 +1,24 @@
+-classpath
+'C:/Users/dwiddows/Software/GitHub/SemanticVectorsWiki/semanticvectors/target/classes;C:/Users/dwiddows/.m2/repository/net/sourceforge/parallelcolt/parallelcolt/0.10.0/parallelcolt-0.10.0.jar;C:/Users/dwiddows/.m2/repository/org/apache/lucene/lucene-core/5.0.0/lucene-core-5.0.0.jar;C:/Users/dwiddows/.m2/repository/org/ow2/asm/asm-commons/4.1/asm-commons-4.1.jar;C:/Users/dwiddows/.m2/repository/org/apache/lucene/lucene-codecs/5.0.0/lucene-codecs-5.0.0.jar;C:/Users/dwiddows/.m2/repository/org/apache/lucene/lucene-facet/5.0.0/lucene-facet-5.0.0.jar;C:/Users/dwiddows/.m2/repository/net/sourceforge/csparsej/csparsej/1.1.1/csparsej-1.1.1.jar;C:/Users/dwiddows/.m2/repository/org/jsoup/jsoup/1.7.3/jsoup-1.7.3.jar;C:/Users/dwiddows/.m2/repository/javax/servlet/servlet-api/2.4/servlet-api-2.4.jar;C:/Users/dwiddows/.m2/repository/com/github/rwl/BTFJ/1.0.1/BTFJ-1.0.1.jar;C:/Users/dwiddows/.m2/repository/org/apache/lucene/lucene-queryparser/5.0.0/lucene-queryparser-5.0.0.jar;C:/Users/dwiddows/.m2/repository/org/apache/lucene/lucene-sandbox/5.0.0/lucene-sandbox-5.0.0.jar;C:/Users/dwiddows/.m2/repository/net/sourceforge/jtransforms/jtransforms/2.4.0/jtransforms-2.4.0.jar;C:/Users/dwiddows/.m2/repository/com/github/rwl/COLAMDJ/1.0.1/COLAMDJ-1.0.1.jar;C:/Users/dwiddows/.m2/repository/com/github/rwl/JKLU/1.0.0/JKLU-1.0.0.jar;C:/Users/dwiddows/.m2/repository/net/sourceforge/parallelcolt/optimization/1.0/optimization-1.0.jar;C:/Users/dwiddows/.m2/repository/com/googlecode/netlib-java/netlib-java/0.9.3/netlib-java-0.9.3.jar;C:/Users/dwiddows/.m2/repository/net/sourceforge/jplasma/jplasma/1.2.0/jplasma-1.2.0.jar;C:/Users/dwiddows/.m2/repository/com/github/rwl/AMDJ/1.0.1/AMDJ-1.0.1.jar;C:/Users/dwiddows/.m2/repository/org/apache/lucene/lucene-queries/5.0.0/lucene-queries-5.0.0.jar;C:/Users/dwiddows/.m2/repository/org/ow2/asm/asm/4.1/asm-4.1.jar;C:/Users/dwiddows/.m2/repository/net/sourceforge/jplasma/core-lapack/0.1/core-lapack-0.1.jar;C:/Users/dwiddows/.m2/repository/net/sourceforge/f2j/arpack_combined_all/0.1/arpack_combined_all-0.1.jar;C:/Users/dwiddows/.m2/repository/org/apache/lucene/lucene-analyzers-common/5.0.0/lucene-analyzers-common-5.0.0.jar;C:/Users/dwiddows/.m2/repository/org/antlr/antlr-runtime/3.5/antlr-runtime-3.5.jar;C:/Users/dwiddows/.m2/repository/org/apache/lucene/lucene-expressions/5.0.0/lucene-expressions-5.0.0.jar;C:/Users/dwiddows/.m2/repository/org/apache/lucene/lucene-demo/5.0.0/lucene-demo-5.0.0.jar'
+-encoding
+'UTF-8'
+-protected
+-sourcepath
+'C:/Users/dwiddows/Software/GitHub/SemanticVectorsWiki/semanticvectors/src/main/java'
+-author
+-bottom
+'Copyright &#169; 2015. All rights reserved.'
+-charset
+'UTF-8'
+-d
+'C:/Users/dwiddows/Software/GitHub/SemanticVectorsWiki/semanticvectors/target/site/apidocs'
+-docencoding
+'UTF-8'
+-doctitle
+'semanticvectors 5.9 API'
+-linkoffline
+'http://docs.oracle.com/javase/7/docs/api' 'C:/Users/dwiddows/Software/GitHub/SemanticVectorsWiki/semanticvectors/target/javadoc-bundle-options'
+-use
+-version
+-windowtitle
+'semanticvectors 5.9 API'
