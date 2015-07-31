@@ -119,8 +119,8 @@ public class BuildIndex {
       }
 
       // Should happen inside the loops ... I think. This has become messy. TODO: cleanup.
-      //VerbatimLogger.info("Writing term vectors to " + termFile + "\n");
-      //VectorStoreWriter.writeVectors(termFile, flagConfig, termVectorIndexer.getSemanticTermVectors());
+      VerbatimLogger.info("Writing term vectors to " + termFile + "\n");
+      VectorStoreWriter.writeVectors(termFile, flagConfig, termVectorIndexer.getSemanticTermVectors());
 
       // Create doc vectors and write them to disk.
       switch (flagConfig.docindexing()) {
