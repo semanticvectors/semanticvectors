@@ -6,7 +6,7 @@ They can be used for many semantic (concept-aware) matching tasks such as automa
 knowledge representation, and concept matching.
 
 The package was created as part of a project by the University of Pittsburgh Office of Technology Management,
-and was hosted from 2007 to 2015 on code.google.com/p/semanticvectors
+and was hosted from 2007 to 2015 on code.google.com/p/semanticvectors.
 
 It has been developed and maintained by contributors from the University of Texas, Queensland University of Technology,
 the Austrian Research Institute for Artificial Intelligence, Google Inc., and other institutions and individuals.

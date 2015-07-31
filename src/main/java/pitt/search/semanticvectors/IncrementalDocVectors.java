@@ -75,6 +75,10 @@ public class IncrementalDocVectors {
    * Creates incremental doc vectors, getting everything it needs from a
    * TermVectorsFromLucene object and a Lucene Index directory, and writing to a named file.
    *
+   * NOTE: This class writes using {@link VectorStoreUtils.VectorStoreFormat#LUCENE}, and the
+   * code is a bit too interwoven to support {@link VectorStoreUtils.VectorStoreFormat#TEXT} without
+   * a lot of conditional complexity. If you need text output, use {@link VectorStoreTranslater}.
+   *
    * @param termVectorData Vector store containing terms create doc vectors.
    * @param flagConfig Any extra flag configurations
    * @param luceneUtils Lucene Utils used for reading Lucene index

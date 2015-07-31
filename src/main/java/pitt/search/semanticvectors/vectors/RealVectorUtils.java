@@ -74,8 +74,9 @@ public class RealVectorUtils {
         // Subtract relevant amount from kth vector.
         kthVector.superpose(jthVector, -dotProduct, null);
       }
-        // And renormalize each time after all subtraction operations completed.
-        kthVector.normalize();
+
+      // And renormalize each time after all subtraction operations completed.
+      kthVector.normalize();
     }
     return true;
   }

@@ -52,10 +52,12 @@ public class VectorUtilsTest extends TestCase {
     Vector vec1 = new RealVector(new float[] {1, 2, 1});
     Vector vec2 = new RealVector(new float[] {2, 3, 1});
     Vector vec3 = new RealVector(new float[] {2, 1, 1});
+    Vector vec4 = new RealVector(new float[] {2, 1, 5});
     ArrayList<Vector> list = new ArrayList<Vector>();
     list.add(vec1);
     list.add(vec2);
     list.add(vec3);
+    list.add(vec4);
 
     VectorUtils.orthogonalizeVectors(list);
     

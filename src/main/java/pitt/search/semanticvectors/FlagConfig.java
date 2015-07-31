@@ -173,7 +173,13 @@ public class FlagConfig {
   private int trainingcycles = 0;
   /** Number of training cycles used for Reflective Random Indexing in {@link BuildIndex}. */
   public int trainingcycles() { return trainingcycles; }
-  
+
+  private boolean rescaleintraining = false;
+  /**
+   * If true, use {@link VectorStoreRAM#createRedistributedVectorStore} to make uniform coordinate distributions
+   * when using several {@link #trainingcycles}. */
+  public boolean rescaleintraining() { return rescaleintraining; }
+
   private int windowradius = 5;
   /** Window radius used in {@link BuildPositionalIndex}, default value 5. */
   public int windowradius() { return windowradius; }

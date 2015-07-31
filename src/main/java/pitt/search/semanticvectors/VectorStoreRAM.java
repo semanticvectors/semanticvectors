@@ -42,11 +42,9 @@ import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import pitt.search.semanticvectors.utils.Distribution;
 import pitt.search.semanticvectors.utils.VerbatimLogger;
-import pitt.search.semanticvectors.vectors.IncompatibleVectorsException;
-import pitt.search.semanticvectors.vectors.Vector;
-import pitt.search.semanticvectors.vectors.VectorFactory;
-import pitt.search.semanticvectors.vectors.VectorType;
+import pitt.search.semanticvectors.vectors.*;
 
 /**
    This class provides methods for reading a VectorStore into memory
@@ -186,5 +184,60 @@ public class VectorStoreRAM implements VectorStore {
   public boolean containsVector(Object object) {
 	  return objectVectors.containsKey(object);
   }
-  
+
+  /**
+   * Creates a new vector store by redistributing the coordinates in the given vector store
+   * to make the coordinates distributed roughly uniformly between -1 and 1.
+   * @param source A vector store, must be of {@link VectorType#REAL} vectors.
+   * @param sampleSize The number of vectors that will be used to create the approximate distributions.
+   * @return A new vector store with rescaled coordinates.
+   */
+  public static VectorStoreRAM createRedistributedVectorStore(
+      VectorStore source, FlagConfig flagConfig, int sampleSize) {
+    if (flagConfig.vectortype() != VectorType.REAL) {
+      throw new IllegalArgumentException("Vector store redistribution only works with VectorType.REAL vectors.");
+    }
+
+    if (source.getNumVectors() < sampleSize) {
+      logger.info(String.format(
+          "Source vector store only has %d elements, using all in sample.", source.getNumVectors()));
+      sampleSize = source.getNumVectors();
+    }
+
+    // Get the first vectors into a sample, assuming that taking the first is a reasonably balanced thing to do.
+    float[][] sampleCoordinates = new float[sampleSize][flagConfig.dimension()];
+    Enumeration<ObjectVector> vectorEnumeration = source.getAllVectors();
+    for (int i = 0; i < sampleSize; ++i) {
+      sampleCoordinates[i] = ((RealVector) vectorEnumeration.nextElement().getVector()).getCoordinates();
+    }
+
+    // Create distributions for each coordinate.
+    Distribution[] distributions = new Distribution[flagConfig.dimension()];
+    for (int dim = 0; dim < flagConfig.dimension(); ++dim) {
+      float[] coords = new float[sampleSize];
+      for (int i = 0; i < sampleSize; ++i) {
+        coords[i] = sampleCoordinates[i][dim];
+      }
+      distributions[dim] = new Distribution(coords);
+    }
+
+    // Create the new vector store with rescaled coordinates.
+    VectorStoreRAM rescaledStore = new VectorStoreRAM(flagConfig);
+    Enumeration<ObjectVector> vecEnum = source.getAllVectors();
+    while (vecEnum.hasMoreElements()) {
+      ObjectVector objectVector = vecEnum.nextElement();
+      RealVector oldVector = (RealVector) objectVector.getVector();
+      float[] oldCoords = oldVector.getCoordinates();
+      float[] newCoords = new float[flagConfig.dimension()];
+      for (int i = 0; i < flagConfig.dimension(); ++i) {
+        // Remember to rescale so that values are normalized to between -1 and 1, not 0 and 1.
+        newCoords[i] = (2 * distributions[i].getCumulativePosition(oldCoords[i])) - 1;
+      }
+
+      rescaledStore.putVector(objectVector.getObject(), new RealVector(newCoords));
+    }
+
+    VerbatimLogger.info("Created new vector store with redistributed coordinates.\n");
+    return rescaledStore;
+  }
 }
