@@ -194,7 +194,7 @@ public class FlagConfig {
   public boolean fieldweight() { return fieldweight; }
   
   private TermWeight termweight = TermWeight.IDF;
-  /** Term weighting used when constructing document vectors, default value {@link TermWeight#NONE} */
+  /** Term weighting used when constructing document vectors, default value {@link TermWeight#IDF} */
   public LuceneUtils.TermWeight termweight() { return termweight; }
 
   private boolean porterstemmer = false;
