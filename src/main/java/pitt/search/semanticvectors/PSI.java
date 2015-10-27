@@ -44,6 +44,7 @@ import org.apache.lucene.document.Document;
 import org.apache.lucene.index.*;
 import org.apache.lucene.util.BytesRef;
 
+import pitt.search.semanticvectors.LuceneUtils.TermWeight;
 import pitt.search.semanticvectors.utils.VerbatimLogger;
 import pitt.search.semanticvectors.vectors.Vector;
 import pitt.search.semanticvectors.vectors.VectorFactory;
@@ -174,6 +175,8 @@ public class PSI {
       oWeight = luceneUtils.getGlobalTermWeight(new Term(OBJECT_FIELD, object));
       // TODO: Explain different weighting for predicates, log(occurrences of predication)
       pWeight = luceneUtils.getLocalTermWeight(luceneUtils.getGlobalTermFreq(term));
+      if (flagConfig.termweight().equals(TermWeight.LOGENTROPY)) pWeight = (float) Math.log(1+pWeight);
+      else if (flagConfig.termweight().equals(TermWeight.SQRT)) pWeight = (float) Math.sqrt(pWeight);
 
       Vector subjectSemanticvector = semanticItemVectors.getVector(subject);
       Vector objectSemanticvector = semanticItemVectors.getVector(object);
