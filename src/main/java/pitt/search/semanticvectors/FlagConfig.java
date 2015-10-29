@@ -42,6 +42,8 @@ import java.util.Arrays;
 import java.util.logging.Logger;
 
 import pitt.search.semanticvectors.utils.VerbatimLogger;
+import pitt.search.semanticvectors.vectors.BinaryVector;
+import pitt.search.semanticvectors.vectors.BinaryVector.BinaryNormalizationMethod;
 import pitt.search.semanticvectors.vectors.RealVector;
 import pitt.search.semanticvectors.vectors.RealVector.RealBindMethod;
 /** Imports must include the declarations of all enums used as flag values */
@@ -101,6 +103,12 @@ public class FlagConfig {
   private RealBindMethod realbindmethod = RealBindMethod.CONVOLUTION; 
   /** The binding method used for real vectors, see {@link RealVector#BIND_METHOD}. */
   public RealBindMethod realbindmethod() { return realbindmethod; }
+
+  
+  private BinaryNormalizationMethod binarynormalizemethod = BinaryNormalizationMethod.SPATTERCODE;
+  /** The normalization method used for binary vectors, see {@link BinaryVector#NORMALIZE_METHOD}. */
+  public BinaryNormalizationMethod binarynormalizemethod() { return binarynormalizemethod; }
+  
   
   private ElementalGenerationMethod elementalmethod = ElementalGenerationMethod.CONTENTHASH;
   /** The method used for generating elemental vectors. */
@@ -516,6 +524,10 @@ public class FlagConfig {
     if (vectortype == VectorType.REAL && realbindmethod == RealVector.RealBindMethod.PERMUTATION) {
       RealVector.setBindType(RealVector.RealBindMethod.PERMUTATION);
     }
+    if (vectortype == VectorType.BINARY && binarynormalizemethod == BinaryVector.BinaryNormalizationMethod.PROBABILISTIC) {
+        BinaryVector.setNormalizationMethod(BinaryVector.BinaryNormalizationMethod.PROBABILISTIC);
+    }
+      
   }
   
   //utility method to allow control of this option without

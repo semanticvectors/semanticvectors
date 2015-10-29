@@ -11,6 +11,8 @@ import org.apache.lucene.store.IndexOutput;
 import org.apache.lucene.util.FixedBitSet;
 import org.apache.lucene.util.FixedBitSet;
 
+import pitt.search.semanticvectors.vectors.RealVector.RealBindMethod;
+
 
 /**
  * Binary implementation of Vector.
@@ -26,6 +28,32 @@ import org.apache.lucene.util.FixedBitSet;
  * @author Trevor Cohen
  */
 public class BinaryVector implements Vector {
+  
+	
+	  /**
+	   * Enumeration of normalization options.
+	   */
+	  public enum BinaryNormalizationMethod {
+	    /**
+	     * Set to one if more ones than zeros recorded in the voting record for 
+	     * this dimension (zeros are recorded implicitly, by counting total votes),
+	     * and split at random (50% chance of 1) if the same number of ones and zeros.
+	     * Otherwise zero.
+	     */
+	    SPATTERCODE,
+	    /**
+	     * The probability of a one is equal to the probability of the proportion of 1 to 0
+	     * votes for this dimension, assuming a Gaussian distribution
+	     */
+	    PROBABILISTIC
+	  }
+	
+	  public static BinaryNormalizationMethod NORMALIZE_METHOD = BinaryNormalizationMethod.SPATTERCODE;
+	  public static void setNormalizationMethod(BinaryNormalizationMethod normalizationMethod) {
+	    logger.info("Globally setting binary vector NORMALIZATION_METHOD to: '" + normalizationMethod + "'");
+	    NORMALIZE_METHOD = normalizationMethod;
+	  }
+	
   public static final Logger logger = Logger.getLogger(BinaryVector.class.getCanonicalName());
 
   /** Returns {@link VectorType#BINARY} */
@@ -610,6 +638,14 @@ public class BinaryVector implements Vector {
       this.bitSet = votingRecord.get(0);
       return;
     }
+    
+    if (NORMALIZE_METHOD.equals(BinaryNormalizationMethod.SPATTERCODE))
+    {
+    	//faster majority rule normalization
+    	this.bitSet = concludeVote();
+    }
+    else
+    {	//slower probabilistic normalization
     //clear bitset;
     this.bitSet.xor(this.bitSet);
 
@@ -660,7 +696,7 @@ public class BinaryVector implements Vector {
         y = tempSet.nextSetBit(y);
       }
     }
-
+    }
     //housekeeping
     votingRecord = new ArrayList<FixedBitSet>();
     votingRecord.add((FixedBitSet) bitSet.clone());
