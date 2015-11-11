@@ -189,7 +189,7 @@ public class LuceneUtils {
     String externalDocId;
     try {
       externalDocId = this.getDoc(docID).getField(flagConfig.docidfield()).stringValue();
-    } catch (IOException e) {
+    } catch (IOException | NullPointerException e) {
       logger.severe(String.format(
           "Failed to get external doc ID from doc no. %d in Lucene index." +
               "\nThis is almost certain to lead to problems." +
