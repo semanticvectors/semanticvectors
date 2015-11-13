@@ -35,15 +35,15 @@
 
 package pitt.search.semanticvectors;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.logging.Logger;
-
 import pitt.search.semanticvectors.ElementalVectorStore.ElementalGenerationMethod;
 import pitt.search.semanticvectors.Search.SearchType;
 import pitt.search.semanticvectors.utils.VerbatimLogger;
 import pitt.search.semanticvectors.vectors.Vector;
 import pitt.search.semanticvectors.vectors.VectorUtils;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.logging.Logger;
 
 /**
  * Command line term vector comparison utility. This enables users to
@@ -115,7 +115,7 @@ public class CompareTerms{
     {
     	 elementalVecReader = VectorStoreReader.openVectorStore(flagConfig.elementalvectorfile(), flagConfig);
     	 semanticVecReader  = VectorStoreReader.openVectorStore(flagConfig.semanticvectorfile(), flagConfig);
-    	 predicateVecReader = VectorStoreReader.openVectorStore(flagConfig.predicatevectorfile(), flagConfig);
+    	 predicateVecReader = VectorStoreReader.openVectorStore(flagConfig.elementalpredicatevectorfile(), flagConfig);
     	
     }
     else if (flagConfig.elementalmethod() == ElementalGenerationMethod.ORTHOGRAPHIC) {

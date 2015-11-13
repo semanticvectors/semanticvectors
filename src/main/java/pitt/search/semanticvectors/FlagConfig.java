@@ -35,17 +35,6 @@
 
 package pitt.search.semanticvectors;
 
-import java.lang.Enum;
-import java.lang.IllegalArgumentException;
-import java.lang.reflect.Field;
-import java.util.Arrays;
-import java.util.logging.Logger;
-
-import pitt.search.semanticvectors.utils.VerbatimLogger;
-import pitt.search.semanticvectors.vectors.RealVector;
-import pitt.search.semanticvectors.vectors.RealVector.RealBindMethod;
-/** Imports must include the declarations of all enums used as flag values */
-import pitt.search.semanticvectors.vectors.VectorType;
 import pitt.search.semanticvectors.CompoundVectorBuilder.VectorLookupSyntax;
 import pitt.search.semanticvectors.DocVectors.DocIndexingStrategy;
 import pitt.search.semanticvectors.ElementalVectorStore.ElementalGenerationMethod;
@@ -53,6 +42,18 @@ import pitt.search.semanticvectors.LuceneUtils.TermWeight;
 import pitt.search.semanticvectors.Search.SearchType;
 import pitt.search.semanticvectors.TermTermVectorsFromLucene.PositionalMethod;
 import pitt.search.semanticvectors.VectorStoreUtils.VectorStoreFormat;
+import pitt.search.semanticvectors.utils.VerbatimLogger;
+import pitt.search.semanticvectors.vectors.RealVector;
+import pitt.search.semanticvectors.vectors.RealVector.RealBindMethod;
+import pitt.search.semanticvectors.vectors.VectorType;
+
+import java.lang.reflect.Field;
+import java.util.Arrays;
+import java.util.logging.Logger;
+
+/**
+ * Imports must include the declarations of all enums used as flag values
+ */
 
 /**
  * Class for representing and parsing command line flags into a configuration
@@ -251,10 +252,26 @@ public class FlagConfig {
   /** Semantic vectors; used so far as a name in PSI. */
   public String semanticvectorfile() { return semanticvectorfile; }
 
-  private String predicatevectorfile = "predicatevectors";
-  /** Vectors used to represent predicates in PSI. */
-  public String predicatevectorfile() { return predicatevectorfile; }
-  
+  private String elementalpredicatevectorfile = "predicatevectors";
+
+  /**
+   * Vectors used to represent elemental predicate vectors in PSI. For compatibility reasons,
+   * the default name "predicatevectors" is typically used for these elemental vectors.
+   */
+  public String elementalpredicatevectorfile() {
+    return elementalpredicatevectorfile;
+  }
+
+  private String semanticpredicatevectorfile = "semanticpredicatevectors";
+
+  /**
+   * Vectors used to represent elemental predicate vectors in PSI. For compatibility reasons,
+   * the default name "predicatevectors" is typically used for these elemental vectors.
+   */
+  public String semanticpredicatevectorfile() {
+    return semanticpredicatevectorfile;
+  }
+
   private String permutedvectorfile = "permtermvectors";
   /** "Permuted term vectors, output by -positionalmethod permutation. */
   public String permutedvectorfile() { return permutedvectorfile; }

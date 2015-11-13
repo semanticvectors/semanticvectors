@@ -35,15 +35,15 @@
 
 package pitt.search.semanticvectors;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.util.ArrayList;
-
 import pitt.search.semanticvectors.Search.SearchType;
 import pitt.search.semanticvectors.utils.VerbatimLogger;
 import pitt.search.semanticvectors.vectors.Vector;
 import pitt.search.semanticvectors.vectors.VectorUtils;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
 
 /**
  * Command line term vector comparison utility designed to be run in
@@ -117,7 +117,7 @@ public class CompareTermsBatch {
     	 predicateVecReader = new VectorStoreRAM(flagConfig);
     	 elementalVecReader.initFromFile(flagConfig.elementalvectorfile());
     	 semanticVecReader.initFromFile(flagConfig.semanticvectorfile());
-    	 predicateVecReader.initFromFile(flagConfig.predicatevectorfile());
+    	 predicateVecReader.initFromFile(flagConfig.elementalpredicatevectorfile());
     } else	
     {
     vecReader = new VectorStoreRAM(flagConfig);
