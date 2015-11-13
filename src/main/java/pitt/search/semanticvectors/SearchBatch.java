@@ -35,26 +35,19 @@
 
 package pitt.search.semanticvectors;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.StringReader;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.logging.Logger;
-
 import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
 import org.apache.lucene.analysis.util.CharArraySet;
-import org.apache.lucene.util.Version;
-
 import pitt.search.semanticvectors.ElementalVectorStore.ElementalGenerationMethod;
 import pitt.search.semanticvectors.utils.VerbatimLogger;
 import pitt.search.semanticvectors.vectors.Vector;
 import pitt.search.semanticvectors.vectors.ZeroVectorException;
+
+import java.io.*;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.logging.Logger;
 
 /**
  * Command line term vector search utility.
@@ -223,14 +216,14 @@ public class SearchBatch {
     // Stage ii. Open vector stores, and Lucene utils.
     try {
       // Default VectorStore implementation is (Lucene) VectorStoreReader.
-      
-        if (!flagConfig.elementalvectorfile().equals("elementalvectors") && !flagConfig.semanticvectorfile().equals("semanticvectors") && !flagConfig.predicatevectorfile().equals("predicatevectors")) {
+
+      if (!flagConfig.elementalvectorfile().equals("elementalvectors") && !flagConfig.semanticvectorfile().equals("semanticvectors") && !flagConfig.elementalpredicatevectorfile().equals("predicatevectors")) {
             //for PSI search
         	
   
         	VerbatimLogger.info("Opening elemental query vector store from file: " + flagConfig.elementalvectorfile() + "\n");
             VerbatimLogger.info("Opening semantic query vector store from file: " + flagConfig.semanticvectorfile() + "\n");
-            VerbatimLogger.info("Opening predicate query vector store from file: " + flagConfig.predicatevectorfile() + "\n");
+        VerbatimLogger.info("Opening predicate query vector store from file: " + flagConfig.elementalpredicatevectorfile() + "\n");
             
             if (flagConfig.elementalvectorfile().equals("deterministic")) 
     		{
@@ -243,7 +236,7 @@ public class SearchBatch {
              semanticVecReader = new VectorStoreRAM(flagConfig);
              ((VectorStoreRAM) semanticVecReader).initFromFile(flagConfig.semanticvectorfile());
             predicateVecReader = new VectorStoreRAM(flagConfig);
-            ((VectorStoreRAM) predicateVecReader).initFromFile(flagConfig.predicatevectorfile());
+        ((VectorStoreRAM) predicateVecReader).initFromFile(flagConfig.elementalpredicatevectorfile());
             
         	}	
         	else

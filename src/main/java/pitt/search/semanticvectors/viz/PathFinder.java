@@ -1,21 +1,18 @@
 package pitt.search.semanticvectors.viz;
 
+import org.apache.lucene.index.Term;
+import pitt.search.semanticvectors.*;
+import pitt.search.semanticvectors.utils.VerbatimLogger;
+import pitt.search.semanticvectors.vectors.Vector;
+import pitt.search.semanticvectors.vectors.ZeroVectorException;
+
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.List;
-
-import org.apache.lucene.index.Term;
-
-import pitt.search.semanticvectors.*;
-import pitt.search.semanticvectors.utils.VerbatimLogger;
-import pitt.search.semanticvectors.vectors.Vector;
-import pitt.search.semanticvectors.vectors.VectorFactory;
-import pitt.search.semanticvectors.vectors.ZeroVectorException;
 
 /**
  * 
@@ -200,7 +197,7 @@ public class PathFinder {
         VectorStoreRAM semanticVectors = new VectorStoreRAM(flagConfig);
         semanticVectors.initFromFile(flagConfig.semanticvectorfile());
         VectorStoreRAM predicateVectors = new VectorStoreRAM(flagConfig);
-        predicateVectors.initFromFile(flagConfig.predicatevectorfile());
+        predicateVectors.initFromFile(flagConfig.elementalpredicatevectorfile());
 
         PathFinder.writeResultsPathfinderGraphJson(flagConfig, searchResults,
             VectorStoreReader.openVectorStore(flagConfig.semanticvectorfile(), flagConfig),

@@ -35,22 +35,19 @@
 
 package pitt.search.semanticvectors;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.logging.Logger;
-
 import pitt.search.semanticvectors.ElementalVectorStore.ElementalGenerationMethod;
 import pitt.search.semanticvectors.utils.PsiUtils;
 import pitt.search.semanticvectors.utils.VerbatimLogger;
 import pitt.search.semanticvectors.vectors.BinaryVector;
 import pitt.search.semanticvectors.vectors.Vector;
-import pitt.search.semanticvectors.vectors.VectorFactory;
 import pitt.search.semanticvectors.vectors.VectorType;
 import pitt.search.semanticvectors.vectors.ZeroVectorException;
 import pitt.search.semanticvectors.viz.PathFinder;
+
+import java.io.IOException;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.logging.Logger;
 
 /**
  * Command line term vector search utility.
@@ -243,7 +240,7 @@ public class Search {
     // Stage ii. Open vector stores, and Lucene utils.
     try {
       // Default VectorStore implementation is (Lucene) VectorStoreReader.
-      if (!flagConfig.elementalvectorfile().equals("elementalvectors") && !flagConfig.semanticvectorfile().equals("semanticvectors") && !flagConfig.predicatevectorfile().equals("predicatevectors")) {
+      if (!flagConfig.elementalvectorfile().equals("elementalvectors") && !flagConfig.semanticvectorfile().equals("semanticvectors") && !flagConfig.elementalpredicatevectorfile().equals("predicatevectors")) {
         //for PSI search
 
         VerbatimLogger.info("Opening query vector store from file: " + flagConfig.queryvectorfile() + "\n");
@@ -257,10 +254,10 @@ public class Search {
 
         VerbatimLogger.info("Opening elemental query vector store from file: " + flagConfig.elementalvectorfile() + "\n");
         VerbatimLogger.info("Opening semantic query vector store from file: " + flagConfig.semanticvectorfile() + "\n");
-        VerbatimLogger.info("Opening predicate query vector store from file: " + flagConfig.predicatevectorfile() + "\n");
+        VerbatimLogger.info("Opening predicate query vector store from file: " + flagConfig.elementalpredicatevectorfile() + "\n");
 
         semanticVecReader = VectorStoreReader.openVectorStore(flagConfig.semanticvectorfile(), flagConfig);
-        predicateVecReader = VectorStoreReader.openVectorStore(flagConfig.predicatevectorfile(), flagConfig);
+        predicateVecReader = VectorStoreReader.openVectorStore(flagConfig.elementalpredicatevectorfile(), flagConfig);
       }
       else {
         VerbatimLogger.info("Opening query vector store from file: " + flagConfig.queryvectorfile() + "\n");
