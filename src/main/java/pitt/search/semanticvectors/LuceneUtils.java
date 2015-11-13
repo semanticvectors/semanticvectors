@@ -186,7 +186,11 @@ public class LuceneUtils {
   }
 
   public String getExternalDocId(int docID) throws IOException {
-    String externalDocId;
+    
+	  //to save time, avoid using external ID if so desired
+	  if (flagConfig.docidfield().equals("luceneID")) return docID +"";
+	  
+	String externalDocId;
     try {
       externalDocId = this.getDoc(docID).getField(flagConfig.docidfield()).stringValue();
     } catch (IOException | NullPointerException e) {
