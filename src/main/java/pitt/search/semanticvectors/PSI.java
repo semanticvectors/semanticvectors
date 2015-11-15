@@ -42,6 +42,7 @@ import org.apache.lucene.index.Terms;
 import org.apache.lucene.index.TermsEnum;
 import org.apache.lucene.util.BytesRef;
 import pitt.search.semanticvectors.utils.VerbatimLogger;
+import pitt.search.semanticvectors.vectors.PermutationUtils;
 import pitt.search.semanticvectors.vectors.Vector;
 import pitt.search.semanticvectors.vectors.VectorFactory;
 
@@ -69,14 +70,17 @@ public class PSI {
   private static final String PREDICATION_FIELD = "predication";
   private String[] itemFields = {SUBJECT_FIELD, OBJECT_FIELD};
   private LuceneUtils luceneUtils;
+  private int[] predicatePermutation;
 
-  private PSI() {};
+  private PSI(FlagConfig flagConfig) {
+	  predicatePermutation = PermutationUtils.getShiftPermutation(flagConfig.vectortype(), flagConfig.dimension(), 1);
+ };
 
   /**
    * Creates PSI vectors incrementally, using the fields "subject" and "object" from a Lucene index.
    */
   public static void createIncrementalPSIVectors(FlagConfig flagConfig) throws IOException {
-    PSI incrementalPSIVectors = new PSI();
+    PSI incrementalPSIVectors = new PSI(flagConfig);
     incrementalPSIVectors.flagConfig = flagConfig;
     incrementalPSIVectors.initialize();
 
@@ -219,6 +223,14 @@ public class PSI {
       Vector predicateSemanticVector = semanticPredicateVectors.getVector(predicate);
       Vector predicateSemanticVectorInv = semanticPredicateVectors.getVector(predicate+ "-INV");
 
+      //construct permuted editions of subject and object vectors (so binding doesn't commute)
+      Vector permutedSubjectElementalVector = VectorFactory.createZeroVector(flagConfig.vectortype(), flagConfig.dimension());
+      Vector permutedObjectElementalVector = VectorFactory.createZeroVector(flagConfig.vectortype(), flagConfig.dimension());
+      permutedSubjectElementalVector.superpose(subjectElementalVector, 1, predicatePermutation); 
+      permutedObjectElementalVector.superpose(objectElementalVector, 1, predicatePermutation); 
+      permutedSubjectElementalVector.normalize();
+      permutedObjectElementalVector.normalize();
+      
       Vector objToAdd = objectElementalVector.copy();
       objToAdd.bind(predicateElementalVector);
       subjectSemanticVector.superpose(objToAdd, pWeight * oWeight, null);
@@ -228,11 +240,11 @@ public class PSI {
       objectSemanticVector.superpose(subjToAdd, pWeight * sWeight, null);
 
       Vector predToAdd = subjectElementalVector.copy();
-      predToAdd.bind(objectElementalVector);
+      predToAdd.bind(permutedObjectElementalVector);
       predicateSemanticVector.superpose(predToAdd, sWeight * oWeight, null);
 
       Vector predToAddInv = objectElementalVector.copy();
-      predToAddInv.bind(subjectElementalVector);
+      predToAddInv.bind(permutedSubjectElementalVector);
       predicateSemanticVectorInv.superpose(predToAddInv, oWeight * sWeight, null);
     } // Finish iterating through predications.
 
