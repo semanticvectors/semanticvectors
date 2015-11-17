@@ -158,17 +158,19 @@ public class Table {
       }
      
     }
-      //special condition for birth/term example  (to be removed)
-      double minYear = Math.min(columnTypes[2].getMinDoubleValue(), columnTypes[5].getMinDoubleValue());
-      double maxYear = Math.max(columnTypes[2].getMaxDoubleValue(), columnTypes[5].getMaxDoubleValue());
-      columnTypes[5].setMaxDoubleValue(maxYear);
-      columnTypes[2].setMaxDoubleValue(maxYear);
-      columnTypes[5].setMinDoubleValue(minYear);
-      columnTypes[2].setMinDoubleValue(minYear);
-      System.err.println(columnTypes[5].getMaxDoubleValue()+"\t"+columnTypes[2].getMaxDoubleValue());
-      System.err.println(columnTypes[5].getMinDoubleValue()+"\t"+columnTypes[2].getMinDoubleValue());
-      
-    
+
+    // Special condition for birth/term example  (to be removed)
+    // Work by Trevor for graded semantic vectors paper.
+    /*
+    double minYear = Math.min(columnTypes[2].getMinDoubleValue(), columnTypes[5].getMinDoubleValue());
+    double maxYear = Math.max(columnTypes[2].getMaxDoubleValue(), columnTypes[5].getMaxDoubleValue());
+    columnTypes[5].setMaxDoubleValue(maxYear);
+    columnTypes[2].setMaxDoubleValue(maxYear);
+    columnTypes[5].setMinDoubleValue(minYear);
+    columnTypes[2].setMinDoubleValue(minYear);
+    System.err.println(columnTypes[5].getMaxDoubleValue()+"\t"+columnTypes[2].getMaxDoubleValue());
+    System.err.println(columnTypes[5].getMinDoubleValue()+"\t"+columnTypes[2].getMinDoubleValue());
+    */
 
     // Now we've seen all values, those we know to be numeric should be prepared with bookend vectors.
     for (int i = 0; i < columnTypes.length; ++i) {

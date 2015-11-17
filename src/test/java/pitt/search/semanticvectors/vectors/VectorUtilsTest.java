@@ -67,6 +67,9 @@ public class VectorUtilsTest extends TestCase {
     assertEquals(0, list.get(0).measureOverlap(list.get(1)), TOL);
     assertEquals(0, list.get(0).measureOverlap(list.get(2)), TOL);
     assertEquals(0, list.get(1).measureOverlap(list.get(2)), TOL);
+
+    // If we try to orthogonalize more vectors than dimensions, we expect degeneracy eventually!
+    assertEquals(Float.NaN, ((RealVector) list.get(3)).getCoordinates()[0]);
   }
 
   /*
