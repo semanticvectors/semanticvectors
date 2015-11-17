@@ -9,6 +9,7 @@ import org.apache.lucene.store.IndexOutput;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.util.BytesRef;
 
+import pitt.search.semanticvectors.LuceneUtils.TermWeight;
 import pitt.search.semanticvectors.utils.VerbatimLogger;
 import pitt.search.semanticvectors.vectors.RealVector;
 import pitt.search.semanticvectors.vectors.Vector;
@@ -71,7 +72,7 @@ public class LSA {
       flagConfig.setDimension(this.luceneUtils.getNumDocs());
     }
 
-    if (flagConfig.termweight().equals("logentropy")) {
+    if (flagConfig.termweight().equals(TermWeight.LOGENTROPY)) {
       VerbatimLogger.info("Term weighting: log-entropy.\n");
     }
 
@@ -95,61 +96,45 @@ public class LSA {
     SMat S;
     Terms terms = this.luceneUtils.getTermsForField(contentsField);
     TermsEnum termsEnumForCount = terms.iterator(termsEnumDummy);
-    int numTerms = 0;
-    while (termsEnumForCount.next() != null) {
-      numTerms++;
-    }
+    int numTerms = 0,   nonZeroVals = 0;
+    BytesRef bytes;
+    
+    //count number of terms meeting term filter constraints, and number of nonzero matrix entries  
+    while((bytes = termsEnumForCount.next()) != null) {
+    	      Term term = new Term(contentsField, bytes);
+    	      if (this.luceneUtils.termFilter(term)) 
+    	    	  numTerms++;
+    	 	  
+    	      	DocsEnum docsEnum = this.luceneUtils.getDocsForTerm(term);
+    	        
+    	        while (docsEnum.nextDoc() != DocsEnum.NO_MORE_DOCS) {
+    	          ++nonZeroVals;
+    	        }
+				}
 
     VerbatimLogger.info(String.format(
         "There are %d terms (and %d docs).\n", numTerms, this.luceneUtils.getNumDocs()));
 
     termList = new String[numTerms];
-    int[][] baseIndex = new int[numTerms][];
-    int nonZeroVals = 0, termCounter = 0;
+  
+      // Initialize "SVDLIBJ" sparse data structure.
+    S = new SMat(this.luceneUtils.getNumDocs(), numTerms, nonZeroVals);
 
-    terms = this.luceneUtils.getTermsForField(contentsField);
+    // Populate "SVDLIBJ" sparse data structure and list of terms.
     TermsEnum termsEnum = terms.iterator(termsEnumDummy);
-    BytesRef bytes;
-    
-    // This first loop is all setup and preparing counters.
-    while((bytes = termsEnum.next()) != null) {
-      Term term = new Term(contentsField, bytes);
-      if (luceneUtils.termFilter(term)) {
-        termList[termCounter] = term.text();
-
-        // Create matrix of nonzero indices.
-        DocsEnum docsEnum = this.luceneUtils.getDocsForTerm(term);
-        int numDocsWithTerm = 0;
-        while (docsEnum.nextDoc() != DocsEnum.NO_MORE_DOCS) {
-          ++numDocsWithTerm;
-          ++nonZeroVals;
-        }
-        baseIndex[termCounter] = new int[numDocsWithTerm];
-
-        // Fill in matrix of nonzero indices, enumerating docsEnum again.
-        docsEnum = this.luceneUtils.getDocsForTerm(term);
-        int count = 0;
-        while (docsEnum.nextDoc() != DocsEnum.NO_MORE_DOCS) {
-          baseIndex[termCounter][count] = docsEnum.docID();
-          ++count;
-        }
-        ++termCounter;	// Next term.
-      }
-    }
-    
-    // Initialize "SVDLIBJ" sparse data structure.
-    S = new SMat(this.luceneUtils.getNumDocs(), termCounter, nonZeroVals);
-
-    // Populate "SVDLIBJ" sparse data structure.
-    termsEnum = terms.iterator(termsEnum);
-    termCounter = 0;
+    int termCounter = 0;
     int firstNonZero = 0; // Index of first non-zero entry (document) of each column (term).
+    
     while((bytes = termsEnum.next()) != null) {
       Term term = new Term(contentsField, bytes);
+      
       if (this.luceneUtils.termFilter(term)) {
+          S.pointr[termCounter] = firstNonZero; //index of first non-zero entry
+          termList[termCounter] = term.text();
+          
         DocsEnum docsEnum = this.luceneUtils.getDocsForTerm(term);
-        S.pointr[termCounter] = firstNonZero;
-
+        
+        
         while (docsEnum.nextDoc() != DocsEnum.NO_MORE_DOCS) {
           /** public int[] pointr; For each col (plus 1), index of
             *  first non-zero entry.  we'll represent the matrix as a
@@ -157,8 +142,10 @@ public class LSA {
             *  (otherwise it would be difficult to extract this
             *  information from the lucene index)
             */
+        	
           S.rowind[firstNonZero] = docsEnum.docID();  // set row index to document number
-          float value = docsEnum.freq() * luceneUtils.getGlobalTermWeight(term);
+          float value 	= luceneUtils.getGlobalTermWeight(term); //global weight
+          value 		=  value * (float) luceneUtils.getLocalTermWeight(docsEnum.freq()); // multiply by local weight
           S.value[firstNonZero] = value;  // set value to frequency (with/without weighting)
           firstNonZero++;
         }
@@ -181,7 +168,7 @@ public class LSA {
     outputStream.writeString(VectorStoreWriter.generateHeaderString(flagConfig));
     int cnt;
     // Write out term vectors
-    for (cnt = 0; cnt < vT.cols; cnt++) {
+    for (cnt = 0; cnt < this.termList.length; cnt++) {
       outputStream.writeString(this.termList[cnt]);
       Vector termVector;
   
@@ -206,7 +193,7 @@ public class LSA {
     outputStream.writeString(VectorStoreWriter.generateHeaderString(flagConfig));
   
     // Write out document vectors
-    for (cnt = 0; cnt < uT.cols; cnt++) {
+    for (cnt = 0; cnt < luceneUtils.getNumDocs(); cnt++) {
       String thePath = this.luceneUtils.getDoc(cnt).get(flagConfig.docidfield());
       outputStream.writeString(thePath);
       float[] tmp = new float[flagConfig.dimension()];
@@ -257,3 +244,4 @@ public class LSA {
     lsaIndexer.writeOutput(vT, uT);
   }
 }
+
