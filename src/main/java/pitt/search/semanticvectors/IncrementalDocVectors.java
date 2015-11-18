@@ -118,7 +118,7 @@ public class IncrementalDocVectors {
       }
 
       // Get filename and path to be used as document vector ID, defaulting to doc number only if
-      // docidfield is not pupoulated.
+      // docidfield is not populated.
       String docID = luceneUtils.getExternalDocId(dc);
 
       Vector docVector = VectorFactory.createZeroVector(flagConfig.vectortype(), flagConfig.dimension());

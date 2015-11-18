@@ -117,6 +117,7 @@ public class LuceneUtils {
         loadStartWords(flagConfig.startlistfile());
 
     VerbatimLogger.info("Initialized LuceneUtils from Lucene index in directory: " + flagConfig.luceneindexpath() + "\n");
+    VerbatimLogger.info("Fields in index are: " + String.join(", ", this.getFieldNames()) + "\n");
   }
 
   /**
