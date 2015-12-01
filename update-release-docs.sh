@@ -1,5 +1,6 @@
 #!/bin/bash
 
+# Status: Not been updated to use github. Do not use!
 # Script for updating online javadoc when making a new release.
 #
 # Must be run from this directory, but uses higher directories in the
