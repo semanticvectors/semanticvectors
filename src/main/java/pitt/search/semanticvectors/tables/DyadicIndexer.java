@@ -112,7 +112,7 @@ public class DyadicIndexer {
       }
     }
 
-    dyadicIndexer.normalizeSemanticVectors();
+    //dyadicIndexer.normalizeSemanticVectors();
     dyadicIndexer.writeVectors();
   }
 }
