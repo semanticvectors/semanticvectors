@@ -105,18 +105,7 @@ public class VerbatimLogger {
   public static void finest(String message) {
     log(Level.FINEST, message);
   }
-
-  /**
-   * Returns true if {@param counter} just passed a significant digit milestone.
-   */
-  public static boolean isCounterOutput(int counter) {
-    return (counter < 10000 && counter % 1000 == 0)
-        || (counter < 100000 && counter % 10000 == 0)
-        || (counter < 1000000 && counter % 100000 == 0)
-        || (counter < 10000000 && counter % 1000000 == 0)
-        || counter % 10000000 == 0;
-  }
-
+  
   private class VerbatimFormatter extends Formatter {    
     public VerbatimFormatter() {}
     
