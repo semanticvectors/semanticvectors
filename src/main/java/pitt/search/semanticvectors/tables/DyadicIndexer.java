@@ -80,6 +80,28 @@ public class DyadicIndexer {
     }
   }
 
+  private static String normalizeTerm(String input) {
+    StringBuilder output = new StringBuilder();
+    boolean lastCharWasWhitespace = false;
+    for(char character : input.toCharArray()) {
+      if (Character.isAlphabetic(character)) {
+        output.append(character);
+      } else if (Character.isWhitespace(character)) {
+        if (!lastCharWasWhitespace && output.length() > 0) {
+          output.append('_');
+        }
+      }
+
+      lastCharWasWhitespace = Character.isWhitespace(character);
+    }
+
+    if (output.charAt(output.length() - 1) == '_') {
+      output.deleteCharAt(output.length() - 1);
+    }
+
+    return output.toString().toLowerCase();
+  }
+
   public static void main(String[] args) throws IOException {
     FlagConfig flagConfig = null;
     try {
@@ -104,7 +126,7 @@ public class DyadicIndexer {
     while ((dataLine = fileReader.readLine()) != null) {
       // dataLine = dataLine.toLowerCase();
       String[] entries = dataLine.split("\t");
-      dyadicIndexer.addDataPair(entries[0], entries[1]);
+      dyadicIndexer.addDataPair(normalizeTerm(entries[0]), normalizeTerm(entries[1]));
 
       lineCount++;
       if (VerbatimLogger.isCounterOutput(lineCount)) {

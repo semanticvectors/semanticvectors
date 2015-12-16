@@ -30,4 +30,12 @@ public class StatUtilsTest {
     Assert.assertEquals(0, StatUtils.sigmoid(-10), 0.01);
     Assert.assertEquals(1, StatUtils.sigmoid(10), 0.01);
   }
+
+  @Test
+  public void testProportionScore() {
+    Assert.assertEquals(1, StatUtils.proportionScore(2, 2), TOL);
+    Assert.assertEquals(0.5, StatUtils.proportionScore(5, 10), TOL);
+    Assert.assertEquals(0.5, StatUtils.proportionScore(10, 5), TOL);
+    Assert.assertEquals(0.1, StatUtils.proportionScore(10, 100), TOL);
+  }
 }
