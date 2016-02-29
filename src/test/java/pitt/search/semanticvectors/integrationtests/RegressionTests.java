@@ -259,7 +259,7 @@ public class RegressionTests {
         "-searchtype permutation -queryvectorfile elementalvectors.bin -searchvectorfile permtermvectors.bin simon ?",
         new String[] {"elementalvectors.bin", "permtermvectors.bin", "docvectors.bin"},
         "peter");
-    assertTrue(peterRank < 3);
+    assertTrue(peterRank < 5);
   }
 
   @Test

@@ -118,6 +118,8 @@ public class PSI {
 
     HashSet<String> addedConcepts = new HashSet<String>();
 
+    // Term counter to track initialization progress.
+    int tc = 0;
     for (String fieldName : itemFields) {
       Terms terms = luceneUtils.getTermsForField(fieldName);
 
@@ -142,6 +144,12 @@ public class PSI {
           elementalItemVectors.getVector(term.text());  // Causes vector to be created.
           semanticItemVectors.putVector(term.text(), VectorFactory.createZeroVector(
               flagConfig.vectortype(), flagConfig.dimension()));
+
+          // Output term counter.
+          tc++;
+          if ((tc > 0) && ((tc % 10000 == 0) || ( tc < 10000 && tc % 1000 == 0 ))) {
+            VerbatimLogger.info("Initialized " + tc + " term vectors ... ");
+          }
         }
       }
     }
@@ -180,12 +188,12 @@ public class PSI {
     Terms allTerms = luceneUtils.getTermsForField(fieldName);
     TermsEnum termsEnum = allTerms.iterator(null);
     BytesRef bytes;
+    int pc = 0;
     while((bytes = termsEnum.next()) != null) {
-      int pc = 0;
       Term term = new Term(fieldName, bytes);
-      pc++;
 
       // Output progress counter.
+      pc++;
       if ((pc > 0) && ((pc % 10000 == 0) || ( pc < 10000 && pc % 1000 == 0 ))) {
         VerbatimLogger.info("Processed " + pc + " unique predications ... ");
       }
@@ -201,7 +209,7 @@ public class PSI {
       if (!(elementalItemVectors.containsVector(object)
           && elementalItemVectors.containsVector(subject)
           && elementalPredicateVectors.containsVector(predicate))) {
-        logger.info("skipping predication " + subject + " " + predicate + " " + object);
+        logger.fine("skipping predication " + subject + " " + predicate + " " + object);
         continue;
       }
 

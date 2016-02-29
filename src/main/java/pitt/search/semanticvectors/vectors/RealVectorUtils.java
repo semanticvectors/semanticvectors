@@ -73,11 +73,10 @@ public class RealVectorUtils {
         double dotProduct = kthVector.measureOverlap(jthVector);
         // Subtract relevant amount from kth vector.
         kthVector.superpose(jthVector, -dotProduct, null);
+        kthVector.normalize();
       }
-
-      // And renormalize each time after all subtraction operations completed.
-      kthVector.normalize();
     }
+
     return true;
   }
   
