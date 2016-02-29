@@ -341,7 +341,7 @@ public class LuceneUtils {
         if (freq == 0) { 
           return 0;
         }
-        float idf = (float) Math.log10(compositeReader.numDocs()/freq);
+        float idf = (float) Math.log10(compositeReader.numDocs()/ (float) freq);
         termIDF.put(term, idf);
         return idf; 
       } catch (IOException e) {
