@@ -41,6 +41,8 @@ import org.apache.lucene.index.Term;
 import org.apache.lucene.index.Terms;
 import org.apache.lucene.index.TermsEnum;
 import org.apache.lucene.util.BytesRef;
+
+import pitt.search.semanticvectors.LuceneUtils.TermWeight;
 import pitt.search.semanticvectors.utils.VerbatimLogger;
 import pitt.search.semanticvectors.vectors.PermutationUtils;
 import pitt.search.semanticvectors.vectors.Vector;
@@ -167,12 +169,16 @@ public class PSI {
       }
 
       elementalPredicateVectors.getVector(term.text().trim());
-      semanticPredicateVectors.putVector(term.text().trim(), VectorFactory.createZeroVector(
+      
+      if (flagConfig.trainingcycles() > 0)
+    	  semanticPredicateVectors.putVector(term.text().trim(), VectorFactory.createZeroVector(
           flagConfig.vectortype(), flagConfig.dimension()));
 
       // Add inverse vector for the predicates.
       elementalPredicateVectors.getVector(term.text().trim() + "-INV");
-      semanticPredicateVectors.putVector(term.text().trim() + "-INV", VectorFactory.createZeroVector(
+      
+      if (flagConfig.trainingcycles() > 0)
+    	  semanticPredicateVectors.putVector(term.text().trim() + "-INV", VectorFactory.createZeroVector(
           flagConfig.vectortype(), flagConfig.dimension()));
     }
   }
@@ -216,37 +222,48 @@ public class PSI {
       float sWeight = 1;
       float oWeight = 1;
       float pWeight = 1;
+      float predWeight = 1;
 
-      sWeight = luceneUtils.getGlobalTermWeight(new Term(SUBJECT_FIELD, subject));
-      oWeight = luceneUtils.getGlobalTermWeight(new Term(OBJECT_FIELD, object));
-      // TODO: Explain different weighting for predicates, log(occurrences of predication)
+      // sWeight and oWeight are analogous to global weighting, a function of the number of times these concepts - and predicates - occur
+      // such that less frequent concepts and predicates will contribute more 
+      predWeight 	= luceneUtils.getGlobalTermWeight(new Term(PREDICATE_FIELD, predicate));
+      sWeight 		= luceneUtils.getGlobalTermWeight(new Term(SUBJECT_FIELD, subject));
+      oWeight 		= luceneUtils.getGlobalTermWeight(new Term(OBJECT_FIELD, object));
+      // pWeight is analogous to local weighting, a function of the total number of times a predication occurs 
+      // examples are -termweight sqrt (sqrt of total occurences), and -termweight logentropy (log of 1 + occurrences)
       pWeight = luceneUtils.getLocalTermWeight(luceneUtils.getGlobalTermFreq(term));
 
+      // with -termweight sqrt we don't take global weighting of predicates into account to preserve a probabilistic interpretation
+      if (flagConfig.termweight().equals(TermWeight.SQRT)) predWeight = 0; 
+      
       Vector subjectSemanticVector = semanticItemVectors.getVector(subject);
       Vector objectSemanticVector = semanticItemVectors.getVector(object);
       Vector subjectElementalVector = elementalItemVectors.getVector(subject);
       Vector objectElementalVector = elementalItemVectors.getVector(object);
       Vector predicateElementalVector = elementalPredicateVectors.getVector(predicate);
       Vector predicateElementalVectorInv = elementalPredicateVectors.getVector(predicate + "-INV");
-      Vector predicateSemanticVector = semanticPredicateVectors.getVector(predicate);
-      Vector predicateSemanticVectorInv = semanticPredicateVectors.getVector(predicate+ "-INV");
 
-      //construct permuted editions of subject and object vectors (so binding doesn't commute)
-      Vector permutedSubjectElementalVector = VectorFactory.createZeroVector(flagConfig.vectortype(), flagConfig.dimension());
-      Vector permutedObjectElementalVector = VectorFactory.createZeroVector(flagConfig.vectortype(), flagConfig.dimension());
-      permutedSubjectElementalVector.superpose(subjectElementalVector, 1, predicatePermutation); 
-      permutedObjectElementalVector.superpose(objectElementalVector, 1, predicatePermutation); 
-      permutedSubjectElementalVector.normalize();
-      permutedObjectElementalVector.normalize();
-      
       Vector objToAdd = objectElementalVector.copy();
       objToAdd.bind(predicateElementalVector);
-      subjectSemanticVector.superpose(objToAdd, pWeight * oWeight, null);
+      subjectSemanticVector.superpose(objToAdd, pWeight * (oWeight + predWeight), null);
 
       Vector subjToAdd = subjectElementalVector.copy();
       subjToAdd.bind(predicateElementalVectorInv);
-      objectSemanticVector.superpose(subjToAdd, pWeight * sWeight, null);
+      objectSemanticVector.superpose(subjToAdd, pWeight * (sWeight + predWeight), null);
 
+      if (flagConfig.trainingcycles() > 0) //for experiments with generating iterative predicate vectors
+      {
+    	  
+       	  Vector predicateSemanticVector = semanticPredicateVectors.getVector(predicate);
+    		  Vector predicateSemanticVectorInv = semanticPredicateVectors.getVector(predicate+ "-INV");
+          //construct permuted editions of subject and object vectors (so binding doesn't commute)
+          Vector permutedSubjectElementalVector = VectorFactory.createZeroVector(flagConfig.vectortype(), flagConfig.dimension());
+          Vector permutedObjectElementalVector = VectorFactory.createZeroVector(flagConfig.vectortype(), flagConfig.dimension());
+          permutedSubjectElementalVector.superpose(subjectElementalVector, 1, predicatePermutation); 
+          permutedObjectElementalVector.superpose(objectElementalVector, 1, predicatePermutation); 
+          permutedSubjectElementalVector.normalize();
+          permutedObjectElementalVector.normalize();  
+    	  
       Vector predToAdd = subjectElementalVector.copy();
       predToAdd.bind(permutedObjectElementalVector);
       predicateSemanticVector.superpose(predToAdd, sWeight * oWeight, null);
@@ -254,6 +271,7 @@ public class PSI {
       Vector predToAddInv = objectElementalVector.copy();
       predToAddInv.bind(permutedSubjectElementalVector);
       predicateSemanticVectorInv.superpose(predToAddInv, oWeight * sWeight, null);
+      }
     } // Finish iterating through predications.
 
     // Normalize semantic vectors and write out.
