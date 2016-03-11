@@ -94,11 +94,13 @@ public class PSI {
     VerbatimLogger.info("Performing first round of PSI training ...");
     incrementalPSIVectors.trainIncrementalPSIVectors("");
 
+    if (flagConfig.trainingcycles() > 0)
+    {	
     VerbatimLogger.info("Performing next round of PSI training ...");
     incrementalPSIVectors.elementalItemVectors = incrementalPSIVectors.semanticItemVectors;
     incrementalPSIVectors.elementalPredicateVectors = incrementalPSIVectors.semanticPredicateVectors;
     incrementalPSIVectors.trainIncrementalPSIVectors("1");
-
+    }
     VerbatimLogger.info("Done with createIncrementalPSIVectors.");
   }
 
@@ -287,10 +289,15 @@ public class PSI {
 
     VectorStoreWriter.writeVectors(
         flagConfig.semanticvectorfile() + iterationTag, flagConfig, semanticItemVectors);
+   
+    if (flagConfig.trainingcycles() > 0)
+    {	
     VectorStoreWriter.writeVectors(
         flagConfig.semanticpredicatevectorfile() + iterationTag, flagConfig, semanticPredicateVectors);
+    }
     VerbatimLogger.info("Finished writing this round of semantic item and predicate vectors.\n");
-  }
+    
+    }
 
   /**
    * Main method for building PSI indexes.
