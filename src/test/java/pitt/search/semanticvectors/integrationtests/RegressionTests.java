@@ -206,7 +206,8 @@ public class RegressionTests {
         "-queryvectorfile termtermvectors.bin simon",
         new String[] {"termtermvectors.bin", "docvectors.bin"},
         "peter");
-       assertTrue(peterRank < 10);
+
+    assertTrue(peterRank < 15);
   }
 
   // Convolution for complex directional indexing seems to really need some termweighting to work well. 
