@@ -641,7 +641,23 @@ public class ComplexVector implements Vector {
           e.printStackTrace();
         }
       }
-
+    }
+      
+      /**
+       * Transforms vector to cartesian form and writes vector out in dense format, truncating the 
+       * vectors to the assigned dimensionality
+       */
+      public void writeToLuceneStream(IndexOutput outputStream, int k) {
+        toCartesian();
+        for (int i = 0; i < k*2; ++i) {
+          try {
+            outputStream.writeInt(Float.floatToIntBits(coordinates[i]));
+          } catch (IOException e) {
+            e.printStackTrace();
+          }
+        }
+      
+      
       /* DORMANT CODE!
     assert(opMode != MODE.POLAR_SPARSE);
     if (opMode == MODE.CARTESIAN) {
