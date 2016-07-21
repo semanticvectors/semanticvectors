@@ -15,6 +15,6 @@ public class MatrixUtilsTest {
         float[][] right = {{2}, {0}};
 
         float[][] result = MatrixUtils.multiplyMatrices(left, right);
-        MyTestUtils.assertFloatArrayEquals(new float[]{2, 0}, result[0], tol);
+        MyTestUtils.assertFloatArrayEquals(new float[]{2}, result[0], tol);
     }
 }
