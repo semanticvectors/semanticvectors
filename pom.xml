@@ -5,7 +5,7 @@
     <artifactId>semanticvectors</artifactId>
     <!-- Change this to x.y-SNAPSHOT to run mvn release:prepare -->
     <version>5.9</version>
-    <url>http://semanticvectors.googlecode.com/</url>
+    <url>https://github.com/semanticvectors/semanticvectors</url>
 
     <licenses>
         <license>
@@ -24,9 +24,8 @@
     </parent>
 
     <scm>
-        <url>https://semanticvectors.googlecode.com/svn/trunk</url>
-        <connection>scm:svn:https://semanticvectors.googlecode.com/svn/trunk</connection>
-        <developerConnection>scm:svn:https://semanticvectors.googlecode.com/svn/trunk</developerConnection>
+        <url>https://github.com/semanticvectors/semanticvectors</url>
+        <!-- Could add connection and developerConnection elements. I don't know what they actually do. -DW -->
     </scm>
 
     <properties>
