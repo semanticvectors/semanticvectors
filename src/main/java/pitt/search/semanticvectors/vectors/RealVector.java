@@ -420,6 +420,28 @@ public class RealVector implements Vector {
     }
   }
 
+  /**
+   * Writes vector out in dense format.  If vector is originally sparse, writes out a copy so
+   * that vector remains sparse. Truncates to length k. 
+   */
+  public void writeToLuceneStream(IndexOutput outputStream, int k) {
+    float[] coordsToWrite;
+    if (isSparse) {
+      RealVector copy = copy();
+      copy.sparseToDense();
+      coordsToWrite = copy.coordinates;
+    } else {
+      coordsToWrite = coordinates;
+    }
+    for (int i = 0; i < k; ++i) {
+      try {
+        outputStream.writeInt(Float.floatToIntBits(coordsToWrite[i]));
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+    }
+  }
+  
   @Override
   /**
    * Reads a (dense) version of a vector from a Lucene input stream. 

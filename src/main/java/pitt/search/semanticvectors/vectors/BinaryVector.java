@@ -124,16 +124,21 @@ public class BinaryVector implements Vector {
   }
 
   public String toString() {
-    StringBuilder debugString = new StringBuilder("BinaryVector.");
+    StringBuilder debugString = new StringBuilder("");
+    
     if (isSparse) {
       debugString.append("  Sparse.  First " + DEBUG_PRINT_LENGTH + " values are:\n");
       for (int x = 0; x < DEBUG_PRINT_LENGTH; x++) debugString.append(bitSet.get(x) ? "1 " : "0 ");
       debugString.append("\nCardinality " + bitSet.cardinality()+"\n");
     }
     else {
+    	
       debugString.append("  Dense.  First " + DEBUG_PRINT_LENGTH + " values are:\n");
-      for (int x = 0; x < DEBUG_PRINT_LENGTH; x++) debugString.append(bitSet.get(x) ? "1 " : "0 ");
+    
+      for (int x = 0; x < DEBUG_PRINT_LENGTH; x++) debugString.append(bitSet.get(x) ? "1" : "0");
       // output voting record for first DEBUG_PRINT_LENGTH dimension
+   
+      
       debugString.append("\nVOTING RECORD: \n");
       for (int y =0; y < votingRecord.size(); y++)
       {
@@ -166,6 +171,8 @@ public class BinaryVector implements Vector {
       debugString.append("\nCardinality " + bitSet.cardinality()+"\n");
       debugString.append("Votes " + totalNumberOfVotes+"\n");
       debugString.append("Minimum " + minimum + "\n");
+      
+      debugString.append("\n");
     }
     return debugString.toString();
   }
@@ -765,6 +772,26 @@ public class BinaryVector implements Vector {
     }
   }
 
+  /**
+   * Writes vector out to object output stream.  Converts to dense format if necessary. Truncates to length k.
+   */
+  public void writeToLuceneStream(IndexOutput outputStream, int k) {
+    if (isSparse) {
+      elementalToSemantic();
+    }
+    long[] bitArray = bitSet.getBits();
+
+    for (int i = 0; i < k/64; i++) {
+      try {
+        outputStream.writeLong(bitArray[i]);
+      } catch (IOException e) {
+        logger.severe("Couldn't write binary vector to lucene output stream.");
+        e.printStackTrace();
+      }
+    }
+  }
+
+  
   @Override
   /**
    * Reads a (dense) version of a vector from a Lucene input stream. 

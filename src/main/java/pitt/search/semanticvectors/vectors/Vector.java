@@ -117,6 +117,11 @@ public interface Vector {
    * Writes vector to Lucene output stream.  Writes exactly {@link #getDimension} coordinates.
    */
   public abstract void writeToLuceneStream(IndexOutput outputStream);
+  
+  /**
+   * Writes truncated vector to Lucene output stream.  Writes exactly k coordinates.
+   */
+  public abstract void writeToLuceneStream(IndexOutput outputStream, int k);
 
   /**
    * Reads vector from Lucene input stream.  Reads exactly {@link #getDimension} coordinates.

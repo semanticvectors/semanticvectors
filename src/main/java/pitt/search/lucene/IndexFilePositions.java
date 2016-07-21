@@ -42,6 +42,7 @@ import java.nio.file.Path;
 import java.util.Date;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
+import org.apache.lucene.analysis.util.CharArraySet;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.store.FSDirectory;
@@ -81,7 +82,7 @@ public class IndexFilePositions {
     	IndexWriter writer;
       // Create IndexWriter using porter stemmer or no stemming. No stopword list.
     	Analyzer analyzer = flagConfig.porterstemmer()
-          ? new PorterAnalyzer() : new StandardAnalyzer();
+          ? new PorterAnalyzer() : new StandardAnalyzer(CharArraySet.EMPTY_SET);
       IndexWriterConfig writerConfig = new IndexWriterConfig(analyzer);
       writer = new IndexWriter(FSDirectory.open(INDEX_DIR), writerConfig);
 
