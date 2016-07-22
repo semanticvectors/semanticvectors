@@ -74,12 +74,16 @@ public class ComplexVector implements Vector {
     /** Uses a pair of 16 bit shorts for each (offset, phase angle) pair. */
     POLAR_SPARSE,
     /** Uses a pair of 32 bit floats for each (real, imaginary) complex coordinate. */
-    CARTESIAN };
+    CARTESIAN,
+    /** As above, but with normalization to unit length and the hermitian scalar product
+     *  instead of the alternatives proposed by Plate */
+    HERMITIAN
+  	};
 
     /** 
      * The dominant mode used for normalizing and comparing vectors.
      */
-    private static Mode DOMINANT_MODE = Mode.POLAR_DENSE;
+    private static Mode DOMINANT_MODE = Mode.HERMITIAN;
     /**
      * Sets the dominant mode. {@link VectorType#COMPLEX} uses {@link Mode#POLAR_DENSE}
      * and {@link VectorType#COMPLEXFLAT} uses {@link Mode#CARTESIAN}.
@@ -266,15 +270,12 @@ public class ComplexVector implements Vector {
       ComplexVector complexOther = (ComplexVector) other;
       if (complexOther.isZeroVector()) return 0;
       switch (DOMINANT_MODE) {
+      case HERMITIAN:
+    	  return measureHermitianOverlap(complexOther); 
       case CARTESIAN:
-        //to force hermitian behavior, instead use: 
-    	if (hermitian) return measureHermitianOverlap(complexOther); 
-    	else return measureCartesianAngularOverlap(complexOther);
+    	  return measureCartesianAngularOverlap(complexOther);
       case POLAR_DENSE:
-        //to force hermitian behavior instead use: 
-    	if (hermitian) 
-    	{toCartesian(); return measureHermitianOverlap(complexOther);}
-    	else return measurePolarDenseOverlap(complexOther);
+          return measurePolarDenseOverlap(complexOther);
       case POLAR_SPARSE:
         throw new IllegalArgumentException("POLAR_SPARSE is not allowed as DOMINANT_MODE.");
       default:
@@ -365,18 +366,17 @@ public class ComplexVector implements Vector {
     public void normalize() {
       if (isZeroVector()) return;
       switch (DOMINANT_MODE) {
+      case HERMITIAN:
+    	  normalizeHermitian(); 
+    	  return;
       case CARTESIAN:
-        //to force hermitian normalization, switch to: 
-    	  if (hermitian) normalizeHermitian(); 
-    	  else normalizeCartesian();
-    	return;
+    	  normalizeCartesian();
+    	  return;
       case POLAR_DENSE:
-       //to force hermitian normalization, switch to: 
-        if (hermitian) {toCartesian(); normalizeHermitian();}
-        else toDensePolar();
-    	return;    
+    	  toDensePolar();
+    	  return;    
       case POLAR_SPARSE:
-        throw new IllegalArgumentException("POLAR_SPARSE is not allowed as DOMINANT_MODE.");
+    	  throw new IllegalArgumentException("POLAR_SPARSE is not allowed as DOMINANT_MODE.");
       default:
         return;
       } 
@@ -529,7 +529,7 @@ public class ComplexVector implements Vector {
       IncompatibleVectorsException.checkVectorsCompatible(this, other);
       
       // to preserve coefficients for hermitian implementation, inclode the commented code below
-       if (hermitian && this.getOpMode().equals(Mode.CARTESIAN) && other.getOpMode().equals(Mode.CARTESIAN))
+       if (this.getOpMode().equals(Mode.HERMITIAN) && other.getOpMode().equals(Mode.HERMITIAN))
        convolveCartesian(other, direction);
         else 
     	  {
@@ -843,6 +843,5 @@ public class ComplexVector implements Vector {
       this.opMode = opMode;
     }
 
-    //temporary - hermitian mode of operation to be properly integrated later
-    private final boolean hermitian = true ;
+
 }
