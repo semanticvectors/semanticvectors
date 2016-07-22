@@ -296,7 +296,6 @@ public class TermTermVectorsFromLucene { //implements VectorStore {
   }
 
   private void trainTermTermVectors() throws IOException, RuntimeException {
-    LuceneUtils.compressIndex(flagConfig.luceneindexpath());
     luceneUtils = new LuceneUtils(flagConfig);
     termDic = new ConcurrentSkipListMap<Integer, String>();
     totalAdd = 0;
