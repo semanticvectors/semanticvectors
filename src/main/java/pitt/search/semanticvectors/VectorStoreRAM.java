@@ -37,8 +37,7 @@ package pitt.search.semanticvectors;
 
 import java.io.IOException;
 import java.util.Enumeration;
-import java.util.Hashtable;
-import java.util.Random;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -62,14 +61,14 @@ public class VectorStoreRAM implements VectorStore {
   private static final Logger logger =
     Logger.getLogger(VectorStoreRAM.class.getCanonicalName());
   private FlagConfig flagConfig;
-  private Hashtable<Object, ObjectVector> objectVectors;
+  private ConcurrentHashMap<Object, ObjectVector> objectVectors;
   private VectorType vectorType;
   private int dimension;
   /** Used for checking compatibility of new vectors. */
   private Vector zeroVector;
   
   public VectorStoreRAM(FlagConfig flagConfig) {
-    this.objectVectors = new Hashtable<Object, ObjectVector>();
+    this.objectVectors = new ConcurrentHashMap<Object, ObjectVector>();
     this.flagConfig = flagConfig;
     this.vectorType = flagConfig.vectortype();
     this.dimension = flagConfig.dimension();

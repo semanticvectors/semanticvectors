@@ -806,11 +806,11 @@ public class ComplexVector implements Vector {
       this.opMode = Mode.POLAR_DENSE;
     }
 
-    protected float[] getCoordinates() {
+    public float[] getCoordinates() {
       return coordinates;
     }
 
-    protected void setCoordinates(float[] coordinates) {
+    public void setCoordinates(float[] coordinates) {
       this.coordinates = coordinates;
     }
 
@@ -844,5 +844,5 @@ public class ComplexVector implements Vector {
     }
 
     //temporary - hermitian mode of operation to be properly integrated later
-    private final boolean hermitian = false;
+    private final boolean hermitian = true ;
 }

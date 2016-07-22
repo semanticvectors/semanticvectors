@@ -40,6 +40,10 @@ import java.util.List;
 import java.util.Random;
 import java.util.logging.Logger;
 
+import org.netlib.blas.BLAS;
+
+import pitt.search.semanticvectors.FlagConfig;
+
 /**
  * This class provides some standard vector methods. Many old methods have been removed
  * and are now implemented in vector and util classes for real, complex, and binary vectors.
@@ -184,4 +188,74 @@ public class VectorUtils {
 
     return randIndex;
   }
+  
+  /**
+   * Utility method to compute scalar product (hopefully) quickly using BLAS routines
+   * Arguably, this should be disseminated across the individual Vector classes
+   * 
+   * @param v1
+   * @param v2
+   * @param blas
+   * @return
+   */
+  public static double scalarProduct(Vector v1, Vector v2, FlagConfig flagConfig, BLAS blas) throws IncompatibleVectorsException
+  {
+	  if (!v1.getVectorType().equals(v2.getVectorType()))
+		  throw new IncompatibleVectorsException();
+	  
+	  switch (v1.getVectorType())
+	  {
+		case REAL:
+			return blas.sdot(flagConfig.dimension(), ((RealVector) v1).getCoordinates(), 1, ((RealVector) v2).getCoordinates(), 1);
+		case COMPLEX: //hermitian scalar product
+			return blas.sdot(flagConfig.dimension(), ((ComplexVector) v1).getCoordinates(), 1, ((ComplexVector) v2).getCoordinates(), 1);
+		case BINARY:
+			((BinaryVector) v1).tallyVotes();
+			((BinaryVector) v2).tallyVotes();
+			return v1.measureOverlap(v2);
+	default:
+		return 0;
+		
+	  }
+	  
+	
+  }
+  
+  
+  /**
+   * Utility method to perform superposition (hopefully) quickly using BLAS routines
+   * Arguably, this should be disseminated across the individual Vector classes
+   * 
+   * 
+   * @param toBeAdded
+   * @param toBeAltered
+   * @param blas
+   * @return
+   */
+  public static void superposeInPlace(Vector toBeAdded, Vector toBeAltered, FlagConfig flagConfig, BLAS blas, double weight) throws IncompatibleVectorsException
+  {
+	  if (!toBeAdded.getVectorType().equals(toBeAltered.getVectorType()))
+		  throw new IncompatibleVectorsException();
+	  
+	  switch (toBeAdded.getVectorType())
+	  {
+		case REAL:
+			 blas.saxpy(flagConfig.dimension(),   (float) weight, ((RealVector) toBeAdded).getCoordinates(), 1, ((RealVector) toBeAltered).getCoordinates(),1);
+			 break;
+		case COMPLEX:
+			 blas.saxpy(flagConfig.dimension(), (float) weight, ((ComplexVector) toBeAdded).getCoordinates(), 1, ((ComplexVector) toBeAltered).getCoordinates(), 1);
+			 break;
+		case BINARY: //first attempt at this - add the results of the election multiplied by the number of votes to date
+			((BinaryVector) toBeAdded).tallyVotes();
+			toBeAltered.superpose(toBeAdded, weight, null);
+			break;
+	default:
+		break;
+		
+	  }
+	  
+	
+  }
+  
+  
 }

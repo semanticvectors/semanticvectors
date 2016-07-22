@@ -292,12 +292,11 @@ public class SearchBatch {
 		BufferedReader queryReader = new BufferedReader(new FileReader(new File(queryArgs[0])));
 		String queryString = queryReader.readLine();
 		int qcnt = 0;
-		
 	while (queryString != null)
 	{
 		ArrayList<String> queryTerms = new ArrayList<String>();
 		qcnt++;
-		
+		/**
 		//have Lucene parse the query string, for consistency
 		StandardAnalyzer  analyzer = new StandardAnalyzer(new CharArraySet(new ArrayList<String>(), true));
 		TokenStream stream = analyzer.tokenStream(null, new StringReader(queryString));
@@ -310,7 +309,7 @@ public class SearchBatch {
 		
 			String term = cattr.toString();
 			
-			if (!luceneUtils.stoplistContains(term)) 
+			if ((luceneUtils != null && !luceneUtils.stoplistContains(term)) || luceneUtils == null) 
 			{
 				if (! flagConfig.matchcase()) term = term.toLowerCase();
 				queryTerms.add(term);
@@ -319,7 +318,9 @@ public class SearchBatch {
 		stream.end();
 		stream.close();
 		analyzer.close();
-	 
+	 **/
+	queryTerms.add(queryString);
+	
 		//transform to String[] array
 		queryArgs = queryTerms.toArray(new String[0]);
 		
@@ -327,6 +328,8 @@ public class SearchBatch {
     // Most options have corresponding dedicated VectorSearcher subclasses.
     VectorSearcher vecSearcher = null;
     LinkedList<SearchResult> results;
+    String[] splitArgs = null;
+    boolean allTermsRepresented = true;
     VerbatimLogger.info("Searching term vectors, searchtype " + flagConfig.searchtype() + "\n");
 
     try {
@@ -383,17 +386,23 @@ public class SearchBatch {
             queryVecReader, searchVecReader, luceneUtils, flagConfig, queryArgs);
         break;
       case ANALOGY:
-        vecSearcher = new VectorSearcher.AnalogySearcher(
-            queryVecReader, searchVecReader, luceneUtils, flagConfig, queryArgs);
+    	  splitArgs = queryArgs[0].split(" ");
+    	  for (String searchTerm : splitArgs)
+	  			if (!queryVecReader.containsVector(searchTerm)) allTermsRepresented = false;
+  	
+    	  vecSearcher = new VectorSearcher.AnalogySearcher(
+            queryVecReader, searchVecReader, luceneUtils, flagConfig, splitArgs);
         break;
       case LUCENE:
           vecSearcher = new VectorSearcher.VectorSearcherLucene(
               luceneUtils, flagConfig, queryArgs);
           break;
       case PRINTQUERY:    
+    	splitArgs = queryArgs[0].split(" ");
         Vector queryVector = CompoundVectorBuilder.getQueryVector(
-            queryVecReader, luceneUtils, flagConfig, queryArgs);
+            queryVecReader, luceneUtils, flagConfig, splitArgs);
         System.out.println(queryVector.toString());
+        break;
       default:
         throw new IllegalArgumentException("Unknown search type: " + flagConfig.searchtype());
       }
@@ -404,7 +413,10 @@ public class SearchBatch {
     results = new LinkedList<SearchResult>();
     
     try {
-    results = vecSearcher.getNearestNeighbors(flagConfig.numsearchresults());
+
+    if (!allTermsRepresented) System.out.println("0: Missing term(s)");
+    else results = vecSearcher.getNearestNeighbors(flagConfig.numsearchresults());
+    
     	}
     catch (Exception e)
     	{
@@ -415,8 +427,21 @@ public class SearchBatch {
     // Print out results.
     if (results.size() > 0) {
       VerbatimLogger.info("Search output follows ...\n");
+    
       for (SearchResult result: results) {
     	  
+    	  boolean printResult = true;
+    	   
+    	  if (flagConfig.searchtype() == Search.SearchType.ANALOGY) //don't output cue terms
+    	    {
+    	    	for (String searchTerm : splitArgs)
+    	    		{
+    	    			if (result.getObjectVector().getObject().toString().equals(searchTerm))
+    	    			printResult = false;
+    	    		  		}
+    	    }
+    	  if (printResult)
+    	  {
     	  if (flagConfig.treceval() != -1) //results in trec_eval format
     	  {  	System.out.println(
     		  			String.format("%s\t%s\t%s\t%s\t%f\t%s",
@@ -432,7 +457,17 @@ public class SearchBatch {
     			  		String.format("%f:%s",
     			  			result.getScore(),
     			  			result.getObjectVector().getObject().toString()));
-      									}
+    	  							
+    	  if (flagConfig.searchtype() == Search.SearchType.ANALOGY)	
+    	  {
+    		  break;
+    	  }
+    	  }
+    	 	
+      }
+   
+  	
+      	
     }
    queryString = queryReader.readLine();
     
