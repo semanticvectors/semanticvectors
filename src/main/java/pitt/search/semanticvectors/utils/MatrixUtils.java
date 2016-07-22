@@ -118,6 +118,7 @@ public class MatrixUtils {
       outBuf.write(String.format("%f\n", num));
     }
     outBuf.close();
+    System.out.println("Wrote to file: " + fn);
   }
 
   /**
@@ -125,21 +126,23 @@ public class MatrixUtils {
    * trains them from each other.
    */
   public static void main(String[] args) throws IOException {
-    int terms = 500;
-    int docs = 1000;
-    int dimension = 1200;
-    int iterations = 100;
+    int terms = 600;
+    int docs = 500;
+    int dimension = 500;
+    int iterations = 101;
 
     Random random = new Random();
     float[][] cooccurences = randomInit(terms, docs, random);
+    normalizeRows(cooccurences);
     float[][] coocTrans = transpose(cooccurences);
+    normalizeRows(coocTrans);
     float[][] docVecs = randomInit(docs, dimension, random);
     normalizeRows(docVecs);
 
     float[][] termVecs;
     for (int i = 0; i < iterations; ++i) {
+      writeSortedFirstDim(docVecs, String.format("/Users/dwiddows/Data/Matrices/nniter_%d.txt", i));
       termVecs = multiplyMatrices(cooccurences, docVecs);
-      writeSortedFirstDim(termVecs, String.format("./dim_%d.txt", i));
       normalizeRows(termVecs);
       docVecs = multiplyMatrices(coocTrans, termVecs);
       normalizeRows(docVecs);
