@@ -42,7 +42,9 @@ import java.nio.file.FileSystems;
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.List;
+import java.util.Map;
 import java.util.TreeSet;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 
 import org.apache.lucene.document.Document;
@@ -73,8 +75,10 @@ public class LuceneUtils {
   private FlagConfig flagConfig;
   private BaseCompositeReader<LeafReader> compositeReader;
   private LeafReader leafReader;
-  private Hashtable<Term, Float> termEntropy = new Hashtable<Term, Float>();
-  private Hashtable<Term, Float> termIDF = new Hashtable<>();
+  private ConcurrentHashMap<Term, Float> termEntropy = new ConcurrentHashMap<Term, Float>();
+  private ConcurrentHashMap<Term, Float> termIDF = new ConcurrentHashMap<Term, Float>();
+  private ConcurrentHashMap<Term, Integer> termFreq = new ConcurrentHashMap<Term, Integer>();
+  private boolean totalTermCountCaching = true;
   private TreeSet<String> stopwords = null;
   private TreeSet<String> startwords = null;
 
@@ -238,6 +242,23 @@ public class LuceneUtils {
     return fieldNames;
   }
 
+  
+  /**
+   * Gets the document frequency of a term,
+   * i.e. how may documents it occurs in the whole corpus
+   * @param term whose frequency you want
+   * @return Global document frequency of term, or 1 if unavailable.
+   */
+  public int getGlobalDocFreq(Term term) {
+	  try {
+		return compositeReader.docFreq(term);
+	} catch (IOException e) {
+		// TODO Auto-generated catch block
+		logger.info("Couldn't get term frequency for term " + term.text());
+	    return 1;
+	}
+  }
+  
   /**
    * Gets the global term frequency of a term,
    * i.e. how may times it occurs in the whole corpus
@@ -246,9 +267,13 @@ public class LuceneUtils {
    */
   public int getGlobalTermFreq(Term term) {
 	  int tf = 0;
-	
+	  if (totalTermCountCaching && termFreq.containsKey(term)) {
+		  return termFreq.get(term);
+	  }
+	  else
     try {
-		  tf  = (int) compositeReader.totalTermFreq(term);
+    	  tf  = (int) compositeReader.totalTermFreq(term);
+		  termFreq.put(term, tf);
     }
     catch (IOException e) {
       logger.info("Couldn't get term frequency for term " + term.text());
