@@ -108,8 +108,8 @@ public class MatrixUtils {
   public static void writeSortedFirstDim(float[][] matrix, String fn) throws IOException {
     BufferedWriter outBuf = new BufferedWriter(new FileWriter(fn));
     ArrayList<Float> firsts = new ArrayList<>();
-    for (int row = 0; row < matrix.length; ++row) {
-      firsts.add(matrix[row][0]);
+    for (int row = 0; row < matrix[0].length; ++row) {
+      firsts.add(matrix[0][row]);
     }
 
     Collections.sort(firsts);
@@ -135,17 +135,22 @@ public class MatrixUtils {
     float[][] cooccurences = randomInit(terms, docs, random);
     normalizeRows(cooccurences);
     float[][] coocTrans = transpose(cooccurences);
+
+    float[][] coocSquared = MatrixUtils.multiplyMatrices(coocTrans, cooccurences);
+
     normalizeRows(coocTrans);
     float[][] docVecs = randomInit(docs, dimension, random);
     normalizeRows(docVecs);
 
     float[][] termVecs;
     for (int i = 0; i < iterations; ++i) {
-      writeSortedFirstDim(docVecs, String.format("/Users/dwiddows/Data/Matrices/nniter_%d.txt", i));
-      termVecs = multiplyMatrices(cooccurences, docVecs);
-      normalizeRows(termVecs);
-      docVecs = multiplyMatrices(coocTrans, termVecs);
-      normalizeRows(docVecs);
+      writeSortedFirstDim(docVecs, String.format("/Users/dwiddows/Data/Matrices/sqiter_%d.txt", i));
+      //termVecs = multiplyMatrices(cooccurences, docVecs);
+      //normalizeRows(termVecs);
+      //docVecs = multiplyMatrices(coocTrans, termVecs);
+      float[][] newDocVecs = multiplyMatrices(coocSquared, docVecs);
+      normalizeRows(newDocVecs);
+      docVecs = newDocVecs;
     }
   }
 }
