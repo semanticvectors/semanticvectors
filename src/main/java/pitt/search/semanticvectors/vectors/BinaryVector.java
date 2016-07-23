@@ -881,8 +881,8 @@ public class BinaryVector implements Vector {
    */
   private FixedBitSet getVotingRowAndWarnIfEmpty(int row) {
     if (votingRecord.get(row) == null) {
-      logger.severe(String.format("Error in voting record in line %d for vector.\n", row));
-      votingRecord.add(row, new FixedBitSet(dimension));
+      logger.severe(String.format("Error in voting record in line %d.\n", row));
+      votingRecord.set(row, new FixedBitSet(dimension));
     }
     return votingRecord.get(row);
   }
