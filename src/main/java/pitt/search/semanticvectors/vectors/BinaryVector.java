@@ -269,11 +269,20 @@ public class BinaryVector implements Vector {
    * This is an attempt to save space, as voting records can be prohibitively expansive
    * if not contained.
    */
-  public void superpose(Vector other, double weight, int[] permutation) {
+  public synchronized void superpose(Vector other, double weight, int[] permutation) {
     IncompatibleVectorsException.checkVectorsCompatible(this, other);
     if (weight == 0d) return;
     if (other.isZeroVector()) return;
     BinaryVector binaryOther = (BinaryVector) other;
+    boolean flippedBitSet = false; //for subtraction
+    
+    if (weight < 0) //subtraction
+    	{
+    	  weight = Math.abs(weight);
+    	  binaryOther.bitSet.flip(0, binaryOther.bitLength());
+    	  flippedBitSet = true;
+    	}
+    
     if (isSparse) {
       if (Math.round(weight) != weight) {
         decimalPlaces = BINARY_VECTOR_DECIMAL_PLACES; 
@@ -298,6 +307,8 @@ public class BinaryVector implements Vector {
     else {
       superposeBitSet(binaryOther.bitSet, weight);
     }
+    
+    if (flippedBitSet) binaryOther.bitSet.flip(0, binaryOther.bitLength()); //return to original configuration
   }
 
   /**
@@ -314,7 +325,7 @@ public class BinaryVector implements Vector {
    * @param incomingBitSet
    * @param weight
    */
-  protected void superposeBitSet(FixedBitSet incomingBitSet, double weight) {
+  protected synchronized void superposeBitSet(FixedBitSet incomingBitSet, double weight) {
     // If fractional weights are used, encode all weights as integers (1000 x double value).
     weight = (int) Math.round(weight * Math.pow(10, decimalPlaces));
     if (weight == 0) return;
@@ -349,7 +360,7 @@ public class BinaryVector implements Vector {
    * @param incomingBitSet the bitset to be added
    * @param rowfloor the index of the place in the voting record to start the sweep at
    */
-  protected void superposeBitSetFromRowFloor(FixedBitSet incomingBitSet, int rowfloor) {
+  protected synchronized void superposeBitSetFromRowFloor(FixedBitSet incomingBitSet, int rowfloor) {
     // Attempt to save space when minimum value across all columns > 0
     // by decrementing across the board and raising the minimum where possible.
     int max = getMaximumSharedWeight();	
@@ -403,7 +414,7 @@ public class BinaryVector implements Vector {
    * Sets {@link #tempSet} to be a bitset with a "1" in the position of every dimension
    * in the {@link #votingRecord} that exactly matches the target number.
    */
-  private void setTempSetToExactMatches(int target) {
+  private synchronized void setTempSetToExactMatches(int target) {
     if (target == 0) {
       tempSet.set(0, dimension);
       tempSet.xor(votingRecord.get(0));
@@ -433,12 +444,12 @@ public class BinaryVector implements Vector {
    * 
    * @return an FixedBitSet representing the superposition of all vectors added up to this point
    */
-  protected FixedBitSet concludeVote() {
+  protected synchronized FixedBitSet concludeVote() {
     if (votingRecord.size() == 0 || votingRecord.size() == 1 && votingRecord.get(0).cardinality() ==0) return new FixedBitSet(dimension);
     else return concludeVote(totalNumberOfVotes);
   }
 
-  protected FixedBitSet concludeVote(int target) {
+  protected synchronized FixedBitSet concludeVote(int target) {
     int target2 = (int) Math.ceil((double) target / (double) 2);
     target2 = target2 - minimum;
 
@@ -467,7 +478,7 @@ public class BinaryVector implements Vector {
     return result;
   }
 
-  protected FixedBitSet concludeVote(int target, int row_ceiling) {
+  protected synchronized FixedBitSet concludeVote(int target, int row_ceiling) {
     /**
 	  logger.info("Entering conclude vote, target " + target + " row_ceiling " + row_ceiling + 
     		"voting record " + votingRecord.size() + 
@@ -518,7 +529,7 @@ public class BinaryVector implements Vector {
    * Decrement every dimension. Assumes at least one count in each dimension
    * i.e: no underflow check currently - will wreak havoc with zero counts
    */
-  public void decrement() {	
+  public synchronized void decrement() {	
     tempSet.set(0, dimension);
     for (int q = 0; q < votingRecord.size(); q++) {
       votingRecord.get(q).xor(tempSet);
@@ -530,7 +541,7 @@ public class BinaryVector implements Vector {
    * Decrement every dimension by the number passed as a parameter. Again at least one count in each dimension
    * i.e: no underflow check currently - will wreak havoc with zero counts
    */
-  public void decrement(int weight) {
+  public synchronized void decrement(int weight) {
     if (weight == 0) return;
     minimum+= weight;
 
@@ -549,7 +560,7 @@ public class BinaryVector implements Vector {
     }
   }
 
-  public void selectedDecrement(int floor) {
+  public synchronized void selectedDecrement(int floor) {
     tempSet.set(0, dimension);
     for (int q = floor; q < votingRecord.size(); q++) {
       getVotingRowAndWarnIfEmpty(q).xor(tempSet);
@@ -560,7 +571,7 @@ public class BinaryVector implements Vector {
   /**
    * Returns the highest value shared by all dimensions.
    */
-  protected int getMaximumSharedWeight() {
+  protected synchronized int getMaximumSharedWeight() {
     int thismaximum = 0;
     tempSet.xor(tempSet);  // Reset tempset to zeros.
     for (int x = votingRecord.size() - 1; x >= 0; x--) {
@@ -641,7 +652,7 @@ public class BinaryVector implements Vector {
    * the vector produced is somewhat similar to both "jazz" and "rock", with a similarity that is proportional to the weights assigned to the 
    * superposition, e.g. 0.624000:jazz;  0.246000:rock
    */
-  public void normalize() {
+  public synchronized void normalize() {
     if (votingRecord == null) return;
     if (votingRecord.size() == 1) {
       this.bitSet = votingRecord.get(0);
@@ -735,7 +746,7 @@ public class BinaryVector implements Vector {
   /**
    * Faster normalization according to the Binary Spatter Code's "majority" rule 
    */
-  public void normalizeBSC() {
+  public synchronized void normalizeBSC() {
     if (!isSparse)
       this.bitSet = concludeVote();
 
@@ -749,7 +760,7 @@ public class BinaryVector implements Vector {
   /**
    * Counts votes without normalizing vector (i.e. voting record is not altered). Used in SemanticVectorCollider.
    */
-  public void tallyVotes() {
+  public synchronized void tallyVotes() {
     if (!isSparse)
       this.bitSet = concludeVote();
   }
