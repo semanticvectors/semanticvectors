@@ -1,36 +1,36 @@
 /**
-   Copyright (c) 2007, University of Pittsburgh
-
-   All rights reserved.
-
-   Redistribution and use in source and binary forms, with or without
-   modification, are permitted provided that the following conditions are
-   met:
-
+ * Copyright (c) 2007, University of Pittsburgh
+ * <p>
+ * All rights reserved.
+ * <p>
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are
+ * met:
+ * <p>
  * Redistributions of source code must retain the above copyright
-   notice, this list of conditions and the following disclaimer.
-
+ * notice, this list of conditions and the following disclaimer.
+ * <p>
  * Redistributions in binary form must reproduce the above
-   copyright notice, this list of conditions and the following
-   disclaimer in the documentation and/or other materials provided
-   with the distribution.
-
+ * copyright notice, this list of conditions and the following
+ * disclaimer in the documentation and/or other materials provided
+ * with the distribution.
+ * <p>
  * Neither the name of the University of Pittsburgh nor the names
-   of its contributors may be used to endorse or promote products
-   derived from this software without specific prior written
-   permission.
-
-   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-   "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-   LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-   A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
-   CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-   EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-   PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-   PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-   LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-   NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-   SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * of its contributors may be used to endorse or promote products
+ * derived from this software without specific prior written
+ * permission.
+ * <p>
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
+ * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+ * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+ * PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+ * LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  **/
 
 package pitt.search.semanticvectors.vectors;
@@ -39,6 +39,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.logging.Logger;
+
+import org.netlib.blas.BLAS;
+
+import pitt.search.semanticvectors.FlagConfig;
 
 /**
  * This class provides some standard vector methods. Many old methods have been removed
@@ -73,13 +77,13 @@ public class VectorUtils {
    * See also {@link BinaryVectorUtils#compareWithProjection} for the binary case.
    */
   public static double compareWithProjection(Vector testVector, ArrayList<Vector> vectors) {
-   
+
     float score = 0;
     for (int i = 0; i < vectors.size(); ++i) {
       score += Math.pow(testVector.measureOverlap(vectors.get(i)), 2);
     }
     return (float) Math.sqrt(score);
-    
+
   }
 
   /**
@@ -97,20 +101,20 @@ public class VectorUtils {
    */
   public static void orthogonalizeVectors(List<Vector> list) {
     switch (list.get(0).getVectorType()) {
-    case REAL:
-      RealVectorUtils.orthogonalizeVectors(list);
-      break;
-    case COMPLEX:
-      ComplexVectorUtils.orthogonalizeVectors(list);
-      break;
-    case BINARY:
-      BinaryVectorUtils.orthogonalizeVectors(list);
-      break;
-    default:
-      throw new IncompatibleVectorsException("Type not recognized: " + list.get(0).getVectorType());
+      case REAL:
+        RealVectorUtils.orthogonalizeVectors(list);
+        break;
+      case COMPLEX:
+        ComplexVectorUtils.orthogonalizeVectors(list);
+        break;
+      case BINARY:
+        BinaryVectorUtils.orthogonalizeVectors(list);
+        break;
+      default:
+        throw new IncompatibleVectorsException("Type not recognized: " + list.get(0).getVectorType());
     }
   }
-  
+
   /**
    * Returns a superposition of the form leftWeight*left + rightWeight*right.
    */
@@ -122,19 +126,19 @@ public class VectorUtils {
           String.format("Incompatible vectors:\n%s\n%s", left.toString(), right.toString()));
     }
     switch (left.getVectorType()) {
-    case REAL:
-    case COMPLEX:
-      Vector superposition = VectorFactory.createZeroVector(
-          left.getVectorType(), left.getDimension());
-      superposition.superpose(left, leftWeight, null);
-      superposition.superpose(right, rightWeight, null);
-      superposition.normalize();
-      return superposition;
-    case BINARY:
-      return BinaryVectorUtils.weightedSuperposition(
-          (BinaryVector) left, leftWeight, (BinaryVector) right, rightWeight);
-    default:
-      throw new IncompatibleVectorsException("Type not recognized: " + left.getVectorType());
+      case REAL:
+      case COMPLEX:
+        Vector superposition = VectorFactory.createZeroVector(
+            left.getVectorType(), left.getDimension());
+        superposition.superpose(left, leftWeight, null);
+        superposition.superpose(right, rightWeight, null);
+        superposition.normalize();
+        return superposition;
+      case BINARY:
+        return BinaryVectorUtils.weightedSuperposition(
+            (BinaryVector) left, leftWeight, (BinaryVector) right, rightWeight);
+      default:
+        throw new IncompatibleVectorsException("Type not recognized: " + left.getVectorType());
     }
   }
 
@@ -174,7 +178,7 @@ public class VectorUtils {
 
     /* put in -1 entries */
     while (entryCount < seedLength) {
-      testPlace = random.nextInt (dimension);
+      testPlace = random.nextInt(dimension);
       if (!randVector[testPlace]) {
         randVector[testPlace] = true;
         randIndex[entryCount] = new Integer((1 + testPlace) * -1).shortValue();
@@ -184,4 +188,63 @@ public class VectorUtils {
 
     return randIndex;
   }
+
+  /**
+   * Utility method to compute scalar product (hopefully) quickly using BLAS routines
+   * Arguably, this should be disseminated across the individual Vector classes
+   */
+  public static double scalarProduct(Vector v1, Vector v2, FlagConfig flagConfig, BLAS blas) throws IncompatibleVectorsException {
+    if (!v1.getVectorType().equals(v2.getVectorType()))
+      throw new IncompatibleVectorsException();
+
+    switch (v1.getVectorType()) {
+      case REAL:
+        return blas.sdot(flagConfig.dimension(), ((RealVector) v1).getCoordinates(), 1, ((RealVector) v2).getCoordinates(), 1);
+      case COMPLEX: //hermitian scalar product
+        return blas.sdot(flagConfig.dimension(), ((ComplexVector) v1).getCoordinates(), 1, ((ComplexVector) v2).getCoordinates(), 1);
+      case BINARY:
+        ((BinaryVector) v1).tallyVotes();
+        ((BinaryVector) v2).tallyVotes();
+        return v1.measureOverlap(v2);
+      default:
+        return 0;
+
+    }
+  }
+
+
+  /**
+   * Utility method to perform superposition (hopefully) quickly using BLAS routines
+   * Arguably, this should be disseminated across the individual Vector classes
+   *
+   *
+   * @param toBeAdded
+   * @param toBeAltered
+   * @param blas
+   * @return
+   */
+  public static void superposeInPlace(Vector toBeAdded, Vector toBeAltered, FlagConfig flagConfig, BLAS blas, double weight) throws IncompatibleVectorsException {
+    if (!toBeAdded.getVectorType().equals(toBeAltered.getVectorType()))
+      throw new IncompatibleVectorsException();
+
+    switch (toBeAdded.getVectorType()) {
+      case REAL:
+        blas.saxpy(flagConfig.dimension(), (float) weight, ((RealVector) toBeAdded).getCoordinates(), 1, ((RealVector) toBeAltered).getCoordinates(), 1);
+        break;
+      case COMPLEX:
+        blas.saxpy(flagConfig.dimension(), (float) weight, ((ComplexVector) toBeAdded).getCoordinates(), 1, ((ComplexVector) toBeAltered).getCoordinates(), 1);
+        break;
+      case BINARY: //first attempt at this - add the results of the election multiplied by the number of votes to date
+        ((BinaryVector) toBeAdded).tallyVotes();
+        toBeAltered.superpose(toBeAdded, weight, null);
+        break;
+      default:
+        break;
+
+    }
+
+
+  }
+
+
 }

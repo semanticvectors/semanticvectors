@@ -111,7 +111,7 @@ public class RealVector implements Vector {
       copy.sparseOffsets = new short[sparseOffsets.length];
       for (int i = 0; i < sparseOffsets.length; ++i) {
         copy.sparseOffsets[i] = sparseOffsets[i];
-      }
+        }
       return copy;
     } else {
       float[] coordinatesCopy = new float[dimension];
@@ -230,12 +230,12 @@ public class RealVector implements Vector {
     randomVector.sparseToDense();
 
     for (int q =0; q < dimension; q++)
-      randomVector.coordinates[q] = (float) random.nextDouble();
+      randomVector.coordinates[q] = (float) (random.nextFloat()-0.5) / (float) dimension;
 
-    for (int q =0; q < dimension; q++)
-      if (random.nextBoolean()) randomVector.coordinates[q] *=-1;
+   //for (int q =0; q < dimension; q++)
+     // if (random.nextBoolean()) randomVector.coordinates[q] *=-1;
 
-    randomVector.normalize();  
+    //randomVector.normalize();  
     return randomVector;
   }
 

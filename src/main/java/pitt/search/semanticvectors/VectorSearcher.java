@@ -824,13 +824,20 @@ abstract public class VectorSearcher {
         VectorStore queryVecStore, VectorStore searchVecStore,
         LuceneUtils luceneUtils, FlagConfig flagConfig, String[] queryTriple) {
       super(queryVecStore, searchVecStore, luceneUtils, flagConfig);
+      
+      //querytriple of form a is to b as c is to d
+      //according to Levy/Goldberg ("lessons/learned) b - a+ c
       Vector term0 = CompoundVectorBuilder.getQueryVectorFromString(queryVecStore, luceneUtils, flagConfig, queryTriple[0]);
       Vector term1 = CompoundVectorBuilder.getQueryVectorFromString(queryVecStore, luceneUtils, flagConfig, queryTriple[1]);
       Vector term2 = CompoundVectorBuilder.getQueryVectorFromString(queryVecStore, luceneUtils, flagConfig, queryTriple[2]);
-      Vector relationVec = term0.copy();
-      relationVec.bind(term1);
+      Vector relationVec = term1.copy();
+      relationVec.superpose(term0, -1, null);
+     
+      //relationVec.bind(term1);
       this.queryVector = term2.copy();
-      this.queryVector.release(relationVec);
+      relationVec.superpose(queryVector, 1, null);
+      queryVector = relationVec;
+      //this.queryVector.release(relationVec);
     }
 
     @Override

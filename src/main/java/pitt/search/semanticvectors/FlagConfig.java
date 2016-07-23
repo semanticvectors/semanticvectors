@@ -107,6 +107,33 @@ public class FlagConfig {
   /** The method used for generating elemental vectors. */
   public ElementalGenerationMethod elementalmethod() { return elementalmethod; }
   
+  private double samplingthreshold = -1; //suggest 10^-3 to 10^-5
+  /** 
+   * Subsampling threshold for embeddings
+   */
+  public double samplingthreshold() { return samplingthreshold; }
+  
+  public boolean subsampleinwindow = true;
+  /** 
+   * Word2vec approach for approximating "ramped" weighting
+   * of a sliding window by sampling the window size uniformly
+   * such that the proximal parts of the window have a higher
+   * probability of not being ignored
+   */
+  public boolean subsampleinwindow() { return subsampleinwindow; }
+  
+  public int numthreads = 4;
+  /** 
+   * Number of threads to use when processing word embeddings
+   */
+  public int numthreads() { return numthreads; }
+  
+  public int negsamples = 5;
+  /** 
+   * Number of threads to use when processing word embeddings
+   */
+  public int numsamples() { return negsamples; }
+  
   public int seedlength = 10;
   /** Number of nonzero entries in a sparse random vector, default value 10 except for
    * when {@link #vectortype()} is {@link VectorType#BINARY}, in which case default of
@@ -282,7 +309,11 @@ public class FlagConfig {
   
   private String directionalvectorfile ="drxntermvectors";
   /** Permuted term vectors, output by -positionalmethod directional. */
-  public String directionalvectorfile() { return directionalvectorfile; }      
+  public String directionalvectorfile() { return directionalvectorfile; }   
+  
+  private String embeddingvectorfile ="embeddingvectors";
+  /** Permuted term vectors, output by -positionalmethod directional. */
+  public String embeddingvectorfile() { return embeddingvectorfile; } 
   
   private String permplustermvectorfile ="permplustermvectors";
   /** "Permuted term vectors, output by -positionalmethod permutationplusbasic. */
@@ -345,6 +376,7 @@ public class FlagConfig {
 
   
   private String docidfield = "path";
+
   /** Field used by Lucene to record the identifier for each document, default "path". */
   public String docidfield() { return docidfield; }
   
@@ -541,6 +573,7 @@ public void setExpandsearchspace(boolean b) {
 	// TODO Auto-generated method stub
 	this.expandsearchspace = b;
 }
+
   
 
 }
