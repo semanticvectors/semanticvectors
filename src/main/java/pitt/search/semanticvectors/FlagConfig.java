@@ -113,16 +113,14 @@ public class FlagConfig {
    */
   public double samplingthreshold() { return samplingthreshold; }
   
-  public boolean samplewindowradius = true;
- 
+  public boolean subsampleinwindow = true;
   /** 
    * Word2vec approach for approximating "ramped" weighting
    * of a sliding window by sampling the window size uniformly
    * such that the proximal parts of the window have a higher
    * probability of not being ignored
    */
-  
-  public boolean sampledwindowradius() { return samplewindowradius; }
+  public boolean subsampleinwindow() { return subsampleinwindow; }
   
   public int numthreads = 4;
   /** 

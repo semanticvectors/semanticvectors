@@ -1,36 +1,36 @@
 /**
-   Copyright (c) 2008, University of Pittsburgh
-
-   All rights reserved.
-
-   Redistribution and use in source and binary forms, with or without
-   modification, are permitted provided that the following conditions are
-   met:
-
+ * Copyright (c) 2008, University of Pittsburgh
+ * <p>
+ * All rights reserved.
+ * <p>
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are
+ * met:
+ * <p>
  * Redistributions of source code must retain the above copyright
-   notice, this list of conditions and the following disclaimer.
-
+ * notice, this list of conditions and the following disclaimer.
+ * <p>
  * Redistributions in binary form must reproduce the above
-   copyright notice, this list of conditions and the following
-   disclaimer in the documentation and/or other materials provided
-   with the distribution.
-
+ * copyright notice, this list of conditions and the following
+ * disclaimer in the documentation and/or other materials provided
+ * with the distribution.
+ * <p>
  * Neither the name of the University of Pittsburgh nor the names
-   of its contributors may be used to endorse or promote products
-   derived from this software without specific prior written
-   permission.
-
-   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-   "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-   LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-   A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
-   CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-   EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-   PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-   PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-   LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-   NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-   SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * of its contributors may be used to endorse or promote products
+ * derived from this software without specific prior written
+ * permission.
+ * <p>
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
+ * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+ * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+ * PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+ * LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  **/
 
 package pitt.search.semanticvectors;
@@ -83,12 +83,12 @@ public class TermTermVectorsFromLucene { //implements VectorStore {
     BASIC,
     /** Binds vectors on left or right based on position. */
     DIRECTIONAL,
-    /** Permutes vectors according to how many places they are from focus term. */ 
+    /** Permutes vectors according to how many places they are from focus term. */
     PERMUTATION,
     /** Superposition of basic and permuted vectors. */
     PERMUTATIONPLUSBASIC,
     /** Encodes position within sliding window using NumberRepresentation */
-    PROXIMITY, 
+    PROXIMITY,
     /** Implementation of skipgram with negative sampling (Mikolov 2013) */
     EMBEDDINGS
   }
@@ -96,32 +96,30 @@ public class TermTermVectorsFromLucene { //implements VectorStore {
   private FlagConfig flagConfig;
   private boolean retraining = false;
   private volatile VectorStoreRAM semanticTermVectors;
-  private volatile VectorStore 	  elementalTermVectors;
+  private volatile VectorStore elementalTermVectors;
   private LuceneUtils luceneUtils;
   /** Used only with {@link PositionalMethod#PROXIMITY}. */
   private VectorStoreRAM positionalNumberVectors;
   private Random random;
-  private ConcurrentSkipListMap<Integer,String> termDic;
+  private ConcurrentSkipListMap<Integer, String> termDic;
   private ConcurrentHashMap<String, Double> subsamplingProbabilities;
   private LinkedList<Terms> theQ;
   private int totalAdd = 0; //total number of terms in corpus
   private long totalCount = 0; //total count of terms in corpus
   private double alpha = 0.025;
   private double minimum_alpha = 0.0001;
-  private volatile int totalDocCount =0;
- 
- 
- 
+  private volatile int totalDocCount = 0;
+
   /**
    * Used to store permutations we'll use in training.  If positional method is one of the
    * permutations, this contains the shift for all the focus positions.
    */
   private int[][] permutationCache;
 
-  static final short NONEXISTENT = -1;
-  
   /** Returns the semantic (learned) vectors. */
-  public VectorStore getSemanticTermVectors() { return this.semanticTermVectors; }
+  public VectorStore getSemanticTermVectors() {
+    return this.semanticTermVectors;
+  }
 
   /**
    * Constructs an instance using the given configs and elemental vectors.
@@ -130,9 +128,9 @@ public class TermTermVectorsFromLucene { //implements VectorStore {
   public TermTermVectorsFromLucene(
       FlagConfig flagConfig, VectorStore elementalTermVectors) throws IOException {
     this.flagConfig = flagConfig;
-    
+
     this.random = new Random();
-    
+
     // Setup elemental vectors, depending on whether they were passed in or not.
     if (elementalTermVectors != null) {
       retraining = true;
@@ -142,19 +140,17 @@ public class TermTermVectorsFromLucene { //implements VectorStore {
     } else {
       this.elementalTermVectors = new ElementalVectorStore(flagConfig);
     }
-    
-    if (flagConfig.positionalmethod().equals(PositionalMethod.EMBEDDINGS)) 
-    	{
-    	
-    	//force dense vectors
-    	if (! flagConfig.vectortype().equals(VectorType.BINARY))
-    	flagConfig.seedlength = flagConfig.dimension();
-    	else {
-    			VerbatimLogger.info("Warning: binary vectors are not supported as a means to generate neural word embeddings");
-    			System.exit(0);
-    	}
-    	}
-    
+
+    if (flagConfig.positionalmethod().equals(PositionalMethod.EMBEDDINGS)) {
+      //force dense vectors
+      if (!flagConfig.vectortype().equals(VectorType.BINARY))
+        flagConfig.seedlength = flagConfig.dimension();
+      else {
+        throw new UnsupportedOperationException(
+            "Warning: binary vectors are not supported as a means to generate neural word embeddings");
+      }
+    }
+
     if (flagConfig.positionalmethod() == PositionalMethod.PERMUTATION
         || flagConfig.positionalmethod() == PositionalMethod.PERMUTATIONPLUSBASIC)
       initializePermutations();
@@ -168,7 +164,7 @@ public class TermTermVectorsFromLucene { //implements VectorStore {
   /**
    * Initialize all permutations that might be used.
    */
-  private void initializePermutations() {    
+  private void initializePermutations() {
     permutationCache =
         new int[2 * flagConfig.windowradius() + 1][PermutationUtils.getPermutationLength(flagConfig.vectortype(), flagConfig.dimension())];
     for (int i = 0; i < 2 * flagConfig.windowradius() + 1; ++i) {
@@ -176,82 +172,72 @@ public class TermTermVectorsFromLucene { //implements VectorStore {
           flagConfig.vectortype(), flagConfig.dimension(), i - flagConfig.windowradius());
     }
   }
-  
+
   /**
    * Initialize queue of cached Terms objects
    */
+  private int startdoc = 0;
+  private int qsize = 100000;
+  private boolean exhaustedQ = false;
 
-  private int startdoc=0;
-  private int qsize=100000;
-  private boolean exhaustedQ=false;
-  
-  private synchronized void initializeQueue()
-  {
-	 
-	  int added =0;
-	  int stopdoc = Math.min(startdoc + qsize, luceneUtils.getNumDocs());
-	  for (int a=startdoc; a < stopdoc; a++)
-	  {
-		  for (String field:flagConfig.contentsfields())
-			try {
-				theQ.add(luceneUtils.getTermVector(a, field));
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-	  
-	  startdoc++;
-	  added++;
-	  }
-	  
-	  //randomize
-	  Collections.shuffle(theQ);
+  private synchronized void initializeQueue() {
+    int added = 0;
+    int stopdoc = Math.min(startdoc + qsize, luceneUtils.getNumDocs());
+    for (int a = startdoc; a < stopdoc; a++) {
+      for (String field : flagConfig.contentsfields())
+        try {
+          theQ.add(luceneUtils.getTermVector(a, field));
+        } catch (IOException e) {
+          // TODO Auto-generated catch block
+          e.printStackTrace();
+        }
 
-	  
-	  if (added > 0)
-		  System.err.println("Initialized TermVector Queue with "+added+ " documents");
-		  else exhaustedQ = true;
-		  
-	  
+      startdoc++;
+      added++;
+    }
+
+    //randomize
+    Collections.shuffle(theQ);
+
+    if (added > 0)
+      System.err.println("Initialized TermVector Queue with " + added + " documents");
+    else exhaustedQ = true;
   }
-  
+
   /**
    * Draws from term vector queue, with replacement
    */
-  private synchronized Terms drawFromQueue()
-  {
-	  if (theQ.isEmpty()) initializeQueue();
-	  Terms toReturn = theQ.poll();
-	  return toReturn;	  
+  private synchronized Terms drawFromQueue() {
+    if (theQ.isEmpty()) initializeQueue();
+    Terms toReturn = theQ.poll();
+    return toReturn;
   }
-  
-  private boolean queueExhausted()
-  {
-	  return exhaustedQ;
+
+  private boolean queueExhausted() {
+    return exhaustedQ;
   }
-  
+
   /**
    * Initialize all number vectors that might be used (i.e. one for each position in the sliding window)
    * Used only with {@link PositionalMethod#PROXIMITY}.
    */
   private void initializeNumberRepresentations() {
     NumberRepresentation numberRepresentation = new NumberRepresentation(flagConfig);
-    positionalNumberVectors = numberRepresentation.getNumberVectors(1, 2*flagConfig.windowradius() + 2);
+    positionalNumberVectors = numberRepresentation.getNumberVectors(1, 2 * flagConfig.windowradius() + 2);
 
-    
     try {
-		VectorStoreWriter.writeVectorsInLuceneFormat("numbervectors.bin", flagConfig, positionalNumberVectors);
-		
-	} catch (IOException e) {
-		// TODO Auto-generated catch block
-		e.printStackTrace();
-	}
+      VectorStoreWriter.writeVectorsInLuceneFormat("numbervectors.bin", flagConfig, positionalNumberVectors);
+
+    } catch (IOException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
   }
 
   /**
    * Initialize all permutations that might be used (i.e +1 and -1).
    */
-  private void initializeDirectionalPermutations() {    
+  private void initializeDirectionalPermutations() {
     permutationCache =
         new int[2][PermutationUtils.getPermutationLength(flagConfig.vectortype(), flagConfig.dimension())];
 
@@ -262,77 +248,58 @@ public class TermTermVectorsFromLucene { //implements VectorStore {
         flagConfig.vectortype(), flagConfig.dimension(), 1);
   }
 
-  
-  
-  private class TrainTermVectorThread implements Runnable
-  {
-	   int dcnt = 0;
-	  int threadno = 0;
-	  double time =0;
-	  BLAS blas = null;
-	  
-	  public TrainTermVectorThread(int threadno)
-	  {
-		  this.threadno = threadno;
-		  this.blas = BLAS.getInstance();
-		  this.time = System.currentTimeMillis();
-	  }
-	  
-	  
-	@Override
-	public void run() {
-		
-		while (!queueExhausted())
-		{
-			 for (String field: flagConfig.contentsfields()) {
-	         
-	        	try {
-	        	
-	        		Terms terms = drawFromQueue();
-	        		if (terms == null) {
-	        			//VerbatimLogger.severe("No term vector for document "+dc); 
-	        			continue; }
-	        		processTermPositionVector(terms, field, blas);
-	        		
-			} catch (ArrayIndexOutOfBoundsException | IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-	        }
-			
-	        // Output progress counter.
-	        if ((dcnt % 10000 == 0) || (dcnt < 10000 && dcnt % 1000 == 0)) {
-	          VerbatimLogger.info("[T"+threadno+"]"+" processed " + dcnt + " documents in "+(""+((System.currentTimeMillis()-time)/ (1000*60))).replaceAll("\\..*","")+" min..");
-	        
-	          
-	           if (threadno == 0 && dcnt % 10000==0)      
-	    	    {
-	    	     
-		         double proportionComplete = totalDocCount / (double) ((flagConfig.trainingcycles() +1)*(luceneUtils.getNumDocs()));
-	    	     alpha -= (alpha - minimum_alpha)*proportionComplete;
-	    		 if (alpha < minimum_alpha) alpha = minimum_alpha;
-	    	    VerbatimLogger.info("..Updated alpha to "+alpha+"..");
-		          
-	    	    } 
-	          
-	        }
-	        dcnt++;
-	        
-	       
-	        
-	      } //all documents processed
-		}
-		
-	}
-  
-  
-  
-  private void trainTermTermVectors() throws IOException, RuntimeException { 
-    LuceneUtils.compressIndex(flagConfig.luceneindexpath());
-    luceneUtils 			 = new LuceneUtils(flagConfig);
-    termDic					 = new ConcurrentSkipListMap<Integer,String>();
-    totalAdd				 = 0;
-    
+
+  private class TrainTermVectorThread implements Runnable {
+    int dcnt = 0;
+    int threadno = 0;
+    double time = 0;
+    BLAS blas = null;
+
+    public TrainTermVectorThread(int threadno) {
+      this.threadno = threadno;
+      this.blas = BLAS.getInstance();
+      this.time = System.currentTimeMillis();
+    }
+
+    @Override
+    public void run() {
+
+      while (!queueExhausted()) {
+        for (String field : flagConfig.contentsfields()) {
+          try {
+            Terms terms = drawFromQueue();
+            if (terms == null) {
+              //VerbatimLogger.severe("No term vector for document "+dc);
+              continue;
+            }
+            processTermPositionVector(terms, field, blas);
+          } catch (ArrayIndexOutOfBoundsException | IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+          }
+        }
+
+        // Output progress counter.
+        if ((dcnt % 10000 == 0) || (dcnt < 10000 && dcnt % 1000 == 0)) {
+          VerbatimLogger.info("[T" + threadno + "]" + " processed " + dcnt + " documents in " + ("" + ((System.currentTimeMillis() - time) / (1000 * 60))).replaceAll("\\..*", "") + " min..");
+
+          if (threadno == 0 && dcnt % 10000 == 0) {
+            double proportionComplete = totalDocCount / (double) ((flagConfig.trainingcycles() + 1) * (luceneUtils.getNumDocs()));
+            alpha -= (alpha - minimum_alpha) * proportionComplete;
+            if (alpha < minimum_alpha) alpha = minimum_alpha;
+            VerbatimLogger.info("..Updated alpha to " + alpha + "..");
+          }
+        }
+        dcnt++;
+      } //all documents processed
+    }
+  }
+
+  private void trainTermTermVectors() throws IOException, RuntimeException {
+    luceneUtils = new LuceneUtils(flagConfig);
+    termDic = new ConcurrentSkipListMap<Integer, String>();
+    totalAdd = 0;
+
     // Check that the Lucene index contains Term Positions.
     FieldInfos fieldsWithPositions = luceneUtils.getFieldInfos();
     if (!fieldsWithPositions.hasVectors()) {
@@ -342,142 +309,116 @@ public class TermTermVectorsFromLucene { //implements VectorStore {
     }
 
     this.semanticTermVectors = new VectorStoreRAM(flagConfig);
-  
+
     // Iterate through an enumeration of terms and allocate initial term vectors.
     // If not retraining, create random elemental vectors as well.
     int tc = 0;
     for (String fieldName : flagConfig.contentsfields()) {
       TermsEnum terms = this.luceneUtils.getTermsForField(fieldName).iterator(null);
       BytesRef bytes;
-      while((bytes = terms.next()) != null) {
+      while ((bytes = terms.next()) != null) {
         Term term = new Term(fieldName, bytes);
         // Skip terms that don't pass the filter.
         if (!luceneUtils.termFilter(term)) continue;
-
         tc++;
-        
-      
-        Vector 		termVector = null;
-        
-        //contstruct subsampling table
-        if (flagConfig.samplingthreshold() > 0)
-        {
-        	totalAdd 		+= Math.pow(luceneUtils.getGlobalTermFreq(term),.75);
-			termDic.put(totalAdd,term.text());
-        }
-        
-        if ((flagConfig.positionalmethod().equals(PositionalMethod.EMBEDDINGS))) 	{
-        	//force dense term vectors
-        				termVector 		= VectorFactory.generateRandomVector(flagConfig.vectortype(), flagConfig.dimension(), flagConfig.seedlength(), random);
-        				if (termVector.getVectorType().equals(VectorType.COMPLEX))
-        				{
-        					//embeddings don't train well with initial weights set to 
-        					//random phase angles on the unit circle, which is the default on the complex case
-                	  		float[] coordinates = ((ComplexVector) termVector).getCoordinates();
-                	  		for (int x=0; x < coordinates.length; x++) 
-                	  			coordinates[x]  = (float) (random.nextFloat()-0.5) / (float) coordinates.length;
 
-                	  			
-        				}
-        			
-        			
-        			}
-        else 		termVector = VectorFactory.createZeroVector(flagConfig.vectortype(), flagConfig.dimension());
+        Vector termVector = null;
+        // construct subsampling table
+        if (flagConfig.samplingthreshold() > 0) {
+          totalAdd += Math.pow(luceneUtils.getGlobalTermFreq(term), .75);
+          termDic.put(totalAdd, term.text());
+        }
+
+        if ((flagConfig.positionalmethod().equals(PositionalMethod.EMBEDDINGS))) {
+          //force dense term vectors
+          termVector = VectorFactory.generateRandomVector(flagConfig.vectortype(), flagConfig.dimension(), flagConfig.seedlength(), random);
+          if (termVector.getVectorType().equals(VectorType.COMPLEX)) {
+            //embeddings don't train well with initial weights set to
+            //random phase angles on the unit circle, which is the default on the complex case
+            float[] coordinates = ((ComplexVector) termVector).getCoordinates();
+            for (int x = 0; x < coordinates.length; x++)
+              coordinates[x] = (float) (random.nextFloat() - 0.5) / (float) coordinates.length;
+          }
+        } else termVector = VectorFactory.createZeroVector(flagConfig.vectortype(), flagConfig.dimension());
         // Place each term vector in the vector store.
         this.semanticTermVectors.putVector(term.text(), termVector);
         totalCount += luceneUtils.getGlobalTermFreq(term);
         // Do the same for random index vectors unless retraining with trained term vectors
         if (!retraining) {
           this.elementalTermVectors.getVector(term.text());
-          if ((flagConfig.positionalmethod().equals(PositionalMethod.EMBEDDINGS)) && elementalTermVectors.getVector(term.text()).getVectorType().equals(VectorType.COMPLEX))
-				{
-        	  		//embeddings don't train well with initial weights set to 
-					//random phase angles on the unit circle, which is the default in the complex case
-        	  		float[] coordinates = ((ComplexVector) elementalTermVectors.getVector(term.text())).getCoordinates();
-        	  		for (int x=0; x < coordinates.length; x++) 
-        	  			coordinates[x]  = (float) (random.nextFloat()-0.5) / (float) coordinates.length;
-		
-				}
+          if ((flagConfig.positionalmethod().equals(PositionalMethod.EMBEDDINGS)) && elementalTermVectors.getVector(term.text()).getVectorType().equals(VectorType.COMPLEX)) {
+            //embeddings don't train well with initial weights set to
+            //random phase angles on the unit circle, which is the default in the complex case
+            float[] coordinates = ((ComplexVector) elementalTermVectors.getVector(term.text())).getCoordinates();
+            for (int x = 0; x < coordinates.length; x++)
+              coordinates[x] = (float) (random.nextFloat() - 0.5) / (float) coordinates.length;
+          }
         }
       }
     }
-    
-    
+
     //precalculate probabilities for subsampling (need to iterate again once total term frequency known)
-    if (flagConfig.samplingthreshold() > -1 && flagConfig.samplingthreshold() < 1)
-   	{
-    	  subsamplingProbabilities = new ConcurrentHashMap<String,Double>();
-    	  
-    	  VerbatimLogger.info("Populating subsampling probabilities - total term count = "+totalCount+" which is "+(totalCount/luceneUtils.getNumDocs())+ " per doc on average");
-    	  int count = 0;
-    	
-   for (String fieldName : flagConfig.contentsfields()) {
-    	      
-	   	 	  TermsEnum terms = this.luceneUtils.getTermsForField(fieldName).iterator(null);
-    	      BytesRef bytes;
-    	      while((bytes = terms.next()) != null) {
-    	        Term term = new Term(fieldName, bytes);
-    	        if (++count % 10000 == 0) VerbatimLogger.info(".");
-    	        
-    	        // Skip terms that don't pass the filter.
-    	        if (!semanticTermVectors.containsVector(term.text())) continue;
-    	
-    	       double globalFreq	 =  (double) luceneUtils.getGlobalTermFreq(term) / (double) totalCount;
-    
-    	       
-    if (globalFreq > flagConfig.samplingthreshold())
-    	{
-    		double discount = 1; //(globalFreq - flagConfig.samplingthreshold()) / globalFreq;
-    		subsamplingProbabilities.put(fieldName+":"+bytes.utf8ToString(), (discount - Math.sqrt( flagConfig.samplingthreshold() / globalFreq)));	
-    		//VerbatimLogger.info(globalFreq+" "+term.text()+" "+subsamplingProbabilities.get(fieldName+":"+bytes.utf8ToString()));
-    	}
-    
-    }  //all terms for one field
-    	  } // all fields
-   VerbatimLogger.info("\n");
-   if (subsamplingProbabilities.size() > 0)
-	    VerbatimLogger.info("Selected for subsampling: "
-	            + subsamplingProbabilities.size()+" terms.\n");
+    if (flagConfig.samplingthreshold() > -1 && flagConfig.samplingthreshold() < 1) {
+      subsamplingProbabilities = new ConcurrentHashMap<String, Double>();
 
-   	} //end subsampling condition
-    
-  
-    VerbatimLogger.info("There are now elemental term vectors for " + tc + " terms (and "
-        + luceneUtils.getNumDocs() + " docs).\n");
+      VerbatimLogger.info("Populating subsampling probabilities - total term count = " + totalCount + " which is " + (totalCount / luceneUtils.getNumDocs()) + " per doc on average");
+      int count = 0;
+      for (String fieldName : flagConfig.contentsfields()) {
+        TermsEnum terms = this.luceneUtils.getTermsForField(fieldName).iterator(null);
+        BytesRef bytes;
+        while ((bytes = terms.next()) != null) {
+          Term term = new Term(fieldName, bytes);
+          if (++count % 10000 == 0) VerbatimLogger.info(".");
 
-    
-    for (int trainingcycle = 0; trainingcycle <= flagConfig.trainingcycles(); trainingcycle++)
-    {
-    	startdoc = 0;
-    	exhaustedQ = false;
-    	theQ = new LinkedList<Terms>(); 
-    	 
-    	initializeQueue();
-    	
-    	double cycleStart = System.currentTimeMillis();
-    	
-    	 			
-		int numthreads 	= flagConfig.numthreads();
-		ExecutorService executor = Executors.newFixedThreadPool(numthreads);
-		
-		for (int q=0; q < numthreads; q++)
-		{
-			executor.execute(new TrainTermVectorThread(q));
-    		VerbatimLogger.info("Started thread "+q+"\n");
-		}			
-    
-			executor.shutdown();
-			// Wait until all threads are finish
-			while (!executor.isTerminated()) { }
-			
-			VerbatimLogger.info("\nTime for training cycle "+(System.currentTimeMillis()-cycleStart)+"ms \n");
-			VerbatimLogger.info("\nCreated " + semanticTermVectors.getNumVectors() + " term vectors ...\n");
-    
+          // Skip terms that don't pass the filter.
+          if (!semanticTermVectors.containsVector(term.text())) continue;
+
+          double globalFreq = (double) luceneUtils.getGlobalTermFreq(term) / (double) totalCount;
+
+          if (globalFreq > flagConfig.samplingthreshold()) {
+            double discount = 1; //(globalFreq - flagConfig.samplingthreshold()) / globalFreq;
+            subsamplingProbabilities.put(fieldName + ":" + bytes.utf8ToString(), (discount - Math.sqrt(flagConfig.samplingthreshold() / globalFreq)));
+            //VerbatimLogger.info(globalFreq+" "+term.text()+" "+subsamplingProbabilities.get(fieldName+":"+bytes.utf8ToString()));
+          }
+        }  //all terms for one field
+      } // all fields
+      VerbatimLogger.info("\n");
+      if (subsamplingProbabilities.size() > 0)
+        VerbatimLogger.info("Selected for subsampling: " + subsamplingProbabilities.size() + " terms.\n");
+    } //end subsampling condition
+
+    VerbatimLogger.info(
+        "There are now elemental term vectors for " + tc + " terms (and " + luceneUtils.getNumDocs() + " docs).\n");
+
+    for (int trainingcycle = 0; trainingcycle <= flagConfig.trainingcycles(); trainingcycle++) {
+      startdoc = 0;
+      exhaustedQ = false;
+      theQ = new LinkedList<>();
+
+      initializeQueue();
+      double cycleStart = System.currentTimeMillis();
+
+      int numthreads = flagConfig.numthreads();
+      ExecutorService executor = Executors.newFixedThreadPool(numthreads);
+
+      for (int q = 0; q < numthreads; q++) {
+        executor.execute(new TrainTermVectorThread(q));
+        VerbatimLogger.info("Started thread " + q + "\n");
+      }
+
+      executor.shutdown();
+      // Wait until all threads are finish
+      while (!executor.isTerminated()) {
+      }
+
+      VerbatimLogger.info("\nTime for training cycle " + (System.currentTimeMillis() - cycleStart) + "ms \n");
+      VerbatimLogger.info("\nCreated " + semanticTermVectors.getNumVectors() + " term vectors ...\n");
+
     } //end of training cycles
-			
+
     Enumeration<ObjectVector> e = semanticTermVectors.getAllVectors();
-    
-    while (e.hasMoreElements())	{
+
+    while (e.hasMoreElements()) {
       e.nextElement().getVector().normalize();
     }
 
@@ -486,62 +427,45 @@ public class TermTermVectorsFromLucene { //implements VectorStore {
     // TODO(dwiddows): It is odd to do this here while not writing out the semantic
     // term vectors here.  We should redesign this.
     if ((flagConfig.positionalmethod().equals(PositionalMethod.EMBEDDINGS)) || flagConfig.positionalmethod() == PositionalMethod.PERMUTATION
-        || flagConfig.positionalmethod() == PositionalMethod.PERMUTATIONPLUSBASIC 
-        && !retraining) 
-        {
-    		VerbatimLogger.info("Normalizing and writing elemental vectors to " + flagConfig.elementalvectorfile() + "\n");
-    		Enumeration<ObjectVector> f = elementalTermVectors.getAllVectors();
-     
-      while (f.hasMoreElements())	{
+        || flagConfig.positionalmethod() == PositionalMethod.PERMUTATIONPLUSBASIC
+        && !retraining) {
+      VerbatimLogger.info("Normalizing and writing elemental vectors to " + flagConfig.elementalvectorfile() + "\n");
+      Enumeration<ObjectVector> f = elementalTermVectors.getAllVectors();
+
+      while (f.hasMoreElements()) {
         f.nextElement().getVector().normalize();
       }
-      
-        }
-    
-      VectorStoreWriter.writeVectors(flagConfig.elementalvectorfile(), flagConfig, this.elementalTermVectors);
-    
-  
+    }
+
+    VectorStoreWriter.writeVectors(flagConfig.elementalvectorfile(), flagConfig, this.elementalTermVectors);
   }
-    
-  /**
-   * 
-   * @param embeddingVectors
-   * @param contextVectors
-   * @param contextLabels			+1 for positive, 0 for negative sample
-   */
-  
-  
-  private void processEmbeddings(Vector embeddingVector, ArrayList<Vector> contextVectors, ArrayList<Integer> contextLabels, double learningRate, BLAS blas)
-  {
-	  		
-	  	  double feedForwardOutput	= 0;
-		  int 	counter				= 0;
-		  
-		  //for each contextVector   (there should be one "true" context vector, and a number of negative samples)
-		  for (Vector contextVec:contextVectors)
-		  { 
-			  feedForwardOutput =  VectorUtils.scalarProduct(embeddingVector, contextVec, flagConfig, blas);
-		     //Sigmoid function (may gain some ground with a lookup table here)
-			  feedForwardOutput 		= Math.pow(Math.E, -1*feedForwardOutput);
-			  feedForwardOutput 		= 1/(1+feedForwardOutput);
-			  
-			 if (feedForwardOutput == Float.POSITIVE_INFINITY || feedForwardOutput == Float.NEGATIVE_INFINITY)
-				 continue;
-		 
-			 //if label == 1, a context word - so the error is the (1-predicted probability of for this word) - ideally 0
-			 //if label == 0, a negative sample - so the error is the (predicted probability for this word) - ideally 0 
-			 double error = feedForwardOutput - contextLabels.get(counter++);
-			 
-			//update the context vector and embedding vector, respectively
-			 Vector originalContextVec = contextVec.copy();
-			 VectorUtils.superposeInPlace(embeddingVector, contextVec, flagConfig, blas, -learningRate*error);
-			 VectorUtils.superposeInPlace(originalContextVec, embeddingVector, flagConfig, blas, -learningRate*error);
-		
-		  }
-  }	  
-	  
-  
-  
+
+  private void processEmbeddings(
+      Vector embeddingVector, ArrayList<Vector> contextVectors,
+      ArrayList<Integer> contextLabels, double learningRate, BLAS blas) {
+    double feedForwardOutput = 0;
+    int counter = 0;
+
+    //for each contextVector   (there should be one "true" context vector, and a number of negative samples)
+    for (Vector contextVec : contextVectors) {
+      feedForwardOutput = VectorUtils.scalarProduct(embeddingVector, contextVec, flagConfig, blas);
+      //Sigmoid function (may gain some ground with a lookup table here)
+      feedForwardOutput = Math.pow(Math.E, -1 * feedForwardOutput);
+      feedForwardOutput = 1 / (1 + feedForwardOutput);
+
+      if (feedForwardOutput == Float.POSITIVE_INFINITY || feedForwardOutput == Float.NEGATIVE_INFINITY)
+        continue;
+
+      //if label == 1, a context word - so the error is the (1-predicted probability of for this word) - ideally 0
+      //if label == 0, a negative sample - so the error is the (predicted probability for this word) - ideally 0
+      double error = feedForwardOutput - contextLabels.get(counter++);
+
+      //update the context vector and embedding vector, respectively
+      Vector originalContextVec = contextVec.copy();
+      VectorUtils.superposeInPlace(embeddingVector, contextVec, flagConfig, blas, -learningRate * error);
+      VectorUtils.superposeInPlace(originalContextVec, embeddingVector, flagConfig, blas, -learningRate * error);
+    }
+  }
 
   /**
    * For each term, add term index vector
@@ -555,7 +479,7 @@ public class TermTermVectorsFromLucene { //implements VectorStore {
    * term frequencies and (3) term positions within a
    * document. The index of a particular term within this array
    * will be referred to as the 'local index' in comments.
-   * @throws IOException 
+   * @throws IOException
    */
   private void processTermPositionVector(Terms terms, String field, BLAS blas)
       throws ArrayIndexOutOfBoundsException, IOException {
@@ -567,44 +491,41 @@ public class TermTermVectorsFromLucene { //implements VectorStore {
 
     //to accommodate "dynamic" sliding window that includes indexed/sampled terms only
     ArrayList<Integer> thePositions = new ArrayList<Integer>();
- 
+
     TermsEnum termsEnum = terms.iterator(null);
     BytesRef text;
     int termcount = 0;
-    
-    while((text = termsEnum.next()) != null) {
+
+    while ((text = termsEnum.next()) != null) {
       String theTerm = text.utf8ToString();
       if (!semanticTermVectors.containsVector(theTerm)) continue;
-      
+
       DocsAndPositionsEnum docsAndPositions = termsEnum.docsAndPositions(null, null);
       if (docsAndPositions == null) return;
       docsAndPositions.nextDoc();
-     
+
       boolean termAdded = false;
       int freq = docsAndPositions.freq();
-      
+
       //iterate through all positions of this term
       for (int x = 0; x < freq; x++) {
-        
-    	  int thePosition = docsAndPositions.nextPosition();
-		  	
-    	   //subsampling of frequent terms 
-    	   if (subsamplingProbabilities == null || (!subsamplingProbabilities.containsKey(field+":"+theTerm) || random.nextDouble() > subsamplingProbabilities.get(field+":"+theTerm)))
-         		  {
-    		  		localTermPositions.put(thePosition, termcount);
-         		  	thePositions.add(thePosition);
-         		  	termAdded = true;
-         		  }
-        
-            }
-    	
+
+        int thePosition = docsAndPositions.nextPosition();
+
+        //subsampling of frequent terms
+        if (subsamplingProbabilities == null || (!subsamplingProbabilities.containsKey(field + ":" + theTerm) || random.nextDouble() > subsamplingProbabilities.get(field + ":" + theTerm))) {
+          localTermPositions.put(thePosition, termcount);
+          thePositions.add(thePosition);
+          termAdded = true;
+        }
+      }
+
       //it is possible the term was not added on account of subsampling, which could corrupt the local term index without this check
-      if (termAdded)
-      {
-    	  termcount++;
-    	  localTerms.add(theTerm);
-    	  freqs.add(freq);
-       }
+      if (termAdded) {
+        termcount++;
+        localTerms.add(theTerm);
+        freqs.add(freq);
+      }
     }
 
     // Sort positions with indexed/sampled terms
@@ -612,106 +533,96 @@ public class TermTermVectorsFromLucene { //implements VectorStore {
     // terms that were subsampled, stoplisted, or didn't meet frequencey thresholds
     // do not result in "blank" positions - rather, they are squeezed out of the sequence
     Collections.sort(thePositions);
-  
+
     //vestigial code for the purpose of error checking for sequence reconstruction from Lucene
     //int cnt=0;
     //for (int index:thePositions)
-    	//System.out.println(++cnt+" "+index+" "+localTerms.get(localTermPositions.get(index)));
-     
-    	//move the sliding window through the sequence (the focus position is the position of the "observed" term)
-       for (int focusposn:thePositions) {
-     
-    	   String focusterm = localTerms.get(localTermPositions.get(focusposn));
-     
-    	   //word2vec uniformly samples the window size - we will try this too
-    	   int effectiveWindowRadius = flagConfig.windowradius();
-    	   if (flagConfig.samplewindowradius) effectiveWindowRadius = random.nextInt(flagConfig.windowradius())+1;
-    	   
-    	   int windowstart = Math.max(0, focusposn - effectiveWindowRadius);
-    	   int windowend = Math.min(focusposn + effectiveWindowRadius, localTermPositions.size() - 1);
-       
-      for (int cursor = windowstart; cursor <= windowend; cursor++) {
-    	   
-    	  if (cursor == focusposn) continue;
-    	  
-    	  if (localTermPositions.get(thePositions.get(cursor)) == null) continue;
-    	  String coterm = localTerms.get(localTermPositions.get(thePositions.get(cursor)));
-    	  if (coterm == null) continue;
+    //System.out.println(++cnt+" "+index+" "+localTerms.get(localTermPositions.get(index)));
 
-    	  Vector toSuperpose = elementalTermVectors.getVector(coterm);
-        
+    //move the sliding window through the sequence (the focus position is the position of the "observed" term)
+    for (int focusposn : thePositions) {
+
+      String focusterm = localTerms.get(localTermPositions.get(focusposn));
+
+      //word2vec uniformly samples the window size - we will try this too
+      int effectiveWindowRadius = flagConfig.windowradius();
+      if (flagConfig.subsampleinwindow) effectiveWindowRadius = random.nextInt(flagConfig.windowradius()) + 1;
+
+      int windowstart = Math.max(0, focusposn - effectiveWindowRadius);
+      int windowend = Math.min(focusposn + effectiveWindowRadius, localTermPositions.size() - 1);
+
+      for (int cursor = windowstart; cursor <= windowend; cursor++) {
+
+        if (cursor == focusposn) continue;
+
+        if (localTermPositions.get(thePositions.get(cursor)) == null) continue;
+        String coterm = localTerms.get(localTermPositions.get(thePositions.get(cursor)));
+        if (coterm == null) continue;
+
+        Vector toSuperpose = elementalTermVectors.getVector(coterm);
+
         /**
          * Implementation of skipgram with negative sampling (Mikolov 2013)
          */
-        
-        if ((flagConfig.positionalmethod().equals(PositionalMethod.EMBEDDINGS))) 
-        {
-        	ArrayList<Vector> contextVectors = new ArrayList<Vector>();
-        	ArrayList<Integer> contextLabels  = new ArrayList<Integer>();
-        	
-        	//add the context term, with label '1'
-        	contextVectors.add(toSuperpose);
-        	contextLabels.add(1);
-        
-        	//add flagConfig.negsamples() randomly drawn terms with label '0'
-        	//these terms (and hence their context vectors)
-        	//are drawn with a probability of (global occurrence)^0.75, as recommended
-        	//by Mikolov and other authors
-        	while (contextVectors.size()  <= flagConfig.negsamples)
-            {	
-        		Vector randomTerm	= null;
-        		int max 			= totalAdd; //total (non unique) term count
-          
-        		while (randomTerm == null)
-        		{
-            	  int test 			= random.nextInt(max);
-            	  if (termDic.ceilingEntry(test) != null) 
-            	  randomTerm 			= elementalTermVectors.getVector(termDic.ceilingEntry(test).getValue());
-            	  if (randomTerm.equals(coterm)) randomTerm = null; //don't sample the context term
-        		}
-            
-            	contextVectors.add(randomTerm);
-            	contextLabels.add(0);
-        		
+
+        if ((flagConfig.positionalmethod().equals(PositionalMethod.EMBEDDINGS))) {
+          ArrayList<Vector> contextVectors = new ArrayList<Vector>();
+          ArrayList<Integer> contextLabels = new ArrayList<Integer>();
+
+          //add the context term, with label '1'
+          contextVectors.add(toSuperpose);
+          contextLabels.add(1);
+
+          //add flagConfig.negsamples() randomly drawn terms with label '0'
+          //these terms (and hence their context vectors)
+          //are drawn with a probability of (global occurrence)^0.75, as recommended
+          //by Mikolov and other authors
+          while (contextVectors.size() <= flagConfig.negsamples) {
+            Vector randomTerm = null;
+            int max = totalAdd; //total (non unique) term count
+
+            while (randomTerm == null) {
+              int test = random.nextInt(max);
+              if (termDic.ceilingEntry(test) != null)
+                randomTerm = elementalTermVectors.getVector(termDic.ceilingEntry(test).getValue());
+              if (randomTerm.equals(coterm)) randomTerm = null; //don't sample the context term
             }
-        	   	 
-        	this.processEmbeddings(semanticTermVectors.getVector(focusterm), contextVectors, contextLabels, alpha,  blas);
-         	}
-        else //random indexing variants
-        {
-        	float globalweight = luceneUtils.getGlobalTermWeight(new Term(field, coterm));
-        
-        // bind to appropriate position vector
-        if (flagConfig.positionalmethod() == PositionalMethod.PROXIMITY) {
-            toSuperpose =  elementalTermVectors.getVector(coterm).copy();
-            toSuperpose.bind(positionalNumberVectors.getVector(cursor-focusposn));
-             }
 
-        // calculate permutation required for either Sahlgren (2008) implementation
-        // encoding word order, or encoding direction as in Burgess and Lund's HAL
-        if (flagConfig.positionalmethod() == PositionalMethod.BASIC
-            || flagConfig.positionalmethod() == PositionalMethod.PERMUTATIONPLUSBASIC
-            	||flagConfig.positionalmethod() == PositionalMethod.PROXIMITY) {
-          semanticTermVectors.getVector(focusterm).superpose(toSuperpose, globalweight, null);
-        }
-        if (flagConfig.positionalmethod() == PositionalMethod.PERMUTATION
-            || flagConfig.positionalmethod() == PositionalMethod.PERMUTATIONPLUSBASIC) {
-          int[] permutation = permutationCache[cursor - focusposn + flagConfig.windowradius()];
-          semanticTermVectors.getVector(focusterm).superpose(toSuperpose, globalweight, permutation);
-        } else if (flagConfig.positionalmethod() == PositionalMethod.DIRECTIONAL) {
-          int[] permutation = permutationCache[(int) Math.max(0,Math.signum(cursor - focusposn))];
-          semanticTermVectors.getVector(focusterm).superpose(toSuperpose, globalweight, permutation);
+            contextVectors.add(randomTerm);
+            contextLabels.add(0);
 
-           }
-        
+          }
+
+          this.processEmbeddings(semanticTermVectors.getVector(focusterm), contextVectors, contextLabels, alpha, blas);
+        } else {
+          //random indexing variants
+          float globalweight = luceneUtils.getGlobalTermWeight(new Term(field, coterm));
+
+          // bind to appropriate position vector
+          if (flagConfig.positionalmethod() == PositionalMethod.PROXIMITY) {
+            toSuperpose = elementalTermVectors.getVector(coterm).copy();
+            toSuperpose.bind(positionalNumberVectors.getVector(cursor - focusposn));
+          }
+
+          // calculate permutation required for either Sahlgren (2008) implementation
+          // encoding word order, or encoding direction as in Burgess and Lund's HAL
+          if (flagConfig.positionalmethod() == PositionalMethod.BASIC
+              || flagConfig.positionalmethod() == PositionalMethod.PERMUTATIONPLUSBASIC
+              || flagConfig.positionalmethod() == PositionalMethod.PROXIMITY) {
+            semanticTermVectors.getVector(focusterm).superpose(toSuperpose, globalweight, null);
+          }
+          if (flagConfig.positionalmethod() == PositionalMethod.PERMUTATION
+              || flagConfig.positionalmethod() == PositionalMethod.PERMUTATIONPLUSBASIC) {
+            int[] permutation = permutationCache[cursor - focusposn + flagConfig.windowradius()];
+            semanticTermVectors.getVector(focusterm).superpose(toSuperpose, globalweight, permutation);
+          } else if (flagConfig.positionalmethod() == PositionalMethod.DIRECTIONAL) {
+            int[] permutation = permutationCache[(int) Math.max(0, Math.signum(cursor - focusposn))];
+            semanticTermVectors.getVector(focusterm).superpose(toSuperpose, globalweight, permutation);
+          }
         }
-        
-             
-        
-        
-        } //end of current sliding window   
+      } //end of current sliding window
     } //end of all sliding windows
 
-	totalDocCount++;
-	  }
+    totalDocCount++;
+  }
 }
