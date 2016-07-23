@@ -11,6 +11,7 @@ import org.apache.lucene.store.IndexOutput;
 import org.apache.lucene.util.FixedBitSet;
 import org.apache.lucene.util.FixedBitSet;
 
+import pitt.search.semanticvectors.utils.VerbatimLogger;
 import pitt.search.semanticvectors.vectors.RealVector.RealBindMethod;
 
 
@@ -382,7 +383,7 @@ public class BinaryVector implements Vector {
 
     for (int x = rowfloor + 1; x < votingRecord.size(); x++) {	
       tempSet.andNot(votingRecord.get(x-1)); //if 1 already added, eliminate dimension from tempSet
-      votingRecord.get(x).xor(tempSet);	
+      getVotingRowAndWarnIfEmpty(x).xor(tempSet);
       // votingRecord.get(x).trimTrailingZeros(); //attempt to save in sparsely populated rows
     }
   }
@@ -499,8 +500,9 @@ public class BinaryVector implements Vector {
     else {
       // Simple part of complex case: first get anything with a "1" in a row above n (all true).
       FixedBitSet definitePositives = new FixedBitSet(dimension);
-      for (int q = row_floor+1; q <= row_ceiling; q++)
-        definitePositives.or(votingRecord.get(q));
+      for (int q = row_floor+1; q <= row_ceiling; q++) {
+        definitePositives.or(getVotingRowAndWarnIfEmpty(q));
+      }
 
       // Complex part of complex case: get those that have a "1" in the row of n.
       FixedBitSet possiblePositives = (FixedBitSet) votingRecord.get(row_floor).clone();
@@ -550,8 +552,8 @@ public class BinaryVector implements Vector {
   public void selectedDecrement(int floor) {
     tempSet.set(0, dimension);
     for (int q = floor; q < votingRecord.size(); q++) {
-      votingRecord.get(q).xor(tempSet);
-      tempSet.and(votingRecord.get(q));
+      getVotingRowAndWarnIfEmpty(q).xor(tempSet);
+      tempSet.and(getVotingRowAndWarnIfEmpty(q));
     }
   }
 
@@ -562,7 +564,7 @@ public class BinaryVector implements Vector {
     int thismaximum = 0;
     tempSet.xor(tempSet);  // Reset tempset to zeros.
     for (int x = votingRecord.size() - 1; x >= 0; x--) {
-      tempSet.or(votingRecord.get(x));
+      tempSet.or(getVotingRowAndWarnIfEmpty(x));
       if (tempSet.cardinality() == dimension) {
         thismaximum += (int) Math.pow(2, x);
         tempSet.xor(tempSet);
@@ -706,7 +708,7 @@ public class BinaryVector implements Vector {
     }
     //housekeeping
     votingRecord = new ArrayList<FixedBitSet>();
-    votingRecord.add((FixedBitSet) bitSet.clone());
+    votingRecord.add(bitSet.clone());
     totalNumberOfVotes = 1;
     tempSet = new FixedBitSet(dimension);
     minimum = 0;
@@ -738,7 +740,7 @@ public class BinaryVector implements Vector {
       this.bitSet = concludeVote();
 
     votingRecord = new ArrayList<FixedBitSet>();
-    votingRecord.add((FixedBitSet) bitSet.clone());
+    votingRecord.add(bitSet.clone());
     totalNumberOfVotes = 1;
     tempSet = new FixedBitSet(dimension);
     minimum = 0;
@@ -865,10 +867,24 @@ public class BinaryVector implements Vector {
       return;
     }
     votingRecord = new ArrayList<FixedBitSet>();
-    votingRecord.add((FixedBitSet) bitSet.clone());
+    votingRecord.add(bitSet.clone());
     tempSet = new FixedBitSet(dimension);
 
     isSparse = false;
+  }
+
+  /**
+   * Returns the item in position row of the voting record. If this is null, creates a new empty bit set in this position.
+   * This is a debugging workaround because some voting record rows were found to be null in intellij, but not the command line.
+   * This is very strange, especially since as far as I can see every time we call votingRecord.add, it's done responsibly.
+   * TODO: Understand.
+   */
+  private FixedBitSet getVotingRowAndWarnIfEmpty(int row) {
+    if (votingRecord.get(row) == null) {
+      logger.severe(String.format("Error in voting record in line %d for vector.\n", row));
+      votingRecord.add(row, new FixedBitSet(dimension));
+    }
+    return votingRecord.get(row);
   }
 
   /**
@@ -920,7 +936,7 @@ public class BinaryVector implements Vector {
 	// TODO Auto-generated method stub
 	this.bitSet = incomingBitSet;
 }
-	
+
 	//set DEBUG_PRINT_LENGTTH
 	public static void setDebugPrintLength(int length){
 	DEBUG_PRINT_LENGTH = length;	
