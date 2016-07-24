@@ -142,6 +142,8 @@ public class ComplexVector implements Vector {
         for (int i = 0; i < dimension; ++i) phaseAngles[i] = -1;  // Initialize to complex zero vector.
       case CARTESIAN:
         this.coordinates = new float[2 * dimension];
+      case HERMITIAN:
+          this.coordinates = new float[2 * dimension];
     }
   }
 
@@ -168,6 +170,11 @@ public class ComplexVector implements Vector {
           copy.coordinates[i] = coordinates[i];
         }
         break;
+      case HERMITIAN:
+          for (int i = 0; i < 2 * dimension; ++i) {
+            copy.coordinates[i] = coordinates[i];
+          }
+          break;
     }
     return copy;
   }
@@ -190,6 +197,11 @@ public class ComplexVector implements Vector {
         for (float coordinate : coordinates) debugString.append(coordinate).append(" ");
         debugString.append("\n");
         break;
+      case HERMITIAN:
+          debugString.append("  Hermitian. Coordinates are:\n");
+          for (float coordinate : coordinates) debugString.append(coordinate).append(" ");
+          debugString.append("\n");
+          break;
     }
     return debugString.toString();
   }
@@ -207,6 +219,12 @@ public class ComplexVector implements Vector {
           if (coordinate != 0) return false;  // If this is ever buggy look for rounding errors.
         }
         return true;
+      case HERMITIAN:
+          if (coordinates == null) return true;
+          for (float coordinate : coordinates) {
+            if (coordinate != 0) return false;  // If this is ever buggy look for rounding errors.
+          }
+          return true;
     }
     throw new IllegalArgumentException("Unrecognized mode: " + opMode);
   }
@@ -253,7 +271,12 @@ public class ComplexVector implements Vector {
    */
 
   public ComplexVector generateRandomVector(int dimension, Random random) {
-    ComplexVector randomVector = new ComplexVector(dimension, Mode.POLAR_DENSE);
+    
+	if (getDominantMode().equals(Mode.HERMITIAN))
+		return generateHermitianRandomVector(dimension, random);
+	
+	
+	ComplexVector randomVector = new ComplexVector(dimension, Mode.POLAR_DENSE);
 
     for (int d = 0; d < randomVector.phaseAngles.length; d++)
       randomVector.phaseAngles[d] = (short) random.nextInt(CircleLookupTable.PHASE_RESOLUTION);
@@ -261,6 +284,27 @@ public class ComplexVector implements Vector {
     return randomVector;
   }
 
+  /**
+   * Generates a basic dense vector in Cartesian form. This is used in the hermitian mode, though,
+   * hence the name.
+   *
+   * @return Dense representation of vector in Cartesian form.
+   */
+  
+
+  public ComplexVector generateHermitianRandomVector(int dimension, Random random) {
+	    
+	
+	ComplexVector randomVector = new ComplexVector(dimension, Mode.HERMITIAN);
+	float[] coordinates = randomVector.getCoordinates();
+   
+    for (int d = 0; d < coordinates.length; d++)
+    	coordinates[d] = (float) (random.nextFloat() - 0.5) / (float) coordinates.length;
+
+    return randomVector;
+  }
+  
+  
   @Override
   /**
    * Implementation of measureOverlap that switches depending on {@code DOMINANT_MODE}.
@@ -420,6 +464,9 @@ public class ComplexVector implements Vector {
     }
 
     switch (complexOther.opMode) {
+      case HERMITIAN:
+        ComplexVectorUtils.superposeWithCoord(this, complexOther, (float) weight, permutation);
+        break;
       case CARTESIAN:
         ComplexVectorUtils.superposeWithCoord(this, complexOther, (float) weight, permutation);
         break;
@@ -428,6 +475,7 @@ public class ComplexVector implements Vector {
         break;
       case POLAR_DENSE:
         ComplexVectorUtils.superposeWithAngle(this, complexOther, (float) weight, permutation);
+        break;
     }
   }
 
@@ -436,6 +484,8 @@ public class ComplexVector implements Vector {
    */
   public void toCartesian() {
     switch (opMode) {
+      case HERMITIAN:
+    	return;
       case CARTESIAN:
         return;  // Nothing to do.
       case POLAR_SPARSE:
@@ -475,6 +525,8 @@ public class ComplexVector implements Vector {
         return;
       case CARTESIAN:
         cartesianToDensePolar();
+      case HERMITIAN:
+    	 cartesianToDensePolar();
     }
   }
 
@@ -805,7 +857,7 @@ public class ComplexVector implements Vector {
   }
 
   public float[] getCoordinates() {
-    return coordinates;
+	return coordinates;
   }
 
   public void setCoordinates(float[] coordinates) {

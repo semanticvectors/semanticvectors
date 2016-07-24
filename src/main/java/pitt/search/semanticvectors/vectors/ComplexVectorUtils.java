@@ -2,6 +2,7 @@ package pitt.search.semanticvectors.vectors;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 import java.util.logging.Logger;
 
 import pitt.search.semanticvectors.vectors.ComplexVector.Mode;
@@ -25,7 +26,7 @@ public class ComplexVectorUtils {
   public static void superposeWithAngle( ComplexVector vec1, ComplexVector vec2  ) {
     int dim =  vec1.getDimension();
     assert(dim == vec2.getDimension());
-    assert(vec1.getOpMode() == ComplexVector.Mode.CARTESIAN);
+    assert(vec1.getOpMode() == ComplexVector.Mode.CARTESIAN || vec1.getOpMode() == ComplexVector.Mode.HERMITIAN);
     assert(vec2.getOpMode() == ComplexVector.Mode.POLAR_DENSE);
 
     short c[] = vec2.getPhaseAngles();
@@ -77,7 +78,7 @@ public class ComplexVectorUtils {
    */
   public static void superposeWithSparseAngle(
       ComplexVector vec1, ComplexVector vec2, float weight, int[] permutation) {
-    assert(vec1.getOpMode() == Mode.CARTESIAN);
+    assert(vec1.getOpMode() == Mode.CARTESIAN || vec1.getOpMode() == ComplexVector.Mode.HERMITIAN);
     assert(vec2.getOpMode() == Mode.POLAR_SPARSE);
     short offsets[] = vec2.getSparseOffsets();
     float[] coordinates = vec1.getCoordinates();
@@ -99,8 +100,8 @@ public class ComplexVectorUtils {
   public static void superposeWithCoord(ComplexVector vec1, ComplexVector vec2) {
     int arrayDim =  vec1.getDimension()*2;
     IncompatibleVectorsException.checkVectorsCompatible(vec1, vec2);
-    assert(vec1.getOpMode() == ComplexVector.Mode.CARTESIAN);
-    assert(vec2.getOpMode() == ComplexVector.Mode.CARTESIAN);
+    assert(vec1.getOpMode() == ComplexVector.Mode.CARTESIAN || vec1.getOpMode() == ComplexVector.Mode.HERMITIAN);
+    assert(vec2.getOpMode() == ComplexVector.Mode.CARTESIAN || vec2.getOpMode() == ComplexVector.Mode.HERMITIAN);
 
     float[] coordinates1 = vec1.getCoordinates();
     float[] coordinates2 = vec2.getCoordinates();
@@ -115,8 +116,8 @@ public class ComplexVectorUtils {
   public static void superposeWithCoord(
       ComplexVector vec1, ComplexVector vec2, float weight, int[] permutation) {
     IncompatibleVectorsException.checkVectorsCompatible(vec1, vec2);
-    assert(vec1.getOpMode() == ComplexVector.Mode.CARTESIAN);
-    assert(vec2.getOpMode() == ComplexVector.Mode.CARTESIAN);
+    assert(vec1.getOpMode() == ComplexVector.Mode.CARTESIAN || vec1.getOpMode() == ComplexVector.Mode.HERMITIAN);
+    assert(vec2.getOpMode() == ComplexVector.Mode.CARTESIAN || vec2.getOpMode() == ComplexVector.Mode.HERMITIAN);
 
     int positionToAdd;
 
@@ -246,6 +247,12 @@ public class ComplexVectorUtils {
   public static void scaleFloatArray(float[] array, float weight) {
     for (int i=0; i<array.length; i++) array[i] = array[i]*weight;
   }
+
+public static Vector generateHermitianRandomVector(int dimension,
+		int seedlength, Random random) {
+	// TODO Auto-generated method stub
+	return null;
+}
 }
 
 

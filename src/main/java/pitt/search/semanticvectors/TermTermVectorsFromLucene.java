@@ -57,7 +57,6 @@ import org.netlib.blas.BLAS;
 
 import pitt.search.semanticvectors.orthography.NumberRepresentation;
 import pitt.search.semanticvectors.utils.VerbatimLogger;
-import pitt.search.semanticvectors.vectors.ComplexVector;
 import pitt.search.semanticvectors.vectors.PermutationUtils;
 import pitt.search.semanticvectors.vectors.Vector;
 import pitt.search.semanticvectors.vectors.VectorFactory;
@@ -284,7 +283,7 @@ public class TermTermVectorsFromLucene { //implements VectorStore {
           VerbatimLogger.info("[T" + threadno + "]" + " processed " + dcnt + " documents in " + ("" + ((System.currentTimeMillis() - time) / (1000 * 60))).replaceAll("\\..*", "") + " min..");
 
           if (threadno == 0 && dcnt % 10000 == 0) {
-            double proportionComplete = totalDocCount / (double) ((flagConfig.trainingcycles() + 1) * (luceneUtils.getNumDocs()));
+            double proportionComplete = totalDocCount / (double) ( (1+flagConfig.trainingcycles()) * (luceneUtils.getNumDocs()));
             alpha -= (alpha - minimum_alpha) * proportionComplete;
             if (alpha < minimum_alpha) alpha = minimum_alpha;
             VerbatimLogger.info("..Updated alpha to " + alpha + "..");
@@ -332,13 +331,7 @@ public class TermTermVectorsFromLucene { //implements VectorStore {
         if ((flagConfig.positionalmethod().equals(PositionalMethod.EMBEDDINGS))) {
           //force dense term vectors
           termVector = VectorFactory.generateRandomVector(flagConfig.vectortype(), flagConfig.dimension(), flagConfig.seedlength(), random);
-          if (termVector.getVectorType().equals(VectorType.COMPLEX)) {
-            //embeddings don't train well with initial weights set to
-            //random phase angles on the unit circle, which is the default on the complex case
-            float[] coordinates = ((ComplexVector) termVector).getCoordinates();
-            for (int x = 0; x < coordinates.length; x++)
-              coordinates[x] = (float) (random.nextFloat() - 0.5) / (float) coordinates.length;
-          }
+        
         } else termVector = VectorFactory.createZeroVector(flagConfig.vectortype(), flagConfig.dimension());
         // Place each term vector in the vector store.
         this.semanticTermVectors.putVector(term.text(), termVector);
@@ -346,13 +339,7 @@ public class TermTermVectorsFromLucene { //implements VectorStore {
         // Do the same for random index vectors unless retraining with trained term vectors
         if (!retraining) {
           this.elementalTermVectors.getVector(term.text());
-          if ((flagConfig.positionalmethod().equals(PositionalMethod.EMBEDDINGS)) && elementalTermVectors.getVector(term.text()).getVectorType().equals(VectorType.COMPLEX)) {
-            //embeddings don't train well with initial weights set to
-            //random phase angles on the unit circle, which is the default in the complex case
-            float[] coordinates = ((ComplexVector) elementalTermVectors.getVector(term.text())).getCoordinates();
-            for (int x = 0; x < coordinates.length; x++)
-              coordinates[x] = (float) (random.nextFloat() - 0.5) / (float) coordinates.length;
-          }
+        
         }
       }
     }

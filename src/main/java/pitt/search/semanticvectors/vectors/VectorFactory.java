@@ -59,7 +59,7 @@ public class VectorFactory {
       case REAL:
         return new RealVector(dimension);
       case COMPLEX:
-        return new ComplexVector(dimension, Mode.POLAR_SPARSE);
+        return new ComplexVector(dimension, Mode.HERMITIAN);
       case COMPLEXFLAT:
         return new ComplexVector(dimension, Mode.CARTESIAN);
       default:
@@ -89,7 +89,8 @@ public class VectorFactory {
     case REAL:
       return realInstance.generateRandomVector(dimension, numEntries, random);
     case COMPLEX:
-      ComplexVector.setDominantMode(Mode.POLAR_DENSE);
+      if (!ComplexVector.getDominantMode().equals(Mode.HERMITIAN)) 
+    	  ComplexVector.setDominantMode(Mode.POLAR_DENSE);
       return complexInstance.generateRandomVector(dimension, numEntries, random);
     case COMPLEXFLAT:
       ComplexVector.setDominantMode(Mode.CARTESIAN);
