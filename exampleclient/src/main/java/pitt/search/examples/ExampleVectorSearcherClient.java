@@ -38,18 +38,16 @@ public class ExampleVectorSearcherClient {
     while(true) {
       System.out.println("Enter a query term:");
       Scanner sc = new Scanner(System.in);
-      String queryTerm = sc.next();
+      String queryString = sc.nextLine();
       try {
         VectorSearcher searcher = new VectorSearcher.VectorSearcherCosine(
-            searchVectorStore, searchVectorStore, luceneUtils, defaultFlagConfig, new String[] {queryTerm});
+            searchVectorStore, searchVectorStore, luceneUtils, defaultFlagConfig, queryString.split("\\s+"));
         LinkedList<SearchResult> results = searcher.getNearestNeighbors(10);
         for (SearchResult result : results) {
           System.out.println(result.getScore() + ":" + result.getObjectVector().getObject());
-          RealVector realVector = (RealVector) result.getObjectVector().getVector();
-          float[] coordinates = realVector.getCoordinates();
         }
       } catch (ZeroVectorException e) {
-        System.out.println("No vector for term: '" + queryTerm + "'.");
+        System.out.println("No vector for strings: '" + queryString + "'.");
       }
     }
   }
