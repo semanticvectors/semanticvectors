@@ -277,8 +277,8 @@ public class BinaryVector implements Vector {
     
     if (weight < 0) //subtraction
     	{
-    	  weight = Math.abs(weight);
-    	  binaryOther.bitSet.flip(0, binaryOther.bitLength());
+          weight = Math.abs(weight);
+    	  binaryOther.bitSet.flip(0, binaryOther.getDimension());
     	  flippedBitSet = true;
     	}
     
@@ -307,7 +307,7 @@ public class BinaryVector implements Vector {
       superposeBitSet(binaryOther.bitSet, weight);
     }
     
-    if (flippedBitSet) binaryOther.bitSet.flip(0, binaryOther.bitLength()); //return to original configuration
+    if (flippedBitSet) binaryOther.bitSet.flip(0, binaryOther.getDimension()); //return to original configuration
   }
 
   /**
