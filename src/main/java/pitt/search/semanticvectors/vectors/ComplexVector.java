@@ -525,8 +525,10 @@ public class ComplexVector implements Vector {
         return;
       case CARTESIAN:
         cartesianToDensePolar();
+        return; 
       case HERMITIAN:
     	 cartesianToDensePolar();
+    	 return;
     }
   }
 

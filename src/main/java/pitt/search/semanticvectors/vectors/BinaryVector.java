@@ -9,9 +9,6 @@ import org.apache.lucene.search.DocIdSetIterator;
 import org.apache.lucene.store.IndexInput;
 import org.apache.lucene.store.IndexOutput;
 import org.apache.lucene.util.FixedBitSet;
-import org.apache.lucene.util.FixedBitSet;
-
-import pitt.search.semanticvectors.vectors.RealVector.RealBindMethod;
 
 
 /**
@@ -466,13 +463,14 @@ public class BinaryVector implements Vector {
       setTempSetToExactMatches(target2);
       boolean switcher = true;
       // 50% chance of being true with split vote.
-      for (int q = 0; q < dimension; q++) {
-        if (tempSet.get(q)) {
-          switcher = !switcher;
+      int q = tempSet.nextSetBit(0);
+      while (q != DocIdSetIterator.NO_MORE_DOCS)
+      	{
+    	  switcher = !switcher;
           if (switcher) tempSet.clear(q);
-        }
-      }
-      result.andNot(tempSet);
+          q = tempSet.nextSetBit(q);
+      	}
+      		result.andNot(tempSet);
     }
     return result;
   }
