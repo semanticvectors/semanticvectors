@@ -322,7 +322,7 @@ public class TermTermVectorsFromLucene { //implements VectorStore {
         tc++;
 
         Vector termVector = null;
-        // construct subsampling table
+        // construct negative sampling table
         if (flagConfig.samplingthreshold() > 0) {
           totalAdd += Math.pow(luceneUtils.getGlobalTermFreq(term), .75);
           termDic.put(totalAdd, term.text());
@@ -370,7 +370,7 @@ public class TermTermVectorsFromLucene { //implements VectorStore {
         }  //all terms for one field
       } // all fields
       VerbatimLogger.info("\n");
-      if (subsamplingProbabilities.size() > 0)
+      if (subsamplingProbabilities !=null && subsamplingProbabilities.size() > 0)
         VerbatimLogger.info("Selected for subsampling: " + subsamplingProbabilities.size() + " terms.\n");
     } //end subsampling condition
 
@@ -439,10 +439,7 @@ public class TermTermVectorsFromLucene { //implements VectorStore {
       //Sigmoid function (may gain some ground with a lookup table here)
       feedForwardOutput = Math.pow(Math.E, -1 * feedForwardOutput);
       feedForwardOutput = 1 / (1 + feedForwardOutput);
-
-      if (feedForwardOutput == Float.POSITIVE_INFINITY || feedForwardOutput == Float.NEGATIVE_INFINITY)
-        continue;
-
+       
       //if label == 1, a context word - so the error is the (1-predicted probability of for this word) - ideally 0
       //if label == 0, a negative sample - so the error is the (predicted probability for this word) - ideally 0
       double error = feedForwardOutput - contextLabels.get(counter++);
@@ -473,7 +470,6 @@ public class TermTermVectorsFromLucene { //implements VectorStore {
     if (terms == null) return;
 
     ArrayList<String> localTerms = new ArrayList<String>();
-    ArrayList<Integer> freqs = new ArrayList<Integer>();
     Hashtable<Integer, Integer> localTermPositions = new Hashtable<Integer, Integer>();
 
     //to accommodate "dynamic" sliding window that includes indexed/sampled terms only
@@ -493,7 +489,7 @@ public class TermTermVectorsFromLucene { //implements VectorStore {
 
       boolean termAdded = false;
       int freq = docsAndPositions.freq();
-
+     
       //iterate through all positions of this term
       for (int x = 0; x < freq; x++) {
 
@@ -511,7 +507,6 @@ public class TermTermVectorsFromLucene { //implements VectorStore {
       if (termAdded) {
         termcount++;
         localTerms.add(theTerm);
-        freqs.add(freq);
       }
     }
 
@@ -565,17 +560,19 @@ public class TermTermVectorsFromLucene { //implements VectorStore {
           //are drawn with a probability of (global occurrence)^0.75, as recommended
           //by Mikolov and other authors
           while (contextVectors.size() <= flagConfig.negsamples) {
-            Vector randomTerm = null;
+            Vector randomTermVector = null;
             int max = totalAdd; //total (non unique) term count
 
-            while (randomTerm == null) {
+            while (randomTermVector == null) {
               int test = random.nextInt(max);
-              if (termDic.ceilingEntry(test) != null)
-                randomTerm = elementalTermVectors.getVector(termDic.ceilingEntry(test).getValue());
-              if (randomTerm.equals(coterm)) randomTerm = null; //don't sample the context term
-            }
+              if (termDic.ceilingEntry(test) != null) {
+            	  String testTerm = termDic.ceilingEntry(test).getValue();
+              		if (! testTerm.equals(coterm))
+              		randomTermVector = elementalTermVectors.getVector(testTerm);
+              }
+              	}
 
-            contextVectors.add(randomTerm);
+            contextVectors.add(randomTermVector);
             contextLabels.add(0);
 
           }
