@@ -74,6 +74,7 @@ public class BinaryVector implements Vector {
    */
   protected FixedBitSet bitSet;
   private boolean isSparse;
+  private boolean unTallied = true;
 
   /** 
    * Representation of voting record for superposition. Each FixedBitSet object contains one bit
@@ -269,6 +270,7 @@ public class BinaryVector implements Vector {
     IncompatibleVectorsException.checkVectorsCompatible(this, other);
     if (weight == 0d) return;
     if (other.isZeroVector()) return;
+    
     BinaryVector binaryOther = (BinaryVector) other;
     boolean flippedBitSet = false; //for subtraction
     
@@ -305,6 +307,8 @@ public class BinaryVector implements Vector {
     }
     
     if (flippedBitSet) binaryOther.bitSet.flip(0, binaryOther.getDimension()); //return to original configuration
+    unTallied = true; //there are votes that haven't been tallied yet
+    
   }
 
   /**
@@ -757,8 +761,9 @@ public class BinaryVector implements Vector {
    * Counts votes without normalizing vector (i.e. voting record is not altered). Used in SemanticVectorCollider.
    */
   public synchronized void tallyVotes() {
-    if (!isSparse)
+    if (!isSparse && unTallied) //only count if there are votes since the last tally
       this.bitSet = concludeVote();
+    unTallied = false;
   }
 
   @Override

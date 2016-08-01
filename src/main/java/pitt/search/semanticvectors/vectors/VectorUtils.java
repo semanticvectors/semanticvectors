@@ -205,7 +205,7 @@ public class VectorUtils {
       case BINARY:
         ((BinaryVector) v1).tallyVotes();
         ((BinaryVector) v2).tallyVotes();
-        return v1.measureOverlap(v2);
+        return v1.measureOverlap(v2); //hack - scaling to play nicely with sigmoid subsequently
       default:
         return 0;
 

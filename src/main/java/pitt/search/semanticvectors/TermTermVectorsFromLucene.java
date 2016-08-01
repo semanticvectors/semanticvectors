@@ -57,6 +57,7 @@ import org.netlib.blas.BLAS;
 
 import pitt.search.semanticvectors.orthography.NumberRepresentation;
 import pitt.search.semanticvectors.utils.VerbatimLogger;
+import pitt.search.semanticvectors.vectors.BinaryVector;
 import pitt.search.semanticvectors.vectors.PermutationUtils;
 import pitt.search.semanticvectors.vectors.Vector;
 import pitt.search.semanticvectors.vectors.VectorFactory;
@@ -100,11 +101,11 @@ public class TermTermVectorsFromLucene { //implements VectorStore {
   /** Used only with {@link PositionalMethod#PROXIMITY}. */
   private VectorStoreRAM positionalNumberVectors;
   private Random random;
-  private ConcurrentSkipListMap<Integer, String> termDic;
+  private ConcurrentSkipListMap<Double, String> termDic;
   private ConcurrentHashMap<String, Double> subsamplingProbabilities;
   private LinkedList<Terms> theQ;
-  private int totalAdd = 0; //total number of terms in corpus
-  private long totalCount = 0; //total count of terms in corpus
+  private double totalPool 	= 0; //total pool of terms probabilities for negative sampling corpus
+  private long 	 totalCount = 0; //total count of terms in corpus
   private double alpha = 0.025;
   private double minimum_alpha = 0.0001;
   private volatile int totalDocCount = 0;
@@ -143,10 +144,10 @@ public class TermTermVectorsFromLucene { //implements VectorStore {
     if (flagConfig.positionalmethod().equals(PositionalMethod.EMBEDDINGS)) {
       //force dense vectors
       if (!flagConfig.vectortype().equals(VectorType.BINARY))
-        flagConfig.seedlength = flagConfig.dimension();
+      { flagConfig.seedlength = flagConfig.dimension();
+      	VerbatimLogger.info("Setting seedlength=dimensionsionality, to initialize embedding weights");}
       else {
-        throw new UnsupportedOperationException(
-            "Warning: binary vectors are not supported as a means to generate neural word embeddings");
+        VerbatimLogger.info("Warning: binary vector embeddings are in the experimental phase");
       }
     }
 
@@ -296,8 +297,8 @@ public class TermTermVectorsFromLucene { //implements VectorStore {
 
   private void trainTermTermVectors() throws IOException, RuntimeException {
     luceneUtils = new LuceneUtils(flagConfig);
-    termDic = new ConcurrentSkipListMap<Integer, String>();
-    totalAdd = 0;
+    termDic = new ConcurrentSkipListMap<Double, String>();
+    totalPool = 0;
 
     // Check that the Lucene index contains Term Positions.
     FieldInfos fieldsWithPositions = luceneUtils.getFieldInfos();
@@ -323,12 +324,9 @@ public class TermTermVectorsFromLucene { //implements VectorStore {
 
         Vector termVector = null;
         // construct negative sampling table
-        if (flagConfig.samplingthreshold() > 0) {
-          totalAdd += Math.pow(luceneUtils.getGlobalTermFreq(term), .75);
-          termDic.put(totalAdd, term.text());
-        }
-
-        if ((flagConfig.positionalmethod().equals(PositionalMethod.EMBEDDINGS))) {
+        if (flagConfig.positionalmethod().equals(PositionalMethod.EMBEDDINGS)) {
+          totalPool += Math.pow(luceneUtils.getGlobalTermFreq(term), .75);
+          termDic.put(totalPool, term.text());
           //force dense term vectors
           termVector = VectorFactory.generateRandomVector(flagConfig.vectortype(), flagConfig.dimension(), flagConfig.seedlength(), random);
         
@@ -402,7 +400,7 @@ public class TermTermVectorsFromLucene { //implements VectorStore {
       VerbatimLogger.info("\nCreated " + semanticTermVectors.getNumVectors() + " term vectors ...\n");
 
     } //end of training cycles
-
+    
     Enumeration<ObjectVector> e = semanticTermVectors.getAllVectors();
 
     while (e.hasMoreElements()) {
@@ -431,23 +429,33 @@ public class TermTermVectorsFromLucene { //implements VectorStore {
       Vector embeddingVector, ArrayList<Vector> contextVectors,
       ArrayList<Integer> contextLabels, double learningRate, BLAS blas) {
     double feedForwardOutput = 0;
+    double error = 0;
     int counter = 0;
 
     //for each contextVector   (there should be one "true" context vector, and a number of negative samples)
     for (Vector contextVec : contextVectors) {
-      feedForwardOutput = VectorUtils.scalarProduct(embeddingVector, contextVec, flagConfig, blas);
-      //Sigmoid function (may gain some ground with a lookup table here)
-      feedForwardOutput = Math.pow(Math.E, -1 * feedForwardOutput);
-      feedForwardOutput = 1 / (1 + feedForwardOutput);
+    	
+    	Vector duplicateContextVec 	 = contextVec.copy();
+    	feedForwardOutput = VectorUtils.scalarProduct(embeddingVector, duplicateContextVec, flagConfig, blas);
        
-      //if label == 1, a context word - so the error is the (1-predicted probability of for this word) - ideally 0
-      //if label == 0, a negative sample - so the error is the (predicted probability for this word) - ideally 0
-      double error = feedForwardOutput - contextLabels.get(counter++);
-
+      if (!flagConfig.vectortype().equals(VectorType.BINARY)) //sigmoid function
+  	  {
+        feedForwardOutput = Math.pow(Math.E, -1 * feedForwardOutput);
+      	feedForwardOutput = 1 / (1 + feedForwardOutput);
+        //if label == 1, a context word - so the error is the (1-predicted probability of for this word) - ideally 0
+        //if label == 0, a negative sample - so the error is the (predicted probability for this word) - ideally 0
+       error = feedForwardOutput - contextLabels.get(counter++);  
+  	  } else //RELU-like function for binary vectors
+      {
+     	   feedForwardOutput = Math.max(feedForwardOutput, 0);
+     	   error = feedForwardOutput - contextLabels.get(counter++);
+     	   //avoid passing floating points (the default behavior currently is to ignore these if the first superposition weight is an Integer)
+      	  	error = Math.round(error*100);
+     	  }
+      
       //update the context vector and embedding vector, respectively
-      Vector originalContextVec = contextVec.copy();
       VectorUtils.superposeInPlace(embeddingVector, contextVec, flagConfig, blas, -learningRate * error);
-      VectorUtils.superposeInPlace(originalContextVec, embeddingVector, flagConfig, blas, -learningRate * error);
+      VectorUtils.superposeInPlace(duplicateContextVec, embeddingVector, flagConfig, blas, -learningRate * error);
     }
   }
 
@@ -469,16 +477,15 @@ public class TermTermVectorsFromLucene { //implements VectorStore {
       throws ArrayIndexOutOfBoundsException, IOException {
     if (terms == null) return;
 
-    ArrayList<String> localTerms = new ArrayList<String>();
-    Hashtable<Integer, Integer> localTermPositions = new Hashtable<Integer, Integer>();
+    //Reconstruct document from term positions
+    Hashtable<Integer, String> localTermPositions = new Hashtable<Integer, String>();
 
-    //to accommodate "dynamic" sliding window that includes indexed/sampled terms only
+    //To accommodate "dynamic" sliding window that includes indexed/sampled terms only
     ArrayList<Integer> thePositions = new ArrayList<Integer>();
 
     TermsEnum termsEnum = terms.iterator(null);
     BytesRef text;
-    int termcount = 0;
-
+   
     while ((text = termsEnum.next()) != null) {
       String theTerm = text.utf8ToString();
       if (!semanticTermVectors.containsVector(theTerm)) continue;
@@ -487,7 +494,6 @@ public class TermTermVectorsFromLucene { //implements VectorStore {
       if (docsAndPositions == null) return;
       docsAndPositions.nextDoc();
 
-      boolean termAdded = false;
       int freq = docsAndPositions.freq();
      
       //iterate through all positions of this term
@@ -497,16 +503,9 @@ public class TermTermVectorsFromLucene { //implements VectorStore {
 
         //subsampling of frequent terms
         if (subsamplingProbabilities == null || (!subsamplingProbabilities.containsKey(field + ":" + theTerm) || random.nextDouble() > subsamplingProbabilities.get(field + ":" + theTerm))) {
-          localTermPositions.put(thePosition, termcount);
+          localTermPositions.put(thePosition, theTerm);
           thePositions.add(thePosition);
-          termAdded = true;
-        }
-      }
-
-      //it is possible the term was not added on account of subsampling, which could corrupt the local term index without this check
-      if (termAdded) {
-        termcount++;
-        localTerms.add(theTerm);
+            }
       }
     }
 
@@ -519,12 +518,12 @@ public class TermTermVectorsFromLucene { //implements VectorStore {
     //vestigial code for the purpose of error checking for sequence reconstruction from Lucene
     //int cnt=0;
     //for (int index:thePositions)
-    //System.out.println(++cnt+" "+index+" "+localTerms.get(localTermPositions.get(index)));
+    //System.out.println(++cnt+" "+index+" "+localTermPositions.get(index));
 
     //move the sliding window through the sequence (the focus position is the position of the "observed" term)
     for (int focusposn : thePositions) {
 
-      String focusterm = localTerms.get(localTermPositions.get(focusposn));
+      String focusterm = localTermPositions.get(focusposn);
 
       //word2vec uniformly samples the window size - we will try this too
       int effectiveWindowRadius = flagConfig.windowradius();
@@ -537,10 +536,8 @@ public class TermTermVectorsFromLucene { //implements VectorStore {
 
         if (cursor == focusposn) continue;
 
-        if (localTermPositions.get(thePositions.get(cursor)) == null) continue;
-        String coterm = localTerms.get(localTermPositions.get(thePositions.get(cursor)));
-        if (coterm == null) continue;
-
+        String coterm = localTermPositions.get(thePositions.get(cursor));
+        
         Vector toSuperpose = elementalTermVectors.getVector(coterm);
 
         /**
@@ -560,19 +557,19 @@ public class TermTermVectorsFromLucene { //implements VectorStore {
           //are drawn with a probability of (global occurrence)^0.75, as recommended
           //by Mikolov and other authors
           while (contextVectors.size() <= flagConfig.negsamples) {
-            Vector randomTermVector = null;
-            int max = totalAdd; //total (non unique) term count
+            Vector randomTerm = null;
+            double max = totalPool; //total (non unique) term count
 
-            while (randomTermVector == null) {
-              int test = random.nextInt(max);
+            while (randomTerm == null) {
+              double test = random.nextDouble()*max;
               if (termDic.ceilingEntry(test) != null) {
             	  String testTerm = termDic.ceilingEntry(test).getValue();
               		if (! testTerm.equals(coterm))
-              		randomTermVector = elementalTermVectors.getVector(testTerm);
+              		randomTerm = elementalTermVectors.getVector(testTerm);
               }
               	}
 
-            contextVectors.add(randomTermVector);
+            contextVectors.add(randomTerm);
             contextLabels.add(0);
 
           }
