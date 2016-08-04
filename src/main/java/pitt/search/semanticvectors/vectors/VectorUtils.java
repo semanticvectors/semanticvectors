@@ -201,11 +201,11 @@ public class VectorUtils {
       case REAL:
         return blas.sdot(flagConfig.dimension(), ((RealVector) v1).getCoordinates(), 1, ((RealVector) v2).getCoordinates(), 1);
       case COMPLEX: //hermitian scalar product
-        return blas.sdot(flagConfig.dimension(), ((ComplexVector) v1).getCoordinates(), 1, ((ComplexVector) v2).getCoordinates(), 1);
+        return blas.sdot(flagConfig.dimension()*2, ((ComplexVector) v1).getCoordinates(), 1, ((ComplexVector) v2).getCoordinates(), 1);
       case BINARY:
         ((BinaryVector) v1).tallyVotes();
         ((BinaryVector) v2).tallyVotes();
-        return v1.measureOverlap(v2); //hack - scaling to play nicely with sigmoid subsequently
+        return v1.measureOverlap(v2); 
       default:
         return 0;
 
@@ -232,7 +232,7 @@ public class VectorUtils {
         blas.saxpy(flagConfig.dimension(), (float) weight, ((RealVector) toBeAdded).getCoordinates(), 1, ((RealVector) toBeAltered).getCoordinates(), 1);
         break;
       case COMPLEX:
-        blas.saxpy(flagConfig.dimension(), (float) weight, ((ComplexVector) toBeAdded).getCoordinates(), 1, ((ComplexVector) toBeAltered).getCoordinates(), 1);
+        blas.saxpy(flagConfig.dimension()*2, (float) weight, ((ComplexVector) toBeAdded).getCoordinates(), 1, ((ComplexVector) toBeAltered).getCoordinates(), 1);
         break;
       case BINARY: //first attempt at this - add the results of the election multiplied by the number of votes to date
         ((BinaryVector) toBeAdded).tallyVotes();
