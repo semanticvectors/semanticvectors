@@ -43,9 +43,12 @@ import java.util.Hashtable;
 import java.util.LinkedList;
 import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.lucene.index.DocsAndPositionsEnum;
 import org.apache.lucene.index.FieldInfos;
@@ -57,7 +60,6 @@ import org.netlib.blas.BLAS;
 
 import pitt.search.semanticvectors.orthography.NumberRepresentation;
 import pitt.search.semanticvectors.utils.VerbatimLogger;
-import pitt.search.semanticvectors.vectors.BinaryVector;
 import pitt.search.semanticvectors.vectors.PermutationUtils;
 import pitt.search.semanticvectors.vectors.Vector;
 import pitt.search.semanticvectors.vectors.VectorFactory;
@@ -103,12 +105,12 @@ public class TermTermVectorsFromLucene { //implements VectorStore {
   private Random random;
   private ConcurrentSkipListMap<Double, String> termDic;
   private ConcurrentHashMap<String, Double> subsamplingProbabilities;
-  private LinkedList<Terms> theQ;
+  private ConcurrentLinkedQueue<Terms> theQ;
   private double totalPool 	= 0; //total pool of terms probabilities for negative sampling corpus
   private long 	 totalCount = 0; //total count of terms in corpus
   private double alpha = 0.025;
   private double minimum_alpha = 0.0001;
-  private volatile int totalDocCount = 0;
+  private AtomicInteger totalDocCount = new AtomicInteger();
 
   /**
    * Used to store permutations we'll use in training.  If positional method is one of the
@@ -178,15 +180,16 @@ public class TermTermVectorsFromLucene { //implements VectorStore {
    */
   private int startdoc = 0;
   private int qsize = 100000;
-  private boolean exhaustedQ = false;
+  private AtomicBoolean exhaustedQ = new AtomicBoolean();
 
   private synchronized void initializeQueue() {
+	LinkedList<Terms> tempQ = new LinkedList<Terms>();
     int added = 0;
     int stopdoc = Math.min(startdoc + qsize, luceneUtils.getNumDocs());
     for (int a = startdoc; a < stopdoc; a++) {
       for (String field : flagConfig.contentsfields())
         try {
-          theQ.add(luceneUtils.getTermVector(a, field));
+          tempQ.add(luceneUtils.getTermVector(a, field));
         } catch (IOException e) {
           // TODO Auto-generated catch block
           e.printStackTrace();
@@ -197,11 +200,12 @@ public class TermTermVectorsFromLucene { //implements VectorStore {
     }
 
     //randomize
-    Collections.shuffle(theQ);
+    Collections.shuffle(tempQ);
+    theQ.addAll(tempQ);
 
     if (added > 0)
       System.err.println("Initialized TermVector Queue with " + added + " documents");
-    else exhaustedQ = true;
+    else exhaustedQ.set(true);
   }
 
   /**
@@ -214,7 +218,7 @@ public class TermTermVectorsFromLucene { //implements VectorStore {
   }
 
   private boolean queueExhausted() {
-    return exhaustedQ;
+    return exhaustedQ.get();
   }
 
   /**
@@ -284,7 +288,7 @@ public class TermTermVectorsFromLucene { //implements VectorStore {
           VerbatimLogger.info("[T" + threadno + "]" + " processed " + dcnt + " documents in " + ("" + ((System.currentTimeMillis() - time) / (1000 * 60))).replaceAll("\\..*", "") + " min..");
 
           if (threadno == 0 && dcnt % 10000 == 0) {
-            double proportionComplete = totalDocCount / (double) ( (1+flagConfig.trainingcycles()) * (luceneUtils.getNumDocs()));
+            double proportionComplete = totalDocCount.get() / (double) ( (1+flagConfig.trainingcycles()) * (luceneUtils.getNumDocs()));
             alpha -= (alpha - minimum_alpha) * proportionComplete;
             if (alpha < minimum_alpha) alpha = minimum_alpha;
             VerbatimLogger.info("..Updated alpha to " + alpha + "..");
@@ -377,8 +381,8 @@ public class TermTermVectorsFromLucene { //implements VectorStore {
 
     for (int trainingcycle = 0; trainingcycle <= flagConfig.trainingcycles(); trainingcycle++) {
       startdoc = 0;
-      exhaustedQ = false;
-      theQ = new LinkedList<>();
+      exhaustedQ.set(false);
+      theQ = new ConcurrentLinkedQueue<>();
 
       initializeQueue();
       double cycleStart = System.currentTimeMillis();
@@ -428,9 +432,9 @@ public class TermTermVectorsFromLucene { //implements VectorStore {
   private void processEmbeddings(
       Vector embeddingVector, ArrayList<Vector> contextVectors,
       ArrayList<Integer> contextLabels, double learningRate, BLAS blas) {
-    double feedForwardOutput = 0;
-    double error = 0;
-    int counter = 0;
+	  double feedForwardOutput = 0;
+	  double error = 0;
+	  int counter = 0;
 
     //for each contextVector   (there should be one "true" context vector, and a number of negative samples)
     for (Vector contextVec : contextVectors) {
@@ -444,7 +448,7 @@ public class TermTermVectorsFromLucene { //implements VectorStore {
       	feedForwardOutput = 1 / (1 + feedForwardOutput);
         //if label == 1, a context word - so the error is the (1-predicted probability of for this word) - ideally 0
         //if label == 0, a negative sample - so the error is the (predicted probability for this word) - ideally 0
-       error = feedForwardOutput - contextLabels.get(counter++);  
+      	error = feedForwardOutput - contextLabels.get(counter++);  
   	  } else //RELU-like function for binary vectors
       {
      	   feedForwardOutput = Math.max(feedForwardOutput, 0);
@@ -604,6 +608,6 @@ public class TermTermVectorsFromLucene { //implements VectorStore {
       } //end of current sliding window
     } //end of all sliding windows
 
-    totalDocCount++;
+    totalDocCount.incrementAndGet();
   }
 }
