@@ -201,8 +201,12 @@ public class TermTermVectorsFromLucene { //implements VectorStore {
 
     //randomize
     Collections.shuffle(tempQ);
+    try {
     theQ.addAll(tempQ);
-
+    }
+    catch (NullPointerException e)
+    { e.printStackTrace(); } //addAll can throw a npe
+    
     if (added > 0)
       System.err.println("Initialized TermVector Queue with " + added + " documents");
     else exhaustedQ.set(true);
@@ -322,6 +326,8 @@ public class TermTermVectorsFromLucene { //implements VectorStore {
       BytesRef bytes;
       while ((bytes = terms.next()) != null) {
         Term term = new Term(fieldName, bytes);
+        totalCount += luceneUtils.getGlobalTermFreq(term);
+        
         // Skip terms that don't pass the filter.
         if (!luceneUtils.termFilter(term)) continue;
         tc++;
@@ -337,7 +343,6 @@ public class TermTermVectorsFromLucene { //implements VectorStore {
         } else termVector = VectorFactory.createZeroVector(flagConfig.vectortype(), flagConfig.dimension());
         // Place each term vector in the vector store.
         this.semanticTermVectors.putVector(term.text(), termVector);
-        totalCount += luceneUtils.getGlobalTermFreq(term);
         // Do the same for random index vectors unless retraining with trained term vectors
         if (!retraining) {
           this.elementalTermVectors.getVector(term.text());
