@@ -111,6 +111,7 @@ public class TermTermVectorsFromLucene { //implements VectorStore {
   private double alpha = 0.025;
   private double minimum_alpha = 0.0001;
   private AtomicInteger totalDocCount = new AtomicInteger();
+  private AtomicInteger totalQueueCount = new AtomicInteger();
 
   /**
    * Used to store permutations we'll use in training.  If positional method is one of the
@@ -178,35 +179,38 @@ public class TermTermVectorsFromLucene { //implements VectorStore {
   /**
    * Initialize queue of cached Terms objects
    */
-  private int startdoc = 0;
-  private int qsize = 100000;
   private AtomicBoolean exhaustedQ = new AtomicBoolean();
+  private int qsize = 100000;
 
   private synchronized void initializeQueue() {
-	LinkedList<Terms> tempQ = new LinkedList<Terms>();
+	//LinkedList<Terms> tempQ = new LinkedList<Terms>();
     int added = 0;
-    int stopdoc = Math.min(startdoc + qsize, luceneUtils.getNumDocs());
+    int startdoc = totalQueueCount.get();
+    int stopdoc  = Math.min(this.totalQueueCount.get() + qsize, luceneUtils.getNumDocs());
+    
     for (int a = startdoc; a < stopdoc; a++) {
       for (String field : flagConfig.contentsfields())
         try {
-          tempQ.add(luceneUtils.getTermVector(a, field));
+          theQ.add(luceneUtils.getTermVector(totalQueueCount.getAndIncrement(), field));
+        	//tempQ.add(luceneUtils.getTermVector(totalQueueCount.getAndIncrement(), field));
+          added++;
         } catch (IOException e) {
           // TODO Auto-generated catch block
           e.printStackTrace();
         }
 
-      startdoc++;
-      added++;
+
     }
 
     //randomize
+   /**
     Collections.shuffle(tempQ);
     try {
     theQ.addAll(tempQ);
     }
     catch (NullPointerException e)
     { e.printStackTrace(); } //addAll can throw a npe
-    
+    **/
     if (added > 0)
       System.err.println("Initialized TermVector Queue with " + added + " documents");
     else exhaustedQ.set(true);
@@ -384,11 +388,15 @@ public class TermTermVectorsFromLucene { //implements VectorStore {
     VerbatimLogger.info(
         "There are now elemental term vectors for " + tc + " terms (and " + luceneUtils.getNumDocs() + " docs).\n");
 
+
+    totalDocCount.set(0);
+   
+    
     for (int trainingcycle = 0; trainingcycle <= flagConfig.trainingcycles(); trainingcycle++) {
-      startdoc = 0;
+    	
       exhaustedQ.set(false);
       theQ = new ConcurrentLinkedQueue<>();
-
+      totalQueueCount.set(0);
       initializeQueue();
       double cycleStart = System.currentTimeMillis();
 
