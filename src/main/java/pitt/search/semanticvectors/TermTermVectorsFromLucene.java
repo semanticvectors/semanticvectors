@@ -183,7 +183,7 @@ public class TermTermVectorsFromLucene { //implements VectorStore {
   private int qsize = 100000;
 
   private synchronized void initializeQueue() {
-	//LinkedList<Terms> tempQ = new LinkedList<Terms>();
+	LinkedList<Terms> tempQ = new LinkedList<Terms>();
     int added = 0;
     int startdoc = totalQueueCount.get();
     int stopdoc  = Math.min(this.totalQueueCount.get() + qsize, luceneUtils.getNumDocs());
@@ -191,9 +191,11 @@ public class TermTermVectorsFromLucene { //implements VectorStore {
     for (int a = startdoc; a < stopdoc; a++) {
       for (String field : flagConfig.contentsfields())
         try {
-          theQ.add(luceneUtils.getTermVector(totalQueueCount.getAndIncrement(), field));
-        	//tempQ.add(luceneUtils.getTermVector(totalQueueCount.getAndIncrement(), field));
+          Terms incomingTermVector = luceneUtils.getTermVector(totalQueueCount.getAndIncrement(), field);
+          if (incomingTermVector != null){ 
+          tempQ.add(incomingTermVector);
           added++;
+          }
         } catch (IOException e) {
           // TODO Auto-generated catch block
           e.printStackTrace();
@@ -203,14 +205,13 @@ public class TermTermVectorsFromLucene { //implements VectorStore {
     }
 
     //randomize
-   /**
     Collections.shuffle(tempQ);
     try {
     theQ.addAll(tempQ);
     }
     catch (NullPointerException e)
     { e.printStackTrace(); } //addAll can throw a npe
-    **/
+    
     if (added > 0)
       System.err.println("Initialized TermVector Queue with " + added + " documents");
     else exhaustedQ.set(true);
