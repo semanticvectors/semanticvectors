@@ -59,6 +59,7 @@ import org.apache.lucene.util.BytesRef;
 import org.netlib.blas.BLAS;
 
 import pitt.search.semanticvectors.orthography.NumberRepresentation;
+import pitt.search.semanticvectors.utils.SigmoidTable;
 import pitt.search.semanticvectors.utils.VerbatimLogger;
 import pitt.search.semanticvectors.vectors.PermutationUtils;
 import pitt.search.semanticvectors.vectors.Vector;
@@ -95,6 +96,7 @@ public class TermTermVectorsFromLucene { //implements VectorStore {
     EMBEDDINGS
   }
 
+  private static final int MAX_EXP = 6;
   private FlagConfig flagConfig;
   private boolean retraining = false;
   private volatile VectorStoreRAM semanticTermVectors;
@@ -112,6 +114,7 @@ public class TermTermVectorsFromLucene { //implements VectorStore {
   private double minimum_alpha = 0.0001;
   private AtomicInteger totalDocCount = new AtomicInteger();
   private AtomicInteger totalQueueCount = new AtomicInteger();
+  private SigmoidTable sigmoidTable		= new SigmoidTable(MAX_EXP,1000);
 
   /**
    * Used to store permutations we'll use in training.  If positional method is one of the
@@ -183,6 +186,9 @@ public class TermTermVectorsFromLucene { //implements VectorStore {
   private int qsize = 100000;
 
   private synchronized void initializeQueue() {
+	  
+	  if (this.totalQueueCount.get() >= luceneUtils.getNumDocs())  
+	  {exhaustedQ.set(true); return; }
 	LinkedList<Terms> tempQ = new LinkedList<Terms>();
     int added = 0;
     int startdoc = totalQueueCount.get();
@@ -214,7 +220,7 @@ public class TermTermVectorsFromLucene { //implements VectorStore {
     
     if (added > 0)
       System.err.println("Initialized TermVector Queue with " + added + " documents");
-    else exhaustedQ.set(true);
+   
   }
 
   /**
@@ -281,12 +287,11 @@ public class TermTermVectorsFromLucene { //implements VectorStore {
         for (String field : flagConfig.contentsfields()) {
           try {
             Terms terms = drawFromQueue();
-            if (terms == null) {
+            if (terms != null) {
               //VerbatimLogger.severe("No term vector for document "+dc);
-              continue;
-            }
-            processTermPositionVector(terms, field, blas);
-          } catch (ArrayIndexOutOfBoundsException | IOException e) {
+            	  processTermPositionVector(terms, field, blas);
+               }
+             } catch (ArrayIndexOutOfBoundsException | IOException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
           }
@@ -446,7 +451,7 @@ public class TermTermVectorsFromLucene { //implements VectorStore {
   private void processEmbeddings(
       Vector embeddingVector, ArrayList<Vector> contextVectors,
       ArrayList<Integer> contextLabels, double learningRate, BLAS blas) {
-	  double feedForwardOutput = 0;
+	  double scalarProduct = 0;
 	  double error = 0;
 	  int counter = 0;
 
@@ -454,19 +459,21 @@ public class TermTermVectorsFromLucene { //implements VectorStore {
     for (Vector contextVec : contextVectors) {
     	
     	Vector duplicateContextVec 	 = contextVec.copy();
-    	feedForwardOutput = VectorUtils.scalarProduct(embeddingVector, duplicateContextVec, flagConfig, blas);
+    	scalarProduct = VectorUtils.scalarProduct(embeddingVector, duplicateContextVec, flagConfig, blas);
        
+      if (Math.abs(scalarProduct) > MAX_EXP) continue; //skipping cases with outsize scalar products, as per prior implementations - may avoid numerically unstable term vectors down the line
+    	
       if (!flagConfig.vectortype().equals(VectorType.BINARY)) //sigmoid function
   	  {
-        feedForwardOutput = Math.pow(Math.E, -1 * feedForwardOutput);
-      	feedForwardOutput = 1 / (1 + feedForwardOutput);
+    		scalarProduct = sigmoidTable.sigmoid(scalarProduct); 
         //if label == 1, a context word - so the error is the (1-predicted probability of for this word) - ideally 0
         //if label == 0, a negative sample - so the error is the (predicted probability for this word) - ideally 0
-      	error = feedForwardOutput - contextLabels.get(counter++);  
+    		 error = scalarProduct - contextLabels.get(counter++);  
+    
   	  } else //RELU-like function for binary vectors
       {
-     	   feedForwardOutput = Math.max(feedForwardOutput, 0);
-     	   error = feedForwardOutput - contextLabels.get(counter++);
+     	   scalarProduct = Math.max(scalarProduct, 0);
+     	   error = scalarProduct - contextLabels.get(counter++);
      	   //avoid passing floating points (the default behavior currently is to ignore these if the first superposition weight is an Integer)
       	  	error = Math.round(error*100);
      	  }
@@ -475,6 +482,7 @@ public class TermTermVectorsFromLucene { //implements VectorStore {
       VectorUtils.superposeInPlace(embeddingVector, contextVec, flagConfig, blas, -learningRate * error);
       VectorUtils.superposeInPlace(duplicateContextVec, embeddingVector, flagConfig, blas, -learningRate * error);
     }
+    
   }
 
   /**
@@ -509,7 +517,7 @@ public class TermTermVectorsFromLucene { //implements VectorStore {
       if (!semanticTermVectors.containsVector(theTerm)) continue;
 
       DocsAndPositionsEnum docsAndPositions = termsEnum.docsAndPositions(null, null);
-      if (docsAndPositions == null) return;
+      if (docsAndPositions == null) continue;
       docsAndPositions.nextDoc();
 
       int freq = docsAndPositions.freq();
@@ -520,10 +528,10 @@ public class TermTermVectorsFromLucene { //implements VectorStore {
         int thePosition = docsAndPositions.nextPosition();
 
         //subsampling of frequent terms
-        if (subsamplingProbabilities == null || (!subsamplingProbabilities.containsKey(field + ":" + theTerm) || random.nextDouble() > subsamplingProbabilities.get(field + ":" + theTerm))) {
+        if (subsamplingProbabilities == null || !subsamplingProbabilities.containsKey(field + ":" + theTerm) || random.nextDouble() > subsamplingProbabilities.get(field + ":" + theTerm)) {
           localTermPositions.put(thePosition, theTerm);
           thePositions.add(thePosition);
-            }
+            } 
       }
     }
 
@@ -548,9 +556,9 @@ public class TermTermVectorsFromLucene { //implements VectorStore {
       if (flagConfig.subsampleinwindow) effectiveWindowRadius = random.nextInt(flagConfig.windowradius()) + 1;
 
       int windowstart = Math.max(0, focusposn - effectiveWindowRadius);
-      int windowend = Math.min(focusposn + effectiveWindowRadius, localTermPositions.size() - 1);
+      int windowend = Math.min(focusposn + effectiveWindowRadius, thePositions.size());
 
-      for (int cursor = windowstart; cursor <= windowend; cursor++) {
+      for (int cursor = windowstart; cursor < windowend; cursor++) {
 
         if (cursor == focusposn) continue;
 
@@ -562,7 +570,7 @@ public class TermTermVectorsFromLucene { //implements VectorStore {
          * Implementation of skipgram with negative sampling (Mikolov 2013)
          */
 
-        if ((flagConfig.positionalmethod().equals(PositionalMethod.EMBEDDINGS))) {
+        if (flagConfig.positionalmethod().equals(PositionalMethod.EMBEDDINGS)) {
           ArrayList<Vector> contextVectors = new ArrayList<Vector>();
           ArrayList<Integer> contextLabels = new ArrayList<Integer>();
 
