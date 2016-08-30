@@ -287,8 +287,9 @@ public class SearchBatch {
       while (queryString != null) {
         ArrayList<String> queryTerms = new ArrayList<String>();
         qcnt++;
-        /**
-         //have Lucene parse the query string, for consistency
+        
+        if (!flagConfig.searchtype().equals(pitt.search.semanticvectors.Search.SearchType.ANALOGY))
+        { //have Lucene parse the query string, for consistency
          StandardAnalyzer  analyzer = new StandardAnalyzer(new CharArraySet(new ArrayList<String>(), true));
          TokenStream stream = analyzer.tokenStream(null, new StringReader(queryString));
          CharTermAttribute cattr = stream.addAttribute(CharTermAttribute.class);
@@ -309,7 +310,8 @@ public class SearchBatch {
          stream.end();
          stream.close();
          analyzer.close();
-         **/
+        }
+        else
         queryTerms.add(queryString);
 
         //transform to String[] array
@@ -389,9 +391,8 @@ public class SearchBatch {
                   luceneUtils, flagConfig, queryArgs);
               break;
             case PRINTQUERY:
-              splitArgs = queryArgs[0].split(" ");
               Vector queryVector = CompoundVectorBuilder.getQueryVector(
-                  queryVecReader, luceneUtils, flagConfig, splitArgs);
+                  queryVecReader, luceneUtils, flagConfig, queryArgs);
               System.out.println(queryVector.toString());
               break;
             default:
