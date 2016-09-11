@@ -89,8 +89,7 @@ public class BinaryVector implements Vector {
    */ 
   private ArrayList<FixedBitSet> votingRecord;
 
-  int decimalPlaces = 0;
-  /** Accumulated sum of the weights with which vectors have been added into the voting record */
+  /** BINARY_VECTOR_DECIMAL_PLACESum of the weights with which vectors have been added into the voting record */
   AtomicInteger totalNumberOfVotes = new AtomicInteger(0);
   // TODO(widdows) Understand and comment this.
   int minimum = 0;
@@ -157,7 +156,7 @@ public class BinaryVector implements Vector {
       }
 
       for (int x = 0; x < DEBUG_PRINT_LENGTH; x++) {
-        debugString.append((int) ((minimum + actualvals[x]) / Math.pow(10, decimalPlaces)) + " ");
+        debugString.append((int) ((minimum + actualvals[x]) / Math.pow(10, BINARY_VECTOR_DECIMAL_PLACES)) + " ");
       }
 
       // TODO - output count from first DEBUG_PRINT_LENGTH dimension
@@ -197,7 +196,7 @@ public class BinaryVector implements Vector {
     {
       return bitSet.cardinality() == 0;
     } else {
-      return (votingRecord == null) || (votingRecord.size() == 0);
+      return (votingRecord == null) || (votingRecord.size() == 0) || (votingRecord.size()==1 && votingRecord.get(0).cardinality() == 0);
     }
   }
 
@@ -284,10 +283,7 @@ public class BinaryVector implements Vector {
     	}
     
     if (isSparse) {
-      if (Math.round(weight) != weight) {
-        decimalPlaces = BINARY_VECTOR_DECIMAL_PLACES; 
-      }
-      elementalToSemantic();
+    	elementalToSemantic();
     }
 
     if (permutation != null) {
@@ -329,7 +325,7 @@ public class BinaryVector implements Vector {
    */
   protected synchronized void superposeBitSet(FixedBitSet incomingBitSet, double weight) {
     // If fractional weights are used, encode all weights as integers (1000 x double value).
-    weight = (int) Math.round(weight * Math.pow(10, decimalPlaces));
+    weight = (int) Math.round(weight * Math.pow(10, BINARY_VECTOR_DECIMAL_PLACES));
     if (weight == 0) return;
 
     // Keep track of number (or cumulative weight) of votes.
@@ -426,8 +422,13 @@ public class BinaryVector implements Vector {
     {
       String inbinary = reverse(Integer.toBinaryString(target));
       tempSet.xor(tempSet);
-      tempSet.xor(votingRecord.get(inbinary.indexOf("1")));
-
+       try {
+	  tempSet.xor(votingRecord.get(inbinary.indexOf("1"))); //this requires error checking, it is throwing an index out of bounds exception
+	      }
+	      catch (Exception e)
+	      {
+	    	  e.printStackTrace();
+	      }
       for (int q =0; q < votingRecord.size(); q++) {
         if (q < inbinary.length() && inbinary.charAt(q) == '1')
           tempSet.and(votingRecord.get(q));	
@@ -500,7 +501,7 @@ public class BinaryVector implements Vector {
 
     //System.out.println(target+"\t"+rowfloor+"\t"+row_floor+"\t"+remainder);
 
-    if ( votingRecord.get(row_floor) == null) //In this instance, the number we are checking for is higher than the capacity of the voting record
+    if (row_floor >= votingRecord.size()) //In this instance, the number we are checking for is higher than the capacity of the voting record
     {
     	return new FixedBitSet(dimension);
     }
@@ -769,8 +770,8 @@ public class BinaryVector implements Vector {
    */
   public synchronized void tallyVotes() {
     if (!isSparse && unTallied.get()) //only count if there are votes since the last tally
-      this.bitSet = concludeVote();
-    unTallied.set(false);
+     try {  this.bitSet = concludeVote();
+     		unTallied.set(false); } catch (Exception e) {e.printStackTrace();}
   }
 
   @Override
