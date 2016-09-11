@@ -888,6 +888,7 @@ public class BinaryVector implements Vector {
     }
     votingRecord = new ArrayList<FixedBitSet>();
     votingRecord.add((FixedBitSet) bitSet.clone());
+    totalNumberOfVotes.set((int) Math.pow(2, BINARY_VECTOR_DECIMAL_PLACES));
     tempSet = new FixedBitSet(dimension);
 
     isSparse = false;
