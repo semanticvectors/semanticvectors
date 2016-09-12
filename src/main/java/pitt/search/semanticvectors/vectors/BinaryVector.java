@@ -769,7 +769,8 @@ public class BinaryVector implements Vector {
    * Counts votes without normalizing vector (i.e. voting record is not altered). Used in SemanticVectorCollider.
    */
   public synchronized void tallyVotes() {
-    if (!isSparse && unTallied.get()) //only count if there are votes since the last tally
+	if (isSparse) elementalToSemantic();
+    if (unTallied.get()) //only count if there are votes since the last tally
      try {  this.bitSet = concludeVote();
      		unTallied.set(false); } catch (Exception e) {e.printStackTrace();}
   }
@@ -888,7 +889,7 @@ public class BinaryVector implements Vector {
     }
     votingRecord = new ArrayList<FixedBitSet>();
     votingRecord.add((FixedBitSet) bitSet.clone());
-    totalNumberOfVotes.set((int) Math.pow(10, BINARY_VECTOR_DECIMAL_PLACES));
+    totalNumberOfVotes.set(1);
     tempSet = new FixedBitSet(dimension);
 
     isSparse = false;
