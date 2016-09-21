@@ -110,7 +110,8 @@ public class TermTermVectorsFromLucene { //implements VectorStore {
   private ConcurrentLinkedQueue<Terms> theQ;
   private double totalPool 	= 0; //total pool of terms probabilities for negative sampling corpus
   private long 	 totalCount = 0; //total count of terms in corpus
-  private double alpha = 0.025;
+  private double initial_alpha = 0.025;
+  private double alpha 		   = 0.025;
   private double minimum_alpha = 0.0001;
   private AtomicInteger totalDocCount = new AtomicInteger();
   private AtomicInteger totalQueueCount = new AtomicInteger();
@@ -151,7 +152,7 @@ public class TermTermVectorsFromLucene { //implements VectorStore {
       //force dense vectors
       if (!flagConfig.vectortype().equals(VectorType.BINARY))
       { flagConfig.seedlength = flagConfig.dimension();
-      	VerbatimLogger.info("Setting seedlength=dimensionsionality, to initialize embedding weights");}
+      	VerbatimLogger.info("Setting seedlength=dimensionality, to initialize embedding weights");}
       else {
         VerbatimLogger.info("Warning: binary vector embeddings are in the experimental phase");
       }
@@ -189,8 +190,8 @@ public class TermTermVectorsFromLucene { //implements VectorStore {
 	  
 	  if (this.totalQueueCount.get() >= luceneUtils.getNumDocs())  
 	  {exhaustedQ.set(true); return; }
-	LinkedList<Terms> tempQ = new LinkedList<Terms>();
-    int added = 0;
+	
+	int added = 0;
     int startdoc = totalQueueCount.get();
     int stopdoc  = Math.min(this.totalQueueCount.get() + qsize, luceneUtils.getNumDocs());
     
@@ -199,24 +200,14 @@ public class TermTermVectorsFromLucene { //implements VectorStore {
         try {
           Terms incomingTermVector = luceneUtils.getTermVector(totalQueueCount.getAndIncrement(), field);
           if (incomingTermVector != null){ 
-          tempQ.add(incomingTermVector);
+          theQ.add(incomingTermVector);
           added++;
           }
         } catch (IOException e) {
           // TODO Auto-generated catch block
           e.printStackTrace();
         }
-
-
     }
-
-    //randomize
-    Collections.shuffle(tempQ);
-    try {
-    theQ.addAll(tempQ);
-    }
-    catch (NullPointerException e)
-    { e.printStackTrace(); } //addAll can throw a npe
     
     if (added > 0)
       System.err.println("Initialized TermVector Queue with " + added + " documents");
@@ -303,7 +294,7 @@ public class TermTermVectorsFromLucene { //implements VectorStore {
 
           if (threadno == 0 && dcnt % 10000 == 0) {
             double proportionComplete = totalDocCount.get() / (double) ( (1+flagConfig.trainingcycles()) * (luceneUtils.getNumDocs()));
-            alpha -= (alpha - minimum_alpha) * proportionComplete;
+            alpha = initial_alpha - (initial_alpha - minimum_alpha) * proportionComplete;
             if (alpha < minimum_alpha) alpha = minimum_alpha;
             VerbatimLogger.info("..Updated alpha to " + alpha + "..");
           }
