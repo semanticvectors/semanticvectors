@@ -40,7 +40,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.Hashtable;
-import java.util.LinkedList;
 import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -98,6 +97,8 @@ public class TermTermVectorsFromLucene { //implements VectorStore {
 
   private static final int MAX_EXP = 6;
   private FlagConfig flagConfig;
+  private AtomicBoolean exhaustedQ = new AtomicBoolean();
+  private int qsize = 100000;
   private boolean retraining = false;
   private volatile VectorStoreRAM semanticTermVectors;
   private volatile VectorStore elementalTermVectors;
@@ -122,10 +123,32 @@ public class TermTermVectorsFromLucene { //implements VectorStore {
    * permutations, this contains the shift for all the focus positions.
    */
   private int[][] permutationCache;
+private ConcurrentLinkedQueue<Integer> randomStartpoints;
 
   /** Returns the semantic (learned) vectors. */
   public VectorStore getSemanticTermVectors() {
     return this.semanticTermVectors;
+  }
+  
+  /** Points in total document collection to draw queue from (for randomization without excessive seek time) **/
+
+  private void initializeRandomizationStartpoints(int incrementSize)
+  {
+  	this.randomStartpoints = new ConcurrentLinkedQueue<Integer>();
+  	int increments 		   = luceneUtils.getNumDocs() / incrementSize;
+  	boolean remainder 	   = luceneUtils.getNumDocs() % incrementSize > 0;
+  	
+  	if (remainder) increments++;
+  	
+  	ArrayList<Integer> toRandomize = new ArrayList<Integer>();
+  	
+  	for (int x = 0; x < increments; x++)
+  		toRandomize.add(x * incrementSize);
+
+  	Collections.shuffle(toRandomize);
+  	
+  	randomStartpoints.addAll(toRandomize);
+  	
   }
 
   /**
@@ -183,22 +206,24 @@ public class TermTermVectorsFromLucene { //implements VectorStore {
   /**
    * Initialize queue of cached Terms objects
    */
-  private AtomicBoolean exhaustedQ = new AtomicBoolean();
-  private int qsize = 100000;
 
-  private synchronized void initializeQueue() {
+
+  private synchronized void populateQueue() {
 	  
-	  if (this.totalQueueCount.get() >= luceneUtils.getNumDocs())  
-	  {exhaustedQ.set(true); return; }
+	  
+	  
+	  if (this.totalQueueCount.get() >= luceneUtils.getNumDocs() || randomStartpoints.isEmpty())  
+	  { if (theQ.size() == 0) exhaustedQ.set(true); return; }
 	
 	int added = 0;
-    int startdoc = totalQueueCount.get();
-    int stopdoc  = Math.min(this.totalQueueCount.get() + qsize, luceneUtils.getNumDocs());
+    int startdoc = randomStartpoints.poll();
+    int stopdoc  = Math.min(startdoc+ qsize, luceneUtils.getNumDocs());
     
     for (int a = startdoc; a < stopdoc; a++) {
       for (String field : flagConfig.contentsfields())
         try {
-          Terms incomingTermVector = luceneUtils.getTermVector(totalQueueCount.getAndIncrement(), field);
+          Terms incomingTermVector = luceneUtils.getTermVector(a, field);
+          totalQueueCount.incrementAndGet();
           if (incomingTermVector != null){ 
           theQ.add(incomingTermVector);
           added++;
@@ -218,7 +243,7 @@ public class TermTermVectorsFromLucene { //implements VectorStore {
    * Draws from term vector queue, with replacement
    */
   private synchronized Terms drawFromQueue() {
-    if (theQ.isEmpty()) initializeQueue();
+    if (theQ.isEmpty()) populateQueue();
     Terms toReturn = theQ.poll();
     return toReturn;
   }
@@ -388,13 +413,16 @@ public class TermTermVectorsFromLucene { //implements VectorStore {
 
     totalDocCount.set(0);
    
+    if (qsize > luceneUtils.getNumDocs()) //small document collection
+    	qsize = luceneUtils.getNumDocs() / 10;
     
     for (int trainingcycle = 0; trainingcycle <= flagConfig.trainingcycles(); trainingcycle++) {
-    	
+    
+      initializeRandomizationStartpoints(qsize);
       exhaustedQ.set(false);
       theQ = new ConcurrentLinkedQueue<>();
       totalQueueCount.set(0);
-      initializeQueue();
+      populateQueue();
       double cycleStart = System.currentTimeMillis();
 
       int numthreads = flagConfig.numthreads();
@@ -408,18 +436,17 @@ public class TermTermVectorsFromLucene { //implements VectorStore {
       executor.shutdown();
       // Wait until all threads are finish
       while (!executor.isTerminated()) {
+
+    	  if (theQ.size() < qsize/4)
+    	  { populateQueue(); }
       }
 
       VerbatimLogger.info("\nTime for training cycle " + (System.currentTimeMillis() - cycleStart) + "ms \n");
-      VerbatimLogger.info("\nCreated " + semanticTermVectors.getNumVectors() + " term vectors ...\n");
-
+      VerbatimLogger.info("\nProcessed " +totalQueueCount.get() +" documents");
     } //end of training cycles
     
-    Enumeration<ObjectVector> e = semanticTermVectors.getAllVectors();
+    VerbatimLogger.info("\nCreated " + semanticTermVectors.getNumVectors() + " term vectors ...\n");
 
-    while (e.hasMoreElements()) {
-      e.nextElement().getVector().normalize();
-    }
 
     // If building a permutation index, these need to be written out to be reused.
     //

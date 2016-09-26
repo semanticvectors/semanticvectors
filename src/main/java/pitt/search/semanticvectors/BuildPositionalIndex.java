@@ -37,6 +37,7 @@ package pitt.search.semanticvectors;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Enumeration;
 import java.util.logging.Logger;
 
 import pitt.search.semanticvectors.DocVectors.DocIndexingStrategy;
@@ -156,16 +157,51 @@ public class BuildPositionalIndex {
             newElementalTermVectors);
       }
 
-      VectorStoreWriter.writeVectors(
-          termFile, flagConfig, termTermIndexer.getSemanticTermVectors());
 
+      // Normalize term vectors - but with embeddings this occurs only after document vectors are generated
+      if (!flagConfig.positionalmethod().equals(PositionalMethod.EMBEDDINGS) || flagConfig.docindexing().equals(DocIndexingStrategy.NONE))
+      {
+      
+          Enumeration<ObjectVector> e = termTermIndexer.getSemanticTermVectors().getAllVectors();
+
+          while (e.hasMoreElements()) {
+           e.nextElement().getVector().normalize();
+         }
+      }
+      
       // Incremental indexing is hardcoded into BuildPositionalIndex.
       // TODO: Understand if this is an appropriate requirement, and whether
       //       the user should be alerted of any potential consequences.
       if (flagConfig.docindexing() != DocIndexingStrategy.NONE) {
         IncrementalDocVectors.createIncrementalDocVectors(
             termTermIndexer.getSemanticTermVectors(), flagConfig, new LuceneUtils(flagConfig));
-      }
+      
+       if (flagConfig.positionalmethod().equals(PositionalMethod.EMBEDDINGS))
+        {
+    	   // Normalize and write term vectors, which may be altered if document vector generation
+           // was accomplished using negative sampling (once this has been implemented)
+           
+            Enumeration<ObjectVector> e = termTermIndexer.getSemanticTermVectors().getAllVectors();
+
+            while (e.hasMoreElements()) {
+             e.nextElement().getVector().normalize();
+           }
+        }	
+        }
+        
+        
+        
+        VectorStoreWriter.writeVectors(
+                termFile, flagConfig, termTermIndexer.getSemanticTermVectors());
+
+        
+        
+      
+
+      
+      
+      
+      
     }
     catch (IOException e) {
       e.printStackTrace();
