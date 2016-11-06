@@ -85,13 +85,14 @@ public class ComplexVector implements Vector {
   /**
    * The dominant mode used for normalizing and comparing vectors.
    */
-  private static Mode DOMINANT_MODE = Mode.HERMITIAN;
+  private static Mode DOMINANT_MODE = Mode.CARTESIAN;
 
   /**
    * Sets the dominant mode. {@link VectorType#COMPLEX} uses {@link Mode#POLAR_DENSE}
    * and {@link VectorType#COMPLEXFLAT} uses {@link Mode#CARTESIAN}.
+   * More recent experiments have used {@link Mode#HERMITIAN}. Use with care!
    */
-  protected static void setDominantMode(Mode mode) {
+  public static void setDominantMode(Mode mode) {
     if (DOMINANT_MODE == mode) return;
     if (mode == Mode.POLAR_SPARSE) {
       throw new IllegalArgumentException("POLAR_SPARSE cannot be used as dominant mode.");
@@ -533,7 +534,7 @@ public class ComplexVector implements Vector {
   }
 
   private void cartesianToDensePolar() {
-    assert (opMode == Mode.CARTESIAN);
+    assert (opMode == Mode.CARTESIAN || opMode == Mode.HERMITIAN);
     opMode = Mode.POLAR_DENSE;
     phaseAngles = new short[dimension];
     for (int i = 0; i < dimension; i++) {
