@@ -888,11 +888,10 @@ public class BinaryVector implements Vector {
       return;
     }
     votingRecord = new ArrayList<FixedBitSet>();
-    votingRecord.add((FixedBitSet) bitSet.clone());
-    totalNumberOfVotes.set(1);
     tempSet = new FixedBitSet(dimension);
-
-    isSparse = false;
+    if (bitSet.cardinality() != 0)
+    	this.superposeBitSet(bitSet.clone(), 1);		
+     isSparse = false;
   }
 
   /**
@@ -950,5 +949,7 @@ public class BinaryVector implements Vector {
 	DEBUG_PRINT_LENGTH = length;	
 	}
 
+	
+	
 }
 
