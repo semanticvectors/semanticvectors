@@ -172,7 +172,7 @@ public class BuildPositionalIndex {
       // Incremental indexing is hardcoded into BuildPositionalIndex.
       // TODO: Understand if this is an appropriate requirement, and whether
       //       the user should be alerted of any potential consequences.
-      if (flagConfig.docindexing() != DocIndexingStrategy.NONE) {
+      if (flagConfig.docindexing() != DocIndexingStrategy.NONE && !(flagConfig.positionalmethod().equals(PositionalMethod.EMBEDDINGS) && flagConfig.docindexing().equals(DocIndexingStrategy.INMEMORY))) {
         IncrementalDocVectors.createIncrementalDocVectors(
             termTermIndexer.getSemanticTermVectors(), flagConfig, new LuceneUtils(flagConfig));
       
