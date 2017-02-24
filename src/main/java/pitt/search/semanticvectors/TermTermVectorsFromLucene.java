@@ -35,7 +35,9 @@
 
 package pitt.search.semanticvectors;
 
+import java.io.File;
 import java.io.IOException;
+import java.nio.file.FileSystems;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Enumeration;
@@ -54,9 +56,13 @@ import org.apache.lucene.index.FieldInfos;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.index.Terms;
 import org.apache.lucene.index.TermsEnum;
+import org.apache.lucene.store.FSDirectory;
+import org.apache.lucene.store.IOContext;
+import org.apache.lucene.store.IndexOutput;
 import org.apache.lucene.util.BytesRef;
 import org.netlib.blas.BLAS;
 
+import pitt.search.semanticvectors.DocVectors.DocIndexingStrategy;
 import pitt.search.semanticvectors.orthography.NumberRepresentation;
 import pitt.search.semanticvectors.utils.SigmoidTable;
 import pitt.search.semanticvectors.utils.VerbatimLogger;
@@ -102,13 +108,15 @@ public class TermTermVectorsFromLucene { //implements VectorStore {
   private boolean retraining = false;
   private volatile VectorStoreRAM semanticTermVectors;
   private volatile VectorStore elementalTermVectors;
+  private volatile VectorStoreRAM embeddingDocVectors;
+  
   private LuceneUtils luceneUtils;
   /** Used only with {@link PositionalMethod#PROXIMITY}. */
   private VectorStoreRAM positionalNumberVectors;
   private Random random;
   private ConcurrentSkipListMap<Double, String> termDic;
   private ConcurrentHashMap<String, Double> subsamplingProbabilities;
-  private ConcurrentLinkedQueue<Terms> theQ;
+  private ConcurrentLinkedQueue<DocIdTerms> theQ;
   private double totalPool 	= 0; //total pool of terms probabilities for negative sampling corpus
   private long 	 totalCount = 0; //total count of terms in corpus
   private double initial_alpha = 0.025;
@@ -117,7 +125,25 @@ public class TermTermVectorsFromLucene { //implements VectorStore {
   private AtomicInteger totalDocCount = new AtomicInteger();
   private AtomicInteger totalQueueCount = new AtomicInteger();
   private SigmoidTable sigmoidTable		= new SigmoidTable(MAX_EXP,1000);
+  
 
+  /**
+   * store Terms objects while retaining their docID
+   * @author tcohen
+   *
+   */
+  private class DocIdTerms
+  {
+	  int docID;
+	  Terms terms;
+	  
+	  public DocIdTerms(int docID, Terms terms)
+	  {
+		  this.docID = docID;
+		  this.terms = terms;
+	  }
+  }
+  
   /**
    * Used to store permutations we'll use in training.  If positional method is one of the
    * permutations, this contains the shift for all the focus positions.
@@ -167,6 +193,20 @@ private ConcurrentLinkedQueue<Integer> randomStartpoints;
       this.elementalTermVectors = elementalTermVectors;
       VerbatimLogger.info("Reusing basic term vectors; number of terms: "
           + elementalTermVectors.getNumVectors() + "\n");
+      
+      
+      // TODO - arrange to pass the input and output weight vectors as parameters explicitly
+      // currently the output weights are thought to exist in the "elementalvectors" file
+      // from the command line "-initialtermvectors elementalvectors.bin", and the incoming weights
+      // are assumed to be in the "embeddingvectors.bin" file in this location
+      // (these are the default output files when embeddings are used)
+      if (flagConfig.positionalmethod().equals(PositionalMethod.EMBEDDINGS))
+      {
+    	  this.semanticTermVectors = new VectorStoreRAM(flagConfig);
+    	  this.semanticTermVectors.initFromFile(flagConfig.initialtermvectors().replaceAll("elemental","embedding"));
+      }
+      
+      
     } else {
       this.elementalTermVectors = new ElementalVectorStore(flagConfig);
     }
@@ -222,10 +262,11 @@ private ConcurrentLinkedQueue<Integer> randomStartpoints;
     for (int a = startdoc; a < stopdoc; a++) {
       for (String field : flagConfig.contentsfields())
         try {
+          int docID = a;
           Terms incomingTermVector = luceneUtils.getTermVector(a, field);
           totalQueueCount.incrementAndGet();
           if (incomingTermVector != null){ 
-          theQ.add(incomingTermVector);
+          theQ.add(new DocIdTerms(docID,incomingTermVector));
           added++;
           }
         } catch (IOException e) {
@@ -242,9 +283,9 @@ private ConcurrentLinkedQueue<Integer> randomStartpoints;
   /**
    * Draws from term vector queue, with replacement
    */
-  private synchronized Terms drawFromQueue() {
+  private synchronized DocIdTerms drawFromQueue() {
     if (theQ.isEmpty()) populateQueue();
-    Terms toReturn = theQ.poll();
+    DocIdTerms toReturn = theQ.poll();
     return toReturn;
   }
 
@@ -302,7 +343,7 @@ private ConcurrentLinkedQueue<Integer> randomStartpoints;
       while (!queueExhausted()) {
         for (String field : flagConfig.contentsfields()) {
           try {
-            Terms terms = drawFromQueue();
+            DocIdTerms terms = drawFromQueue();
             if (terms != null) {
               //VerbatimLogger.severe("No term vector for document "+dc);
             	  processTermPositionVector(terms, field, blas);
@@ -332,6 +373,10 @@ private ConcurrentLinkedQueue<Integer> randomStartpoints;
   private void trainTermTermVectors() throws IOException, RuntimeException {
     luceneUtils = new LuceneUtils(flagConfig);
     termDic = new ConcurrentSkipListMap<Double, String>();
+    
+    if (flagConfig.positionalmethod().equals(PositionalMethod.EMBEDDINGS) && flagConfig.docindexing().equals(DocIndexingStrategy.INMEMORY))
+    	embeddingDocVectors = new VectorStoreRAM(flagConfig);
+    	
     totalPool = 0;
 
     // Check that the Lucene index contains Term Positions.
@@ -342,10 +387,11 @@ private ConcurrentLinkedQueue<Integer> randomStartpoints;
               + "\nTry rebuilding Lucene index using pitt.search.lucene.IndexFilePositions");
     }
 
-    this.semanticTermVectors = new VectorStoreRAM(flagConfig);
+    if (this.semanticTermVectors == null) this.semanticTermVectors = new VectorStoreRAM(flagConfig);
 
     // Iterate through an enumeration of terms and allocate initial term vectors.
     // If not retraining, create random elemental vectors as well.
+    // If retraining embeddings, create random vectors for terms that were not originally represented (to facilitate crossing corpora)
     int tc = 0;
     for (String fieldName : flagConfig.contentsfields()) {
       TermsEnum terms = this.luceneUtils.getTermsForField(fieldName).iterator(null);
@@ -368,11 +414,16 @@ private ConcurrentLinkedQueue<Integer> randomStartpoints;
         
         } else termVector = VectorFactory.createZeroVector(flagConfig.vectortype(), flagConfig.dimension());
         // Place each term vector in the vector store.
-        this.semanticTermVectors.putVector(term.text(), termVector);
+        if (!this.semanticTermVectors.containsVector(term.text())) 
+        	this.semanticTermVectors.putVector(term.text(), termVector);
         // Do the same for random index vectors unless retraining with trained term vectors
         if (!retraining) {
           this.elementalTermVectors.getVector(term.text());
         
+        } else if (retraining && flagConfig.positionalmethod().equals(PositionalMethod.EMBEDDINGS) && !elementalTermVectors.containsVector(term.text()))	{
+        	//Retraining with embeddings - add random vectors for terms that meet inclusion criteria, but don't have output weights
+        	//from previous corpus
+        	((VectorStoreRAM) this.elementalTermVectors).putVector(term.text(),VectorFactory.generateRandomVector(flagConfig.vectortype(), flagConfig.dimension(), flagConfig.seedlength, random));
         }
       }
     }
@@ -454,7 +505,7 @@ private ConcurrentLinkedQueue<Integer> randomStartpoints;
     // term vectors here.  We should redesign this.
     if ((flagConfig.positionalmethod().equals(PositionalMethod.EMBEDDINGS)) || flagConfig.positionalmethod() == PositionalMethod.PERMUTATION
         || flagConfig.positionalmethod() == PositionalMethod.PERMUTATIONPLUSBASIC
-        && !retraining) {
+        && (!retraining || flagConfig.positionalmethod().equals(PositionalMethod.EMBEDDINGS))) {
       VerbatimLogger.info("Normalizing and writing elemental vectors to " + flagConfig.elementalvectorfile() + "\n");
       Enumeration<ObjectVector> f = elementalTermVectors.getAllVectors();
 
@@ -464,6 +515,46 @@ private ConcurrentLinkedQueue<Integer> randomStartpoints;
     }
 
     VectorStoreWriter.writeVectors(flagConfig.elementalvectorfile(), flagConfig, this.elementalTermVectors);
+    
+    //write out document vectors
+    if (flagConfig.positionalmethod().equals(PositionalMethod.EMBEDDINGS) && flagConfig.docindexing().equals(DocIndexingStrategy.INMEMORY))
+    {
+    	 Enumeration<ObjectVector> f = embeddingDocVectors.getAllVectors();
+
+    	    // Open file and write headers.
+    	    File vectorFile = new File(
+    	        VectorStoreUtils.getStoreFileName(flagConfig.docvectorsfile(), flagConfig));
+    	    String parentPath = vectorFile.getParent();
+    	    if (parentPath == null) parentPath = "";
+    	    FSDirectory fsDirectory = FSDirectory.open(FileSystems.getDefault().getPath(parentPath));
+
+    	    IndexOutput outputStream = fsDirectory.createOutput(vectorFile.getName(), IOContext.DEFAULT);
+
+    	    VerbatimLogger.info("Writing vectors incrementally to file " + vectorFile + " ... ");
+
+    	    // Write header giving number of dimension for all vectors.
+    	    outputStream.writeString(VectorStoreWriter.generateHeaderString(flagConfig));
+    	 
+         while (f.hasMoreElements()) {
+           
+        	 ObjectVector 	nextObjectVector = f.nextElement();
+           	 Vector 		nextVector		 = nextObjectVector.getVector();
+        	 nextVector.normalize();
+        	 
+        	 int 	  docID = (Integer) nextObjectVector.getObject();
+             String docName = luceneUtils.getExternalDocId(docID);
+           
+             // All fields in document have been processed. Write out documentID and normalized vector.
+            outputStream.writeString(docName);
+            nextVector.writeToLuceneStream(outputStream);
+           } // Finish iterating through documents.
+
+           VerbatimLogger.info("Finished writing vectors.\n");
+           outputStream.close();
+           fsDirectory.close();
+            
+         
+    }
   }
 
   private void processEmbeddings(
@@ -517,7 +608,7 @@ private ConcurrentLinkedQueue<Integer> randomStartpoints;
    * will be referred to as the 'local index' in comments.
    * @throws IOException
    */
-  private void processTermPositionVector(Terms terms, String field, BLAS blas)
+  private void processTermPositionVector(DocIdTerms terms, String field, BLAS blas)
       throws ArrayIndexOutOfBoundsException, IOException {
     if (terms == null) return;
 
@@ -527,9 +618,11 @@ private ConcurrentLinkedQueue<Integer> randomStartpoints;
     //To accommodate "dynamic" sliding window that includes indexed/sampled terms only
     ArrayList<Integer> thePositions = new ArrayList<Integer>();
 
-    TermsEnum termsEnum = terms.iterator(null);
+    TermsEnum termsEnum = terms.terms.iterator(null);
     BytesRef text;
    
+    Integer docID = terms.docID; 
+    
     while ((text = termsEnum.next()) != null) {
       String theTerm = text.utf8ToString();
       if (!semanticTermVectors.containsVector(theTerm)) continue;
@@ -537,7 +630,7 @@ private ConcurrentLinkedQueue<Integer> randomStartpoints;
       DocsAndPositionsEnum docsAndPositions = termsEnum.docsAndPositions(null, null);
       if (docsAndPositions == null) continue;
       docsAndPositions.nextDoc();
-
+  
       int freq = docsAndPositions.freq();
      
       //iterate through all positions of this term
@@ -578,7 +671,7 @@ private ConcurrentLinkedQueue<Integer> randomStartpoints;
 
       for (int cursor = windowstart; cursor < windowend; cursor++) {
 
-        if (cursor == focusposn) continue;
+	  if (cursor == focusposn && !flagConfig.positionalmethod().equals(PositionalMethod.EMBEDDINGS)) continue;
 
         String coterm = localTermPositions.get(thePositions.get(cursor));
         
@@ -617,8 +710,19 @@ private ConcurrentLinkedQueue<Integer> randomStartpoints;
             contextLabels.add(0);
 
           }
-
+	  
+	  if (cursor != focusposn) //skip the focus term when training term vectors
           this.processEmbeddings(semanticTermVectors.getVector(focusterm), contextVectors, contextLabels, alpha, blas);
+          
+          //include the focus term when training document vectors
+          if (flagConfig.docindexing().equals(DocIndexingStrategy.INMEMORY))
+          {
+        	  if (!embeddingDocVectors.containsVector(docID))
+        		   embeddingDocVectors.putVector(docID, VectorFactory.generateRandomVector(flagConfig.vectortype(), flagConfig.dimension(), flagConfig.seedlength, random));
+        	  
+        	  this.processEmbeddings(embeddingDocVectors.getVector(docID), contextVectors, contextLabels, alpha, blas);
+          } 
+          
         } else {
           //random indexing variants
           float globalweight = luceneUtils.getGlobalTermWeight(new Term(field, coterm));
