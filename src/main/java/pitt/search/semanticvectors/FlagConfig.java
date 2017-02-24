@@ -130,9 +130,9 @@ public class FlagConfig {
   
   public int negsamples = 5;
   /** 
-   * Number of threads to use when processing word embeddings
+   * Number of negative samples
    */
-  public int numsamples() { return negsamples; }
+  public int negsamples() { return negsamples; }
   
   public int seedlength = 10;
   /** Number of nonzero entries in a sparse random vector, default value 10 except for
