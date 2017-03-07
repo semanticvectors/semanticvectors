@@ -120,9 +120,9 @@ public class ESP {
 	 };
 
   /**
-   * Creates PSI vectors incrementally, using the fields "subject" and "object" from a Lucene index.
+   * Creates ESP vectors incrementally, using the fields "subject" and "object" from a Lucene index.
    */
-  public static void createIncrementalPSIVectors(FlagConfig flagConfig) throws IOException {
+  public static void createIncrementalESPVectors(FlagConfig flagConfig) throws IOException {
     ESP incrementalESPVectors = new ESP(flagConfig);
     random = new Random();
     incrementalESPVectors.flagConfig = flagConfig;
@@ -131,10 +131,10 @@ public class ESP {
     VectorStoreWriter.writeVectors(
         flagConfig.elementalpredicatevectorfile(), flagConfig, incrementalESPVectors.elementalPredicateVectors);
 
-    VerbatimLogger.info("Performing first round of PSI training ...");
+    VerbatimLogger.info("Performing first round of ESP training ...");
     incrementalESPVectors.trainIncrementalESPVectors();
 
-    VerbatimLogger.info("Done with createIncrementalPSIVectors.");
+    VerbatimLogger.info("Done with createIncrementalESPVectors.");
   }
   
   
@@ -171,7 +171,7 @@ public class ESP {
 
       if (terms == null) {
         throw new NullPointerException(String.format(
-            "No terms for field '%s'. Please check that index at '%s' was built correctly for use with PSI.",
+            "No terms for field '%s'. Please check that index at '%s' was built correctly for use with ESP.",
             fieldName, flagConfig.luceneindexpath()));
       }
 
@@ -744,7 +744,7 @@ private void initializeRandomizationStartpoints()
     }
 
   /**
-   * Main method for building PSI indexes.
+   * Main method for building ESP indexes.
    */
   public static void main(String[] args) throws IllegalArgumentException, IOException {
     FlagConfig flagConfig = FlagConfig.getFlagConfig(args);
@@ -754,11 +754,11 @@ private void initializeRandomizationStartpoints()
       throw (new IllegalArgumentException("-luceneindexpath argument must be provided."));
     }
 
-    VerbatimLogger.info("Building PSI model from index in: " + flagConfig.luceneindexpath() + "\n");
+    VerbatimLogger.info("Building ESP model from index in: " + flagConfig.luceneindexpath() + "\n");
     VerbatimLogger.info("Minimum frequency = " + flagConfig.minfrequency() + "\n");
     VerbatimLogger.info("Maximum frequency = " + flagConfig.maxfrequency() + "\n");
     VerbatimLogger.info("Number non-alphabet characters = " + flagConfig.maxnonalphabetchars() + "\n");
 
-    createIncrementalPSIVectors(flagConfig);
+    createIncrementalESPVectors(flagConfig);
   }
 }
