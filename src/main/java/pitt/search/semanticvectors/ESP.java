@@ -46,6 +46,8 @@ import org.apache.lucene.store.IndexOutput;
 import org.apache.lucene.util.BytesRef;
 import org.netlib.blas.BLAS;
 
+import pitt.search.semanticvectors.ElementalVectorStore.ElementalGenerationMethod;
+import pitt.search.semanticvectors.utils.Bobcat;
 import pitt.search.semanticvectors.utils.SigmoidTable;
 import pitt.search.semanticvectors.utils.VerbatimLogger;
 import pitt.search.semanticvectors.vectors.BinaryVector;
@@ -154,7 +156,21 @@ public class ESP {
     elementalItemVectors = new ElementalVectorStore(flagConfig);
     semanticItemVectors = new VectorStoreRAM(flagConfig);
     
-    VectorStoreRAM initialCUIvectors = null; //used with SemMedDB derived index, for Concept Unique Identifiers
+    //to accommodate pre-training
+    if (!flagConfig.initialtermvectors().isEmpty())
+    {
+    	String[] initialVectorFiles = flagConfig.initialtermvectors().split(",");
+    	if (initialVectorFiles.length == 2)
+    	{
+    		elementalItemVectors = new VectorStoreRAM(flagConfig);
+    		((VectorStoreRAM) elementalItemVectors).initFromFile(initialVectorFiles[0]);
+    		((VectorStoreRAM) semanticItemVectors).initFromFile(initialVectorFiles[1]);
+    		
+    	
+     VerbatimLogger.info("Initialized elemental vectors from "+initialVectorFiles[0]+"\n");
+     VerbatimLogger.info("Initialized semantic vectors from "+initialVectorFiles[1]+"\n");
+    	}
+    }
     
     elementalPredicateVectors = new ElementalVectorStore(flagConfig);
      flagConfig.setContentsfields(itemFields);
@@ -187,8 +203,21 @@ public class ESP {
 
         if (!addedConcepts.contains(term.text())) {
           addedConcepts.add(term.text());
-          elementalItemVectors.getVector(term.text());  // Causes vector to be created.
-           
+          
+          if (!elementalItemVectors.containsVector(term.text()))
+          {
+        	  if (flagConfig.initialtermvectors().isEmpty()) 
+        		  elementalItemVectors.getVector(term.text());  // Causes vector to be created.
+        	  else //pretraining
+        	  {
+        		  if (flagConfig.elementalmethod().equals(ElementalGenerationMethod.CONTENTHASH))
+        			  random.setSeed(Bobcat.asLong(term.text())); //deterministic initialization
+                  ((VectorStoreRAM) elementalItemVectors).putVector(term.text(), VectorFactory.generateRandomVector(
+                              flagConfig.vectortype(), flagConfig.dimension(), flagConfig.seedlength(), random));    
+                	  
+        	  }
+          
+          }
           //store the semantic type
           DocsEnum docEnum 	= luceneUtils.getDocsForTerm(term);
           docEnum.nextDoc();
@@ -206,11 +235,9 @@ public class ESP {
           else if (term.field().equals(OBJECT_FIELD)) cui = theDoc.get("object_CUI");
           cuis.put(term.text(), cui);
 
-          if (initialCUIvectors == null || !initialCUIvectors.containsVector(cui))
-              semanticItemVectors.putVector(term.text(), VectorFactory.generateRandomVector(
-                      flagConfig.vectortype(), flagConfig.dimension(), flagConfig.seedlength(), random));
-              else semanticItemVectors.putVector(term.text(), initialCUIvectors.getVector(cui));
-            
+          if (!semanticItemVectors.containsVector(term.text()))
+          semanticItemVectors.putVector(term.text(), VectorFactory.generateRandomVector(
+                      flagConfig.vectortype(), flagConfig.dimension(), flagConfig.seedlength(), random));    
           
           }
           else
@@ -701,9 +728,12 @@ private void initializeRandomizationStartpoints()
       else 
     	  ov.getVector().normalize();
       
+      if (cuis.containsKey(ov.getObject()))
+      {
 	  outputStream.writeString(cuis.get(ov.getObject()));
 	  ov.getVector().writeToLuceneStream(outputStream);
-    }
+      }
+      }
 
     outputStream.close();
      
