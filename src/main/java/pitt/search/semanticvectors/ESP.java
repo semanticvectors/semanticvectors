@@ -242,6 +242,7 @@ public class ESP {
           }
           else
           {
+        	  if (!semanticItemVectors.containsVector(term.text()))
         	  semanticItemVectors.putVector(term.text(), VectorFactory.generateRandomVector(
                       flagConfig.vectortype(), flagConfig.dimension(), flagConfig.seedlength(), random));
         	  
