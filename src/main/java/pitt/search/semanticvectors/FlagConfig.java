@@ -242,6 +242,12 @@ public class FlagConfig {
    *  Expands the size of the space to n-squared. */
   public boolean expandsearchspace() { return expandsearchspace; }
 
+  
+  private boolean expandsearchspace3 = false;
+  /** Generate bound products from combinations of three elements of the search space, default false.
+   *  Expands the size of the space to n-cubed. */
+  public boolean expandsearchspace3() { return expandsearchspace3; }
+  
   private VectorStoreFormat indexfileformat = VectorStoreFormat.LUCENE;
   /** Format used for serializing / deserializing vectors from disk, default lucene. */
   public VectorStoreFormat indexfileformat() { return indexfileformat; }
@@ -573,6 +579,8 @@ public void setExpandsearchspace(boolean b) {
 	// TODO Auto-generated method stub
 	this.expandsearchspace = b;
 }
+
+
 
   
 
