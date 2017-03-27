@@ -114,7 +114,7 @@ public class FlagConfig {
   public double samplingthreshold() { return samplingthreshold; }
   
   //timerange in format yearstart,yearend
-  private String timerange = ""
+  private String timerange = "";
 
   public String timerange() { return timerange; }
 
