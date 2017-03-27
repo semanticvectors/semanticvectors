@@ -530,9 +530,9 @@ private void processPredicationDocument(Document document, BLAS blas)
 
         //if timerange, skip encoding predications outside of scope
         if (!flagConfig.timerange().isEmpty()) {
-          short yearstart = Short.parseShort(flagConfig.timerange().split(",")[0]);
-          short yearstop = Short.parseShort(flagConfig.timerange().split(",")[1]);
-          if(!(yearstart <= this.pubyear && this.pubyear <= yearstop)) {
+          Short yearstart = Short.parseShort(flagConfig.timerange().split(",")[0]);
+          Short yearstop = Short.parseShort(flagConfig.timerange().split(",")[1]);
+          if(!(yearstart <= pubyear && pubyear <= yearstop)) {
             logger.fine("Skipping predication: " + subject + " " + predicate + " " + object + ".\t| Not in date range.\n");
             encode = false;
           }
