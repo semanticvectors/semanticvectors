@@ -73,6 +73,7 @@ import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.logging.Logger;
+import java.lang.Short;
 
 /**
  * Generates predication vectors incrementally.Requires as input an index containing 
