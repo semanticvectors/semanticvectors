@@ -148,7 +148,7 @@ public class LuceneIndexFromSemrepTriples {
 		doc.add(new TextField("object_semtype", object_semtype, Field.Store.YES));
 		doc.add(new TextField("predication",subject+predicate+object, Field.Store.NO));
 		//storing PubYear as a text field for now to avoid any formatting issues
-		doc.add(new TextField("PubYear", pubyear, Field.Store.YES));
+		doc.add(new TextField("pubyear", pubyear, Field.Store.YES));
 		doc.add(new TextField("PMID",PMID, Field.Store.YES));
           
 		//create new FieldType to store term positions (TextField is not sufficiently configurable)

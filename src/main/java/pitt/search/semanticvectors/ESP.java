@@ -521,10 +521,21 @@ private void processPredicationDocument(Document document, BLAS blas)
 	      String predication   =  subject+predicate+object;
 	      String subsem 		= document.get("subject_semtype");
 	      String obsem			= document.get("object_semtype");
-	      	      
+        //Have to parse to short because it was saved as a text field
+	      short pubyear = Short.parseShort(document.get("pubyear"));	      
 	      
 
 	      boolean encode 	 = true;
+
+        //if timerange, skip encoding predications outside of scope
+        if (!flagConfig.timerange().isEmpty()) {
+          short yearstart = Short.parseShort(flagConfig.timerange().split(",")[0]);
+          short yearstop = Short.parseShort(flagConfig.timerange().split(",")[1]);
+          if(!(yearstart <= this.pubyear && this.pubyear <= yearstop)) {
+            logger.fine("Skipping predication: " + subject + " " + predicate + " " + object + ".\t| Not in date range.\n")
+            encode = false;
+          }
+        }
 	      
 	      if (!(elementalItemVectors.containsVector(object)
 	          && elementalItemVectors.containsVector(subject)
