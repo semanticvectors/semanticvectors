@@ -113,6 +113,11 @@ public class FlagConfig {
    */
   public double samplingthreshold() { return samplingthreshold; }
   
+  //timerange in format yearstart,yearend
+  private String timerange = ""
+
+  public String timerange() { return timerange; }
+
   public boolean subsampleinwindow = true;
   /** 
    * Word2vec approach for approximating "ramped" weighting
