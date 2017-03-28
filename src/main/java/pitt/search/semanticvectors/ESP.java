@@ -73,7 +73,7 @@ import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.logging.Logger;
-import java.lang.Short;
+
 
 /**
  * Generates predication vectors incrementally.Requires as input an index containing 
@@ -207,7 +207,7 @@ public class ESP {
           
           if (!elementalItemVectors.containsVector(term.text()))
           {
-        	  if (flagConfig.initialtermvectors().isEmpty()) 
+        	  if (flagConfig.initialtermvectors().isEmpty())   // Can I put in a check for whether the term is in the right year?
         		  elementalItemVectors.getVector(term.text());  // Causes vector to be created.
         	  else //pretraining
         	  {
@@ -522,21 +522,12 @@ private void processPredicationDocument(Document document, BLAS blas)
 	      String predication   =  subject+predicate+object;
 	      String subsem 		= document.get("subject_semtype");
 	      String obsem			= document.get("object_semtype");
-        //Have to parse to short because it was saved as a text field
-	      short pubyear = Short.parseShort(document.get("pubyear"));	      
+
 	      
 
 	      boolean encode 	 = true;
 
-        //if timerange, skip encoding predications outside of scope
-        if (!flagConfig.timerange().isEmpty()) {
-          Short yearstart = Short.parseShort(flagConfig.timerange().split(",")[0]);
-          Short yearstop = Short.parseShort(flagConfig.timerange().split(",")[1]);
-          if(!(yearstart <= pubyear && pubyear <= yearstop)) {
-            logger.fine("Skipping predication: " + subject + " " + predicate + " " + object + ".\t| Not in date range.\n");
-            encode = false;
-          }
-        }
+        
 	      
 	      if (!(elementalItemVectors.containsVector(object)
 	          && elementalItemVectors.containsVector(subject)
@@ -636,12 +627,25 @@ private void initializeRandomizationStartpoints()
     	 try {   
     		 	Document nextDoc = luceneUtils.getDoc(qc);
     		 	dc.incrementAndGet();
-    		 	
+    		 	        //Have to parse to short because it was saved as a text field
+          short pubyear = Short.parseShort(nextDoc.get("pubyear"));  
+
+          //if timerange, skip encoding predications outside of scope
+          if (!flagConfig.timerange().isEmpty()) {
+            short yearstart = Short.parseShort(flagConfig.timerange().split(",")[0]);
+            short yearstop = Short.parseShort(flagConfig.timerange().split(",")[1]);
+            if(!(yearstart <= pubyear && pubyear <= yearstop)) {
+              logger.fine("Skipping predication: " + subject + " " + predicate + " " + object + ".\t| Not in date range ("+pubyear+").\n");
+              continue;
+            }
+          }
+
     		 	if (nextDoc != null)
     		 	{
     		 		theQ.add(nextDoc);
     		 		qplus++;
     		 	}
+
     	 	 } catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
