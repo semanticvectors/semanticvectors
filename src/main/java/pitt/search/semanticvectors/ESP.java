@@ -523,12 +523,8 @@ private void processPredicationDocument(Document document, BLAS blas)
 	      String subsem 		= document.get("subject_semtype");
 	      String obsem			= document.get("object_semtype");
 
-	      
-
 	      boolean encode 	 = true;
 
-        
-	      
 	      if (!(elementalItemVectors.containsVector(object)
 	          && elementalItemVectors.containsVector(subject)
 	          && elementalPredicateVectors.containsVector(predicate))) {
@@ -627,8 +623,11 @@ private void initializeRandomizationStartpoints()
     	 try {   
     		 	Document nextDoc = luceneUtils.getDoc(qc);
     		 	dc.incrementAndGet();
-    		 	        //Have to parse to short because it was saved as a text field
+    		 	//Have to parse to short because it was saved as a text field
           short pubyear = Short.parseShort(nextDoc.get("pubyear"));  
+          String subject    = nextDoc.get(SUBJECT_FIELD);
+          String predicate    = nextDoc.get(PREDICATE_FIELD);
+          String object     = nextDoc.get(OBJECT_FIELD);
 
           //if timerange, skip encoding predications outside of scope
           if (!flagConfig.timerange().isEmpty()) {
