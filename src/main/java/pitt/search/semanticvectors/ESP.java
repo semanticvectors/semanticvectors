@@ -766,10 +766,18 @@ private void initializeRandomizationStartpoints()
     }
     }
     	
+
+    VectoreStore dv = new VectorStoreDeterministic(flagConfig);
+
     e = elementalItemVectors.getAllVectors();
     while (e.hasMoreElements()) {
     	
-    	Vector nextVec =  e.nextElement().getVector();
+      ObjectVector ov = e.nextElement();
+
+    	Vector nextVec =  ov.getVector();
+         if (nextVec.measureOverlap(dv.getVector(ov.getObject())) == 1) {
+            ((VectoreStoreRAM) elementalItemVectors).removeVector(ov);
+         }
     	   if (flagConfig.vectortype().equals(VectorType.BINARY))
     	    	  ((BinaryVector) nextVec).tallyVotes();
     	   else 
