@@ -74,6 +74,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.logging.Logger;
 
+
 /**
  * Generates predication vectors incrementally.Requires as input an index containing 
  * documents with the fields "subject", "predicate" and "object"
@@ -206,7 +207,7 @@ public class ESP {
           
           if (!elementalItemVectors.containsVector(term.text()))
           {
-        	  if (flagConfig.initialtermvectors().isEmpty()) 
+        	  if (flagConfig.initialtermvectors().isEmpty())   // Can I put in a check for whether the term is in the right year?
         		  elementalItemVectors.getVector(term.text());  // Causes vector to be created.
         	  else //pretraining
         	  {
@@ -521,11 +522,9 @@ private void processPredicationDocument(Document document, BLAS blas)
 	      String predication   =  subject+predicate+object;
 	      String subsem 		= document.get("subject_semtype");
 	      String obsem			= document.get("object_semtype");
-	      	      
-	      
 
 	      boolean encode 	 = true;
-	      
+
 	      if (!(elementalItemVectors.containsVector(object)
 	          && elementalItemVectors.containsVector(subject)
 	          && elementalPredicateVectors.containsVector(predicate))) {
@@ -624,12 +623,28 @@ private void initializeRandomizationStartpoints()
     	 try {   
     		 	Document nextDoc = luceneUtils.getDoc(qc);
     		 	dc.incrementAndGet();
-    		 	
+    		 	//Have to parse to short because it was saved as a text field
+          short pubyear = Short.parseShort(nextDoc.get("pubyear"));  
+          String subject    = nextDoc.get(SUBJECT_FIELD);
+          String predicate    = nextDoc.get(PREDICATE_FIELD);
+          String object     = nextDoc.get(OBJECT_FIELD);
+
+          //if timerange, skip encoding predications outside of scope
+          if (!flagConfig.timerange().isEmpty()) {
+            short yearstart = Short.parseShort(flagConfig.timerange().split(",")[0]);
+            short yearstop = Short.parseShort(flagConfig.timerange().split(",")[1]);
+            if(!(yearstart <= pubyear && pubyear <= yearstop)) {
+              logger.fine("Skipping predication: " + subject + " " + predicate + " " + object + ".\t| Not in date range ("+pubyear+").\n");
+              continue;
+            }
+          }
+
     		 	if (nextDoc != null)
     		 	{
     		 		theQ.add(nextDoc);
     		 		qplus++;
     		 	}
+
     	 	 } catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -751,10 +766,18 @@ private void initializeRandomizationStartpoints()
     }
     }
     	
+
+    VectorStore dv = new VectorStoreDeterministic(flagConfig);
+
     e = elementalItemVectors.getAllVectors();
     while (e.hasMoreElements()) {
     	
-    	Vector nextVec =  e.nextElement().getVector();
+      ObjectVector ov = e.nextElement();
+
+    	Vector nextVec =  ov.getVector();
+         if (nextVec.measureOverlap(dv.getVector(ov.getObject())) == 1) {
+            ((VectorStoreRAM) elementalItemVectors).removeVector(ov);
+         }
     	   if (flagConfig.vectortype().equals(VectorType.BINARY))
     	    	  ((BinaryVector) nextVec).tallyVotes();
     	   else 

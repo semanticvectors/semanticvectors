@@ -23,19 +23,28 @@ import java.nio.file.Path;
 
 /** 
  * This class takes as input a single text file exported from the SemMedDB database structure
- * using the following command:
+ * using the following command (tested using MySQL v. 5.7.17 on schema for up to 2016 whole database 
+ * versions of SemMedDB; some predications are dropped due to missing fields [~100k on 
+ * semmedVER30_A_WHOLEDB_to12312016.sql]):
  * 
- * mysql [database_name] -e 'select s_name, s_cui, s_type, predicate, o_name, o_cui, o_type,  SENTENCE.PMID, 
- * sentence from PREDICATION_AGGREGATE,SENTENCE where PREDICATION_AGGREGATE.SID=SENTENCE.SENTENCE_ID' > textfile.txt
+ * mysql -u [your_user] -p [database_name] -e 'select SUBJECT_NAME, SUBJECT_CUI, SUBJECT_SEMTYPE, PREDICATE, 
+ * OBJECT_NAME, OBJECT_CUI, OBJECT_SEMTYPE, PREDICATION.PMID, CITATIONS.PYEAR, SENTENCE.SENTENCE 
+ * from PREDICATION,CITATIONS,SENTENCE where PREDICATION.SENTENCE_ID=SENTENCE.SENTENCE_ID and 
+ * PREDICATION.PMID=CITATIONS.PMID > [your_file].txt
+ *  
+ * This is for the most recent versions of SemMedDB. Note that the schema has changed from previous versions.
+ * 
+ * Additionally, consider updating innodb_buffer_pool_size and tune other MySQL paramters for faster import.
  * 
  * The resulting fields are:
- * subject: the preferred form of the subject (e.g. haloperidol)
- * subject_CUI: the UMLS concept unique identifier  
- * subject_semtype: the UMLS semantic type of the subject 
- * predicate: the predicate, e.g. TREATS 
- * object, object_CUI, object_semtype : as above but for the object
- * pmid		: the PubMed identifier for the article a predication was extracted from
- * source	: the source sentence for this predication
+ * SUBJECT_NAME: the preferred form of the subject (e.g. haloperidol)
+ * SUBJECT_CUI: the UMLS concept unique identifier  
+ * SUBJECT_SEMTYPE: the UMLS semantic type of the subject 
+ * PREDICATE: the predicate, e.g. TREATS 
+ * OBJECT_NAME, OBJECT_CUI, OBJECT_SEMTYPE : as above but for the object
+ * PMID		: the PubMed identifier for the article a predication was extracted from
+ * PYEAR	: the publication year for the article the predicated was extracted from
+ * SENTENCE	: the source sentence for this predication
  * 
  * 
  */
@@ -55,7 +64,7 @@ public class LuceneIndexFromSemrepTriples {
        
 	if (Files.exists(INDEX_DIR)) {
 		throw new IllegalArgumentException(
-						   "Cannot save index to '" + INDEX_DIR + "' directory, please delete it first");
+						   "Cannot save index to '" + INDEX_DIR + "' directory, please delete it first.");
 	    }
 	
 
@@ -90,7 +99,6 @@ public class LuceneIndexFromSemrepTriples {
     /**
      * This class indexes the file passed as a parameter, writing to the index passed as a parameter.
      * Each predication is indexed as an individual document, with the fields "subject", "predicate", and "object"
-
      * @throws IOException
      */
     static void indexDoc(IndexWriter fsWriter, File triplesTextFile) throws IOException {
@@ -110,6 +118,12 @@ public class LuceneIndexFromSemrepTriples {
 		    lineIn = theReader.readLine();
 		    continue;
 		}
+		if (theTokenizer.countTokens() < 10) {
+		    VerbatimLogger.warning(
+					   "Line in predication file does not have ten delimited fields: " + lineIn + "\n");
+		    lineIn = theReader.readLine();
+		    continue;
+		}
 
 		String subject = theTokenizer.nextToken().trim().toLowerCase().replaceAll(" ", "_").replaceAll("\\|\\|\\|.*", "");
 		String subject_CUI = theTokenizer.nextToken().trim().toLowerCase().replaceAll(" ", "_");
@@ -121,6 +135,7 @@ public class LuceneIndexFromSemrepTriples {
 		String object_semtype = theTokenizer.nextToken().trim().toLowerCase().replaceAll(" ", "_");
         
 		String PMID = theTokenizer.nextToken();
+		String pubyear = theTokenizer.nextToken();
 		String source = theTokenizer.nextToken();
         
 		Document doc = new Document();
@@ -132,11 +147,13 @@ public class LuceneIndexFromSemrepTriples {
 		doc.add(new TextField("object_CUI", object_CUI, Field.Store.YES));
 		doc.add(new TextField("object_semtype", object_semtype, Field.Store.YES));
 		doc.add(new TextField("predication",subject+predicate+object, Field.Store.NO));
+		//storing PubYear as a text field for now to avoid any formatting issues
+		doc.add(new TextField("pubyear", pubyear, Field.Store.YES));
 		doc.add(new TextField("PMID",PMID, Field.Store.YES));
           
 		//create new FieldType to store term positions (TextField is not sufficiently configurable)
 		FieldType ft = new FieldType();
-		//the next line was commented out when the original index was buildt (v1.0)
+		//the next line was commented out when the original index was built (v1.0)
 		//ft.setIndexed(true);
 		ft.setIndexOptions(IndexOptions.DOCS_AND_FREQS_AND_POSITIONS);
 		ft.setStored(true);
