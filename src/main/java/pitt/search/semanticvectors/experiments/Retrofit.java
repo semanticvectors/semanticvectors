@@ -93,7 +93,7 @@ public class Retrofit {
 						if (retroVectors.containsVector(relationships[x].toLowerCase()))
 						{
 							retroVectors.getVector(key).superpose(retroVectors.getVector(relationships[x].toLowerCase()), beta, null);
-							
+							retroVectors.getVector(key).superpose(initialVectors.getVector(key),alpha,null);
 							relcnt++;
 						}
 					
