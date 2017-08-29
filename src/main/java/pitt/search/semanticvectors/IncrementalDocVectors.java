@@ -134,13 +134,12 @@ public class IncrementalDocVectors {
           continue;
         }
 
-        TermsEnum tmp = null;
-        TermsEnum termsEnum = terms.iterator(tmp);
+        TermsEnum termsEnum = terms.iterator();
         BytesRef bytes;
         while ((bytes = termsEnum.next()) != null) {
           Term term = new Term(fieldName, bytes);
           String termString = term.text();
-          DocsEnum docs = termsEnum.docs(null, null);
+          PostingsEnum docs = termsEnum.postings(null);
           docs.nextDoc();
           int freq = docs.freq();
 

@@ -1106,7 +1106,7 @@ abstract public class VectorSearcher {
   public LinkedList<SearchResult> getNearestNeighbors(int numResults) {
     LinkedList<SearchResult> results = new LinkedList<SearchResult>();
     
-    BooleanQuery mtq = new BooleanQuery();
+    BooleanQuery.Builder mtq = new BooleanQuery.Builder();
     
     for (int q=0; q < queryTerms.length; q++)
     {
@@ -1124,7 +1124,7 @@ abstract public class VectorSearcher {
 
     TopDocs docs;
 	try {
-		docs = iSearcher.search(mtq, specialFlagConfig.numsearchresults());
+		docs = iSearcher.search(mtq.build(), specialFlagConfig.numsearchresults());
 	
 	ScoreDoc[] hits2 = docs.scoreDocs;
 	
@@ -1133,7 +1133,7 @@ abstract public class VectorSearcher {
 
 		 if (specialFlagConfig.hybridvectors())
 		 if (i < specialFlagConfig.numsearchresults()) {
-		 Explanation explain = iSearcher.explain(mtq, docId);
+		 Explanation explain = iSearcher.explain(mtq.build(), docId);
 		 System.out.println(explain);
 		 }
 		Document d = iSearcher.doc(docId);

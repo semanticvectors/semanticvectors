@@ -1,6 +1,6 @@
 package pitt.search.semanticvectors;
 
-import org.apache.lucene.index.DocsEnum;
+import org.apache.lucene.index.PostingsEnum;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.index.Terms;
 import org.apache.lucene.index.TermsEnum;
@@ -13,10 +13,8 @@ import pitt.search.semanticvectors.LuceneUtils.TermWeight;
 import pitt.search.semanticvectors.utils.VerbatimLogger;
 import pitt.search.semanticvectors.vectors.RealVector;
 import pitt.search.semanticvectors.vectors.Vector;
-import pitt.search.semanticvectors.vectors.VectorFactory;
 import pitt.search.semanticvectors.vectors.VectorType;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.FileSystems;
 import java.util.logging.Logger;
@@ -92,25 +90,23 @@ public class LSA {
    * @returns sparse term-document matrix in the format expected by SVD library
    */
   private SMat smatFromIndex() throws IOException {
-    TermsEnum termsEnumDummy = null; // Empty terms enum, encouraged for reuse in Lucene documentation.
     SMat S;
     Terms terms = this.luceneUtils.getTermsForField(contentsField);
-    TermsEnum termsEnumForCount = terms.iterator(termsEnumDummy);
+    TermsEnum termsEnumForCount = terms.iterator();
     int numTerms = 0,   nonZeroVals = 0;
     BytesRef bytes;
-    
+
     //count number of terms meeting term filter constraints, and number of nonzero matrix entries  
-    while((bytes = termsEnumForCount.next()) != null) {
-    	      Term term = new Term(contentsField, bytes);
-    	      if (this.luceneUtils.termFilter(term)) 
-    	    	  numTerms++;
-    	 	  
-    	      	DocsEnum docsEnum = this.luceneUtils.getDocsForTerm(term);
-    	        
-    	        while (docsEnum.nextDoc() != DocsEnum.NO_MORE_DOCS) {
-    	          ++nonZeroVals;
-    	        }
-				}
+    while ((bytes = termsEnumForCount.next()) != null) {
+      Term term = new Term(contentsField, bytes);
+      if (this.luceneUtils.termFilter(term))
+        numTerms++;
+
+      PostingsEnum docsEnum = this.luceneUtils.getDocsForTerm(term);
+      while (docsEnum.nextDoc() != PostingsEnum.NO_MORE_DOCS) {
+        ++nonZeroVals;
+      }
+    }
 
     VerbatimLogger.info(String.format(
         "There are %d terms (and %d docs).\n", numTerms, this.luceneUtils.getNumDocs()));
@@ -121,7 +117,7 @@ public class LSA {
     S = new SMat(this.luceneUtils.getNumDocs(), numTerms, nonZeroVals);
 
     // Populate "SVDLIBJ" sparse data structure and list of terms.
-    TermsEnum termsEnum = terms.iterator(termsEnumDummy);
+    TermsEnum termsEnum = terms.iterator();
     int termCounter = 0;
     int firstNonZero = 0; // Index of first non-zero entry (document) of each column (term).
     
@@ -131,11 +127,11 @@ public class LSA {
       if (this.luceneUtils.termFilter(term)) {
           S.pointr[termCounter] = firstNonZero; //index of first non-zero entry
           termList[termCounter] = term.text();
-          
-        DocsEnum docsEnum = this.luceneUtils.getDocsForTerm(term);
+
+        PostingsEnum docsEnum = this.luceneUtils.getDocsForTerm(term);
         
         
-        while (docsEnum.nextDoc() != DocsEnum.NO_MORE_DOCS) {
+        while (docsEnum.nextDoc() != PostingsEnum.NO_MORE_DOCS) {
           /** public int[] pointr; For each col (plus 1), index of
             *  first non-zero entry.  we'll represent the matrix as a
             *  document x term matrix such that terms are columns

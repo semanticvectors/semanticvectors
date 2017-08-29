@@ -36,7 +36,7 @@
 package pitt.search.semanticvectors;
 
 import org.apache.lucene.document.Document;
-import org.apache.lucene.index.DocsEnum;
+import org.apache.lucene.index.PostingsEnum;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.index.Terms;
 import org.apache.lucene.index.TermsEnum;
@@ -191,7 +191,7 @@ public class ESP {
             fieldName, flagConfig.luceneindexpath()));
       }
 
-      TermsEnum termsEnum = terms.iterator(null);
+      TermsEnum termsEnum = terms.iterator();
       BytesRef bytes;
       while((bytes = termsEnum.next()) != null) {
         Term term = new Term(fieldName, bytes);
@@ -219,7 +219,7 @@ public class ESP {
           
           }
           //store the semantic type
-          DocsEnum docEnum 	= luceneUtils.getDocsForTerm(term);
+          PostingsEnum docEnum 	= luceneUtils.getDocsForTerm(term);
           docEnum.nextDoc();
           Document theDoc 	= luceneUtils.getDoc(docEnum.docID());
           String semtype = "";
@@ -276,7 +276,7 @@ public class ESP {
     // Now elemental vectors for the predicate field.
     Terms predicateTerms = luceneUtils.getTermsForField(PREDICATE_FIELD);
     String[] dummyArray = new String[] { PREDICATE_FIELD };  // To satisfy LuceneUtils.termFilter interface.
-    TermsEnum termsEnum = predicateTerms.iterator(null);
+    TermsEnum termsEnum = predicateTerms.iterator();
     BytesRef bytes;
     while((bytes = termsEnum.next()) != null) {
       Term term = new Term(PREDICATE_FIELD, bytes);
