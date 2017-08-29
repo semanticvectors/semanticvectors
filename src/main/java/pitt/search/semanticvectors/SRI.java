@@ -39,21 +39,17 @@ package pitt.search.semanticvectors;
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.Enumeration;
-import java.util.Random;
 import java.util.logging.Logger;
 import java.io.IOException;
 import java.lang.RuntimeException;
 
-import org.apache.lucene.index.DocsAndPositionsEnum;
-import org.apache.lucene.index.IndexReader;
+import org.apache.lucene.index.PostingsEnum;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.index.Terms;
 import org.apache.lucene.index.TermsEnum;
 import org.apache.lucene.util.BytesRef;
-import org.apache.lucene.analysis.standard.StandardAnalyzer;
 
 import pitt.search.semanticvectors.DocVectors.DocIndexingStrategy;
-import pitt.search.semanticvectors.LuceneUtils.TermWeight;
 import pitt.search.semanticvectors.utils.VerbatimLogger;
 import pitt.search.semanticvectors.vectors.Vector;
 import pitt.search.semanticvectors.vectors.VectorFactory;
@@ -137,7 +133,7 @@ public class SRI implements VectorStore {
         ArrayList<Integer> freqs = new ArrayList<Integer>();
         Hashtable<Integer, Integer> localTermPositions = new Hashtable<Integer, Integer>();
 
-        TermsEnum termsEnum = terms.iterator(null);
+        TermsEnum termsEnum = terms.iterator();
         BytesRef text;
         int termcount = 0;
 
@@ -145,7 +141,7 @@ public class SRI implements VectorStore {
         while ((text = termsEnum.next()) != null) {
           String theTerm = text.utf8ToString();
           if (!termVectors.containsVector(theTerm)) continue;
-          DocsAndPositionsEnum docsAndPositions = termsEnum.docsAndPositions(null, null);
+          PostingsEnum docsAndPositions = termsEnum.postings(null);
           if (docsAndPositions == null) return;
           docsAndPositions.nextDoc();
           freqs.add(docsAndPositions.freq());
@@ -252,7 +248,7 @@ public class SRI implements VectorStore {
     }
     for (String fieldName : this.flagConfig.contentsfields()) {
       Terms terms = this.lUtils.getTermsForField(fieldName);
-      TermsEnum termEnum = terms.iterator(null);
+      TermsEnum termEnum = terms.iterator();
       int tc = 0;
 
       BytesRef bytes;
