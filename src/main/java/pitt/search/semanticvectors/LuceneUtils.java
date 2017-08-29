@@ -46,8 +46,16 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 
 import org.apache.lucene.document.Document;
-import org.apache.lucene.index.*;
+import org.apache.lucene.index.BaseCompositeReader;
+import org.apache.lucene.index.LeafReader;
+import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.SlowCompositeReaderWrapper;
+import org.apache.lucene.index.Term;
+import org.apache.lucene.index.Terms;
+import org.apache.lucene.index.MultiFields;
+import org.apache.lucene.index.PostingsEnum;
+import org.apache.lucene.index.FieldInfos;
+import org.apache.lucene.index.FieldInfo;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.util.Version;
 
