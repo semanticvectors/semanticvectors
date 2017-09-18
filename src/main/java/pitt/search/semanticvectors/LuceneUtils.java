@@ -40,24 +40,22 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.FileSystems;
 import java.util.ArrayList;
-import java.util.Hashtable;
 import java.util.List;
-import java.util.Map;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 
 import org.apache.lucene.document.Document;
-import org.apache.lucene.index.LeafReader;
 import org.apache.lucene.index.BaseCompositeReader;
+import org.apache.lucene.index.LeafReader;
 import org.apache.lucene.index.DirectoryReader;
-import org.apache.lucene.index.DocsEnum;
-import org.apache.lucene.index.FieldInfos;
-import org.apache.lucene.index.FieldInfo;
-import org.apache.lucene.index.MultiFields;
 import org.apache.lucene.index.SlowCompositeReaderWrapper;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.index.Terms;
+import org.apache.lucene.index.MultiFields;
+import org.apache.lucene.index.PostingsEnum;
+import org.apache.lucene.index.FieldInfos;
+import org.apache.lucene.index.FieldInfo;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.util.Version;
 
@@ -69,7 +67,7 @@ import pitt.search.semanticvectors.utils.VerbatimLogger;
  * including term frequency, doc frequency.
  */
 public class LuceneUtils {
-  public static final Version LUCENE_VERSION = Version.LUCENE_5_0_0;
+  public static final Version LUCENE_VERSION = Version.LUCENE_6_6_0;
 
   private static final Logger logger = Logger.getLogger(DocVectors.class.getCanonicalName());
   private FlagConfig flagConfig;
@@ -220,8 +218,8 @@ public class LuceneUtils {
     return leafReader.terms(field);
   }
 
-  public DocsEnum getDocsForTerm(Term term) throws IOException {
-    return this.leafReader.termDocsEnum(term);
+  public PostingsEnum getDocsForTerm(Term term) throws IOException {
+    return this.leafReader.postings(term);
   }
 
   public Terms getTermVector(int docID, String field) throws IOException {
@@ -393,8 +391,8 @@ public class LuceneUtils {
     int gf = getGlobalTermFreq(term);
     double entropy = 0;
     try {
-      DocsEnum docsEnum = this.getDocsForTerm(term);
-      while ((docsEnum.nextDoc()) != DocsEnum.NO_MORE_DOCS) {
+      PostingsEnum docsEnum = this.getDocsForTerm(term);
+      while ((docsEnum.nextDoc()) != PostingsEnum.NO_MORE_DOCS) {
         double p = docsEnum.freq(); //frequency in this document
         p = p / gf;    //frequency across all documents
         entropy += p * (Math.log(p) / Math.log(2)); //sum of Plog(P)

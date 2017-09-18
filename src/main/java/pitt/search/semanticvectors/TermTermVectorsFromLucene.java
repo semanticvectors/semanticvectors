@@ -51,8 +51,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.apache.lucene.index.DocsAndPositionsEnum;
 import org.apache.lucene.index.FieldInfos;
+import org.apache.lucene.index.PostingsEnum;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.index.Terms;
 import org.apache.lucene.index.TermsEnum;
@@ -394,7 +394,7 @@ private ConcurrentLinkedQueue<Integer> randomStartpoints;
     // If retraining embeddings, create random vectors for terms that were not originally represented (to facilitate crossing corpora)
     int tc = 0;
     for (String fieldName : flagConfig.contentsfields()) {
-      TermsEnum terms = this.luceneUtils.getTermsForField(fieldName).iterator(null);
+      TermsEnum terms = this.luceneUtils.getTermsForField(fieldName).iterator();
       BytesRef bytes;
       while ((bytes = terms.next()) != null) {
         Term term = new Term(fieldName, bytes);
@@ -435,7 +435,7 @@ private ConcurrentLinkedQueue<Integer> randomStartpoints;
       VerbatimLogger.info("Populating subsampling probabilities - total term count = " + totalCount + " which is " + (totalCount / luceneUtils.getNumDocs()) + " per doc on average");
       int count = 0;
       for (String fieldName : flagConfig.contentsfields()) {
-        TermsEnum terms = this.luceneUtils.getTermsForField(fieldName).iterator(null);
+        TermsEnum terms = this.luceneUtils.getTermsForField(fieldName).iterator();
         BytesRef bytes;
         while ((bytes = terms.next()) != null) {
           Term term = new Term(fieldName, bytes);
@@ -618,7 +618,7 @@ private ConcurrentLinkedQueue<Integer> randomStartpoints;
     //To accommodate "dynamic" sliding window that includes indexed/sampled terms only
     ArrayList<Integer> thePositions = new ArrayList<Integer>();
 
-    TermsEnum termsEnum = terms.terms.iterator(null);
+    TermsEnum termsEnum = terms.terms.iterator();
     BytesRef text;
    
     Integer docID = terms.docID; 
@@ -627,7 +627,7 @@ private ConcurrentLinkedQueue<Integer> randomStartpoints;
       String theTerm = text.utf8ToString();
       if (!semanticTermVectors.containsVector(theTerm)) continue;
 
-      DocsAndPositionsEnum docsAndPositions = termsEnum.docsAndPositions(null, null);
+      PostingsEnum docsAndPositions = termsEnum.postings(null);
       if (docsAndPositions == null) continue;
       docsAndPositions.nextDoc();
   

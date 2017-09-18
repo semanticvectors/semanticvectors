@@ -36,7 +36,6 @@
 package pitt.search.semanticvectors;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import org.apache.lucene.index.*;
 import org.apache.lucene.store.IOContext;
@@ -92,7 +91,7 @@ public class IncrementalTermVectors implements VectorStore {
 
     for (String fieldName : this.flagConfig.contentsfields()) {
       Terms terms = this.luceneUtils.getTermsForField(fieldName);
-      TermsEnum termEnum = terms.iterator(null);
+      TermsEnum termEnum = terms.iterator();
       int tc = 0;
 
       BytesRef bytes;
@@ -160,7 +159,7 @@ public class IncrementalTermVectors implements VectorStore {
           Terms docTerms = this.luceneUtils.getTermVector(dc, fieldName);
           if (docTerms == null) {logger.severe("No term vector for document "+dc); continue; }
 
-          TermsEnum termsEnum = docTerms.iterator(null);
+          TermsEnum termsEnum = docTerms.iterator();
 
           BytesRef bytes;
           while ((bytes = termsEnum.next()) != null) {
@@ -174,7 +173,7 @@ public class IncrementalTermVectors implements VectorStore {
             }
             // Exclude terms that are not represented in termVectorData
             if (termVector != null && termVector.getDimension() > 0) {
-              DocsEnum docs = termsEnum.docs(null, null);
+              PostingsEnum docs = termsEnum.postings(null);
               docs.nextDoc();
               float freq = luceneUtils.getLocalTermWeight(docs.freq());
 

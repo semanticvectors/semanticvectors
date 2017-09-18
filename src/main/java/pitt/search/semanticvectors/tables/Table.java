@@ -1,16 +1,13 @@
 package pitt.search.semanticvectors.tables;
 
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 
 import pitt.search.semanticvectors.*;
 import pitt.search.semanticvectors.utils.Bobcat;
-import pitt.search.semanticvectors.utils.VerbatimLogger;
 import pitt.search.semanticvectors.vectors.Vector;
 import pitt.search.semanticvectors.vectors.VectorFactory;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 /**
  * Represents a table of data. This includes:

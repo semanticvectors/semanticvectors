@@ -40,7 +40,7 @@ import java.util.Enumeration;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.apache.lucene.index.DocsEnum;
+import org.apache.lucene.index.PostingsEnum;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.index.Terms;
 import org.apache.lucene.index.TermsEnum;
@@ -121,14 +121,13 @@ public class TermVectorsFromLucene {
 
   // Training method for term vectors.
   private void trainTermVectors() throws IOException {
-    TermsEnum termsEnum = null; // Empty terms enum, encouraged for reuse in Lucene documentation.
     this.termVectors = new VectorStoreRAM(flagConfig);
     // Iterate through an enumeration of terms and create termVector table.
     VerbatimLogger.log(Level.INFO, "Creating semantic term vectors ...\n");
 
     for (String fieldName : flagConfig.contentsfields()) {
       Terms termsForField = this.luceneUtils.getTermsForField(fieldName);
-      TermsEnum terms = termsForField.iterator(termsEnum);
+      TermsEnum terms = termsForField.iterator();
       int tc = 0;
       while (terms.next() != null) {
         tc++;
@@ -139,7 +138,7 @@ public class TermVectorsFromLucene {
     for(String fieldName : flagConfig.contentsfields()) {
       VerbatimLogger.info("Training term vectors for field " + fieldName + "\n");
       int tc = 0;
-      TermsEnum terms = this.luceneUtils.getTermsForField(fieldName).iterator(termsEnum);
+      TermsEnum terms = this.luceneUtils.getTermsForField(fieldName).iterator();
       BytesRef bytes;
       while ((bytes = terms.next()) != null) {
         // Output progress counter.
@@ -157,8 +156,8 @@ public class TermVectorsFromLucene {
         // Initialize new termVector.
         Vector termVector = VectorFactory.createZeroVector(flagConfig.vectortype(), flagConfig.dimension());
 
-        DocsEnum docsEnum = luceneUtils.getDocsForTerm(term);
-        while (docsEnum.nextDoc() != DocsEnum.NO_MORE_DOCS) {
+        PostingsEnum docsEnum = luceneUtils.getDocsForTerm(term);
+        while (docsEnum.nextDoc() != PostingsEnum.NO_MORE_DOCS) {
           String docID = luceneUtils.getExternalDocId(docsEnum.docID());
           int freq = docsEnum.freq();
           termVector.superpose(elementalDocVectors.getVector(docID), freq, null);
@@ -189,7 +188,6 @@ public class TermVectorsFromLucene {
 
   private void createTermBasedRRIVectorsImpl() throws IOException, RuntimeException {
     this.termVectors = new ElementalVectorStore(flagConfig);
-    TermsEnum termsEnum = null; // Empty terms enum, encouraged for reuse in Lucene documentation.
 
     if (!flagConfig.initialtermvectors().isEmpty() && !flagConfig.initialtermvectors().equals("random")) {
       VerbatimLogger.info("Using elemental term vectors from file " + flagConfig.initialtermvectors());
@@ -209,7 +207,7 @@ public class TermVectorsFromLucene {
       logger.info("Generating new elemental term vectors");
       this.termVectors = new ElementalVectorStore(flagConfig);
       for(String fieldName : flagConfig.contentsfields()) {
-        TermsEnum terms = luceneUtils.getTermsForField(fieldName).iterator(termsEnum);
+        TermsEnum terms = luceneUtils.getTermsForField(fieldName).iterator();
         BytesRef bytes;
         while ((bytes = terms.next()) != null) {
           Term term = new Term(fieldName, bytes);

@@ -36,7 +36,7 @@
 package pitt.search.semanticvectors;
 
 import org.apache.lucene.document.Document;
-import org.apache.lucene.index.DocsEnum;
+import org.apache.lucene.index.PostingsEnum;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.index.Terms;
 import org.apache.lucene.index.TermsEnum;
@@ -133,7 +133,7 @@ public class PSI {
             fieldName, flagConfig.luceneindexpath()));
       }
 
-      TermsEnum termsEnum = terms.iterator(null);
+      TermsEnum termsEnum = terms.iterator();
       BytesRef bytes;
       while((bytes = termsEnum.next()) != null) {
         Term term = new Term(fieldName, bytes);
@@ -161,7 +161,7 @@ public class PSI {
     // Now elemental vectors for the predicate field.
     Terms predicateTerms = luceneUtils.getTermsForField(PREDICATE_FIELD);
     String[] dummyArray = new String[] { PREDICATE_FIELD };  // To satisfy LuceneUtils.termFilter interface.
-    TermsEnum termsEnum = predicateTerms.iterator(null);
+    TermsEnum termsEnum = predicateTerms.iterator();
     BytesRef bytes;
     while((bytes = termsEnum.next()) != null) {
       Term term = new Term(PREDICATE_FIELD, bytes);
@@ -194,7 +194,7 @@ public class PSI {
     String fieldName = PREDICATION_FIELD;
     // Iterate through documents (each document = one predication).
     Terms allTerms = luceneUtils.getTermsForField(fieldName);
-    TermsEnum termsEnum = allTerms.iterator(null);
+    TermsEnum termsEnum = allTerms.iterator();
     BytesRef bytes;
     int pc = 0;
     while((bytes = termsEnum.next()) != null) {
@@ -206,7 +206,7 @@ public class PSI {
         VerbatimLogger.info("Processed " + pc + " unique predications ... ");
       }
 
-      DocsEnum termDocs = luceneUtils.getDocsForTerm(term);
+      PostingsEnum termDocs = luceneUtils.getDocsForTerm(term);
       termDocs.nextDoc();
       Document document = luceneUtils.getDoc(termDocs.docID());
 

@@ -35,7 +35,6 @@
 
 package pitt.search.semanticvectors.orthography;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.FileSystems;
 import java.util.ArrayList;
@@ -44,10 +43,9 @@ import java.util.Hashtable;
 import java.util.Random;
 import java.util.StringTokenizer;
 
-import org.apache.lucene.document.Document;
 import org.apache.lucene.index.DirectoryReader;
-import org.apache.lucene.index.DocsAndPositionsEnum;
 import org.apache.lucene.index.IndexReader;
+import org.apache.lucene.index.PostingsEnum;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.index.Terms;
 import org.apache.lucene.index.TermsEnum;
@@ -195,7 +193,7 @@ public class SentenceVectors {
 
       TermsEnum termsEnum=null;
   	try {
-  		termsEnum = terms.iterator(null);
+  		termsEnum = terms.iterator();
   	} catch (IOException e1) {
   		// TODO Auto-generated catch block
   		e1.printStackTrace();
@@ -207,7 +205,7 @@ public class SentenceVectors {
   		while((text = termsEnum.next()) != null) {
   		  String theTerm = text.utf8ToString();
   		  
-  		  DocsAndPositionsEnum docsAndPositions = termsEnum.docsAndPositions(null, null);
+  		  PostingsEnum docsAndPositions = termsEnum.postings(null);
   		  if (docsAndPositions == null) continue;
   		  
   		  docsAndPositions.nextDoc();

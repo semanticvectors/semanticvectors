@@ -29,7 +29,7 @@
     </scm>
 
     <properties>
-        <luceneversion>5.0.0</luceneversion>
+        <luceneversion>6.6.0</luceneversion>
         <!-- Override using "mvn install -DskipTests=false". -->
         <skipTests>true</skipTests>
         <attachDependencySources>false</attachDependencySources>
@@ -63,6 +63,11 @@
             <version>${luceneversion}</version>
         </dependency>
         <dependency>
+            <groupId>org.apache.lucene</groupId>
+            <artifactId>lucene-misc</artifactId>
+            <version>${luceneversion}</version>
+        </dependency>
+        <dependency>
             <groupId>net.sourceforge.parallelcolt</groupId>
             <artifactId>parallelcolt</artifactId>
             <version>0.10.0</version>
@@ -87,8 +92,8 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>2.1</version>
                 <configuration>
-                    <source>1.7</source>
-                    <target>1.7</target>
+                    <source>1.8</source>
+                    <target>1.8</target>
                 </configuration>
             </plugin>
 

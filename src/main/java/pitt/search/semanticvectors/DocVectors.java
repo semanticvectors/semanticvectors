@@ -36,7 +36,7 @@
 package pitt.search.semanticvectors;
 
 import org.apache.lucene.index.CorruptIndexException;
-import org.apache.lucene.index.DocsEnum;
+import org.apache.lucene.index.PostingsEnum;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.index.TermsEnum;
 
@@ -132,12 +132,12 @@ public class DocVectors implements VectorStore {
           float fieldweight = 1;
 
           // Get any docs for this term.
-          DocsEnum docsEnum = this.luceneUtils.getDocsForTerm(term);
+          PostingsEnum docsEnum = this.luceneUtils.getDocsForTerm(term);
 
           // This may occur frequently if one term vector store is derived from multiple fields
           if (docsEnum == null)  { continue; }
 
-          while (docsEnum.nextDoc() != DocsEnum.NO_MORE_DOCS) {
+          while (docsEnum.nextDoc() != PostingsEnum.NO_MORE_DOCS) {
             String externalDocID = luceneUtils.getExternalDocId(docsEnum.docID());
             // Add vector from this term, taking freq into account.
             Vector docVector = this.docVectors.getVector(externalDocID);
@@ -145,7 +145,7 @@ public class DocVectors implements VectorStore {
 
             if (flagConfig.fieldweight()) {
               //field weight: 1/sqrt(number of terms in field)
-              TermsEnum terms = luceneUtils.getTermVector(docsEnum.docID(), fieldName).iterator(null);
+              TermsEnum terms = luceneUtils.getTermVector(docsEnum.docID(), fieldName).iterator();
               int numTerms = 0;
               while (terms.next() != null) {
                 numTerms++;
