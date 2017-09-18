@@ -44,6 +44,7 @@ import pitt.search.semanticvectors.FlagConfig;
 import pitt.search.semanticvectors.ObjectVector;
 import pitt.search.semanticvectors.VectorStoreRAM;
 import pitt.search.semanticvectors.utils.Bobcat;
+import pitt.search.semanticvectors.vectors.BinaryVector;
 import pitt.search.semanticvectors.vectors.ComplexVector;
 import pitt.search.semanticvectors.vectors.ComplexVector.Mode;
 import pitt.search.semanticvectors.vectors.Vector;
@@ -59,9 +60,9 @@ import pitt.search.semanticvectors.vectors.VectorUtils;
  */
 public class NumberRepresentation {
   /** Random seed used for starting demarcator vectors. */
-  private final String startRandomSeed = "*START*";
+  private String startRandomSeed = "*START*";
   /** Random seed used for ending demarcator vectors. */
-  private final String endRandomSeed = "*END*";
+  private String endRandomSeed = "*END*";
 
   /**
    * Cache of number vectors that have been seen before.
@@ -90,8 +91,12 @@ public class NumberRepresentation {
   public NumberRepresentation(FlagConfig flagConfig, String startSeed, String endSeed) {
     if (flagConfig == null) throw new NullPointerException("flagConfig cannot be null");
 
-    //this.startRandomSeed = startSeed;
-    //this.endRandomSeed = endSeed;
+    //enforce probabilistic normalization for binary vectors
+    if (flagConfig.vectortype().equals(VectorType.BINARY))
+    		BinaryVector.setNormalizationMethod(BinaryVector.NORMALIZE_METHOD.PROBABILISTIC);
+    
+    this.startRandomSeed = startSeed;
+    this.endRandomSeed = endSeed;
 
     this.flagConfig = flagConfig;
 
