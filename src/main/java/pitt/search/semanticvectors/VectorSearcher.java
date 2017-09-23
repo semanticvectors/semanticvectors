@@ -82,6 +82,7 @@ abstract public class VectorSearcher {
   private VectorStore searchVecStore;
   private LuceneUtils luceneUtils;
 
+  
   /**
    * Expand search space for dual-predicate searches
    */  
@@ -96,24 +97,87 @@ abstract public class VectorSearcher {
       storeVectors.add(nextObjectVector);
     }
 
-    for (int x=0; x < storeVectors.size()-1; x++) {
-      for (int y=x; y < storeVectors.size(); y++) {
-        Vector vec1 = storeVectors.get(x).getVector().copy();
+    for (int x=0; x < storeVectors.size()-2; x++) {
+      for (int y=x; y < storeVectors.size()-1; y++) {
+       Vector vec1 = storeVectors.get(x).getVector().copy();
         Vector vec2 = storeVectors.get(y).getVector().copy();
+       
         String obj1 = storeVectors.get(x).getObject().toString();
         String obj2 = storeVectors.get(y).getObject().toString();
-
+        
         if (obj1.equals(obj2)) continue;
         
         vec1.release(vec2);
-        nusearchspace.putVector(obj2+":"+obj1, vec1);
+        nusearchspace.putVector(obj2+":"+obj1, vec1.copy());
 
         if (flagConfig.vectortype().equals(VectorType.COMPLEX)) {
           vec2.release(storeVectors.get(x).getVector().copy());
           nusearchspace.putVector(obj1+":"+obj2, vec2);
         }
+        
       }
     }
+    
+    
+    
+    
+   // System.err.println("Expanding search space from "+storeVectors.size()+" to "+nusearchspace.getNumVectors());
+    return nusearchspace;
+  }
+  
+  /**
+   * Expand search space for triple-predicate searches
+   */  
+  public static VectorStore expandSearchSpace3(VectorStore searchVecStore, FlagConfig flagConfig) {
+    VectorStoreRAM nusearchspace = new VectorStoreRAM(flagConfig);
+    Enumeration<ObjectVector> allVectors = searchVecStore.getAllVectors();
+    ArrayList<ObjectVector> storeVectors = new ArrayList<ObjectVector>();
+
+    while (allVectors.hasMoreElements()) {
+      ObjectVector nextObjectVector = allVectors.nextElement();
+      nusearchspace.putVector(nextObjectVector.getObject(), nextObjectVector.getVector());
+      storeVectors.add(nextObjectVector);
+    }
+
+    for (int x=0; x < storeVectors.size()-2; x++) {
+      for (int y=x; y < storeVectors.size()-1; y++) {
+    	  for (int z=y; z < storeVectors.size(); z++) {
+        Vector vec1 = storeVectors.get(x).getVector().copy();
+        Vector vec2 = storeVectors.get(y).getVector().copy();
+        Vector vec3 = storeVectors.get(z).getVector().copy();
+       
+        String obj1 = storeVectors.get(x).getObject().toString();
+        String obj2 = storeVectors.get(y).getObject().toString();
+        String obj3 = storeVectors.get(z).getObject().toString();
+        
+        if (obj1.equals(obj2)) continue;
+        
+        vec1.release(vec2);
+        nusearchspace.putVector(obj2+":"+obj1, vec1.copy());
+
+        if (flagConfig.vectortype().equals(VectorType.COMPLEX)) {
+          vec2.release(storeVectors.get(x).getVector().copy());
+          nusearchspace.putVector(obj1+":"+obj2, vec2);
+        }
+        
+        if (obj3.equals(obj2) || obj3.equals(obj1)) continue;
+        
+        vec1.release(vec3);
+        nusearchspace.putVector(obj1+":"+obj2+":"+obj3, vec1);
+
+        if (flagConfig.vectortype().equals(VectorType.COMPLEX)) {
+          vec3.release(vec2);
+          nusearchspace.putVector(obj3+":"+obj2+":"+obj1, vec2);
+        }
+        
+        
+    	  } 
+      }
+    }
+    
+    
+    
+    
     System.err.println("Expanding search space from "+storeVectors.size()+" to "+nusearchspace.getNumVectors());
     return nusearchspace;
   }
@@ -138,6 +202,10 @@ abstract public class VectorSearcher {
     this.luceneUtils = luceneUtils;
     if (flagConfig.expandsearchspace()) {
       this.searchVecStore = expandSearchSpace(searchVecStore, flagConfig);
+    } else if (flagConfig.expandsearchspace3())
+    {
+    	  this.searchVecStore = expandSearchSpace3(searchVecStore, flagConfig);
+
     }
   }
 
@@ -185,10 +253,14 @@ abstract public class VectorSearcher {
       }
 
       if (flagConfig.stdev()) {
+    	double susq = Math.pow(score, 2);
+    	if (!Double.isNaN(susq))
+    	{
         count++;
         sum += score;
         sumsquared += Math.pow(score, 2);
-      }
+    	}
+    	}
 
       if (score > threshold) {
         // set existing object in buffer space
@@ -824,13 +896,21 @@ abstract public class VectorSearcher {
         VectorStore queryVecStore, VectorStore searchVecStore,
         LuceneUtils luceneUtils, FlagConfig flagConfig, String[] queryTriple) {
       super(queryVecStore, searchVecStore, luceneUtils, flagConfig);
+      
+      //querytriple of form a is to b as c is to d
+      //according to Levy/Goldberg ("lessons/learned) b - a+ c
       Vector term0 = CompoundVectorBuilder.getQueryVectorFromString(queryVecStore, luceneUtils, flagConfig, queryTriple[0]);
       Vector term1 = CompoundVectorBuilder.getQueryVectorFromString(queryVecStore, luceneUtils, flagConfig, queryTriple[1]);
       Vector term2 = CompoundVectorBuilder.getQueryVectorFromString(queryVecStore, luceneUtils, flagConfig, queryTriple[2]);
-      Vector relationVec = term0.copy();
-      relationVec.bind(term1);
+      Vector relationVec = term1.copy();
+      relationVec.superpose(term0, -1, null);
+     
+      //relationVec.bind(term1);
       this.queryVector = term2.copy();
-      this.queryVector.release(relationVec);
+      relationVec.superpose(queryVector, 1, null);
+      relationVec.normalize();
+      queryVector = relationVec;
+      //this.queryVector.release(relationVec);
     }
 
     @Override
@@ -1026,7 +1106,7 @@ abstract public class VectorSearcher {
   public LinkedList<SearchResult> getNearestNeighbors(int numResults) {
     LinkedList<SearchResult> results = new LinkedList<SearchResult>();
     
-    BooleanQuery mtq = new BooleanQuery();
+    BooleanQuery.Builder mtq = new BooleanQuery.Builder();
     
     for (int q=0; q < queryTerms.length; q++)
     {
@@ -1044,7 +1124,7 @@ abstract public class VectorSearcher {
 
     TopDocs docs;
 	try {
-		docs = iSearcher.search(mtq, specialFlagConfig.numsearchresults());
+		docs = iSearcher.search(mtq.build(), specialFlagConfig.numsearchresults());
 	
 	ScoreDoc[] hits2 = docs.scoreDocs;
 	
@@ -1053,7 +1133,7 @@ abstract public class VectorSearcher {
 
 		 if (specialFlagConfig.hybridvectors())
 		 if (i < specialFlagConfig.numsearchresults()) {
-		 Explanation explain = iSearcher.explain(mtq, docId);
+		 Explanation explain = iSearcher.explain(mtq.build(), docId);
 		 System.out.println(explain);
 		 }
 		Document d = iSearcher.doc(docId);

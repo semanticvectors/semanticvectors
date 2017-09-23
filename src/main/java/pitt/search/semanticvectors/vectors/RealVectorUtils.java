@@ -114,13 +114,34 @@ public class RealVectorUtils {
    * product rather than cosine similarity for {@link RealVector#measureOverlap(Vector)}.)
    */
   public static RealVector normalizedConvolution(RealVector first, RealVector second) {
-    first.normalize();
-    second.normalize();
-    RealVector convolution = fftConvolution(first, second);
+    
+	RealVector first2 = first.copy();
+	RealVector second2 = second.copy();
+	
+	first2.normalize();
+    second2.normalize();
+    RealVector convolution = fftConvolution(first2, second2);
     convolution.normalize();
     return convolution;
   }
 
+
+  
+  /**
+   * Returns the length of this vector
+   * @param vector
+   * @return
+   */
+  
+  public static double norm(RealVector vector)
+  {
+	  double norm = 0;
+	  for (int d=0; d < vector.getDimension(); d++)
+		  norm += Math.pow(vector.getCoordinates()[d],2);
+	  
+	  return Math.sqrt(norm);
+	  
+  }
 
   /**
    * Returns the involution (the vector with the coordinates reversed).

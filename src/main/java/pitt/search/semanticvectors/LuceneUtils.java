@@ -1,36 +1,36 @@
 /**
-   Copyright (c) 2007, University of Pittsburgh
-
-   All rights reserved.
-
-   Redistribution and use in source and binary forms, with or without
-   modification, are permitted provided that the following conditions are
-   met:
-
+ * Copyright (c) 2007, University of Pittsburgh
+ * <p>
+ * All rights reserved.
+ * <p>
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are
+ * met:
+ * <p>
  * Redistributions of source code must retain the above copyright
-   notice, this list of conditions and the following disclaimer.
-
+ * notice, this list of conditions and the following disclaimer.
+ * <p>
  * Redistributions in binary form must reproduce the above
-   copyright notice, this list of conditions and the following
-   disclaimer in the documentation and/or other materials provided
-   with the distribution.
-
+ * copyright notice, this list of conditions and the following
+ * disclaimer in the documentation and/or other materials provided
+ * with the distribution.
+ * <p>
  * Neither the name of the University of Pittsburgh nor the names
-   of its contributors may be used to endorse or promote products
-   derived from this software without specific prior written
-   permission.
-
-   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-   "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-   LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-   A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
-   CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-   EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-   PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-   PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-   LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-   NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-   SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * of its contributors may be used to endorse or promote products
+ * derived from this software without specific prior written
+ * permission.
+ * <p>
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
+ * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+ * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+ * PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+ * LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  **/
 
 package pitt.search.semanticvectors;
@@ -40,22 +40,22 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.FileSystems;
 import java.util.ArrayList;
-import java.util.Hashtable;
 import java.util.List;
 import java.util.TreeSet;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 
 import org.apache.lucene.document.Document;
-import org.apache.lucene.index.LeafReader;
 import org.apache.lucene.index.BaseCompositeReader;
+import org.apache.lucene.index.LeafReader;
 import org.apache.lucene.index.DirectoryReader;
-import org.apache.lucene.index.DocsEnum;
-import org.apache.lucene.index.FieldInfos;
-import org.apache.lucene.index.FieldInfo;
-import org.apache.lucene.index.MultiFields;
 import org.apache.lucene.index.SlowCompositeReaderWrapper;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.index.Terms;
+import org.apache.lucene.index.MultiFields;
+import org.apache.lucene.index.PostingsEnum;
+import org.apache.lucene.index.FieldInfos;
+import org.apache.lucene.index.FieldInfo;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.util.Version;
 
@@ -67,21 +67,23 @@ import pitt.search.semanticvectors.utils.VerbatimLogger;
  * including term frequency, doc frequency.
  */
 public class LuceneUtils {
-  public static final Version LUCENE_VERSION = Version.LUCENE_5_0_0;
+  public static final Version LUCENE_VERSION = Version.LUCENE_6_6_0;
 
   private static final Logger logger = Logger.getLogger(DocVectors.class.getCanonicalName());
   private FlagConfig flagConfig;
   private BaseCompositeReader<LeafReader> compositeReader;
   private LeafReader leafReader;
-  private Hashtable<Term, Float> termEntropy = new Hashtable<Term, Float>();
-  private Hashtable<Term, Float> termIDF = new Hashtable<>();
+  private ConcurrentHashMap<Term, Float> termEntropy = new ConcurrentHashMap<Term, Float>();
+  private ConcurrentHashMap<Term, Float> termIDF = new ConcurrentHashMap<Term, Float>();
+  private ConcurrentHashMap<Term, Integer> termFreq = new ConcurrentHashMap<Term, Integer>();
+  private boolean totalTermCountCaching = true;
   private TreeSet<String> stopwords = null;
   private TreeSet<String> startwords = null;
 
   /**
    * Determines which term-weighting strategy to use in indexing, 
    * and in search if {@link FlagConfig#usetermweightsinsearch()} is set.
-   * 
+   *
    * <p>Names may be passed as command-line arguments, so underscores are avoided.
    */
   public enum TermWeight {
@@ -107,16 +109,17 @@ public class LuceneUtils {
 
     this.compositeReader = DirectoryReader.open(
         FSDirectory.open(FileSystems.getDefault().getPath(flagConfig.luceneindexpath())));
-    this.leafReader =  SlowCompositeReaderWrapper.wrap(compositeReader);
+    this.leafReader = SlowCompositeReaderWrapper.wrap(compositeReader);
     MultiFields.getFields(compositeReader);
     this.flagConfig = flagConfig;
     if (!flagConfig.stoplistfile().isEmpty())
       loadStopWords(flagConfig.stoplistfile());
 
     if (!flagConfig.startlistfile().isEmpty())
-        loadStartWords(flagConfig.startlistfile());
+      loadStartWords(flagConfig.startlistfile());
 
     VerbatimLogger.info("Initialized LuceneUtils from Lucene index in directory: " + flagConfig.luceneindexpath() + "\n");
+    VerbatimLogger.info("Fields in index are: " + String.join(", ", this.getFieldNames()) + "\n");
   }
 
   /**
@@ -124,7 +127,7 @@ public class LuceneUtils {
    * @param stoppath Path to stopword file.
    * @throws IOException If stopword file cannot be read.
    */
-  public void loadStopWords(String stoppath) throws IOException  {
+  public void loadStopWords(String stoppath) throws IOException {
     logger.info("Using stopword file: " + stoppath);
     stopwords = new TreeSet<String>();
     try {
@@ -135,8 +138,7 @@ public class LuceneUtils {
         in = readIn.readLine();
       }
       readIn.close();
-    }
-    catch (IOException e) {
+    } catch (IOException e) {
       throw new IOException("Couldn't open file " + stoppath);
     }
   }
@@ -146,7 +148,7 @@ public class LuceneUtils {
    * @param startpath Path to startword file
    * @throws IOException If startword file cannot be read.
    */
-  public void loadStartWords(String startpath) throws IOException  {
+  public void loadStartWords(String startpath) throws IOException {
     startwords = new TreeSet<String>();
     try {
       BufferedReader readIn = new BufferedReader(new FileReader(startpath));
@@ -159,9 +161,8 @@ public class LuceneUtils {
           "Loading startword file: '%s'. Only these %d words will be indexed.\n",
           startpath, startwords.size()));
       readIn.close();
-    }
-    catch (IOException e) {
-      throw new IOException("Couldn't open file "+startpath);
+    } catch (IOException e) {
+      throw new IOException("Couldn't open file " + startpath);
     }
   }
 
@@ -172,7 +173,7 @@ public class LuceneUtils {
     if (stopwords == null) return false;
     return stopwords.contains(x);
   }
-  
+
   /**
    * Returns false if term is not in startlist, true otherwise (including if no startlist exists).
    */
@@ -180,17 +181,17 @@ public class LuceneUtils {
     if (startwords == null) return true;
     return startwords.contains(x);
   }
-  
+
   public Document getDoc(int docID) throws IOException {
     return this.leafReader.document(docID);
   }
 
   public String getExternalDocId(int docID) throws IOException {
-    
-	  //to save time, avoid using external ID if so desired
-	  if (flagConfig.docidfield().equals("luceneID")) return docID +"";
-	  
-	String externalDocId;
+
+    //to save time, avoid using external ID if so desired
+    if (flagConfig.docidfield().equals("luceneID")) return docID + "";
+
+    String externalDocId;
     try {
       externalDocId = this.getDoc(docID).getField(flagConfig.docidfield()).stringValue();
     } catch (IOException | NullPointerException e) {
@@ -216,25 +217,41 @@ public class LuceneUtils {
     }
     return leafReader.terms(field);
   }
-  
-  public DocsEnum getDocsForTerm(Term term) throws IOException {
-    return this.leafReader.termDocsEnum(term);
+
+  public PostingsEnum getDocsForTerm(Term term) throws IOException {
+    return this.leafReader.postings(term);
   }
 
   public Terms getTermVector(int docID, String field) throws IOException {
     return this.leafReader.getTermVector(docID, field);
   }
-  
+
   public FieldInfos getFieldInfos() {
     return this.leafReader.getFieldInfos();
   }
 
   public List<String> getFieldNames() {
     List<String> fieldNames = new ArrayList<>();
-    for(FieldInfo fieldName : this.leafReader.getFieldInfos()) {
+    for (FieldInfo fieldName : this.leafReader.getFieldInfos()) {
       fieldNames.add(fieldName.name);
     }
     return fieldNames;
+  }
+
+  /**
+   * Gets the document frequency of a term,
+   * i.e. how may documents it occurs in the whole corpus
+   * @param term whose frequency you want
+   * @return Global document frequency of term, or 1 if unavailable.
+   */
+  public int getGlobalDocFreq(Term term) {
+    try {
+      return compositeReader.docFreq(term);
+    } catch (IOException e) {
+      // TODO Auto-generated catch block
+      logger.info("Couldn't get term frequency for term " + term.text());
+      return 1;
+    }
   }
 
   /**
@@ -244,15 +261,17 @@ public class LuceneUtils {
    * @return Global term frequency of term, or 1 if unavailable.
    */
   public int getGlobalTermFreq(Term term) {
-	  int tf = 0;
-	
-    try {
-		  tf  = (int) compositeReader.totalTermFreq(term);
-    }
-    catch (IOException e) {
-      logger.info("Couldn't get term frequency for term " + term.text());
-      return 1;
-    }
+    int tf = 0;
+    if (totalTermCountCaching && termFreq.containsKey(term)) {
+      return termFreq.get(term);
+    } else
+      try {
+        tf = (int) compositeReader.totalTermFreq(term);
+        termFreq.put(term, tf);
+      } catch (IOException e) {
+        logger.info("Couldn't get term frequency for term " + term.text());
+        return 1;
+      }
     if (tf == -1) {
       logger.warning("Lucene StandardDirectoryReader returned -1 for term: '"
           + term.text() + "' in field: '" + term.field() + "'. Changing to 0."
@@ -268,7 +287,7 @@ public class LuceneUtils {
    */
   public float getGlobalTermWeightFromString(String termString) {
     float freq = 0;
-    for (String field: flagConfig.contentsfields())
+    for (String field : flagConfig.contentsfields())
       freq += getGlobalTermWeight(new Term(field, termString));
     return freq;
   }
@@ -276,7 +295,7 @@ public class LuceneUtils {
   /**
    * Gets a global term weight for a term, depending on the setting for
    * {@link FlagConfig#termweight()}.
-   * 
+   *
    * Used in indexing. Used in query weighting if
    * {@link FlagConfig#usetermweightsinsearch} is true.
    *
@@ -285,13 +304,13 @@ public class LuceneUtils {
    */
   public float getGlobalTermWeight(Term term) {
     switch (flagConfig.termweight()) {
-    case NONE:
-    case SQRT:
-      return 1;
-    case IDF:
-      return getIDF(term);
-    case LOGENTROPY:
-      return getEntropy(term);
+      case NONE:
+      case SQRT:
+        return 1;
+      case IDF:
+        return getIDF(term);
+      case LOGENTROPY:
+        return getEntropy(term);
     }
     VerbatimLogger.severe("Unrecognized termweight option: " + flagConfig.termweight()
         + ". Returning 1.\n");
@@ -301,7 +320,7 @@ public class LuceneUtils {
   /**
    * Gets a local term weight for a term based on its document frequency, depending on the setting for
    * {@link FlagConfig#termweight()}.
-   * 
+   *
    * Used in indexing. 
    *
    * @param docfreq the frequency of the term concerned in the document of interest
@@ -309,41 +328,43 @@ public class LuceneUtils {
    */
   public float getLocalTermWeight(int docfreq) {
     switch (flagConfig.termweight()) {
-    case NONE:
-      return 1;
-    case IDF:
-      return docfreq;
-    case LOGENTROPY:
-      return (float) Math.log10(1+docfreq);
-    case SQRT:
-      return (float) Math.sqrt(docfreq);
+      case NONE:
+        return 1;
+      case IDF:
+        return docfreq;
+      case LOGENTROPY:
+        return (float) Math.log10(1 + docfreq);
+      case SQRT:
+        return (float) Math.sqrt(docfreq);
     }
     VerbatimLogger.severe("Unrecognized termweight option: " + flagConfig.termweight()
         + ". Returning 1.");
     return 1;
   }
-  
+
   /**
    * Returns the number of documents in the Lucene index.
    */
-  public int getNumDocs() { return compositeReader.numDocs(); }
+  public int getNumDocs() {
+    return compositeReader.numDocs();
+  }
 
   /**
    * Gets the IDF (i.e. log10(numdocs/doc frequency)) of a term
-   *	@param term the term whose IDF you would like
+   *  @param term the term whose IDF you would like
    */
   private float getIDF(Term term) {
     if (termIDF.containsKey(term)) {
       return termIDF.get(term);
-    } else { 
+    } else {
       try {
-        int freq =  compositeReader.docFreq(term);
-        if (freq == 0) { 
+        int freq = compositeReader.docFreq(term);
+        if (freq == 0) {
           return 0;
         }
-        float idf = (float) Math.log10(compositeReader.numDocs()/freq);
+        float idf = (float) Math.log10(compositeReader.numDocs() / (float) freq);
         termIDF.put(term, idf);
-        return idf; 
+        return idf;
       } catch (IOException e) {
         // Catches IOException from looking up doc frequency, never seen yet in practice.
         e.printStackTrace();
@@ -364,36 +385,35 @@ public class LuceneUtils {
    * Thanks to Vidya Vasuki for adding the hash table to
    * eliminate redundant calculation
    */
-  private float getEntropy(Term term){
-    if(termEntropy.containsKey(term))
+  private float getEntropy(Term term) {
+    if (termEntropy.containsKey(term))
       return termEntropy.get(term);
     int gf = getGlobalTermFreq(term);
     double entropy = 0;
     try {
-      DocsEnum docsEnum = this.getDocsForTerm(term);
-      while((docsEnum.nextDoc()) != DocsEnum.NO_MORE_DOCS) {
+      PostingsEnum docsEnum = this.getDocsForTerm(term);
+      while ((docsEnum.nextDoc()) != PostingsEnum.NO_MORE_DOCS) {
         double p = docsEnum.freq(); //frequency in this document
-        p = p / gf;		//frequency across all documents
+        p = p / gf;    //frequency across all documents
         entropy += p * (Math.log(p) / Math.log(2)); //sum of Plog(P)
       }
-      int n= this.getNumDocs();
-      double log2n = Math.log(n)/Math.log(2);
-      entropy = entropy/log2n;
-    }
-    catch (IOException e) {
+      int n = this.getNumDocs();
+      double log2n = Math.log(n) / Math.log(2);
+      entropy = entropy / log2n;
+    } catch (IOException e) {
       logger.info("Couldn't get term entropy for term " + term.text());
     }
-    termEntropy.put(term, 1 + (float)entropy);
+    termEntropy.put(term, 1 + (float) entropy);
     return (float) (1 + entropy);
   }
 
   /**
    * Public version of {@link #termFilter} that gets all its inputs from the
    * {@link #flagConfig} and the provided term.
-   * 
+   *
    * External callers should normally use this method, so that new filters are
    * available through different codepaths provided they pass a {@code FlagConfig}.
-   * 
+   *
    * @param term Term to be filtered in or out, depending on Lucene index and flag configs.
    */
   public boolean termFilter(Term term) {
@@ -401,13 +421,13 @@ public class LuceneUtils {
         flagConfig.minfrequency(), flagConfig.maxfrequency(),
         flagConfig.maxnonalphabetchars(), flagConfig.filteroutnumbers(),
         flagConfig.mintermlength());
-  }  
+  }
 
   /**
    * Filters out non-alphabetic terms and those of low frequency.
-   * 
+   *
    * Thanks to Vidya Vasuki for refactoring and bug repair
-   * 
+   *
    * @param term Term to be filtered.
    * @param desiredFields Terms in only these fields are filtered in
    * @param minFreq minimum term frequency accepted
@@ -431,7 +451,7 @@ public class LuceneUtils {
     // Startlist (if active)
     if (!startlistContains(term.text()))
       return false;
-    
+
     if (!isDesiredField) {
       return false;
     }
@@ -440,10 +460,10 @@ public class LuceneUtils {
     if (maxNonAlphabet != -1) {
       int nonLetter = 0;
       String termText = term.text();
-      
+
       //Must meet minimum term length requirement
       if (termText.length() < minTermLength) return false;
-      
+
       for (int i = 0; i < termText.length(); ++i) {
         if (!Character.isLetter(termText.charAt(i)))
           nonLetter++;
@@ -454,7 +474,7 @@ public class LuceneUtils {
 
     // Frequency filter.
     int termfreq = getGlobalTermFreq(term);
-    if (termfreq < minFreq | termfreq > maxFreq)  {
+    if (termfreq < minFreq | termfreq > maxFreq) {
       return false;
     }
 
@@ -464,7 +484,7 @@ public class LuceneUtils {
 
   /**
    * Applies termFilter and additionally (if requested) filters out digit-only words. 
-   * 
+   *
    * @param term Term to be filtered.
    * @param desiredFields Terms in only these fields are filtered in
    * @param minFreq minimum term frequency accepted
@@ -481,43 +501,11 @@ public class LuceneUtils {
         // if the token can be parsed as a floating point number, no exception is thrown and false is returned
         // if not, an exception is thrown and we continue with the other termFilter method.
         // remark: this does not filter out e.g. Java or C++ formatted numbers like "1f" or "1.0d"
-        Double.parseDouble( term.text() );
+        Double.parseDouble(term.text());
         return false;
-      } catch (Exception e) {}
+      } catch (Exception e) {
+      }
     }
     return termFilter(term, desiredFields, minFreq, maxFreq, maxNonAlphabet, minTermLength);
   }
-
-  /**
-   * TODO(dwiddows): Check that no longer needed in Lucene 4.x and above.
-   * 
-   * Static method for compressing an index.
-   *
-   * This small preprocessing step makes sure that the Lucene index
-   * is optimized to use contiguous integers as identifiers.
-   * Otherwise exceptions can occur if document id's are greater
-   * than indexReader.numDocs().
-   */
-
-  static void compressIndex(String indexDir) {
-    return;
-  }
-  
-  /*
-    try {
-      IndexWriter compressor = new IndexWriter(FSDirectory.open(new File(indexDir)),
-          new StandardAnalyzer(Version.LUCENE_30),
-          false,
-          MaxFieldLength.UNLIMITED);
-      compressor.optimize();
-      compressor.close();
-    } catch (CorruptIndexException e) {
-      e.printStackTrace();
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
-  }
-  */
-  
-  
 }

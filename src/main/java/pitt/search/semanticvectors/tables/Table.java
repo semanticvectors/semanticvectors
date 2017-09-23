@@ -1,16 +1,13 @@
 package pitt.search.semanticvectors.tables;
 
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 
 import pitt.search.semanticvectors.*;
 import pitt.search.semanticvectors.utils.Bobcat;
-import pitt.search.semanticvectors.utils.VerbatimLogger;
 import pitt.search.semanticvectors.vectors.Vector;
 import pitt.search.semanticvectors.vectors.VectorFactory;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 /**
  * Represents a table of data. This includes:
@@ -171,12 +168,14 @@ public class Table {
     System.err.println(columnTypes[5].getMaxDoubleValue()+"\t"+columnTypes[2].getMaxDoubleValue());
     System.err.println(columnTypes[5].getMinDoubleValue()+"\t"+columnTypes[2].getMinDoubleValue());
     */
-
+    
+    
+ 
     // Now we've seen all values, those we know to be numeric should be prepared with bookend vectors.
     for (int i = 0; i < columnTypes.length; ++i) {
       if (columnTypes[i].getType() == TypeSpec.SupportedType.DOUBLE) {
-    	 columnTypes[i].addMinMaxVectors(flagConfig, "standard_demarcator");
-    //    columnTypes[i].addMinMaxVectors(flagConfig, columnHeaders[i].getObject().toString());
+    	// columnTypes[i].addMinMaxVectors(flagConfig, "standard_demarcator");
+       columnTypes[i].addMinMaxVectors(flagConfig, columnHeaders[i].getObject().toString());
       }
     }
   }

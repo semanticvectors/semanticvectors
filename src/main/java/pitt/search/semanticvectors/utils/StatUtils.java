@@ -40,4 +40,33 @@ public class StatUtils {
     float esubx = (float) Math.pow(Math.E, -x);
     return 1 / (1 + esubx);
   }
+
+  /**
+   * Gives a number representing how well a field that reaches an anchor number can also reach a target number.
+   * @return 1 if target less than anchor; anchor / target if target is greater than anchor.
+   */
+  public static double rangeEnvelopeScore(double anchor, double target) {
+    if (anchor < 0 || target < 0) {
+      throw new IllegalArgumentException(
+          String.format("Arguments must be positive numbers, not %f, %f", anchor, target));
+    }
+
+    if (target < anchor) {
+      return 1;
+    }
+
+    return anchor / target;
+  }
+
+  /**
+   * @return The ratio of the smaller to the bigger input (always 1 or less in magnitude).
+   */
+  public static double proportionScore(double anchor, double target) {
+    if (anchor < 0 || target < 0) {
+      throw new IllegalArgumentException(
+          String.format("Arguments must be positive numbers, not %f, %f", anchor, target));
+    }
+
+    return (target < anchor) ? (target / anchor) : (anchor / target);
+  }
 }

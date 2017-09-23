@@ -1,8 +1,8 @@
 package pitt.search.semanticvectors;
 
 import java.util.Enumeration;
-import java.util.Hashtable;
 import java.util.Random;
+import java.util.concurrent.ConcurrentHashMap;
 
 import pitt.search.semanticvectors.utils.Bobcat;
 import pitt.search.semanticvectors.vectors.Vector;
@@ -38,7 +38,7 @@ import pitt.search.semanticvectors.vectors.VectorType;
  **/
 public class VectorStoreDeterministic implements VectorStore, CloseableVectorStore {
   private FlagConfig flagConfig;
-  private Hashtable<Object, ObjectVector> objectVectors;
+  private ConcurrentHashMap<Object, ObjectVector> objectVectors;
   private Random random = new Random();
   private VectorType vectorType;
   private int dimension;
@@ -46,7 +46,7 @@ public class VectorStoreDeterministic implements VectorStore, CloseableVectorSto
 
   public VectorStoreDeterministic(FlagConfig flagConfig) {
     this.flagConfig = flagConfig;
-    this.objectVectors = new Hashtable<Object, ObjectVector>();
+    this.objectVectors = new ConcurrentHashMap<Object, ObjectVector>();
     this.vectorType = flagConfig.vectortype();
     this.dimension = flagConfig.dimension();
   }

@@ -2,6 +2,7 @@
 # Maven generic
 dependency-reduced-pom.xml
 target/*
+out
 
 ###
 # semanticvectors specific
@@ -9,6 +10,7 @@ permutation_index/
 positional_index/
 predication_index/
 testtermvectors.txt
+exampleclient/target/
 
 #################
 ## IntelliJ IDEA

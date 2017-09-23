@@ -36,11 +36,13 @@
 package pitt.search.semanticvectors;
 
 import org.apache.lucene.document.Document;
-import org.apache.lucene.index.DocsEnum;
+import org.apache.lucene.index.PostingsEnum;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.index.Terms;
 import org.apache.lucene.index.TermsEnum;
 import org.apache.lucene.util.BytesRef;
+
+import pitt.search.semanticvectors.LuceneUtils.TermWeight;
 import pitt.search.semanticvectors.utils.VerbatimLogger;
 import pitt.search.semanticvectors.vectors.PermutationUtils;
 import pitt.search.semanticvectors.vectors.Vector;
@@ -92,11 +94,13 @@ public class PSI {
     VerbatimLogger.info("Performing first round of PSI training ...");
     incrementalPSIVectors.trainIncrementalPSIVectors("");
 
+    if (flagConfig.trainingcycles() > 0)
+    {	
     VerbatimLogger.info("Performing next round of PSI training ...");
     incrementalPSIVectors.elementalItemVectors = incrementalPSIVectors.semanticItemVectors;
     incrementalPSIVectors.elementalPredicateVectors = incrementalPSIVectors.semanticPredicateVectors;
     incrementalPSIVectors.trainIncrementalPSIVectors("1");
-
+    }
     VerbatimLogger.info("Done with createIncrementalPSIVectors.");
   }
 
@@ -118,6 +122,8 @@ public class PSI {
 
     HashSet<String> addedConcepts = new HashSet<String>();
 
+    // Term counter to track initialization progress.
+    int tc = 0;
     for (String fieldName : itemFields) {
       Terms terms = luceneUtils.getTermsForField(fieldName);
 
@@ -127,7 +133,7 @@ public class PSI {
             fieldName, flagConfig.luceneindexpath()));
       }
 
-      TermsEnum termsEnum = terms.iterator(null);
+      TermsEnum termsEnum = terms.iterator();
       BytesRef bytes;
       while((bytes = termsEnum.next()) != null) {
         Term term = new Term(fieldName, bytes);
@@ -142,6 +148,12 @@ public class PSI {
           elementalItemVectors.getVector(term.text());  // Causes vector to be created.
           semanticItemVectors.putVector(term.text(), VectorFactory.createZeroVector(
               flagConfig.vectortype(), flagConfig.dimension()));
+
+          // Output term counter.
+          tc++;
+          if ((tc > 0) && ((tc % 10000 == 0) || ( tc < 10000 && tc % 1000 == 0 ))) {
+            VerbatimLogger.info("Initialized " + tc + " term vectors ... ");
+          }
         }
       }
     }
@@ -149,7 +161,7 @@ public class PSI {
     // Now elemental vectors for the predicate field.
     Terms predicateTerms = luceneUtils.getTermsForField(PREDICATE_FIELD);
     String[] dummyArray = new String[] { PREDICATE_FIELD };  // To satisfy LuceneUtils.termFilter interface.
-    TermsEnum termsEnum = predicateTerms.iterator(null);
+    TermsEnum termsEnum = predicateTerms.iterator();
     BytesRef bytes;
     while((bytes = termsEnum.next()) != null) {
       Term term = new Term(PREDICATE_FIELD, bytes);
@@ -159,12 +171,16 @@ public class PSI {
       }
 
       elementalPredicateVectors.getVector(term.text().trim());
-      semanticPredicateVectors.putVector(term.text().trim(), VectorFactory.createZeroVector(
+      
+      if (flagConfig.trainingcycles() > 0)
+    	  semanticPredicateVectors.putVector(term.text().trim(), VectorFactory.createZeroVector(
           flagConfig.vectortype(), flagConfig.dimension()));
 
       // Add inverse vector for the predicates.
       elementalPredicateVectors.getVector(term.text().trim() + "-INV");
-      semanticPredicateVectors.putVector(term.text().trim() + "-INV", VectorFactory.createZeroVector(
+      
+      if (flagConfig.trainingcycles() > 0)
+    	  semanticPredicateVectors.putVector(term.text().trim() + "-INV", VectorFactory.createZeroVector(
           flagConfig.vectortype(), flagConfig.dimension()));
     }
   }
@@ -178,19 +194,19 @@ public class PSI {
     String fieldName = PREDICATION_FIELD;
     // Iterate through documents (each document = one predication).
     Terms allTerms = luceneUtils.getTermsForField(fieldName);
-    TermsEnum termsEnum = allTerms.iterator(null);
+    TermsEnum termsEnum = allTerms.iterator();
     BytesRef bytes;
+    int pc = 0;
     while((bytes = termsEnum.next()) != null) {
-      int pc = 0;
       Term term = new Term(fieldName, bytes);
-      pc++;
 
       // Output progress counter.
+      pc++;
       if ((pc > 0) && ((pc % 10000 == 0) || ( pc < 10000 && pc % 1000 == 0 ))) {
         VerbatimLogger.info("Processed " + pc + " unique predications ... ");
       }
 
-      DocsEnum termDocs = luceneUtils.getDocsForTerm(term);
+      PostingsEnum termDocs = luceneUtils.getDocsForTerm(term);
       termDocs.nextDoc();
       Document document = luceneUtils.getDoc(termDocs.docID());
 
@@ -201,44 +217,55 @@ public class PSI {
       if (!(elementalItemVectors.containsVector(object)
           && elementalItemVectors.containsVector(subject)
           && elementalPredicateVectors.containsVector(predicate))) {
-        logger.info("skipping predication " + subject + " " + predicate + " " + object);
+        logger.fine("skipping predication " + subject + " " + predicate + " " + object);
         continue;
       }
 
       float sWeight = 1;
       float oWeight = 1;
       float pWeight = 1;
+      float predWeight = 1;
 
-      sWeight = luceneUtils.getGlobalTermWeight(new Term(SUBJECT_FIELD, subject));
-      oWeight = luceneUtils.getGlobalTermWeight(new Term(OBJECT_FIELD, object));
-      // TODO: Explain different weighting for predicates, log(occurrences of predication)
+      // sWeight and oWeight are analogous to global weighting, a function of the number of times these concepts - and predicates - occur
+      // such that less frequent concepts and predicates will contribute more 
+      predWeight 	= luceneUtils.getGlobalTermWeight(new Term(PREDICATE_FIELD, predicate));
+      sWeight 		= luceneUtils.getGlobalTermWeight(new Term(SUBJECT_FIELD, subject));
+      oWeight 		= luceneUtils.getGlobalTermWeight(new Term(OBJECT_FIELD, object));
+      // pWeight is analogous to local weighting, a function of the total number of times a predication occurs 
+      // examples are -termweight sqrt (sqrt of total occurences), and -termweight logentropy (log of 1 + occurrences)
       pWeight = luceneUtils.getLocalTermWeight(luceneUtils.getGlobalTermFreq(term));
 
+      // with -termweight sqrt we don't take global weighting of predicates into account to preserve a probabilistic interpretation
+      if (flagConfig.termweight().equals(TermWeight.SQRT)) predWeight = 0; 
+      
       Vector subjectSemanticVector = semanticItemVectors.getVector(subject);
       Vector objectSemanticVector = semanticItemVectors.getVector(object);
       Vector subjectElementalVector = elementalItemVectors.getVector(subject);
       Vector objectElementalVector = elementalItemVectors.getVector(object);
       Vector predicateElementalVector = elementalPredicateVectors.getVector(predicate);
       Vector predicateElementalVectorInv = elementalPredicateVectors.getVector(predicate + "-INV");
-      Vector predicateSemanticVector = semanticPredicateVectors.getVector(predicate);
-      Vector predicateSemanticVectorInv = semanticPredicateVectors.getVector(predicate+ "-INV");
 
-      //construct permuted editions of subject and object vectors (so binding doesn't commute)
-      Vector permutedSubjectElementalVector = VectorFactory.createZeroVector(flagConfig.vectortype(), flagConfig.dimension());
-      Vector permutedObjectElementalVector = VectorFactory.createZeroVector(flagConfig.vectortype(), flagConfig.dimension());
-      permutedSubjectElementalVector.superpose(subjectElementalVector, 1, predicatePermutation); 
-      permutedObjectElementalVector.superpose(objectElementalVector, 1, predicatePermutation); 
-      permutedSubjectElementalVector.normalize();
-      permutedObjectElementalVector.normalize();
-      
       Vector objToAdd = objectElementalVector.copy();
       objToAdd.bind(predicateElementalVector);
-      subjectSemanticVector.superpose(objToAdd, pWeight * oWeight, null);
+      subjectSemanticVector.superpose(objToAdd, pWeight * (oWeight + predWeight), null);
 
       Vector subjToAdd = subjectElementalVector.copy();
       subjToAdd.bind(predicateElementalVectorInv);
-      objectSemanticVector.superpose(subjToAdd, pWeight * sWeight, null);
+      objectSemanticVector.superpose(subjToAdd, pWeight * (sWeight + predWeight), null);
 
+      if (flagConfig.trainingcycles() > 0) //for experiments with generating iterative predicate vectors
+      {
+    	  
+       	  Vector predicateSemanticVector = semanticPredicateVectors.getVector(predicate);
+    		  Vector predicateSemanticVectorInv = semanticPredicateVectors.getVector(predicate+ "-INV");
+          //construct permuted editions of subject and object vectors (so binding doesn't commute)
+          Vector permutedSubjectElementalVector = VectorFactory.createZeroVector(flagConfig.vectortype(), flagConfig.dimension());
+          Vector permutedObjectElementalVector = VectorFactory.createZeroVector(flagConfig.vectortype(), flagConfig.dimension());
+          permutedSubjectElementalVector.superpose(subjectElementalVector, 1, predicatePermutation); 
+          permutedObjectElementalVector.superpose(objectElementalVector, 1, predicatePermutation); 
+          permutedSubjectElementalVector.normalize();
+          permutedObjectElementalVector.normalize();  
+    	  
       Vector predToAdd = subjectElementalVector.copy();
       predToAdd.bind(permutedObjectElementalVector);
       predicateSemanticVector.superpose(predToAdd, sWeight * oWeight, null);
@@ -246,6 +273,7 @@ public class PSI {
       Vector predToAddInv = objectElementalVector.copy();
       predToAddInv.bind(permutedSubjectElementalVector);
       predicateSemanticVectorInv.superpose(predToAddInv, oWeight * sWeight, null);
+      }
     } // Finish iterating through predications.
 
     // Normalize semantic vectors and write out.
@@ -261,10 +289,15 @@ public class PSI {
 
     VectorStoreWriter.writeVectors(
         flagConfig.semanticvectorfile() + iterationTag, flagConfig, semanticItemVectors);
+   
+    if (flagConfig.trainingcycles() > 0)
+    {	
     VectorStoreWriter.writeVectors(
         flagConfig.semanticpredicatevectorfile() + iterationTag, flagConfig, semanticPredicateVectors);
+    }
     VerbatimLogger.info("Finished writing this round of semantic item and predicate vectors.\n");
-  }
+    
+    }
 
   /**
    * Main method for building PSI indexes.

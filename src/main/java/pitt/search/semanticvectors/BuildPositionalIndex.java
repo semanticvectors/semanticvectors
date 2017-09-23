@@ -37,9 +37,11 @@ package pitt.search.semanticvectors;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Enumeration;
 import java.util.logging.Logger;
 
 import pitt.search.semanticvectors.DocVectors.DocIndexingStrategy;
+import pitt.search.semanticvectors.TermTermVectorsFromLucene.PositionalMethod;
 import pitt.search.semanticvectors.utils.VerbatimLogger;
 
 /**
@@ -120,6 +122,9 @@ public class BuildPositionalIndex {
     case DIRECTIONAL:
       termFile = flagConfig.directionalvectorfile();
       break;
+    case EMBEDDINGS:
+    	termFile = flagConfig.embeddingvectorfile();
+    	break;
     default:
       throw new IllegalArgumentException(
           "Unrecognized -positionalmethod: " + flagConfig.positionalmethod());
@@ -139,7 +144,11 @@ public class BuildPositionalIndex {
     try {
       TermTermVectorsFromLucene termTermIndexer = new TermTermVectorsFromLucene(
           flagConfig, newElementalTermVectors);
-
+      
+      //note - perhaps best to refactor this sometime in the near future - the
+      //issue is that training cycles are represented within TermTermVectorsFromLucene
+      //for embeddings currently
+      if (!flagConfig.positionalmethod().equals(PositionalMethod.EMBEDDINGS)) 
       for (int i = 1; i < flagConfig.trainingcycles(); ++i) {
         newElementalTermVectors = termTermIndexer.getSemanticTermVectors();
         VerbatimLogger.info("\nRetraining with learned term vectors ...");
@@ -148,16 +157,51 @@ public class BuildPositionalIndex {
             newElementalTermVectors);
       }
 
-      VectorStoreWriter.writeVectors(
-          termFile, flagConfig, termTermIndexer.getSemanticTermVectors());
 
+      // Normalize term vectors - but with embeddings this occurs only after document vectors are generated
+      if (!flagConfig.positionalmethod().equals(PositionalMethod.EMBEDDINGS) || flagConfig.docindexing().equals(DocIndexingStrategy.NONE))
+      {
+      
+          Enumeration<ObjectVector> e = termTermIndexer.getSemanticTermVectors().getAllVectors();
+
+          while (e.hasMoreElements()) {
+           e.nextElement().getVector().normalize();
+         }
+      }
+      
       // Incremental indexing is hardcoded into BuildPositionalIndex.
       // TODO: Understand if this is an appropriate requirement, and whether
-      //       the user should be alerted of any potential consequences.
-      if (flagConfig.docindexing() != DocIndexingStrategy.NONE) {
+      //       the user should be alerted of any potential consequences. 
+      if (flagConfig.docindexing() != DocIndexingStrategy.NONE && !(flagConfig.positionalmethod().equals(PositionalMethod.EMBEDDINGS) && flagConfig.docindexing().equals(DocIndexingStrategy.INMEMORY))) {
         IncrementalDocVectors.createIncrementalDocVectors(
             termTermIndexer.getSemanticTermVectors(), flagConfig, new LuceneUtils(flagConfig));
-      }
+      
+       if (flagConfig.positionalmethod().equals(PositionalMethod.EMBEDDINGS))
+        {
+    	   // Normalize and write term vectors, which may be altered if document vector generation
+           // was accomplished using negative sampling (once this has been implemented)
+           
+            Enumeration<ObjectVector> e = termTermIndexer.getSemanticTermVectors().getAllVectors();
+
+            while (e.hasMoreElements()) {
+             e.nextElement().getVector().normalize();
+           }
+        }	
+        }
+        
+        
+        
+        VectorStoreWriter.writeVectors(
+                termFile, flagConfig, termTermIndexer.getSemanticTermVectors());
+
+        
+        
+      
+
+      
+      
+      
+      
     }
     catch (IOException e) {
       e.printStackTrace();

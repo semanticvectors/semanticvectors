@@ -36,7 +36,6 @@
 package pitt.search.semanticvectors;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import org.apache.lucene.index.*;
 import org.apache.lucene.store.IOContext;
@@ -49,6 +48,7 @@ import pitt.search.semanticvectors.vectors.Vector;
 import pitt.search.semanticvectors.vectors.VectorFactory;
 
 import java.nio.file.FileSystems;
+import java.nio.file.NoSuchFileException;
 import java.util.Enumeration;
 import java.util.Random;
 import java.util.logging.Logger;
@@ -91,7 +91,7 @@ public class IncrementalTermVectors implements VectorStore {
 
     for (String fieldName : this.flagConfig.contentsfields()) {
       Terms terms = this.luceneUtils.getTermsForField(fieldName);
-      TermsEnum termEnum = terms.iterator(null);
+      TermsEnum termEnum = terms.iterator();
       int tc = 0;
 
       BytesRef bytes;
@@ -132,7 +132,7 @@ public class IncrementalTermVectors implements VectorStore {
       // Read number of dimensions and vector type from document vectors.
       String header = docVectorsInputStream.readString();
       FlagConfig.mergeWriteableFlagsFromString(header, flagConfig);
-    } catch (FileNotFoundException e) {
+    } catch (NoSuchFileException e) {
       logger.info("No file '" + vectorFile + "' so will use random elemental vectors instead.");
       docVectorsInputStream = null;
     }
@@ -145,17 +145,21 @@ public class IncrementalTermVectors implements VectorStore {
         VerbatimLogger.info(dc + " ... ");
       }
 
-      Vector docVector;
-      if (docVectorsInputStream.getFilePointer() < docVectorsInputStream.length() - 1) {
+      Vector docVector = null;
+      if (docVectorsInputStream != null && docVectorsInputStream.getFilePointer() < docVectorsInputStream.length() - 1) {
         docVector = VectorFactory.createZeroVector(flagConfig.vectortype(), flagConfig.dimension());
         docVectorsInputStream.readString(); // ignore document name
         docVector.readFromLuceneStream(docVectorsInputStream);
+      } else //no pre-existing document vectors, so generate random vectors instead
+      {
+    	  docVector = VectorFactory.generateRandomVector(flagConfig.vectortype(), flagConfig.dimension(), flagConfig.seedlength(), random);
+      }
 
         for (String fieldName : this.flagConfig.contentsfields()) {
           Terms docTerms = this.luceneUtils.getTermVector(dc, fieldName);
           if (docTerms == null) {logger.severe("No term vector for document "+dc); continue; }
 
-          TermsEnum termsEnum = docTerms.iterator(null);
+          TermsEnum termsEnum = docTerms.iterator();
 
           BytesRef bytes;
           while ((bytes = termsEnum.next()) != null) {
@@ -169,7 +173,7 @@ public class IncrementalTermVectors implements VectorStore {
             }
             // Exclude terms that are not represented in termVectorData
             if (termVector != null && termVector.getDimension() > 0) {
-              DocsEnum docs = termsEnum.docs(null, null);
+              PostingsEnum docs = termsEnum.postings(null);
               docs.nextDoc();
               float freq = luceneUtils.getLocalTermWeight(docs.freq());
 
@@ -178,7 +182,7 @@ public class IncrementalTermVectors implements VectorStore {
           }
         }
       }
-    } // Finish iterating through documents.
+     // Finish iterating through documents.
 
     // Normalize vectors
     Enumeration<ObjectVector> allVectors = termVectorData.getAllVectors();

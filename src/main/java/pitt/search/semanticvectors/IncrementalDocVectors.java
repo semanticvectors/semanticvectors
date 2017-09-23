@@ -118,7 +118,7 @@ public class IncrementalDocVectors {
       }
 
       // Get filename and path to be used as document vector ID, defaulting to doc number only if
-      // docidfield is not pupoulated.
+      // docidfield is not populated.
       String docID = luceneUtils.getExternalDocId(dc);
 
       Vector docVector = VectorFactory.createZeroVector(flagConfig.vectortype(), flagConfig.dimension());
@@ -134,13 +134,12 @@ public class IncrementalDocVectors {
           continue;
         }
 
-        TermsEnum tmp = null;
-        TermsEnum termsEnum = terms.iterator(tmp);
+        TermsEnum termsEnum = terms.iterator();
         BytesRef bytes;
         while ((bytes = termsEnum.next()) != null) {
           Term term = new Term(fieldName, bytes);
           String termString = term.text();
-          DocsEnum docs = termsEnum.docs(null, null);
+          PostingsEnum docs = termsEnum.postings(null);
           docs.nextDoc();
           int freq = docs.freq();
 

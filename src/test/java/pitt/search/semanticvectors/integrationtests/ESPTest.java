@@ -39,8 +39,8 @@ import java.util.*;
 
 import org.junit.*;
 
+import pitt.search.semanticvectors.ESP;
 import pitt.search.semanticvectors.FlagConfig;
-import pitt.search.semanticvectors.PSI;
 import pitt.search.semanticvectors.Search;
 import pitt.search.semanticvectors.SearchResult;
 import static org.junit.Assert.*;
@@ -50,7 +50,7 @@ import static org.junit.Assert.*;
  *
  * Should be run using "ant run-integration-tests".
  */
-public class PSITest {
+public class ESPTest {
   @Before
   public void setUp() {
     try {
@@ -61,7 +61,7 @@ public class PSITest {
     }
   }
 
-  private int psiBuildSearchGetRank(String buildCmd, String searchCmd, String targetTerm) throws IOException {
+  private int espBuildSearchGetRank(String buildCmd, String searchCmd, String targetTerm) throws IOException {
     String[] filesToBuild = new String[] {"elementalvectors.bin", "predicatevectors.bin", "semanticvectors.bin"};
     String[] buildArgs = buildCmd.split("\\s+");
     for (String fn : filesToBuild) {
@@ -70,7 +70,7 @@ public class PSITest {
       }
       assertFalse((new File(fn)).isFile());
     }
-    PSI.main(buildArgs);
+    ESP.main(buildArgs);
     for (String fn: filesToBuild) assertTrue((new File(fn)).isFile());
 
     String[] searchArgs = searchCmd.split("\\s+");
@@ -94,34 +94,27 @@ public class PSITest {
   }
 
   @Test
-  public void testBuildAndSearchRealPSIIndex() throws IOException, IllegalArgumentException {
-    String buildCmd = "-dimension 1000 -maxnonalphabetchars 20 -vectortype real -seedlength 500 -luceneindexpath predication_index";
+  public void testBuildAndSearchRealESPIndex() throws IOException, IllegalArgumentException {
+    String buildCmd = "-dimension 1000 -maxnonalphabetchars 20 -vectortype real -seedlength 1000 -luceneindexpath predication_index";
     String searchCmd = "-searchtype boundproduct -queryvectorfile semanticvectors.bin -boundvectorfile predicatevectors.bin -searchvectorfile elementalvectors.bin -matchcase mexico HAS_CURRENCY";
-    int rank = psiBuildSearchGetRank(buildCmd, searchCmd, "mexican_peso");
+    int rank = espBuildSearchGetRank(buildCmd, searchCmd, "mexican_peso");
     assertTrue(rank <= 3);
   }
-  
-  @Test
-  public void testBuildAndSearchRealPermutationPSIIndex() throws IOException, IllegalArgumentException {
-    String buildCmd = "-dimension 1000 -maxnonalphabetchars 20 -vectortype real -seedlength 500 -realbindmethod permutation -luceneindexpath predication_index";
-    String searchCmd = "-searchtype boundproduct -realbindmethod permutation -queryvectorfile semanticvectors.bin -boundvectorfile predicatevectors.bin -searchvectorfile elementalvectors.bin -matchcase mexico HAS_CURRENCY";
-    int rank = psiBuildSearchGetRank(buildCmd, searchCmd, "mexican_peso");
-    assertTrue(rank < 4);
-  }
+
 
   @Test
-  public void testBuildAndSearchBinaryPSIIndex() throws IOException, IllegalArgumentException {
+  public void testBuildAndSearchBinaryESPIndex() throws IOException, IllegalArgumentException {
     String buildCmd = "-dimension 4096 -maxnonalphabetchars 20 -vectortype binary -luceneindexpath predication_index";
     String searchCmd = "-searchtype boundproduct -queryvectorfile semanticvectors.bin -boundvectorfile predicatevectors.bin -searchvectorfile elementalvectors.bin -matchcase mexico HAS_CURRENCY";
-    int rank = psiBuildSearchGetRank(buildCmd, searchCmd, "mexican_peso");
+    int rank = espBuildSearchGetRank(buildCmd, searchCmd, "mexican_peso");
     assertTrue(rank < 2);
   }
 
   @Test
-  public void testBuildAndSearchComplexPSIIndex() throws IOException, IllegalArgumentException {
+  public void testBuildAndSearchComplexESPIndex() throws IOException, IllegalArgumentException {
     String buildCmd = "-dimension 1000 -maxnonalphabetchars 20 -vectortype complex -seedlength 1000 -luceneindexpath predication_index";
     String searchCmd = "-searchtype boundproduct -queryvectorfile semanticvectors.bin -boundvectorfile predicatevectors.bin -searchvectorfile elementalvectors.bin -matchcase mexico HAS_CURRENCY";
-    int rank = psiBuildSearchGetRank(buildCmd, searchCmd, "mexican_peso");
+    int rank = espBuildSearchGetRank(buildCmd, searchCmd, "mexican_peso");
     assertTrue(rank < 2);
   }
 }

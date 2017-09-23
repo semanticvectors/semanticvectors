@@ -69,10 +69,15 @@ public class RealVector implements Vector {
      * Slower, but optimized using Fast Fourier Transforms.
      * Approximate inverse, but keeps memory of slot-filling.
      */
-    CONVOLUTION
+    CONVOLUTION,
+    /**
+     * As above, but creates normalized version of component vectors before convolution occurs
+     * 
+     */
+    NORMALIZEDCONVOLUTION
   }
   
-  public static RealBindMethod BIND_METHOD = RealBindMethod.CONVOLUTION;
+  public static RealBindMethod BIND_METHOD = RealBindMethod.NORMALIZEDCONVOLUTION;
   public static void setBindType(RealBindMethod bindMethod) {
     logger.info("Globally setting real vector BIND_METHOD to: '" + bindMethod + "'");
     BIND_METHOD = bindMethod;
@@ -111,7 +116,7 @@ public class RealVector implements Vector {
       copy.sparseOffsets = new short[sparseOffsets.length];
       for (int i = 0; i < sparseOffsets.length; ++i) {
         copy.sparseOffsets[i] = sparseOffsets[i];
-      }
+        }
       return copy;
     } else {
       float[] coordinatesCopy = new float[dimension];
@@ -230,12 +235,9 @@ public class RealVector implements Vector {
     randomVector.sparseToDense();
 
     for (int q =0; q < dimension; q++)
-      randomVector.coordinates[q] = (float) random.nextDouble();
+      randomVector.coordinates[q] = (float) (random.nextFloat()-0.5) / (float) dimension;
 
-    for (int q =0; q < dimension; q++)
-      if (random.nextBoolean()) randomVector.coordinates[q] *=-1;
 
-    randomVector.normalize();  
     return randomVector;
   }
 
@@ -318,8 +320,11 @@ public class RealVector implements Vector {
       bindWithPermutation(realOther);
       return;
     case CONVOLUTION:
-      bindWithConvolution(realOther);
+      bindWithConvolution(realOther,false);
       return;
+    case NORMALIZEDCONVOLUTION:
+        bindWithConvolution(realOther,true);
+        return;
     }
   }
   
@@ -336,13 +341,16 @@ public class RealVector implements Vector {
       releaseWithPermutation(realOther);
       return;
     case CONVOLUTION:
+    case NORMALIZEDCONVOLUTION:
       releaseWithConvolution(realOther);
       return;
     }
   }
     
-  public void bindWithConvolution(RealVector realOther) {
-    RealVector result = RealVectorUtils.fftConvolution(this, realOther);
+  public void bindWithConvolution(RealVector realOther, boolean normalizeFirst) {
+    RealVector result = null;
+    	if (normalizeFirst) result = RealVectorUtils.normalizedConvolution(this, realOther); 
+    	else	result = RealVectorUtils.fftConvolution(this, realOther);
     this.coordinates = result.coordinates;
   }
 
@@ -420,6 +428,28 @@ public class RealVector implements Vector {
     }
   }
 
+  /**
+   * Writes vector out in dense format.  If vector is originally sparse, writes out a copy so
+   * that vector remains sparse. Truncates to length k. 
+   */
+  public void writeToLuceneStream(IndexOutput outputStream, int k) {
+    float[] coordsToWrite;
+    if (isSparse) {
+      RealVector copy = copy();
+      copy.sparseToDense();
+      coordsToWrite = copy.coordinates;
+    } else {
+      coordsToWrite = coordinates;
+    }
+    for (int i = 0; i < k; ++i) {
+      try {
+        outputStream.writeInt(Float.floatToIntBits(coordsToWrite[i]));
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+    }
+  }
+  
   @Override
   /**
    * Reads a (dense) version of a vector from a Lucene input stream. 

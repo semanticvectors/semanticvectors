@@ -3,15 +3,14 @@ package pitt.search.semanticvectors.vectors;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Random;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 
 import org.apache.lucene.search.DocIdSetIterator;
 import org.apache.lucene.store.IndexInput;
 import org.apache.lucene.store.IndexOutput;
 import org.apache.lucene.util.FixedBitSet;
-import org.apache.lucene.util.FixedBitSet;
-
-import pitt.search.semanticvectors.vectors.RealVector.RealBindMethod;
 
 
 /**
@@ -77,6 +76,7 @@ public class BinaryVector implements Vector {
    */
   protected FixedBitSet bitSet;
   private boolean isSparse;
+  private AtomicBoolean unTallied = new AtomicBoolean(true);
 
   /** 
    * Representation of voting record for superposition. Each FixedBitSet object contains one bit
@@ -89,9 +89,8 @@ public class BinaryVector implements Vector {
    */ 
   private ArrayList<FixedBitSet> votingRecord;
 
-  int decimalPlaces = 0;
-  /** Accumulated sum of the weights with which vectors have been added into the voting record */
-  int totalNumberOfVotes = 0;
+  /** BINARY_VECTOR_DECIMAL_PLACESum of the weights with which vectors have been added into the voting record */
+  AtomicInteger totalNumberOfVotes = new AtomicInteger(0);
   // TODO(widdows) Understand and comment this.
   int minimum = 0;
 
@@ -124,16 +123,21 @@ public class BinaryVector implements Vector {
   }
 
   public String toString() {
-    StringBuilder debugString = new StringBuilder("BinaryVector.");
+    StringBuilder debugString = new StringBuilder("");
+    
     if (isSparse) {
       debugString.append("  Sparse.  First " + DEBUG_PRINT_LENGTH + " values are:\n");
       for (int x = 0; x < DEBUG_PRINT_LENGTH; x++) debugString.append(bitSet.get(x) ? "1 " : "0 ");
       debugString.append("\nCardinality " + bitSet.cardinality()+"\n");
     }
     else {
+    	
       debugString.append("  Dense.  First " + DEBUG_PRINT_LENGTH + " values are:\n");
-      for (int x = 0; x < DEBUG_PRINT_LENGTH; x++) debugString.append(bitSet.get(x) ? "1 " : "0 ");
+    
+      for (int x = 0; x < DEBUG_PRINT_LENGTH; x++) debugString.append(bitSet.get(x) ? "1" : "0");
       // output voting record for first DEBUG_PRINT_LENGTH dimension
+   
+      
       debugString.append("\nVOTING RECORD: \n");
       for (int y =0; y < votingRecord.size(); y++)
       {
@@ -152,7 +156,7 @@ public class BinaryVector implements Vector {
       }
 
       for (int x = 0; x < DEBUG_PRINT_LENGTH; x++) {
-        debugString.append((int) ((minimum + actualvals[x]) / Math.pow(10, decimalPlaces)) + " ");
+        debugString.append((int) ((minimum + actualvals[x]) / Math.pow(10, BINARY_VECTOR_DECIMAL_PLACES)) + " ");
       }
 
       // TODO - output count from first DEBUG_PRINT_LENGTH dimension
@@ -166,6 +170,8 @@ public class BinaryVector implements Vector {
       debugString.append("\nCardinality " + bitSet.cardinality()+"\n");
       debugString.append("Votes " + totalNumberOfVotes+"\n");
       debugString.append("Minimum " + minimum + "\n");
+      
+      debugString.append("\n");
     }
     return debugString.toString();
   }
@@ -190,7 +196,7 @@ public class BinaryVector implements Vector {
     {
       return bitSet.cardinality() == 0;
     } else {
-      return (votingRecord == null) || (votingRecord.size() == 0);
+      return (votingRecord == null) || (votingRecord.size() == 0) || (votingRecord.size()==1 && votingRecord.get(0).cardinality() == 0);
     }
   }
 
@@ -261,16 +267,23 @@ public class BinaryVector implements Vector {
    * This is an attempt to save space, as voting records can be prohibitively expansive
    * if not contained.
    */
-  public void superpose(Vector other, double weight, int[] permutation) {
+  public synchronized void superpose(Vector other, double weight, int[] permutation) {
     IncompatibleVectorsException.checkVectorsCompatible(this, other);
     if (weight == 0d) return;
     if (other.isZeroVector()) return;
+    
     BinaryVector binaryOther = (BinaryVector) other;
+    boolean flippedBitSet = false; //for subtraction
+    
+    if (weight < 0) //subtraction
+    	{
+          weight = Math.abs(weight);
+    	  binaryOther.bitSet.flip(0, binaryOther.getDimension());
+    	  flippedBitSet = true;
+    	}
+    
     if (isSparse) {
-      if (Math.round(weight) != weight) {
-        decimalPlaces = BINARY_VECTOR_DECIMAL_PLACES; 
-      }
-      elementalToSemantic();
+    	elementalToSemantic();
     }
 
     if (permutation != null) {
@@ -290,6 +303,10 @@ public class BinaryVector implements Vector {
     else {
       superposeBitSet(binaryOther.bitSet, weight);
     }
+    
+    if (flippedBitSet) binaryOther.bitSet.flip(0, binaryOther.getDimension()); //return to original configuration
+    unTallied.set(true); //there are votes that haven't been tallied yet
+    
   }
 
   /**
@@ -306,13 +323,13 @@ public class BinaryVector implements Vector {
    * @param incomingBitSet
    * @param weight
    */
-  protected void superposeBitSet(FixedBitSet incomingBitSet, double weight) {
+  protected synchronized void superposeBitSet(FixedBitSet incomingBitSet, double weight) {
     // If fractional weights are used, encode all weights as integers (1000 x double value).
-    weight = (int) Math.round(weight * Math.pow(10, decimalPlaces));
+    weight = (int) Math.round(weight * Math.pow(10, BINARY_VECTOR_DECIMAL_PLACES));
     if (weight == 0) return;
 
     // Keep track of number (or cumulative weight) of votes.
-    totalNumberOfVotes += weight;
+    totalNumberOfVotes.set(totalNumberOfVotes.get() + (int) weight);
 
     // Decompose superposition task such that addition of some power of 2 (e.g. 64) is accomplished
     // by beginning the process at the relevant row (e.g. 7) instead of starting multiple (e.g. 64)
@@ -341,7 +358,7 @@ public class BinaryVector implements Vector {
    * @param incomingBitSet the bitset to be added
    * @param rowfloor the index of the place in the voting record to start the sweep at
    */
-  protected void superposeBitSetFromRowFloor(FixedBitSet incomingBitSet, int rowfloor) {
+  protected synchronized void superposeBitSetFromRowFloor(FixedBitSet incomingBitSet, int rowfloor) {
     // Attempt to save space when minimum value across all columns > 0
     // by decrementing across the board and raising the minimum where possible.
     int max = getMaximumSharedWeight();	
@@ -395,7 +412,7 @@ public class BinaryVector implements Vector {
    * Sets {@link #tempSet} to be a bitset with a "1" in the position of every dimension
    * in the {@link #votingRecord} that exactly matches the target number.
    */
-  private void setTempSetToExactMatches(int target) {
+  private synchronized void setTempSetToExactMatches(int target) {
     if (target == 0) {
       tempSet.set(0, dimension);
       tempSet.xor(votingRecord.get(0));
@@ -405,8 +422,13 @@ public class BinaryVector implements Vector {
     {
       String inbinary = reverse(Integer.toBinaryString(target));
       tempSet.xor(tempSet);
-      tempSet.xor(votingRecord.get(inbinary.indexOf("1")));
-
+       try {
+	  tempSet.xor(votingRecord.get(inbinary.indexOf("1"))); //this requires error checking, it is throwing an index out of bounds exception
+	      }
+	      catch (Exception e)
+	      {
+	    	  e.printStackTrace();
+	      }
       for (int q =0; q < votingRecord.size(); q++) {
         if (q < inbinary.length() && inbinary.charAt(q) == '1')
           tempSet.and(votingRecord.get(q));	
@@ -425,12 +447,12 @@ public class BinaryVector implements Vector {
    * 
    * @return an FixedBitSet representing the superposition of all vectors added up to this point
    */
-  protected FixedBitSet concludeVote() {
+  protected synchronized FixedBitSet concludeVote() {
     if (votingRecord.size() == 0 || votingRecord.size() == 1 && votingRecord.get(0).cardinality() ==0) return new FixedBitSet(dimension);
-    else return concludeVote(totalNumberOfVotes);
+    else return concludeVote(totalNumberOfVotes.get());
   }
 
-  protected FixedBitSet concludeVote(int target) {
+  protected synchronized FixedBitSet concludeVote(int target) {
     int target2 = (int) Math.ceil((double) target / (double) 2);
     target2 = target2 - minimum;
 
@@ -448,18 +470,19 @@ public class BinaryVector implements Vector {
       setTempSetToExactMatches(target2);
       boolean switcher = true;
       // 50% chance of being true with split vote.
-      for (int q = 0; q < dimension; q++) {
-        if (tempSet.get(q)) {
-          switcher = !switcher;
+      int q = tempSet.nextSetBit(0);
+      while (q != DocIdSetIterator.NO_MORE_DOCS)
+      	{
+    	  switcher = !switcher;
           if (switcher) tempSet.clear(q);
-        }
-      }
-      result.andNot(tempSet);
+          q = tempSet.nextSetBit(q);
+      	}
+      		result.andNot(tempSet);
     }
     return result;
   }
 
-  protected FixedBitSet concludeVote(int target, int row_ceiling) {
+  protected synchronized FixedBitSet concludeVote(int target, int row_ceiling) {
     /**
 	  logger.info("Entering conclude vote, target " + target + " row_ceiling " + row_ceiling + 
     		"voting record " + votingRecord.size() + 
@@ -478,6 +501,11 @@ public class BinaryVector implements Vector {
 
     //System.out.println(target+"\t"+rowfloor+"\t"+row_floor+"\t"+remainder);
 
+    if (row_floor >= votingRecord.size()) //In this instance, the number we are checking for is higher than the capacity of the voting record
+    {
+    	return new FixedBitSet(dimension);
+    }
+    
     if (row_ceiling == 0 && target == 1) {
       return votingRecord.get(0);
     }
@@ -509,7 +537,7 @@ public class BinaryVector implements Vector {
    * Decrement every dimension. Assumes at least one count in each dimension
    * i.e: no underflow check currently - will wreak havoc with zero counts
    */
-  public void decrement() {	
+  public synchronized void decrement() {	
     tempSet.set(0, dimension);
     for (int q = 0; q < votingRecord.size(); q++) {
       votingRecord.get(q).xor(tempSet);
@@ -521,7 +549,7 @@ public class BinaryVector implements Vector {
    * Decrement every dimension by the number passed as a parameter. Again at least one count in each dimension
    * i.e: no underflow check currently - will wreak havoc with zero counts
    */
-  public void decrement(int weight) {
+  public synchronized void decrement(int weight) {
     if (weight == 0) return;
     minimum+= weight;
 
@@ -540,7 +568,7 @@ public class BinaryVector implements Vector {
     }
   }
 
-  public void selectedDecrement(int floor) {
+  public synchronized void selectedDecrement(int floor) {
     tempSet.set(0, dimension);
     for (int q = floor; q < votingRecord.size(); q++) {
       votingRecord.get(q).xor(tempSet);
@@ -551,7 +579,7 @@ public class BinaryVector implements Vector {
   /**
    * Returns the highest value shared by all dimensions.
    */
-  protected int getMaximumSharedWeight() {
+  protected synchronized int getMaximumSharedWeight() {
     int thismaximum = 0;
     tempSet.xor(tempSet);  // Reset tempset to zeros.
     for (int x = votingRecord.size() - 1; x >= 0; x--) {
@@ -632,7 +660,7 @@ public class BinaryVector implements Vector {
    * the vector produced is somewhat similar to both "jazz" and "rock", with a similarity that is proportional to the weights assigned to the 
    * superposition, e.g. 0.624000:jazz;  0.246000:rock
    */
-  public void normalize() {
+  public synchronized void normalize() {
     if (votingRecord == null) return;
     if (votingRecord.size() == 1) {
       this.bitSet = votingRecord.get(0);
@@ -657,7 +685,7 @@ public class BinaryVector implements Vector {
     random.setSeed(theSuperpositionSeed);
 
     //Determine value above the universal minimum for each dimension of the voting record
-    int max = totalNumberOfVotes;
+    int max = totalNumberOfVotes.get();
 
     //Determine the maximum possible votes on the voting record
     int maxpossiblevotesonrecord = 0;
@@ -700,7 +728,7 @@ public class BinaryVector implements Vector {
     //housekeeping
     votingRecord = new ArrayList<FixedBitSet>();
     votingRecord.add((FixedBitSet) bitSet.clone());
-    totalNumberOfVotes = 1;
+    totalNumberOfVotes.set(1);
     tempSet = new FixedBitSet(dimension);
     minimum = 0;
   }
@@ -726,13 +754,13 @@ public class BinaryVector implements Vector {
   /**
    * Faster normalization according to the Binary Spatter Code's "majority" rule 
    */
-  public void normalizeBSC() {
+  public synchronized void normalizeBSC() {
     if (!isSparse)
       this.bitSet = concludeVote();
 
     votingRecord = new ArrayList<FixedBitSet>();
     votingRecord.add((FixedBitSet) bitSet.clone());
-    totalNumberOfVotes = 1;
+    totalNumberOfVotes.set(1);
     tempSet = new FixedBitSet(dimension);
     minimum = 0;
   }
@@ -740,9 +768,11 @@ public class BinaryVector implements Vector {
   /**
    * Counts votes without normalizing vector (i.e. voting record is not altered). Used in SemanticVectorCollider.
    */
-  public void tallyVotes() {
-    if (!isSparse)
-      this.bitSet = concludeVote();
+  public synchronized void tallyVotes() {
+	if (isSparse) elementalToSemantic();
+    if (unTallied.get()) //only count if there are votes since the last tally
+     try {  this.bitSet = concludeVote();
+     		unTallied.set(false); } catch (Exception e) {e.printStackTrace();}
   }
 
   @Override
@@ -765,6 +795,26 @@ public class BinaryVector implements Vector {
     }
   }
 
+  /**
+   * Writes vector out to object output stream.  Converts to dense format if necessary. Truncates to length k.
+   */
+  public void writeToLuceneStream(IndexOutput outputStream, int k) {
+    if (isSparse) {
+      elementalToSemantic();
+    }
+    long[] bitArray = bitSet.getBits();
+
+    for (int i = 0; i < k/64; i++) {
+      try {
+        outputStream.writeLong(bitArray[i]);
+      } catch (IOException e) {
+        logger.severe("Couldn't write binary vector to lucene output stream.");
+        e.printStackTrace();
+      }
+    }
+  }
+
+  
   @Override
   /**
    * Reads a (dense) version of a vector from a Lucene input stream. 
@@ -838,10 +888,10 @@ public class BinaryVector implements Vector {
       return;
     }
     votingRecord = new ArrayList<FixedBitSet>();
-    votingRecord.add((FixedBitSet) bitSet.clone());
     tempSet = new FixedBitSet(dimension);
-
-    isSparse = false;
+    if (bitSet.cardinality() != 0)
+    	this.superposeBitSet(bitSet.clone(), 1);		
+     isSparse = false;
   }
 
   /**
@@ -899,5 +949,7 @@ public class BinaryVector implements Vector {
 	DEBUG_PRINT_LENGTH = length;	
 	}
 
+	
+	
 }
 
