@@ -24,8 +24,9 @@
     </parent>
 
     <scm>
-        <url>https://github.com/semanticvectors/semanticvectors</url>
-        <!-- Could add connection and developerConnection elements. I don't know what they actually do. -DW -->
+        <url>https://github.com/semanticvectors/semanticvectors/tags/semanticvectors-5.10</url>
+        <connection>scm:git:https://github.com/semanticvectors/semanticvectors.git</connection>
+        <developerConnection>scm:git:https://github.com/semanticvectors/semanticvectors.git</developerConnection>
     </scm>
 
     <properties>
@@ -138,17 +139,7 @@
 
         </plugins>
     </build>
-
-    <reporting>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-javadoc-plugin</artifactId>
-                <version>2.9.1</version>
-            </plugin>
-        </plugins>
-    </reporting>
-
+    
     <profiles>
         <!-- For signing artifacts to upload to public maven repositories.
              Deploy using "mvn clean deploy". -->

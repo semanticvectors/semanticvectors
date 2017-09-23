@@ -11,6 +11,7 @@ positional_index/
 predication_index/
 testtermvectors.txt
 exampleclient/target/
+*.bin
 
 #################
 ## IntelliJ IDEA
