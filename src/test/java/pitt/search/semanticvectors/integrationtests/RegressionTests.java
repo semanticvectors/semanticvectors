@@ -44,6 +44,7 @@ import pitt.search.semanticvectors.BuildPositionalIndex;
 import pitt.search.semanticvectors.FlagConfig;
 import pitt.search.semanticvectors.Search;
 import pitt.search.semanticvectors.SearchResult;
+import pitt.search.semanticvectors.vectors.ComplexVector;
 
 import static org.junit.Assert.*;
 
