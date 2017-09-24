@@ -11,4 +11,4 @@ and was hosted from 2007 to 2015 on code.google.com/p/semanticvectors.
 It has been developed and maintained by contributors from the University of Texas, Queensland University of Technology,
 the Austrian Research Institute for Artificial Intelligence, Google Inc., and other institutions and individuals.
 
-Contributions are welcome (and reasonably frequent).
+Contributions are welcome.
