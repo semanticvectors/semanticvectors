@@ -64,6 +64,7 @@ public class BinaryVectorTest extends TestCase {
     vector.readFromString("0000000000000000000000000000000000000000000000000000000000000000");
     assertEquals(0, vector.numRows());
     vector.elementalToSemantic();
+    // TODO: Understand and fix.
     assertEquals(1, vector.numRows());
   }
   

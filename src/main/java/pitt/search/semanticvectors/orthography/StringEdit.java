@@ -54,6 +54,9 @@ public class StringEdit {
   /** Length vector, used to add a measure of total length to each vector. */
   private Vector lengthVector;
 
+  /** Switch to say whether or not to use length above as a feature. */
+  private static boolean useLengthAsFeature = false;
+
   /** Constructs an instance with the given arguments.
    *
    * TODO: Document and check invariants around arguments, especially which can be null.
@@ -93,7 +96,9 @@ public class StringEdit {
       theVector.superpose(letterVector, 1, null);
     }
 
-    theVector.superpose(this.lengthVector, theTerm.length() - 1, null);
+    if (useLengthAsFeature) {
+      theVector.superpose(this.lengthVector, theTerm.length() - 1, null);
+    }
 
     theVector.normalize(); 
     return theVector;
