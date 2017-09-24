@@ -4,7 +4,7 @@
     <groupId>pitt.search</groupId>
     <artifactId>semanticvectors</artifactId>
     <!-- Change this to x.y-SNAPSHOT to run mvn release:prepare -->
-    <version>5.9</version>
+    <version>5.10</version>
     <url>https://github.com/semanticvectors/semanticvectors</url>
 
     <licenses>
@@ -134,6 +134,15 @@
                 <artifactId>maven-release-plugin</artifactId>
                 <version>2.2.2</version>
                 <configuration>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>2.9.1</version>
+                <configuration>
+                    <additionalparam>-Xdoclint:none</additionalparam>
                 </configuration>
             </plugin>
 
