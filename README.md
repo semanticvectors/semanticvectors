@@ -9,6 +9,6 @@ The package was created as part of a project by the University of Pittsburgh Off
 and was hosted from 2007 to 2015 on code.google.com/p/semanticvectors.
 
 It has been developed and maintained by contributors from the University of Texas, Queensland University of Technology,
-the Austrian Research Institute for Artificial Intelligence, Google Inc., and other institutions and individuals.
+the Austrian Research Institute for Artificial Intelligence, Google Inc., and several other institutions and individuals.
 
 Contributions are welcome.
