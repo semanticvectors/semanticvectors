@@ -243,8 +243,7 @@ abstract public class VectorSearcher {
       // down the results. Note that using this means that scores
       // returned are no longer just cosine similarities.
       if (this.luceneUtils != null && flagConfig.usetermweightsintermsearch()) {
-        score = score *
-            luceneUtils.getGlobalTermWeightFromString((String) testElement.getObject());
+        score = score * luceneUtils.getGlobalTermWeightFromString((String) testElement.getObject());
       }
 
       if (flagConfig.stdev()) {
