@@ -82,7 +82,7 @@ public class LuceneUtils {
 
   /**
    * Determines which term-weighting strategy to use in indexing, 
-   * and in search if {@link FlagConfig#usetermweightsinsearch()} is set.
+   * and in search if {@link FlagConfig#usetermweightsintermsearch()} is set.
    *
    * <p>Names may be passed as command-line arguments, so underscores are avoided.
    */
@@ -297,7 +297,7 @@ public class LuceneUtils {
    * {@link FlagConfig#termweight()}.
    *
    * Used in indexing. Used in query weighting if
-   * {@link FlagConfig#usetermweightsinsearch} is true.
+   * {@link FlagConfig#usetermweightsintermsearch} is true.
    *
    * @param term whose frequency you want
    * @return Global term weight, or 1 if unavailable.

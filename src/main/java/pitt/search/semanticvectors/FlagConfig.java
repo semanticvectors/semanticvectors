@@ -231,7 +231,7 @@ public class FlagConfig {
 
   private boolean usetermweightsintermsearch = false;
   /** Tells search implementations to scale each comparison score by a term weight during search, default value false. */
-  public boolean usetermweightsinsearch() { return usetermweightsintermsearch; }
+  public boolean usetermweightsintermsearch() { return usetermweightsintermsearch; }
  
   private boolean stdev = false;
   /** Score search results according to number of SDs above the mean across all search vectors, default false. */
