@@ -6,6 +6,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Hashtable;
 
 import pitt.search.semanticvectors.FlagConfig;
 import pitt.search.semanticvectors.VectorStoreRAM;
@@ -17,10 +18,6 @@ import pitt.search.semanticvectors.vectors.VectorType;
 public class PairwiseCorrelation {
 
 	//return ranks of scores for Spearman rho
-	//simple (not optimized) procedure, first one that came to mind and also
-	//found already implemented at code.hammerpig.com/rank-numbers-in-java.html
-	//when looking around
-	//keeping everything as Doubles for consistency with Pearson's downstream
 	
 	public static ArrayList<Double> Rank(ArrayList<Double> values)
 	{
@@ -28,10 +25,27 @@ public class PairwiseCorrelation {
 		Collections.sort(sortedValues);
 		
 		ArrayList<Double> ranks = new ArrayList<Double>();
-		 
+		
+		Hashtable<Double,Integer> valueCounts = new Hashtable<Double,Integer>();
+		Hashtable<Double,Integer> rankSums	  = new Hashtable<Double,Integer>();
+		
+		for (int i=0; i < sortedValues.size(); i++)
+		{
+			double next = sortedValues.get(i);
+			
+			if (!valueCounts.containsKey(next))
+				valueCounts.put(next, 1);
+			else valueCounts.put(next,valueCounts.get(next)+1); //augment count for this value
+			
+			if (!rankSums.containsKey(next))
+				rankSums.put(next, (Integer) i+1);
+			else rankSums.put(next,rankSums.get(next)+i+1); //augment count for this value
+		}
+		
 		for (int i=0; i < values.size(); i++)
-			ranks.add(new Double(sortedValues.indexOf(values.get(i))));
-	
+		ranks.add(new Double(rankSums.get(values.get(i))/ (double) valueCounts.get(values.get(i)) ));
+
+
 		return ranks;
 	}
 	
@@ -64,7 +78,8 @@ public class PairwiseCorrelation {
 			String[] components = inline.toLowerCase().split(",|\t");
 			paircount++;
 			
-			try {
+			if (termvectors.containsVector(components[0]) && termvectors.containsVector(components[1]))
+			{
 				double score = termvectors.getVector(components[0]).measureOverlap(termvectors.getVector(components[1]));
 				foundcount++;
 				humanScores.add(Double.parseDouble(components[2]));
@@ -74,15 +89,16 @@ public class PairwiseCorrelation {
 				//System.out.println(components[2]+"\t"+score);
 				
 			}
-			catch (NullPointerException e)
+			else 
 			{
 				
 				if (!termvectors.containsVector(components[0]))
-				System.err.println("Vector not found for term "+components[0]);
+				System.err.print("Vector not found for term "+components[0]+"; ");
 				
 				if (!termvectors.containsVector(components[1]))
-				System.err.println("Vector not found for term "+components[1]);
-			
+				System.err.print("Vector not found for term "+components[1]+"; ");
+				
+				System.err.println();
 			}
 			
 			
@@ -123,9 +139,8 @@ public class PairwiseCorrelation {
 		 coH[q]  = (float) (human[q] - meanH);
 		 coM[q]  = (float) (model[q] - meanM);
 		 
-		 //use standard formula for Spearman's as Pearson's on ranks disagreed with matlab in 4th decimal place
-		 //as it happens, this also disagrees slightly with Matlab in the 4th decimal, but is marginally easier to 
-		 //implement anyhow
+		 //use standard formula for Spearman's (could perhaps use Pearson's on the ranks instead)
+		
 		 coSP += Math.pow(humanR[q].floatValue() - modelR[q].floatValue(), 2);
 		}
 		
