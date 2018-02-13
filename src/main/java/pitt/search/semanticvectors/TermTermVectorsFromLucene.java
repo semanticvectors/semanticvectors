@@ -121,7 +121,7 @@ public class TermTermVectorsFromLucene { //implements VectorStore {
   private long 	 totalCount = 0; //total count of terms in corpus
   private double initial_alpha = 0.025;
   private double alpha 		   = 0.025;
-  private double minimum_alpha = 0.0001;
+  private double minimum_alpha = 0.0001*initial_alpha;
   private AtomicInteger totalDocCount = new AtomicInteger();
   private AtomicInteger totalQueueCount = new AtomicInteger();
   private SigmoidTable sigmoidTable		= new SigmoidTable(MAX_EXP,1000);
@@ -354,18 +354,21 @@ private ConcurrentLinkedQueue<Integer> randomStartpoints;
           }
         }
 
-        // Output progress counter.
-        if ((dcnt % 10000 == 0) || (dcnt < 10000 && dcnt % 1000 == 0)) {
-          VerbatimLogger.info("[T" + threadno + "]" + " processed " + dcnt + " documents in " + ("" + ((System.currentTimeMillis() - time) / (1000 * 60))).replaceAll("\\..*", "") + " min..");
-
-          if (threadno == 0 && dcnt % 10000 == 0) {
-            double proportionComplete = totalDocCount.get() / (double) ( (1+flagConfig.trainingcycles()) * (luceneUtils.getNumDocs()));
-            alpha = initial_alpha - (initial_alpha - minimum_alpha) * proportionComplete;
-            if (alpha < minimum_alpha) alpha = minimum_alpha;
-            VerbatimLogger.info("..Updated alpha to " + alpha + "..");
-          }
-        }
         dcnt++;
+        
+        // Output progress counter.
+        if ((dcnt % 10000 == 0) || (dcnt < 10000 && dcnt % 1000 == 0)) 
+          VerbatimLogger.info("[T" + threadno + "]" + " processed " + dcnt + " documents in " + ("" + ((System.currentTimeMillis() - time) / (1000 * 60))).replaceAll("\\..*", "") + " min..");
+  
+        //update learning rate
+        if (threadno == 0 && dcnt % 100 == 0 && flagConfig.positionalmethod().equals(PositionalMethod.EMBEDDINGS)) {
+            double proportionComplete = totalDocCount.get() / (double) ( (1+flagConfig.trainingcycles()) * (luceneUtils.getNumDocs()));
+            //alpha = initial_alpha - (initial_alpha - 0.0001) * proportionComplete;
+            alpha = initial_alpha * (1 - proportionComplete);
+            if (alpha < minimum_alpha) alpha = minimum_alpha;
+            if ((dcnt % 10000 == 0) || (dcnt < 10000 && dcnt % 1000 == 0)) VerbatimLogger.info("..Updated alpha to " + alpha + "..");
+          }
+        
       } //all documents processed
     }
   }
@@ -637,18 +640,15 @@ private ConcurrentLinkedQueue<Integer> randomStartpoints;
       for (int x = 0; x < freq; x++) {
 
         int thePosition = docsAndPositions.nextPosition();
-
-        //subsampling of frequent terms
-        if (subsamplingProbabilities == null || !subsamplingProbabilities.containsKey(field + ":" + theTerm) || random.nextDouble() > subsamplingProbabilities.get(field + ":" + theTerm)) {
-          localTermPositions.put(thePosition, theTerm);
-          thePositions.add(thePosition);
-            } 
+        localTermPositions.put(thePosition, theTerm);
+         thePositions.add(thePosition);
+            
       }
     }
 
     // Sort positions with indexed/sampled terms
     // Effectively this compresses the sequence of terms in this document, such that
-    // terms that were subsampled, stoplisted, or didn't meet frequencey thresholds
+    // terms that were stoplisted, or didn't meet frequencey thresholds
     // do not result in "blank" positions - rather, they are squeezed out of the sequence
     Collections.sort(thePositions);
 
@@ -667,14 +667,19 @@ private ConcurrentLinkedQueue<Integer> randomStartpoints;
       if (flagConfig.subsampleinwindow) effectiveWindowRadius = random.nextInt(flagConfig.windowradius()) + 1;
 
       int windowstart = Math.max(0, focusposn - effectiveWindowRadius);
-      int windowend = Math.min(focusposn + effectiveWindowRadius, thePositions.size());
+      int windowend = Math.min(focusposn + effectiveWindowRadius, thePositions.size()-1);
 
-      for (int cursor = windowstart; cursor < windowend; cursor++) {
+      for (int cursor = windowstart; cursor <= windowend; cursor++) {
 
 	  if (cursor == focusposn && !flagConfig.positionalmethod().equals(PositionalMethod.EMBEDDINGS)) continue;
 
         String coterm = localTermPositions.get(thePositions.get(cursor));
-        
+        //subsampling of frequent terms (currently both observed and context terms are subsampled)
+        if (subsamplingProbabilities != null && subsamplingProbabilities.containsKey(field + ":" + focusterm) && random.nextDouble() <= subsamplingProbabilities.get(field + ":" + focusterm)) 
+        continue;
+        if (subsamplingProbabilities != null && subsamplingProbabilities.containsKey(field + ":" + coterm) && random.nextDouble() <= subsamplingProbabilities.get(field + ":" + coterm)) 
+        continue;
+     
         Vector toSuperpose = elementalTermVectors.getVector(coterm);
 
         /**

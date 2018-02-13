@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Hashtable;
 
+import pitt.search.semanticvectors.CompoundVectorBuilder;
 import pitt.search.semanticvectors.FlagConfig;
 import pitt.search.semanticvectors.VectorStoreRAM;
 import pitt.search.semanticvectors.vectors.RealVector;
@@ -78,9 +79,16 @@ public class PairwiseCorrelation {
 			String[] components = inline.toLowerCase().split(",|\t");
 			paircount++;
 			
-			if (termvectors.containsVector(components[0]) && termvectors.containsVector(components[1]))
+			Vector v1 = CompoundVectorBuilder.getQueryVector(
+		              termvectors, null, flagConfig, components[0].split(" "));
+			
+			Vector v2 = CompoundVectorBuilder.getQueryVector(
+		              termvectors, null, flagConfig, components[1].split(" "));
+			
+			double score = v1.measureOverlap(v2);	
+			
+			if (!Double.isNaN(score))
 			{
-				double score = termvectors.getVector(components[0]).measureOverlap(termvectors.getVector(components[1]));
 				foundcount++;
 				humanScores.add(Double.parseDouble(components[2]));
 				modelScores.add(score);
@@ -92,10 +100,10 @@ public class PairwiseCorrelation {
 			else 
 			{
 				
-				if (!termvectors.containsVector(components[0]))
+				if (Double.isNaN(v1.measureOverlap(v1)))
 				System.err.print("Vector not found for term "+components[0]+"; ");
 				
-				if (!termvectors.containsVector(components[1]))
+				if (Double.isNaN(v2.measureOverlap(v2)))
 				System.err.print("Vector not found for term "+components[1]+"; ");
 				
 				System.err.println();
