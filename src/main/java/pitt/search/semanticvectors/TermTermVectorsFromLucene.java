@@ -640,6 +640,11 @@ private ConcurrentLinkedQueue<Integer> randomStartpoints;
       for (int x = 0; x < freq; x++) {
 
         int thePosition = docsAndPositions.nextPosition();
+        
+        //subsampling - ignore frequent terms with a probability derived from their frequency and the flagConfig.samplingthreshold()
+        if (subsamplingProbabilities != null && subsamplingProbabilities.containsKey(field + ":" + theTerm) && random.nextDouble() <= subsamplingProbabilities.get(field + ":" + theTerm)) 
+        continue;
+     
         localTermPositions.put(thePosition, theTerm);
          thePositions.add(thePosition);
             
@@ -648,7 +653,7 @@ private ConcurrentLinkedQueue<Integer> randomStartpoints;
 
     // Sort positions with indexed/sampled terms
     // Effectively this compresses the sequence of terms in this document, such that
-    // terms that were stoplisted, or didn't meet frequencey thresholds
+    // terms that were subsampled stoplisted, or didn't meet frequencey thresholds
     // do not result in "blank" positions - rather, they are squeezed out of the sequence
     Collections.sort(thePositions);
 
@@ -658,28 +663,25 @@ private ConcurrentLinkedQueue<Integer> randomStartpoints;
     //System.out.println(++cnt+" "+index+" "+localTermPositions.get(index));
 
     //move the sliding window through the sequence (the focus position is the position of the "observed" term)
-    for (int focusposn : thePositions) {
+    //this counter moves through the positions in which terms that have not been excluded are observed
+    //todo - revise code to make this clearer
+    for (int focuscounter = 0; focuscounter < thePositions.size(); focuscounter++) {
 
-      String focusterm = localTermPositions.get(focusposn);
+      int focusposn 	= thePositions.get(focuscounter);
+      String focusterm  = localTermPositions.get(focusposn);
 
       //word2vec uniformly samples the window size - we will try this too
       int effectiveWindowRadius = flagConfig.windowradius();
       if (flagConfig.subsampleinwindow) effectiveWindowRadius = random.nextInt(flagConfig.windowradius()) + 1;
 
-      int windowstart = Math.max(0, focusposn - effectiveWindowRadius);
-      int windowend = Math.min(focusposn + effectiveWindowRadius, thePositions.size()-1);
+      int windowstart = Math.max(0, focuscounter - effectiveWindowRadius);
+      int windowend = Math.min(focuscounter + effectiveWindowRadius, thePositions.size()-1);
 
       for (int cursor = windowstart; cursor <= windowend; cursor++) {
 
-	  if (cursor == focusposn && !flagConfig.positionalmethod().equals(PositionalMethod.EMBEDDINGS)) continue;
+       if (cursor == focusposn && !flagConfig.positionalmethod().equals(PositionalMethod.EMBEDDINGS)) continue;
 
         String coterm = localTermPositions.get(thePositions.get(cursor));
-        //subsampling of frequent terms (currently both observed and context terms are subsampled)
-        if (subsamplingProbabilities != null && subsamplingProbabilities.containsKey(field + ":" + focusterm) && random.nextDouble() <= subsamplingProbabilities.get(field + ":" + focusterm)) 
-        continue;
-        if (subsamplingProbabilities != null && subsamplingProbabilities.containsKey(field + ":" + coterm) && random.nextDouble() <= subsamplingProbabilities.get(field + ":" + coterm)) 
-        continue;
-     
         Vector toSuperpose = elementalTermVectors.getVector(coterm);
 
         /**
@@ -716,7 +718,7 @@ private ConcurrentLinkedQueue<Integer> randomStartpoints;
 
           }
 	  
-	  if (cursor != focusposn) //skip the focus term when training term vectors
+	  if (cursor != focuscounter) //skip the focus term when training term vectors
           this.processEmbeddings(semanticTermVectors.getVector(focusterm), contextVectors, contextLabels, alpha, blas);
           
           //include the focus term when training document vectors
@@ -735,7 +737,7 @@ private ConcurrentLinkedQueue<Integer> randomStartpoints;
           // bind to appropriate position vector
           if (flagConfig.positionalmethod() == PositionalMethod.PROXIMITY) {
             toSuperpose = elementalTermVectors.getVector(coterm).copy();
-            toSuperpose.bind(positionalNumberVectors.getVector(cursor - focusposn));
+            toSuperpose.bind(positionalNumberVectors.getVector(cursor - focuscounter));
           }
 
           // calculate permutation required for either Sahlgren (2008) implementation
@@ -747,10 +749,10 @@ private ConcurrentLinkedQueue<Integer> randomStartpoints;
           }
           if (flagConfig.positionalmethod() == PositionalMethod.PERMUTATION
               || flagConfig.positionalmethod() == PositionalMethod.PERMUTATIONPLUSBASIC) {
-            int[] permutation = permutationCache[cursor - focusposn + flagConfig.windowradius()];
+            int[] permutation = permutationCache[cursor - focuscounter + flagConfig.windowradius()];
             semanticTermVectors.getVector(focusterm).superpose(toSuperpose, globalweight, permutation);
           } else if (flagConfig.positionalmethod() == PositionalMethod.DIRECTIONAL) {
-            int[] permutation = permutationCache[(int) Math.max(0, Math.signum(cursor - focusposn))];
+            int[] permutation = permutationCache[(int) Math.max(0, Math.signum(cursor - focuscounter))];
             semanticTermVectors.getVector(focusterm).superpose(toSuperpose, globalweight, permutation);
           }
         }
