@@ -245,6 +245,29 @@ public class VectorUtils {
 
 
   }
+  
+  /**
+   * quick check for NaNs in real and complex vectors (returns false for binary vectors)
+   * @param toTest
+   * @return
+   */
+  public static boolean containsNaN(Vector toTest)
+  {
+	  if (toTest.getVectorType().equals(VectorType.BINARY)) return false;
+	  
+	  float[] coords = new float[0];
+	  
+	  if (toTest.getVectorType().equals(VectorType.REAL)) 
+		  coords = ((RealVector) toTest).getCoordinates();
+	  else if (toTest.getVectorType().equals(VectorType.COMPLEX)) 
+		  coords = ((ComplexVector) toTest).getCoordinates();
+
+	  for (float x:coords)
+		  if (Float.isNaN(x)) return true;
+	  
+	  return false;
+	  
+  }
 
 
 }
