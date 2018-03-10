@@ -73,9 +73,9 @@ public class LuceneUtils {
   private FlagConfig flagConfig;
   private BaseCompositeReader<LeafReader> compositeReader;
   private LeafReader leafReader;
-  private ConcurrentHashMap<Term, Float> termEntropy = new ConcurrentHashMap<Term, Float>();
-  private ConcurrentHashMap<Term, Float> termIDF = new ConcurrentHashMap<Term, Float>();
-  private ConcurrentHashMap<Term, Integer> termFreq = new ConcurrentHashMap<Term, Integer>();
+  private ConcurrentHashMap<String, Float> termEntropy = new ConcurrentHashMap<String, Float>();
+  private ConcurrentHashMap<String, Float> termIDF = new ConcurrentHashMap<String, Float>();
+  private ConcurrentHashMap<String, Integer> termFreq = new ConcurrentHashMap<String, Integer>();
   private boolean totalTermCountCaching = true;
   private TreeSet<String> stopwords = null;
   private TreeSet<String> startwords = null;
@@ -266,12 +266,12 @@ public class LuceneUtils {
    */
   public int getGlobalTermFreq(Term term) {
     int tf = 0;
-    if (totalTermCountCaching && termFreq.containsKey(term)) {
-      return termFreq.get(term);
+    if (totalTermCountCaching && termFreq.containsKey(term.field()+"_"+term.text())) {
+      return termFreq.get(term.field()+"_"+term.text());
     } else
       try {
         tf = (int) compositeReader.totalTermFreq(term);
-        termFreq.put(term, tf);
+        termFreq.put(term.field()+"_"+term.text(), tf);
       } catch (IOException e) {
         logger.info("Couldn't get term frequency for term " + term.text());
         return 1;
@@ -363,8 +363,8 @@ public class LuceneUtils {
    *  @param term the term whose IDF you would like
    */
   private float getIDF(Term term) {
-    if (termIDF.containsKey(term)) {
-      return termIDF.get(term);
+    if (termIDF.containsKey(term.field()+"_"+term.text())) {
+      return termIDF.get(term.field()+"_"+term.text());
     } else {
       try {
         int freq = compositeReader.docFreq(term);
@@ -372,7 +372,7 @@ public class LuceneUtils {
           return 0;
         }
         float idf = (float) Math.log10(compositeReader.numDocs() / (float) freq);
-        termIDF.put(term, idf);
+        termIDF.put(term.field()+"_"+term.text(), idf);
         return idf;
       } catch (IOException e) {
         // Catches IOException from looking up doc frequency, never seen yet in practice.
@@ -395,8 +395,8 @@ public class LuceneUtils {
    * eliminate redundant calculation
    */
   private float getEntropy(Term term) {
-    if (termEntropy.containsKey(term))
-      return termEntropy.get(term);
+    if (termEntropy.containsKey(term.field()+"_"+term.text()))
+      return termEntropy.get(term.field()+"_"+term.text());
     int gf = getGlobalTermFreq(term);
     double entropy = 0;
     try {
@@ -412,7 +412,7 @@ public class LuceneUtils {
     } catch (IOException e) {
       logger.info("Couldn't get term entropy for term " + term.text());
     }
-    termEntropy.put(term, 1 + (float) entropy);
+    termEntropy.put(term.field()+"_"+term.text(), 1 + (float) entropy);
     return (float) (1 + entropy);
   }
 
