@@ -107,6 +107,7 @@ public class VectorStoreWriter {
     VerbatimLogger.info("About to write " + objectVectors.getNumVectors() + " vectors of dimension "
         + flagConfig.dimension() + " to Lucene format file: " + vectorFileName + " ... ");
     File vectorFile = new File(vectorFileName);
+    java.nio.file.Files.deleteIfExists(vectorFile.toPath());
     String parentPath = vectorFile.getParent();
     if (parentPath == null) parentPath = "";
     FSDirectory fsDirectory = FSDirectory.open(FileSystems.getDefault().getPath(parentPath));
