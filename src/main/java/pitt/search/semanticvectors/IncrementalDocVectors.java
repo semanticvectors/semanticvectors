@@ -1,4 +1,4 @@
-/**
+ /**
  Copyright (c) 2008, Arizona State University.
 
  All rights reserved.
@@ -103,6 +103,8 @@ public class IncrementalDocVectors {
     if (parentPath == null) parentPath = "";
     FSDirectory fsDirectory = FSDirectory.open(FileSystems.getDefault().getPath(parentPath));
 
+    java.nio.file.Files.deleteIfExists(vectorFile.toPath());
+    
     IndexOutput outputStream = fsDirectory.createOutput(vectorFile.getName(), IOContext.DEFAULT);
 
     VerbatimLogger.info("Writing vectors incrementally to file " + vectorFile + " ... ");
