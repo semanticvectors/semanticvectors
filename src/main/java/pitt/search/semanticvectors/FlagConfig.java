@@ -1,4 +1,4 @@
-/**
+  /**
    Copyright (c) 2009, the SemanticVectors AUTHORS.
 
    All rights reserved.
@@ -41,6 +41,7 @@ import pitt.search.semanticvectors.ElementalVectorStore.ElementalGenerationMetho
 import pitt.search.semanticvectors.LuceneUtils.TermWeight;
 import pitt.search.semanticvectors.Search.SearchType;
 import pitt.search.semanticvectors.TermTermVectorsFromLucene.PositionalMethod;
+import pitt.search.semanticvectors.TermTermVectorsFromLucene.EncodingMethod;
 import pitt.search.semanticvectors.VectorStoreUtils.VectorStoreFormat;
 import pitt.search.semanticvectors.utils.VerbatimLogger;
 import pitt.search.semanticvectors.vectors.RealVector;
@@ -113,7 +114,7 @@ public class FlagConfig {
    */
   public double samplingthreshold() { return samplingthreshold; }
   
-  public boolean subsampleinwindow = true;
+  public boolean subsampleinwindow = false;
   /** 
    * Word2vec approach for approximating "ramped" weighting
    * of a sliding window by sampling the window size uniformly
@@ -121,6 +122,40 @@ public class FlagConfig {
    * probability of not being ignored
    */
   public boolean subsampleinwindow() { return subsampleinwindow; }
+  
+  public boolean balanced_subwords = false;
+  /** 
+   * If true, word vector = S(word) + 1/n * S(subwords). If not, word is added
+   * to the pile of ngrams, which are equally weighted when constructing the word vector
+   * (and during propagation)
+   * 
+   */
+  public boolean balanced_subwords() { return balanced_subwords; }
+  
+  
+  
+  public boolean exactwindowpositions = false;
+  /** 
+   * If true, the position of terms within a window will be preserved
+   * such that subsampled terms will be ignored, rather than replace
+   * 
+   * e.g. [the quick and] the dead, with "and" subsampled
+   * could become: [the quick the] (replaced - two superpositions to update 'quick')
+   * or (if true): [the quick  * ] (ignored  = one superposition to update 'quick')
+   * 
+   */
+  public boolean exactwindowpositions() { return exactwindowpositions; }
+  
+  public boolean notnormalized = false;
+  /** 
+   * Word2vec approach for approximating "ramped" weighting
+   * of a sliding window by sampling the window size uniformly
+   * such that the proximal parts of the window have a higher
+   * probability of not being ignored
+   */
+  public boolean notnormalized() { return notnormalized; }
+  
+  
   
   public int numthreads = 4;
   /** 
@@ -233,7 +268,7 @@ public class FlagConfig {
   /** Tells search implementations to scale each comparison score by a term weight during search, default value false. */
   public boolean usetermweightsintermsearch() { return usetermweightsintermsearch; }
  
-  private boolean stdev = false;
+  public boolean stdev = false;
   /** Score search results according to number of SDs above the mean across all search vectors, default false. */
   public boolean stdev() { return stdev; }
 
@@ -281,6 +316,10 @@ public class FlagConfig {
   /** Random elemental vectors, sometimes written out, and used (e.g.) in conjunction with permuted vector file. */
   public String elementalvectorfile() { return elementalvectorfile; }
 
+  private String permutationcachefile = "permutationvectors";
+  /** Random elemental vectors, sometimes written out, and used (e.g.) in conjunction with permuted vector file. */
+  public String permutationcachefile() { return permutationcachefile; }
+  
   private String semanticvectorfile = "semanticvectors";
   /** Semantic vectors; used so far as a name in PSI. */
   public String semanticvectorfile() { return semanticvectorfile; }
@@ -328,6 +367,48 @@ public class FlagConfig {
   private PositionalMethod positionalmethod = PositionalMethod.BASIC;
   /** Method used for positional indexing. */
   public PositionalMethod positionalmethod() { return positionalmethod; }
+  
+  private EncodingMethod encodingmethod = EncodingMethod.RANDOM_INDEXING;
+  /** Method used for positional indexing. */
+  public EncodingMethod encodingmethod() { return encodingmethod; }
+  
+  private boolean aggressivesubsampling = false;
+  /** Determines subsampling formula - 
+   *  p(ignore_term) = 1 - sqrt(T/F) as per the Mikolov paper
+   *  or the more aggressive (and harder to remember)
+   *  formulation per the Mikolov code
+   * 
+   * @return
+   */
+  public boolean aggressivesubsampling() {	return aggressivesubsampling;}
+  
+  private boolean	subword_embeddings 	= false;
+  private int  minimum_ngram_length 	= 3;
+  private int  maximum_ngram_length 	= 6;
+  
+  /**
+   * For subword embeddings - minimum and maximum length of ngrams to be considered
+   */
+  public boolean subword_embeddings() 	{return subword_embeddings;}
+  public int	minimum_ngram_length() 	{return minimum_ngram_length;}
+  public int 	maximum_ngram_length()  {return maximum_ngram_length;}
+  
+  
+  
+  private boolean discountnegativesampling = false;
+  /** 
+   * if set to true, likelihood of a term being negatively sampled
+   * is based on its subsampled frequency, not its raw frequency
+   * @return
+   */
+  public boolean discountnegativesampling() {	return discountnegativesampling;}
+  
+ 
+  private double initial_alpha = 0.05;
+  /*
+   * Initial learning rate for neural embeddings
+   */
+  public double initial_alpha() { return initial_alpha;}
   
   private String stoplistfile = "";
   /** Path to file containing stopwords, one word per line, no default value. */
@@ -582,6 +663,8 @@ public void setExpandsearchspace(boolean b) {
 
 
 
+
   
 
 }
+

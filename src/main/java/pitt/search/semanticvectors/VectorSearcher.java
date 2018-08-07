@@ -59,6 +59,7 @@ import org.apache.lucene.store.FSDirectory;
 
 import pitt.search.semanticvectors.vectors.BinaryVectorUtils;
 import pitt.search.semanticvectors.vectors.IncompatibleVectorsException;
+import pitt.search.semanticvectors.vectors.PermutationVector;
 import pitt.search.semanticvectors.vectors.Vector;
 import pitt.search.semanticvectors.vectors.VectorFactory;
 import pitt.search.semanticvectors.vectors.VectorType;
@@ -842,6 +843,8 @@ abstract public class VectorSearcher {
   public static class VectorSearcherPerm extends VectorSearcher {
     Vector theAvg;
 
+    
+    
     /**
      * @param queryVecStore Vector store to use for query generation.
      * @param searchVecStore The vector store to search.
@@ -861,6 +864,46 @@ abstract public class VectorSearcher {
         theAvg = pitt.search.semanticvectors.CompoundVectorBuilder.
             getPermutedQueryVector(queryVecStore, luceneUtils, flagConfig, queryTerms);
       } catch (IllegalArgumentException e) {
+        logger.info("Couldn't create permutation VectorSearcher ...");
+        throw e;
+      }
+
+      if (theAvg.isZeroVector()) {
+        throw new ZeroVectorException("Permutation query vector is zero ... no results.");
+      }
+    }
+    
+    
+    /**
+     * @param queryVecStore Vector store to use for query generation.
+     * @param searchVecStore The vector store to search.
+     * @param permutationCache The permutations
+     * @param luceneUtils LuceneUtils object to use for query weighting. (May be null.)
+     * @param queryTerms Terms that will be parsed into a query
+     * expression. If the string "?" appears, terms best fitting into this position will be returned
+     */
+    public VectorSearcherPerm(VectorStore queryVecStore,
+        VectorStore searchVecStore,
+        VectorStore permutationCache,
+        LuceneUtils luceneUtils,
+        FlagConfig flagConfig,
+        String[] queryTerms)
+            throws IllegalArgumentException, ZeroVectorException {
+      super(queryVecStore, searchVecStore, luceneUtils, flagConfig);
+
+      try {
+        String[] permStrings = queryTerms[1].split(":");
+        Vector toSuperpose   = queryVecStore.getVector(queryTerms[0]).copy();
+        
+        for (String permString:permStrings)
+        {
+        	theAvg = VectorFactory.createZeroVector(flagConfig.vectortype(), flagConfig.dimension());
+            int[] thePermutation = ((PermutationVector) permutationCache.getVector(permString)).getCoordinates();
+        	theAvg.superpose(toSuperpose,1, thePermutation);
+        	toSuperpose = theAvg.copy();
+        }	    
+        //int[] thePermutation2 = PermutationUtils.getInversePermutation(thePermutation);
+        } catch (IllegalArgumentException e) {
         logger.info("Couldn't create permutation VectorSearcher ...");
         throw e;
       }

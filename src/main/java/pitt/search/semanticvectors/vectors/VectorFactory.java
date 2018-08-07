@@ -59,9 +59,11 @@ public class VectorFactory {
       case REAL:
         return new RealVector(dimension);
       case COMPLEX:
-        return new ComplexVector(dimension, Mode.POLAR_SPARSE);
+        return new ComplexVector(dimension, Mode.HERMITIAN);
       case COMPLEXFLAT:
         return new ComplexVector(dimension, Mode.CARTESIAN);
+      case PERMUTATION:
+    	return new PermutationVector(dimension);
       default:
         throw new IllegalArgumentException("Unrecognized VectorType: " + type);
     }

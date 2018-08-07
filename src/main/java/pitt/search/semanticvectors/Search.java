@@ -236,9 +236,27 @@ public class Search {
      * May be different from queryVecReader, e.g., when using terms to search for documents.
      */
     CloseableVectorStore searchVecReader = null;
+    
+    /**
+     * Store of permutations
+     */
 
+    VectorStoreRAM permutationCache = null; 
+    
     // Stage ii. Open vector stores, and Lucene utils.
     try {
+    	
+     	
+    	if (!flagConfig.permutationcachefile().equals("permutationvectors") && flagConfig.searchtype().equals(SearchType.PERMUTATION))
+    	{
+    		VerbatimLogger.info("Opening permutation cache from file "+flagConfig.permutationcachefile()+"\n");
+    		VectorType typeA = flagConfig.vectortype();
+    		flagConfig.setVectortype(VectorType.PERMUTATION);
+    		permutationCache = new VectorStoreRAM(flagConfig);
+    		permutationCache.initFromFile(flagConfig.permutationcachefile());
+    		flagConfig.setVectortype(typeA);
+    	}
+    	
       // Default VectorStore implementation is (Lucene) VectorStoreReader.
       if (!flagConfig.elementalvectorfile().equals("elementalvectors") && !flagConfig.semanticvectorfile().equals("semanticvectors") && !flagConfig.elementalpredicatevectorfile().equals("predicatevectors")) {
         //for PSI search
@@ -362,7 +380,7 @@ public class Search {
           break;
         case PERMUTATION:
           vecSearcher = new VectorSearcher.VectorSearcherPerm(
-              queryVecReader, searchVecReader, luceneUtils, flagConfig, queryArgs);
+              queryVecReader, searchVecReader, permutationCache, luceneUtils, flagConfig, queryArgs);
           break;
         case BALANCEDPERMUTATION:
           vecSearcher = new VectorSearcher.BalancedVectorSearcherPerm(

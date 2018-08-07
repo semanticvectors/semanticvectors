@@ -199,9 +199,9 @@ public class VectorUtils {
 
     switch (v1.getVectorType()) {
       case REAL:
-        return blas.sdot(flagConfig.dimension(), ((RealVector) v1).getCoordinates(), 1, ((RealVector) v2).getCoordinates(), 1);
+        return blas.sdot(v1.getDimension(), ((RealVector) v1).getCoordinates(), 1, ((RealVector) v2).getCoordinates(), 1);
       case COMPLEX: //hermitian scalar product
-        return blas.sdot(flagConfig.dimension()*2, ((ComplexVector) v1).getCoordinates(), 1, ((ComplexVector) v2).getCoordinates(), 1);
+        return blas.sdot(v1.getDimension()*2, ((ComplexVector) v1).getCoordinates(), 1, ((ComplexVector) v2).getCoordinates(), 1);
       case BINARY:
         ((BinaryVector) v1).tallyVotes();
         ((BinaryVector) v2).tallyVotes();
@@ -212,6 +212,45 @@ public class VectorUtils {
     }
   }
 
+  
+  /**
+   * Utility method to compute scalar product (hopefully) quickly using BLAS routines
+   * Arguably, this should be disseminated across the individual Vector classes
+   */
+  public static double scalarProduct(Vector v1, Vector v2, FlagConfig flagConfig, BLAS blas, int[] permutations) throws IncompatibleVectorsException {
+    
+	  if (permutations == null)
+		  return scalarProduct(v1, v2, flagConfig, blas);
+	  
+	  if (!v1.getVectorType().equals(v2.getVectorType()) || !v1.getVectorType().equals(VectorType.REAL))
+      throw new IncompatibleVectorsException();
+    
+	   	double score = 0;
+    
+    	  for (int q=0; q < v1.getDimension(); q++)
+    		  score += ((RealVector) v1).getCoordinates()[permutations[q]] * 
+    				  ((RealVector) v2).getCoordinates()[q];
+  		
+       return score;
+     }
+ 
+  public static void superposeInPlace(Vector toBeAdded, Vector toBeAltered, FlagConfig flagConfig, BLAS blas, double weight, int[] permutation) throws IncompatibleVectorsException {
+	    
+	  if (permutation == null)
+		  superposeInPlace(toBeAdded, toBeAltered, flagConfig, blas, weight);
+		  else
+		  {
+		  
+	  if (!toBeAdded.getVectorType().equals(toBeAltered.getVectorType()) || !toBeAdded.getVectorType().equals(VectorType.REAL))
+	        throw new IncompatibleVectorsException();
+	      
+	  	     for (int q=0; q < toBeAdded.getDimension(); q++)
+	  	    	 ((RealVector) toBeAltered).getCoordinates()[permutation[q]]
+	  	    			 +=  ((RealVector) toBeAdded).getCoordinates()[q]*weight;
+	      		
+	       }
+  }
+  
 
   /**
    * Utility method to perform superposition (hopefully) quickly using BLAS routines
@@ -245,7 +284,8 @@ public class VectorUtils {
 
 
   }
-  
+
+
   /**
    * quick check for NaNs in real and complex vectors (returns false for binary vectors)
    * @param toTest
@@ -268,6 +308,7 @@ public class VectorUtils {
 	  return false;
 	  
   }
-
-
+  
+  
 }
+

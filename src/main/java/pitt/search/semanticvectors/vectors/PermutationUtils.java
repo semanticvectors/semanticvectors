@@ -1,4 +1,5 @@
 /**
+  /**
    Copyright (c) 2011, the SemanticVectors AUTHORS.
 
    All rights reserved.
@@ -34,6 +35,9 @@
  **/
 
 package pitt.search.semanticvectors.vectors;
+
+import java.util.ArrayList;
+import java.util.Collections;
 
 /**
  * Class that provides utilities for generating special permutations.
@@ -79,7 +83,88 @@ public class PermutationUtils {
     }
     return permutation;
   }
+  
+  /**
+   * Creates a shift permutation that can be applied to vectors of this type and dimension.
+   * 
+   * @param vectorType necessary argument because binary vectors are only permuted in 64-bit chunks
+   * @param dimension dimension of vectors to be permuted
+   * @param proportion of maximum number swaps to make (e.g. 0.5)
+   * @return array of length given by {@link #getPermutationLength}.
+   */
+  public static int[] getSwapPermutation(VectorType vectorType, int dimension, double swaps) {
+    
+	
+	int permutationLength = getPermutationLength(vectorType, dimension);
+	int[] permutation = new int[permutationLength];
+	int numswaps = (int) Math.floor(swaps * permutationLength);
+	System.out.println(numswaps+"\t"+permutationLength);
 
+    for (int i = 0; i < numswaps && i < permutationLength-4; i+=4) {
+    	 permutation[i] 	= i+2;
+    	 permutation[i+2] 	= i;
+    	 permutation[i+1] 	= i+3;
+    	 permutation[i+3] 	= i+1;
+    }
+    return permutation;
+  }
+  
+  
+  public static int[] getSwapPermutation(VectorType vectorType, int[] permutation, double swaps) {
+	    
+	int numswaps = (int) Math.floor(swaps * permutation.length);
+	System.out.println("Numswaps "+numswaps);
+	int[] nupermutation = new int[permutation.length];
+	
+	ArrayList<Integer> allSwaps = new ArrayList<Integer>();
+	
+	for (int q=0; q < permutation.length; q++)
+	{
+		allSwaps.add(q);
+		nupermutation[q] = permutation[q];
+	}
+	
+	Collections.shuffle(allSwaps);
+	
+	for (int r=0; r < numswaps; r+=2)
+	{
+		nupermutation[allSwaps.get(r)] 	 = permutation[allSwaps.get(r+1)];
+		nupermutation[allSwaps.get(r+1)] = permutation[allSwaps.get(r)];
+		
+	}
+	
+   
+    return nupermutation;
+  }
+  
+  
+  /**
+   * Creates a random permutation that can be applied to vectors of this type and dimension.
+   * 
+   * @param vectorType necessary argument because binary vectors are only permuted in 64-bit chunks
+   * @param dimension dimension of vectors to be permuted
+   * @param proportion of maximum number swaps to make (e.g. 0.5)
+   * @return array of length given by {@link #getPermutationLength}.
+   */
+  public static int[] getRandomPermutation(VectorType vectorType, int dimension) {
+    
+	
+	int permutationLength = getPermutationLength(vectorType, dimension);
+	int[] permutation = new int[permutationLength];
+	
+	ArrayList<Integer> positions = new ArrayList<Integer>();
+	
+	for (int i =0; i < permutationLength; i++)
+		positions.add(i);
+	
+	Collections.shuffle(positions);
+	
+	for (int i =0; i < permutationLength; i++)
+		permutation[i] = positions.get(i);
+		
+    return permutation;
+  }
+  
   public static int[] getInversePermutation(int[] permutation) {
     int[] inversePermutation = new int[permutation.length];
     for (int x=0; x < permutation.length; x++) {
@@ -88,3 +173,4 @@ public class PermutationUtils {
     return inversePermutation;  
   }
 }
+

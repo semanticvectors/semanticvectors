@@ -1,4 +1,4 @@
-/**
+   /**
    Copyright (c) 2011, the SemanticVectors AUTHORS.
 
    All rights reserved.
@@ -60,5 +60,9 @@ public enum VectorType {
   /**
    * Complex-valued vectors, normalized and compared using a hermitian scalar product.
    */
-  COMPLEXFLAT
+  COMPLEXFLAT,
+  /**
+   * Vector of integer values, describing a permutation
+   */
+  PERMUTATION
 }
