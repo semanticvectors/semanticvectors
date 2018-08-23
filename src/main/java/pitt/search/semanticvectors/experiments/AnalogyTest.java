@@ -80,7 +80,10 @@ public class AnalogyTest {
 	    
 		//not a proportional analogy
 		if (queryTerms.length < 4) 
-	    	System.out.println(threadno+": "+inLine+": Skipping line");
+		{
+			System.out.println(threadno+": "+inLine+": Skipping line");
+			return;
+		}
 	    	
 		Vector aTermVector = null;
 		Vector bTermVector = null;
@@ -94,7 +97,10 @@ public class AnalogyTest {
 		if (!termVectors.containsVector(queryTerms[3])) missingTerms = missingTerms + queryTerms[3]+"; ";
 		
 		if (!missingTerms.isEmpty())
-		System.out.println(threadno+": "+"Missing terms "+missingTerms);
+		{
+			System.out.println(threadno+": "+"Missing terms "+missingTerms);
+			return;
+		}
 		
 		aTermVector = termVectors.getVector(queryTerms[0]);
 		bTermVector = termVectors.getVector(queryTerms[1]);
