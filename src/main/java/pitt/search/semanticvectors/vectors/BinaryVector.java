@@ -2,6 +2,7 @@ package pitt.search.semanticvectors.vectors;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -208,34 +209,38 @@ public class BinaryVector implements Vector {
    * @return representation of basic binary vector.
    */
   public BinaryVector generateRandomVector(int dimension, int numEntries, Random random) {
-    // Check "multiple-of-64" constraint, to facilitate permutation of 64-bit chunks
-    if (dimension % 64 != 0) {
-      throw new IllegalArgumentException("Dimension should be a multiple of 64: "
-          + dimension + " will lead to trouble!");
-    }
-    // Check for balance between 1's and 0's
-    if (numEntries != dimension / 2) {
-      logger.severe("Attempting to create binary vector with unequal number of zeros and ones."
-          + " Unlikely to produce meaningful results. Therefore, seedlength has been set to "
-          + " dimension/2, as recommended for binary vectors");
-      numEntries = dimension / 2;
-    }
+	    // Check "multiple-of-64" constraint, to facilitate permutation of 64-bit chunks
+	    if (dimension % 64 != 0) {
+	      throw new IllegalArgumentException("Dimension should be a multiple of 64: "
+	          + dimension + " will lead to trouble!");
+	    }
+	    // Check for balance between 1's and 0's
+	    if (numEntries != dimension / 2) {
+	      logger.severe("Attempting to create binary vector with unequal number of zeros and ones."
+	          + " Unlikely to produce meaningful results. Therefore, seedlength has been set to "
+	          + " dimension/2, as recommended for binary vectors");
+	      numEntries = dimension / 2;
+	    }
 
-    BinaryVector randomVector = new BinaryVector(dimension);
-    randomVector.bitSet = new FixedBitSet(dimension);
-    int testPlace = dimension - 1, entryCount = 0;
+	    BinaryVector randomVector = new BinaryVector(dimension);
+	    randomVector.bitSet = new FixedBitSet(dimension);
+	    
+	    ArrayList<Integer> dimensions = new ArrayList<Integer>();
+	    
+	    for (int q=0; q< dimension; q++)
+	    	dimensions.add(q);
+	    
+	    Collections.shuffle(dimensions, random);
 
-    // Iterate across dimension of bitSet, changing 0 to 1 if random(1) > 0.5
-    // until dimension/2 1's added.
-    while (entryCount < numEntries) {	
-      testPlace = random.nextInt(dimension);
-      if (!randomVector.bitSet.get(testPlace)) {
-        randomVector.bitSet.set(testPlace);
-        entryCount++;	
-      }
-    }
-    return randomVector;
-  }
+	    for (int r=0; r < numEntries; r++)
+	   {
+	    	int testPlace = dimensions.get(r);
+	        randomVector.bitSet.set(testPlace);
+	    }
+	    return randomVector;
+	  }
+  
+ 
 
   @Override
   /**

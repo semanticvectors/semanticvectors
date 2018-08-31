@@ -159,13 +159,17 @@ public class PermutationVector implements Vector {
  * @return
  */
   
-  
+  //no seeding of random number generator
   public PermutationVector generateRandomVector(int dimension) {
    
   return new PermutationVector(PermutationUtils.getRandomPermutation(this.getVectorType(), dimension));
   }
 
-
+  //permits seeding of random number generator
+  public PermutationVector generateRandomVector(int dimension, Random random) {
+	   
+	  return new PermutationVector(PermutationUtils.getRandomPermutation(this.getVectorType(), dimension, random));
+	  }
 
   @Override
   /**

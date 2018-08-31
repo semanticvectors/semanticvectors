@@ -38,6 +38,7 @@ package pitt.search.semanticvectors.vectors;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Random;
 
 /**
  * Class that provides utilities for generating special permutations.
@@ -146,9 +147,14 @@ public class PermutationUtils {
    * @param proportion of maximum number swaps to make (e.g. 0.5)
    * @return array of length given by {@link #getPermutationLength}.
    */
-  public static int[] getRandomPermutation(VectorType vectorType, int dimension) {
-    
-	
+  
+    //no seeding random number generator
+  	public static int[] getRandomPermutation(VectorType vectorType, int dimension) {
+	  return getRandomPermutation(vectorType, dimension, null);
+  	}
+
+  	//permits seeding random number generator
+	public static int[] getRandomPermutation(VectorType vectorType, int dimension, Random random) {
 	int permutationLength = getPermutationLength(vectorType, dimension);
 	int[] permutation = new int[permutationLength];
 	
@@ -157,7 +163,9 @@ public class PermutationUtils {
 	for (int i =0; i < permutationLength; i++)
 		positions.add(i);
 	
-	Collections.shuffle(positions);
+	
+	if (random == null) Collections.shuffle(positions);
+	else Collections.shuffle(positions,random);
 	
 	for (int i =0; i < permutationLength; i++)
 		permutation[i] = positions.get(i);
