@@ -116,7 +116,7 @@ public class ESP {
   private HashMap<Object,String> cuis = new HashMap<Object,String>();
   private ConcurrentHashMap<String, Double> subsamplingProbabilities;
   
-  private final boolean semtypesAndCUIs = false; //set to true to experiment with SemMedDB-derived Lucene index (see LuceneIndexFromSemrepTriples)
+
   
   private ESP(FlagConfig flagConfig) {
 	 };
@@ -129,9 +129,6 @@ public class ESP {
     random = new Random();
     incrementalESPVectors.flagConfig = flagConfig;
     incrementalESPVectors.initialize();
-
-    VectorStoreWriter.writeVectors(
-        flagConfig.elementalpredicatevectorfile(), flagConfig, incrementalESPVectors.elementalPredicateVectors);
 
     VerbatimLogger.info("Performing first round of ESP training ...");
     incrementalESPVectors.trainIncrementalESPVectors();
@@ -152,7 +149,7 @@ public class ESP {
       this.luceneUtils = new LuceneUtils(flagConfig);
     }
 
-    
+     
     elementalItemVectors = new ElementalVectorStore(flagConfig);
     semanticItemVectors = new VectorStoreRAM(flagConfig);
     
@@ -224,7 +221,7 @@ public class ESP {
           Document theDoc 	= luceneUtils.getDoc(docEnum.docID());
           String semtype = "";
           
-          if (semtypesAndCUIs)
+          if (flagConfig.semtypesandcuis())
           {
           if (term.field().equals(SUBJECT_FIELD)) semtype = theDoc.get("subject_semtype");
           else if (term.field().equals(OBJECT_FIELD)) semtype = theDoc.get("object_semtype");
@@ -281,10 +278,12 @@ public class ESP {
     while((bytes = termsEnum.next()) != null) {
       Term term = new Term(PREDICATE_FIELD, bytes);
       // frequency thresholds do not apply to predicates... but the stopword list does
-      if (!luceneUtils.termFilter(term, dummyArray, 0, Integer.MAX_VALUE, Integer.MAX_VALUE, 1)) {
+      if (!luceneUtils.termFilter(term, dummyArray, 0, Integer.MAX_VALUE, Integer.MAX_VALUE, 1)) 
         continue;
-      }
-
+      // frequency thresholds DO apply to mutable predicates (as these may be dependency paths of which there are legion)
+        if (flagConfig.mutablepredicatevectors() && !luceneUtils.termFilter(term, dummyArray,flagConfig.minfrequency(), flagConfig.maxfrequency(),Integer.MAX_VALUE, 1)) 
+          continue;
+        
       elementalPredicateVectors.getVector(term.text().trim());
    
       // Add inverse vector for the predicates.
@@ -435,8 +434,17 @@ private void processPredication(String subject, String predicate, String object,
       Vector predicateElementalVector 		= elementalPredicateVectors.getVector(predicate);
       
       
+      Vector positiveSubjectObjectVector 	= null;
+      Vector negativeSubjectObjectVector	= null;
       
-      if (!semtypesAndCUIs) //if UMLS semantic types not available
+      if (flagConfig.mutablepredicatevectors())
+      {
+    	  positiveSubjectObjectVector = subjectSemanticVector.copy();
+    	  positiveSubjectObjectVector.bind(objectElementalVector);
+      }
+      
+      
+      if (!flagConfig.semtypesandcuis()) //if UMLS semantic types not available
       {
 		subsem = "universal";
 		obsem  = "universal";
@@ -460,7 +468,7 @@ private void processPredication(String subject, String predicate, String object,
             
             	  String testConcept = termDic.get(obsem).ceilingEntry(test).getValue();
             	 
-            	  if  (++ocnt > 10 && semtypesAndCUIs) //probably a rare semantic type
+            	  if  (++ocnt > 10 && flagConfig.semtypesandcuis()) //probably a rare semantic type
             	  {
             		  test = random.nextDouble()*totalPool.get("dsyn");
             		  testConcept 	= termDic.get("dsyn").ceilingEntry(test).getValue();
@@ -488,18 +496,39 @@ private void processPredication(String subject, String predicate, String object,
      shiftToward = shiftToward(copyOfSubjectSemanticVector,objectElementalVector,flagConfig, blas);
      objectElementalVector.superpose(copyOfSubjectSemanticVector, alpha*shiftToward, null); 
       
-	 
+	 //update predicate vector
+     if (flagConfig.mutablepredicatevectors())
+     {
+    	 shiftToward = shiftToward(predicateElementalVector,positiveSubjectObjectVector,flagConfig, blas);
+    	 predicateElementalVector.superpose(positiveSubjectObjectVector, alpha*shiftToward, null); 
+      }
+     
+     
      //negative samples
      for (Vector objNegativeSample:objNegSamples)
      {
     	 Vector negativeElementalBoundProduct 	= elementalPredicateVectors.getVector(predicate).copy();
 		   		negativeElementalBoundProduct.bind(objNegativeSample);  //eg. E(TREATS)*E(diabetes)
 		   		
+		   	   if (flagConfig.mutablepredicatevectors())
+		       {
+		     	  negativeSubjectObjectVector = subjectSemanticVector.copy();
+		     	  negativeSubjectObjectVector.bind(objNegativeSample);
+		       }		
+		   		
 		 double shiftAway   = shiftAway(subjectSemanticVector, negativeElementalBoundProduct,flagConfig, blas);
 		 subjectSemanticVector.superpose(negativeElementalBoundProduct, alpha*shiftAway, null);
 		
 		 shiftAway   = shiftAway(copyOfSubjectSemanticVector, objNegativeSample,flagConfig, blas);
 		 objNegativeSample.superpose(copyOfSubjectSemanticVector, alpha*shiftAway, null);
+		 
+		//update predicate vector
+	     if (flagConfig.mutablepredicatevectors())
+	     {
+	    	 shiftAway = shiftAway(predicateElementalVector,negativeSubjectObjectVector,flagConfig, blas);
+	    	 predicateElementalVector.superpose(negativeSubjectObjectVector, alpha*shiftAway, null); 
+	   
+	     }
 	     
      }
 	 
@@ -710,10 +739,12 @@ private void initializeRandomizationStartpoints()
       
       Enumeration<ObjectVector> e = null;
       
-     if (semtypesAndCUIs) //write out cui vectors and normalize semantic vectors
+     if (flagConfig.semtypesandcuis()) //write out cui vectors and normalize semantic vectors
      {
     // Also write out cui version of semantic vectors
      File vectorFile = new File("cuivectors.bin");
+     java.nio.file.Files.deleteIfExists(vectorFile.toPath());
+     
 	    String parentPath = vectorFile.getParent();
 	    if (parentPath == null) parentPath = "";
 	    FSDirectory fsDirectory = FSDirectory.open(FileSystems.getDefault().getPath(parentPath));
@@ -760,6 +791,23 @@ private void initializeRandomizationStartpoints()
     	   else 
     		nextVec.normalize();
     }
+    
+    if (flagConfig.mutablepredicatevectors())
+    {
+    e = elementalPredicateVectors.getAllVectors();
+    while (e.hasMoreElements()) {
+    	
+    	Vector nextVec =  e.nextElement().getVector();
+    	   if (flagConfig.vectortype().equals(VectorType.BINARY))
+    	    	  ((BinaryVector) nextVec).tallyVotes();
+    	   else 
+    		nextVec.normalize();
+    }
+    }
+    
+    
+    VectorStoreWriter.writeVectors(
+            flagConfig.elementalpredicatevectorfile(), flagConfig, elementalPredicateVectors);
 
     VectorStoreWriter.writeVectors(
         flagConfig.semanticvectorfile(), flagConfig, semanticItemVectors);

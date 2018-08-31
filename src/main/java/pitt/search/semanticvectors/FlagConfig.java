@@ -263,7 +263,7 @@ public class FlagConfig {
   private boolean porterstemmer = false;
   /** Tells {@link pitt.search.lucene.IndexFilePositions} to stem terms using Porter Stemmer, default value false. */
   public boolean porterstemmer() { return porterstemmer; }
-
+ 
   private boolean usetermweightsintermsearch = false;
   /** Tells search implementations to scale each comparison score by a term weight during search, default value false. */
   public boolean usetermweightsintermsearch() { return usetermweightsintermsearch; }
@@ -381,6 +381,21 @@ public class FlagConfig {
    * @return
    */
   public boolean aggressivesubsampling() {	return aggressivesubsampling;}
+  
+  private boolean semtypesandcuis = false;
+  /**
+   * Determines whether or not UMLS semantic types are considered when using ESP
+   * (to be used with index built by LuceneIndexFromSemrepTriples)
+   */
+  public boolean semtypesandcuis() { return semtypesandcuis;}
+  
+  private boolean mutablepredicatevectors = false;
+  /**
+   * Determines whether or not predicate vectors are adjusted during
+   * the process of training an ESP model
+   */
+  public boolean mutablepredicatevectors() { return mutablepredicatevectors; }
+  
   
   private boolean	subword_embeddings 	= false;
   private int  minimum_ngram_length 	= 3;
@@ -660,6 +675,7 @@ public void setExpandsearchspace(boolean b) {
 	// TODO Auto-generated method stub
 	this.expandsearchspace = b;
 }
+
 
 
 
