@@ -35,6 +35,7 @@
 
 package pitt.search.semanticvectors;
 
+import pitt.search.lucene.IndexFilePositions.AnalysisMethod;
 import pitt.search.semanticvectors.CompoundVectorBuilder.VectorLookupSyntax;
 import pitt.search.semanticvectors.DocVectors.DocIndexingStrategy;
 import pitt.search.semanticvectors.ElementalVectorStore.ElementalGenerationMethod;
@@ -259,10 +260,6 @@ public class FlagConfig {
   private TermWeight termweight = TermWeight.IDF;
   /** Term weighting used when constructing document vectors, default value {@link TermWeight#IDF} */
   public LuceneUtils.TermWeight termweight() { return termweight; }
-
-  private boolean porterstemmer = false;
-  /** Tells {@link pitt.search.lucene.IndexFilePositions} to stem terms using Porter Stemmer, default value false. */
-  public boolean porterstemmer() { return porterstemmer; }
  
   private boolean usetermweightsintermsearch = false;
   /** Tells search implementations to scale each comparison score by a term weight during search, default value false. */
@@ -371,6 +368,11 @@ public class FlagConfig {
   private EncodingMethod encodingmethod = EncodingMethod.RANDOM_INDEXING;
   /** Method used for positional indexing. */
   public EncodingMethod encodingmethod() { return encodingmethod; }
+  
+  private AnalysisMethod analysismethod = AnalysisMethod.STANDARDANALYZER;
+  /** Lucene analyzer to use for indexing. */
+  public AnalysisMethod analysismethod() { return analysismethod; }
+  
   
   private boolean aggressivesubsampling = false;
   /** Determines subsampling formula - 

@@ -31,8 +31,6 @@
    THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  **/package pitt.search.lucene;
 
-import static pitt.search.semanticvectors.LuceneUtils.LUCENE_VERSION;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -41,6 +39,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Date;
 import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.analysis.core.WhitespaceAnalyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.analysis.util.CharArraySet;
 import org.apache.lucene.index.IndexWriter;
@@ -55,6 +54,17 @@ import pitt.search.semanticvectors.FlagConfig;
  */
 public class IndexFilePositions {
 
+	
+	  /** Different methods for creating positional indexes. */
+	  public enum AnalysisMethod {
+	    /** Lucene StandardAnalyzer (without stopwords). */
+	    STANDARDANALYZER,
+	    /** Lucene PorterStemmer. */
+	    PORTERSTEMMER,
+	    /** Lucene WhiteSpaceAnalyzer - tokenize on whitespace only. */
+	    WHITESPACEANALYZER
+	  }
+	
   private IndexFilePositions() {}
 
   static Path INDEX_DIR = FileSystems.getDefault().getPath("positional_index");
@@ -80,9 +90,22 @@ public class IndexFilePositions {
     }
     try {
     	IndexWriter writer;
-      // Create IndexWriter using porter stemmer or no stemming. No stopword list.
-    	Analyzer analyzer = flagConfig.porterstemmer()
-          ? new PorterAnalyzer() : new StandardAnalyzer(CharArraySet.EMPTY_SET);
+      // Create IndexWriter using porter stemmer or no stemming. No stopword list. Or simply tokenize on whitespace.
+    	Analyzer analyzer = null;
+    	
+    	switch (flagConfig.analysismethod())
+    	{
+    		case STANDARDANALYZER:
+    			analyzer = new StandardAnalyzer(CharArraySet.EMPTY_SET);  break;
+    		 	
+    		case PORTERSTEMMER:
+    			analyzer = new PorterAnalyzer(); break;
+    			
+    		case WHITESPACEANALYZER:
+    			analyzer = new WhitespaceAnalyzer(); break;
+    		 	 
+    	}
+    	
       IndexWriterConfig writerConfig = new IndexWriterConfig(analyzer);
       writer = new IndexWriter(FSDirectory.open(INDEX_DIR), writerConfig);
 
