@@ -106,7 +106,7 @@ public class ESP {
   private ConcurrentHashMap<String,Double> totalPool; //total pool of terms probabilities for negative sampling corpus
 
   private LuceneUtils luceneUtils;
-  private ArrayList<String> addedConcepts;
+  private HashSet<String> addedConcepts;
   private static Random random;
   private java.util.concurrent.atomic.AtomicInteger dc = new java.util.concurrent.atomic.AtomicInteger(0);
   private java.util.concurrent.atomic.AtomicInteger pc = new java.util.concurrent.atomic.AtomicInteger(0);
@@ -175,7 +175,7 @@ public class ESP {
     termDic 	= new ConcurrentHashMap<String, ConcurrentSkipListMap<Double, String>>();
     totalPool	= new ConcurrentHashMap<String, Double>();
     
-    addedConcepts = new ArrayList<String>();
+    addedConcepts = new HashSet<String>();
     
     // Term counter to track initialization progress.
     int termCounter = 0;
