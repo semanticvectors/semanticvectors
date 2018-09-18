@@ -512,7 +512,7 @@ private void processPredication(String subject, String predicate, String object,
 		   		
 		   	   if (flagConfig.mutablepredicatevectors())
 		       {
-		     	  negativeSubjectObjectVector = subjectSemanticVector.copy();
+		     	  negativeSubjectObjectVector = copyOfSubjectSemanticVector.copy();
 		     	  negativeSubjectObjectVector.bind(objNegativeSample);
 		       }		
 		   		
