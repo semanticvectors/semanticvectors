@@ -203,26 +203,31 @@ public class ESP {
           
           if (!elementalItemVectors.containsVector(term.text()))
           {
+        	  
         	  if (flagConfig.initialtermvectors().isEmpty()) 
         		  elementalItemVectors.getVector(term.text());  // Causes vector to be created.
         	  else //pretraining
-        	  {
+        		  {
+        		  	
         		  if (flagConfig.elementalmethod().equals(ElementalGenerationMethod.CONTENTHASH))
         			  random.setSeed(Bobcat.asLong(term.text())); //deterministic initialization
-                  ((VectorStoreRAM) elementalItemVectors).putVector(term.text(), VectorFactory.generateRandomVector(
-                              flagConfig.vectortype(), flagConfig.dimension(), flagConfig.seedlength(), random));    
-                	  
-        	  }
-          
+            	  
+        		  ((VectorStoreRAM) elementalItemVectors).putVector(term.text(), VectorFactory.generateRandomVector(
+        		                               flagConfig.vectortype(), flagConfig.dimension(), flagConfig.seedlength(), random));        	  
+        		  }
           }
           //store the semantic type
-          PostingsEnum docEnum 	= luceneUtils.getDocsForTerm(term);
-          docEnum.nextDoc();
-          Document theDoc 	= luceneUtils.getDoc(docEnum.docID());
-          String semtype = "";
-          
+           String semtype = "";
+           if (flagConfig.elementalmethod().equals(ElementalGenerationMethod.CONTENTHASH))
+ 			  random.setSeed(Bobcat.asLong("_SEMANTIC_"+term.text())); //deterministic initialization
+     	     
           if (flagConfig.semtypesandcuis())
           {
+        	  PostingsEnum docEnum 	= luceneUtils.getDocsForTerm(term);
+              docEnum.nextDoc();
+              Document theDoc 	= luceneUtils.getDoc(docEnum.docID());
+            
+        	  
           if (term.field().equals(SUBJECT_FIELD)) semtype = theDoc.get("subject_semtype");
           else if (term.field().equals(OBJECT_FIELD)) semtype = theDoc.get("object_semtype");
           semtypes.put(term.text(), semtype);
@@ -270,6 +275,8 @@ public class ESP {
       }
     }
 
+    int predCounter = 0;
+    
     // Now elemental vectors for the predicate field.
     Terms predicateTerms = luceneUtils.getTermsForField(PREDICATE_FIELD);
     String[] dummyArray = new String[] { PREDICATE_FIELD };  // To satisfy LuceneUtils.termFilter interface.
@@ -289,7 +296,11 @@ public class ESP {
       // Add inverse vector for the predicates.
       elementalPredicateVectors.getVector(term.text().trim() + "-INV");
       
-
+      // Output predicate counter.
+      predCounter++;
+      if ((predCounter > 0) && ((predCounter % 10000 == 0) || ( predCounter < 10000 && predCounter % 1000 == 0 ))) {
+        VerbatimLogger.info("Initialized " + predCounter + " predicate vectors ... ");}
+  
     }
     
     //precalculate probabilities for subsampling (need to iterate again once total term frequency known)
@@ -300,14 +311,13 @@ public class ESP {
       VerbatimLogger.info("Populating subsampling probabilities - total concept count = " + totalConceptCount + " which is " + (totalConceptCount / luceneUtils.getNumDocs()) + " per doc on average");
       int count = 0;
       
-      Set<Object> uniqueRepresentedTerms = cuis.keySet();
-      Iterator<Object> termIterator = uniqueRepresentedTerms.iterator();
+      Iterator<String> termIterator = addedConcepts.iterator();
         Object termName;
         while (termIterator.hasNext() && (termName = termIterator.next()) != null) {
            if (++count % 10000 == 0) VerbatimLogger.info(".");
 
           // Skip terms that don't pass the filter.
-          if (!semanticItemVectors.containsVector(termName.toString())) continue;
+          if (!semanticItemVectors.containsVector(termName)) continue;
           double subFreq  	= luceneUtils.getGlobalDocFreq(new Term("subject",termName.toString()));
           double obFreq  	= luceneUtils.getGlobalDocFreq(new Term("object",termName.toString()));
           double globalFreq = (subFreq + obFreq) / (double) totalConceptCount;
@@ -512,7 +522,7 @@ private void processPredication(String subject, String predicate, String object,
 		   		
 		   	   if (flagConfig.mutablepredicatevectors())
 		       {
-		     	  negativeSubjectObjectVector = copyOfSubjectSemanticVector.copy();
+		     	  negativeSubjectObjectVector = subjectSemanticVector.copy();
 		     	  negativeSubjectObjectVector.bind(objNegativeSample);
 		       }		
 		   		
