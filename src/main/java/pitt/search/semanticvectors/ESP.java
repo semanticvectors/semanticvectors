@@ -203,12 +203,10 @@ public class ESP {
           
           if (!elementalItemVectors.containsVector(term.text()))
           {
-        	  
         	  if (flagConfig.initialtermvectors().isEmpty()) 
         		  elementalItemVectors.getVector(term.text());  // Causes vector to be created.
         	  else //pretraining
-        		  {
-        		  	
+        	  {
         		  if (flagConfig.elementalmethod().equals(ElementalGenerationMethod.CONTENTHASH))
         			  random.setSeed(Bobcat.asLong(term.text())); //deterministic initialization
             	  
@@ -312,7 +310,7 @@ public class ESP {
       int count = 0;
       
       Iterator<String> termIterator = addedConcepts.iterator();
-        Object termName;
+        String termName;
         while (termIterator.hasNext() && (termName = termIterator.next()) != null) {
            if (++count % 10000 == 0) VerbatimLogger.info(".");
 
@@ -444,15 +442,6 @@ private void processPredication(String subject, String predicate, String object,
       Vector predicateElementalVector 		= elementalPredicateVectors.getVector(predicate);
       
       
-      Vector positiveSubjectObjectVector 	= null;
-      Vector negativeSubjectObjectVector	= null;
-      
-      if (flagConfig.mutablepredicatevectors())
-      {
-    	  positiveSubjectObjectVector = subjectSemanticVector.copy();
-    	  positiveSubjectObjectVector.bind(objectElementalVector);
-      }
-      
       
       if (!flagConfig.semtypesandcuis()) //if UMLS semantic types not available
       {
@@ -498,49 +487,54 @@ private void processPredication(String subject, String predicate, String object,
 	     //alter subject's semantic vector
       elementalBoundProduct.bind(objectElementalVector);          //eg. E(TREATS)*E(schizophrenia)
       copyOfSubjectSemanticVector.release(predicateElementalVector);  //e.g. S(haloperidol)/E(TREATS) ?= E(schizophrenia)
+
+      //to train predicate vector
+      Vector copyOfElementalVector = null;
       
+      if (flagConfig.mutablepredicatevectors())
+    {
+      copyOfElementalVector=objectElementalVector.copy();
+      copyOfElementalVector.bind(subjectSemanticVector);
+    }  
      //observed predication
      double shiftToward = shiftToward(subjectSemanticVector,elementalBoundProduct,flagConfig, blas);
      subjectSemanticVector.superpose(elementalBoundProduct, alpha*shiftToward, null); //sim (S(haloperidol), E(TREATS)*E(schizophrenia) \approx sim(S(haloperidol)/E(TREATS), E(schizophrenia))
 	
      shiftToward = shiftToward(copyOfSubjectSemanticVector,objectElementalVector,flagConfig, blas);
      objectElementalVector.superpose(copyOfSubjectSemanticVector, alpha*shiftToward, null); 
-      
-	 //update predicate vector
-     if (flagConfig.mutablepredicatevectors())
+
+     //train predicate vector too
+     if (flagConfig.mutablepredicatevectors()) 
      {
-    	 shiftToward = shiftToward(predicateElementalVector,positiveSubjectObjectVector,flagConfig, blas);
-    	 predicateElementalVector.superpose(positiveSubjectObjectVector, alpha*shiftToward, null); 
-      }
-     
-     
+    	 shiftToward = shiftToward(predicateElementalVector,copyOfElementalVector,flagConfig, blas);
+    	 predicateElementalVector.superpose(copyOfElementalVector, alpha*shiftToward, null);
+     }
+	 
      //negative samples
      for (Vector objNegativeSample:objNegSamples)
      {
     	 Vector negativeElementalBoundProduct 	= elementalPredicateVectors.getVector(predicate).copy();
 		   		negativeElementalBoundProduct.bind(objNegativeSample);  //eg. E(TREATS)*E(diabetes)
-		   		
-		   	   if (flagConfig.mutablepredicatevectors())
-		       {
-		     	  negativeSubjectObjectVector = subjectSemanticVector.copy();
-		     	  negativeSubjectObjectVector.bind(objNegativeSample);
-		       }		
+
+		  Vector boundArguments = null;
+		   		if (flagConfig.mutablepredicatevectors())
+		   		{
+		   			boundArguments=objNegativeSample.copy();
+		   			boundArguments.bind(subjectSemanticVector);
+		   		}
 		   		
 		 double shiftAway   = shiftAway(subjectSemanticVector, negativeElementalBoundProduct,flagConfig, blas);
 		 subjectSemanticVector.superpose(negativeElementalBoundProduct, alpha*shiftAway, null);
-		
+		 
 		 shiftAway   = shiftAway(copyOfSubjectSemanticVector, objNegativeSample,flagConfig, blas);
 		 objNegativeSample.superpose(copyOfSubjectSemanticVector, alpha*shiftAway, null);
-		 
-		//update predicate vector
-	     if (flagConfig.mutablepredicatevectors())
-	     {
-	    	 shiftAway = shiftAway(predicateElementalVector,negativeSubjectObjectVector,flagConfig, blas);
-	    	 predicateElementalVector.superpose(negativeSubjectObjectVector, alpha*shiftAway, null); 
-	   
-	     }
-	     
-     }
+
+		 if (flagConfig.mutablepredicatevectors()) 
+		 {
+		 shiftAway   = shiftAway(predicateElementalVector,boundArguments, flagConfig, blas);
+		 predicateElementalVector.superpose(boundArguments, alpha*shiftAway, null);
+		 }
+		 }
 	 
       }
       
@@ -783,23 +777,14 @@ private void initializeRandomizationStartpoints()
     {
         e = semanticItemVectors.getAllVectors();
         while (e.hasMoreElements())	{
-          ObjectVector ov = e.nextElement();
-          if (flagConfig.vectortype().equals(VectorType.BINARY))
-        	  ((BinaryVector) ov.getVector()).tallyVotes();
-          else 
-        	  ov.getVector().normalize();
-    	
-    }
+        	e.nextElement().getVector().normalize();
+      }
     }
     	
     e = elementalItemVectors.getAllVectors();
     while (e.hasMoreElements()) {
     	
-    	Vector nextVec =  e.nextElement().getVector();
-    	   if (flagConfig.vectortype().equals(VectorType.BINARY))
-    	    	  ((BinaryVector) nextVec).tallyVotes();
-    	   else 
-    		nextVec.normalize();
+    	e.nextElement().getVector().normalize();
     }
     
     if (flagConfig.mutablepredicatevectors())
@@ -807,11 +792,7 @@ private void initializeRandomizationStartpoints()
     e = elementalPredicateVectors.getAllVectors();
     while (e.hasMoreElements()) {
     	
-    	Vector nextVec =  e.nextElement().getVector();
-    	   if (flagConfig.vectortype().equals(VectorType.BINARY))
-    	    	  ((BinaryVector) nextVec).tallyVotes();
-    	   else 
-    		nextVec.normalize();
+    	e.nextElement().getVector().normalize();
     }
     }
     
@@ -825,7 +806,8 @@ private void initializeRandomizationStartpoints()
     VectorStoreWriter.writeVectors(
          flagConfig.elementalvectorfile(), flagConfig, elementalItemVectors);
     
-    
+    VectorStoreWriter.writeVectors(
+				   flagConfig.elementalpredicatevectorfile(), flagConfig, elementalPredicateVectors);
       
  
     VerbatimLogger.info("Finished writing semantic item and context vectors.\n");
@@ -851,3 +833,4 @@ private void initializeRandomizationStartpoints()
     createIncrementalESPVectors(flagConfig);
   }
 }
+
