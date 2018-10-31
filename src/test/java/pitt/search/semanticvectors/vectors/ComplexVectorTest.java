@@ -84,7 +84,9 @@ public class ComplexVectorTest extends TestCase {
     assertTrue(vector.isZeroVector());
     assertEquals(10, vector.getDimension());
 
-    vector = (ComplexVector) VectorFactory.createZeroVector(VectorType.COMPLEX, 2);
+    // Note here need to start with a brand new complex vector, not using createZeroVector.
+    // This is confusing as an API and maybe should be changed.
+    vector = new ComplexVector(2, Mode.POLAR_SPARSE);
     vector.setSparseOffsets(new short[] {1, 0});
     vector.toDensePolar();
     assertArrayEquals(new short[] {-1, 0}, vector.getPhaseAngles());
