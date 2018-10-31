@@ -291,20 +291,14 @@ public class ComplexVector implements Vector {
    *
    * @return Dense representation of vector in Cartesian form.
    */
-  
-
   public ComplexVector generateHermitianRandomVector(int dimension, Random random) {
-	    
-	
-	ComplexVector randomVector = new ComplexVector(dimension, Mode.HERMITIAN);
-	float[] coordinates = randomVector.getCoordinates();
-   
-    for (int d = 0; d < coordinates.length; d++)
-    	coordinates[d] = (float) (random.nextFloat() - 0.5) / (float) coordinates.length;
-
+  	ComplexVector randomVector = new ComplexVector(dimension, Mode.HERMITIAN);
+	  float[] coordinates = randomVector.getCoordinates();
+    for (int d = 0; d < coordinates.length; d++) {
+      coordinates[d] = (float) (random.nextFloat() - 0.5) / (float) coordinates.length;
+    }
     return randomVector;
   }
-  
   
   @Override
   /**

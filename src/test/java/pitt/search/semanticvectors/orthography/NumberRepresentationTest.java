@@ -42,7 +42,7 @@ public class NumberRepresentationTest {
     /** This "half-way" equality isn't exact, demonstrating that I don't exactly understand
      * the process. -DW. */
     assertEquals(vsr.getVector(4).measureOverlap(vsr.getVector(2)),
-        vsr.getVector(2).measureOverlap(vsr.getVector(0)), TOL);
+        vsr.getVector(2).measureOverlap(vsr.getVector(0)), 0.05);
   }
   
   @Test
