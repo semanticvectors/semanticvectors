@@ -460,8 +460,6 @@ public class ComplexVector implements Vector {
 
     switch (complexOther.opMode) {
       case HERMITIAN:
-        ComplexVectorUtils.superposeWithCoord(this, complexOther, (float) weight, permutation);
-        break;
       case CARTESIAN:
         ComplexVectorUtils.superposeWithCoord(this, complexOther, (float) weight, permutation);
         break;
