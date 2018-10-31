@@ -52,7 +52,12 @@ public class VectorFactory {
     new ComplexVector(0, ComplexVector.Mode.POLAR_SPARSE);
   private static final ComplexVector complexFlatInstance =
       new ComplexVector(0, ComplexVector.Mode.CARTESIAN);
-  
+
+  /**
+   * createZeroVector returns a vector set to zero. It can be used externally, but
+   * be careful particularly with Complex Vectors to make sure that polar / cartesian / hermitian
+   * modes are set correctly especially if you try to set coordinates manually after that.
+   */
   public static Vector createZeroVector(VectorType type, int dimension) {
     switch (type) {
       case BINARY:

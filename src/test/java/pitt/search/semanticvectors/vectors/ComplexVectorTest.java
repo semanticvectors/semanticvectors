@@ -84,7 +84,9 @@ public class ComplexVectorTest extends TestCase {
     assertTrue(vector.isZeroVector());
     assertEquals(10, vector.getDimension());
 
-    vector = (ComplexVector) VectorFactory.createZeroVector(VectorType.COMPLEX, 2);
+    // Note here need to start with a brand new complex vector, not using createZeroVector.
+    // This is confusing as an API and maybe should be changed.
+    vector = new ComplexVector(2, Mode.POLAR_SPARSE);
     vector.setSparseOffsets(new short[] {1, 0});
     vector.toDensePolar();
     assertArrayEquals(new short[] {-1, 0}, vector.getPhaseAngles());
@@ -103,11 +105,13 @@ public class ComplexVectorTest extends TestCase {
   @Test
   public void testSuperposeSparseOnZero() {
     int dim = 4;
-    ComplexVector cv1 = (ComplexVector) VectorFactory.createZeroVector(VectorType.COMPLEX, dim);
+    ComplexVector cv1 = new ComplexVector(dim, ComplexVector.Mode.POLAR_SPARSE);
     cv1.setSparseOffsets(new short[] {1, 0, 3, CircleLookupTable.PHASE_RESOLUTION / 4});
+    System.out.println(cv1.toString());
     ComplexVector cv2 = (ComplexVector) VectorFactory.createZeroVector(VectorType.COMPLEX, dim);
     cv2.superpose(cv1, 5, null);
-    assertEquals(Mode.CARTESIAN, cv2.getOpMode());
+    assertEquals(Mode.HERMITIAN, cv2.getOpMode());
+    System.out.println(cv2.toString());
     assertFloatArrayEquals(
         new float[] {0, 0, 5, 0, 0, 0, 0, 5}, cv2.getCoordinates(), TOL);
   }

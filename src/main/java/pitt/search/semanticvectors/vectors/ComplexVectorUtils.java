@@ -92,7 +92,6 @@ public class ComplexVectorUtils {
     }
   }
 
-
   /**
    * Superposes vec2 with vec1.
    * Both vectors are in CARTESIAN mode.
@@ -134,7 +133,6 @@ public class ComplexVectorUtils {
     }
   }
 
-
   /**
    * The orthogonalize function takes an array of vectors and
    * orthogonalizes them using the Gram-Schmidt process. The vectors
@@ -148,7 +146,7 @@ public class ComplexVectorUtils {
    *
    * @param list vectors to be orthogonalized
    */
-  public static boolean orthogonalizeVectors(List<Vector> list) {    
+  public static boolean orthogonalizeVectors(List<Vector> list) {
     int dimension = list.get(0).getDimension();
     // Go up through vectors in turn, parameterized by k.
     for (int k = 0; k < list.size(); ++k) {
@@ -163,13 +161,12 @@ public class ComplexVectorUtils {
         Vector jthVector = list.get(j);
         renderOrthogonal( (ComplexVector) kthVector, (ComplexVector) jthVector);
       }
-        // And renormalize each time.... after all projections subtracted
-        kthVector.normalize();
-      
+      // And renormalize each time.... after all projections subtracted
+      kthVector.normalize();
+
     }
     return true;
   }
-
 
   /**
    * Renders  vec1 orthogonal to the corresponding component of vec2
@@ -177,24 +174,21 @@ public class ComplexVectorUtils {
    * (rather than as a mean pairwise cosine between circular vectors of 0)
    * Both vectors are in put into CARTESIAN mode.
    */
-  
- 
   public static void renderOrthogonal(
-	      ComplexVector vec1, ComplexVector vec2) {
-	    IncompatibleVectorsException.checkVectorsCompatible(vec1, vec2);
-	    if (vec1.getOpMode() != ComplexVector.Mode.CARTESIAN) vec1.toCartesian();
-	    if (vec2.getOpMode() != ComplexVector.Mode.CARTESIAN) vec2.toCartesian();
+      ComplexVector vec1, ComplexVector vec2) {
+    IncompatibleVectorsException.checkVectorsCompatible(vec1, vec2);
+    if (vec1.getOpMode() != ComplexVector.Mode.CARTESIAN) vec1.toCartesian();
+    if (vec2.getOpMode() != ComplexVector.Mode.CARTESIAN) vec2.toCartesian();
 
-	    float[] coordinates1 = vec1.getCoordinates();
-	    float[] coordinates2 = vec2.getCoordinates();
+    float[] coordinates1 = vec1.getCoordinates();
+    float[] coordinates2 = vec2.getCoordinates();
 
-	      double cosine = vec1.measureHermitianOverlap(vec2);
+    double cosine = vec1.measureHermitianOverlap(vec2);
 
-	     for (int i = 0 ; i < coordinates1.length; i++)
-	      coordinates1[i] = (float) (coordinates1[i] - cosine*coordinates2[i]);
-	        
-	  }
-  
+    for (int i = 0 ; i < coordinates1.length; i++) {
+      coordinates1[i] = (float) (coordinates1[i] - cosine * coordinates2[i]);
+    }
+  }
 
   /**
    * Experimental: renders  each circular component of vec1 orthogonal 
@@ -202,9 +196,6 @@ public class ComplexVectorUtils {
    * 
    * Both vectors are in put into CARTESIAN mode.
    */
-  
-  
-  
   public static void renderPairwiseOrthogonal(
       ComplexVector vec1, ComplexVector vec2) {
     IncompatibleVectorsException.checkVectorsCompatible(vec1, vec2);
@@ -237,9 +228,6 @@ public class ComplexVectorUtils {
     }
   }
 
-  
-  
-  
   public static void setFloatArrayToZero(float[] array) {
     for (int i=0; i<array.length; i++) array[i] = 0.0f;
   }
@@ -248,11 +236,11 @@ public class ComplexVectorUtils {
     for (int i=0; i<array.length; i++) array[i] = array[i]*weight;
   }
 
-public static Vector generateHermitianRandomVector(int dimension,
-		int seedlength, Random random) {
-	// TODO Auto-generated method stub
-	return null;
-}
+  public static Vector generateHermitianRandomVector(int dimension,
+                                                     int seedlength, Random random) {
+    // TODO Auto-generated method stub
+    return null;
+  }
 }
 
 
