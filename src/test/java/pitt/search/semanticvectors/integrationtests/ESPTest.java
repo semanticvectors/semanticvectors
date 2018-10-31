@@ -95,7 +95,7 @@ public class ESPTest {
 
   @Test
   public void testBuildAndSearchRealESPIndex() throws IOException, IllegalArgumentException {
-    String buildCmd = "-dimension 1000 -maxnonalphabetchars 20 -vectortype real -seedlength 1000 -luceneindexpath predication_index";
+    String buildCmd = "-dimension 1000 -seedlength 1000 -maxnonalphabetchars 20 -vectortype real -seedlength 1000 -luceneindexpath tmp/predication_index";
     String searchCmd = "-searchtype boundproduct -queryvectorfile semanticvectors.bin -boundvectorfile predicatevectors.bin -searchvectorfile elementalvectors.bin -matchcase mexico HAS_CURRENCY";
     int rank = espBuildSearchGetRank(buildCmd, searchCmd, "mexican_peso");
     assertTrue(rank <= 3);
@@ -104,7 +104,7 @@ public class ESPTest {
 
   @Test
   public void testBuildAndSearchBinaryESPIndex() throws IOException, IllegalArgumentException {
-    String buildCmd = "-dimension 4096 -maxnonalphabetchars 20 -vectortype binary -luceneindexpath predication_index";
+    String buildCmd = "-dimension 4096 -maxnonalphabetchars 20 -vectortype binary -luceneindexpath tmp/predication_index";
     String searchCmd = "-searchtype boundproduct -queryvectorfile semanticvectors.bin -boundvectorfile predicatevectors.bin -searchvectorfile elementalvectors.bin -matchcase mexico HAS_CURRENCY";
     int rank = espBuildSearchGetRank(buildCmd, searchCmd, "mexican_peso");
     assertTrue(rank < 2);
@@ -112,7 +112,7 @@ public class ESPTest {
 
   @Test
   public void testBuildAndSearchComplexESPIndex() throws IOException, IllegalArgumentException {
-    String buildCmd = "-dimension 1000 -maxnonalphabetchars 20 -vectortype complex -seedlength 1000 -luceneindexpath predication_index";
+    String buildCmd = "-dimension 1000 -seedlength 1000 -maxnonalphabetchars 20 -vectortype complex -seedlength 1000 -luceneindexpath tmp/predication_index";
     String searchCmd = "-searchtype boundproduct -queryvectorfile semanticvectors.bin -boundvectorfile predicatevectors.bin -searchvectorfile elementalvectors.bin -matchcase mexico HAS_CURRENCY";
     int rank = espBuildSearchGetRank(buildCmd, searchCmd, "mexican_peso");
     assertTrue(rank < 2);
