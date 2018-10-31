@@ -230,8 +230,7 @@ public class VectorUtils {
     	  for (int q=0; q < v1.getDimension(); q++)
     		  score += ((RealVector) v1).getCoordinates()[permutations[q]] * 
     				  ((RealVector) v2).getCoordinates()[q];
-  		
-       return score;
+  	   return score;
      }
  
   public static void superposeInPlace(Vector toBeAdded, Vector toBeAltered, FlagConfig flagConfig, BLAS blas, double weight, int[] permutation) throws IncompatibleVectorsException {

@@ -47,6 +47,7 @@ import pitt.search.semanticvectors.vectors.ComplexVector.Mode;
 public class VectorFactory {
   private static final BinaryVector binaryInstance = new BinaryVector(0);
   private static final RealVector realInstance = new RealVector(0);
+  private static final BipolarVector bipolarInstance = new BipolarVector(0);
   private static final ComplexVector complexInstance =
     new ComplexVector(0, ComplexVector.Mode.POLAR_SPARSE);
   private static final ComplexVector complexFlatInstance =
@@ -56,6 +57,8 @@ public class VectorFactory {
     switch (type) {
       case BINARY:
         return new BinaryVector(dimension);
+      case BIPOLAR:
+          return new BipolarVector(dimension);
       case REAL:
         return new RealVector(dimension);
       case COMPLEX:
@@ -88,6 +91,8 @@ public class VectorFactory {
     switch (type) {
     case BINARY:
       return binaryInstance.generateRandomVector(dimension, numEntries, random);
+    case BIPOLAR:
+        return bipolarInstance.generateRandomVector(dimension, numEntries, random);
     case REAL:
       return realInstance.generateRandomVector(dimension, numEntries, random);
     case COMPLEX:

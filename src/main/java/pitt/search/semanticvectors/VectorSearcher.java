@@ -56,6 +56,7 @@ import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
+import org.netlib.blas.BLAS;
 
 import pitt.search.semanticvectors.vectors.BinaryVectorUtils;
 import pitt.search.semanticvectors.vectors.IncompatibleVectorsException;
@@ -83,8 +84,14 @@ abstract public class VectorSearcher {
    * Expand search space for dual-predicate searches
    */  
   public static VectorStore expandSearchSpace(VectorStore searchVecStore, FlagConfig flagConfig) {
-    VectorStoreRAM nusearchspace = new VectorStoreRAM(flagConfig);
-    Enumeration<ObjectVector> allVectors = searchVecStore.getAllVectors();
+    
+	//it may be necessary to set the vector type to permutation
+	VectorType previousVectorType= flagConfig.vectortype();
+	flagConfig.setVectortype(searchVecStore.getAllVectors().nextElement().getVector().getVectorType());
+	VectorStoreRAM nusearchspace = new VectorStoreRAM(flagConfig);
+    flagConfig.setVectortype(previousVectorType);
+    
+	Enumeration<ObjectVector> allVectors = searchVecStore.getAllVectors();
     ArrayList<ObjectVector> storeVectors = new ArrayList<ObjectVector>();
 
     while (allVectors.hasMoreElements()) {
@@ -103,12 +110,27 @@ abstract public class VectorSearcher {
         
         if (obj1.equals(obj2)) continue;
         
+        if  (vec1.getVectorType().equals(VectorType.PERMUTATION))
+        {	
+        	if (obj1.replaceAll("_", "").equals(obj2.replaceAll("_", ""))) //don't bind permutation to its inverse
+        		continue;
+        	
+        	vec1.bind(vec2);
+            nusearchspace.putVector(obj2+":"+obj1, vec1);
+            vec2.bind(storeVectors.get(x).getVector().copy());
+            nusearchspace.putVector(obj1+":"+obj2, vec2);
+        	
+        	
+        }
+        else
+        {
         vec1.release(vec2);
         nusearchspace.putVector(obj2+":"+obj1, vec1.copy());
 
         if (flagConfig.vectortype().equals(VectorType.COMPLEX)) {
           vec2.release(storeVectors.get(x).getVector().copy());
           nusearchspace.putVector(obj1+":"+obj2, vec2);
+        }
         }
         
       }
@@ -216,7 +238,7 @@ abstract public class VectorSearcher {
    */
   public LinkedList<SearchResult> getNearestNeighbors(int numResults) {
     final double unsetScore = -Math.PI;
-    final int bufferSize = 1000;
+    final int bufferSize = Math.min(searchVecStore.getNumVectors(),1000);
     final int indexSize = numResults + bufferSize;
     LinkedList<SearchResult> results = new LinkedList<SearchResult>();
     List<SearchResult> tmpResults = new ArrayList<SearchResult>(indexSize);
@@ -841,9 +863,11 @@ abstract public class VectorSearcher {
    * index term (i.e. sat +1 would find a term occurring frequently immediately after "sat"
    */
   public static class VectorSearcherPerm extends VectorSearcher {
-    Vector theAvg;
+    Vector 	theAvg;
+    Vector 	otherVector = null;
+    int[]  	permutation = null;
+    BLAS 	blas = BLAS.getInstance();
 
-    
     
     /**
      * @param queryVecStore Vector store to use for query generation.
@@ -874,13 +898,14 @@ abstract public class VectorSearcher {
     }
     
     
+    
     /**
      * @param queryVecStore Vector store to use for query generation.
      * @param searchVecStore The vector store to search.
      * @param permutationCache The permutations
      * @param luceneUtils LuceneUtils object to use for query weighting. (May be null.)
      * @param queryTerms Terms that will be parsed into a query
-     * expression. If the string "?" appears, terms best fitting into this position will be returned
+     * expression. 
      */
     public VectorSearcherPerm(VectorStore queryVecStore,
         VectorStore searchVecStore,
@@ -890,20 +915,22 @@ abstract public class VectorSearcher {
         String[] queryTerms)
             throws IllegalArgumentException, ZeroVectorException {
       super(queryVecStore, searchVecStore, luceneUtils, flagConfig);
-
+      
       try {
-        String[] permStrings = queryTerms[1].split(":");
-        Vector toSuperpose   = queryVecStore.getVector(queryTerms[0]).copy();
+        String[] permStrings = queryTerms[1].split(",");
+        theAvg  = queryVecStore.getVector(queryTerms[0]).copy();
         
-        for (String permString:permStrings)
-        {
-        	theAvg = VectorFactory.createZeroVector(flagConfig.vectortype(), flagConfig.dimension());
-            int[] thePermutation = ((PermutationVector) permutationCache.getVector(permString)).getCoordinates();
-        	theAvg.superpose(toSuperpose,1, thePermutation);
-        	toSuperpose = theAvg.copy();
-        }	    
-        //int[] thePermutation2 = PermutationUtils.getInversePermutation(thePermutation);
-        } catch (IllegalArgumentException e) {
+        Vector perm1 = 
+        		null;
+        if (permStrings.length > 1)	
+        	{
+        	perm1 = permutationCache.getVector(permStrings[1]);
+        	 perm1.bind(permutationCache.getVector(permStrings[0]));
+        	}
+        else perm1 = permutationCache.getVector(permStrings[0]);
+        permutation = ((PermutationVector) perm1).getCoordinates();
+        
+           } catch (IllegalArgumentException e) {
         logger.info("Couldn't create permutation VectorSearcher ...");
         throw e;
       }
@@ -912,10 +939,54 @@ abstract public class VectorSearcher {
         throw new ZeroVectorException("Permutation query vector is zero ... no results.");
       }
     }
+    
+   /**
+    * 
+    * @param semanticVecStore
+    * @param elementalVecStore
+    * @param permutationCache
+    * @param luceneUtils
+    * @param flagConfig
+    * @param queryTerm1
+    * @param queryTerm2
+    * @throws IllegalArgumentException
+    * @throws ZeroVectorException
+    */
+    public VectorSearcherPerm(VectorStore semanticVecStore,
+        VectorStore elementalVecStore,
+        VectorStore permutationCache,
+        LuceneUtils luceneUtils,
+        FlagConfig flagConfig,
+        String queryTerm1, String queryTerm2)
+            throws IllegalArgumentException, ZeroVectorException {
+      super(elementalVecStore, permutationCache, luceneUtils, flagConfig);
+
+      try {
+       
+    	theAvg = semanticVecStore.getVector(queryTerm1);
+    	otherVector = elementalVecStore.getVector(queryTerm2);
+    	  
+         } catch (IllegalArgumentException e) {
+        logger.info("Couldn't create permutation VectorSearcher ...");
+        throw e;
+      }
+
+      if (theAvg.isZeroVector() || otherVector.isZeroVector()) {
+        throw new ZeroVectorException("Permutation query vector is zero ... no results.");
+      }
+    }
+    
+    
 
     @Override
     public double getScore(Vector testVector) {
-      return theAvg.measureOverlap(testVector);
+    	
+    	if (testVector.getVectorType().equals(VectorType.PERMUTATION))
+    		{
+    			permutation = ((PermutationVector) testVector).getCoordinates();
+    			return VectorUtils.scalarProduct(otherVector,theAvg, super.flagConfig, blas,permutation);
+    		} else
+      return VectorUtils.scalarProduct(testVector,theAvg, super.flagConfig, blas,permutation);
     }
   }
 

@@ -403,7 +403,8 @@ public class RealVector implements Vector {
     for (int i = 0; i < dimension; ++i) {
       coordinates[i] = coordinates[i] / norm;
     }
-  }
+    
+    }
 
   @Override
   /**

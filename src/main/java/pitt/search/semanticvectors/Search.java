@@ -45,6 +45,7 @@ import pitt.search.semanticvectors.vectors.ZeroVectorException;
 import pitt.search.semanticvectors.viz.PathFinder;
 
 import java.io.IOException;
+import java.util.Enumeration;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Logger;
@@ -255,7 +256,7 @@ public class Search {
     		permutationCache = new VectorStoreRAM(flagConfig);
     		permutationCache.initFromFile(flagConfig.permutationcachefile());
     		flagConfig.setVectortype(typeA);
-    	}
+      	}
     	
       // Default VectorStore implementation is (Lucene) VectorStoreReader.
       if (!flagConfig.elementalvectorfile().equals("elementalvectors") && !flagConfig.semanticvectorfile().equals("semanticvectors") && !flagConfig.elementalpredicatevectorfile().equals("predicatevectors")) {
@@ -379,8 +380,12 @@ public class Search {
           }
           break;
         case PERMUTATION:
-          vecSearcher = new VectorSearcher.VectorSearcherPerm(
-              queryVecReader, searchVecReader, permutationCache, luceneUtils, flagConfig, queryArgs);
+           if (queryArgs[0].equals("PERM"))
+        	   	vecSearcher = new VectorSearcher.VectorSearcherPerm(
+        	       queryVecReader, searchVecReader, permutationCache, luceneUtils, flagConfig, queryArgs[1],queryArgs[2]);
+        	     
+           else vecSearcher = new VectorSearcher.VectorSearcherPerm(
+        		   queryVecReader, searchVecReader, permutationCache, luceneUtils, flagConfig, queryArgs);
           break;
         case BALANCEDPERMUTATION:
           vecSearcher = new VectorSearcher.BalancedVectorSearcherPerm(

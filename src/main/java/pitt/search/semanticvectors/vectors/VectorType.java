@@ -64,5 +64,15 @@ public enum VectorType {
   /**
    * Vector of integer values, describing a permutation
    */
-  PERMUTATION
+  PERMUTATION, 
+  /**
+   * Alternate implementation of binary-valued vector models, using bipolar (+/-) voting record
+   * instead of the more laborious matrix-of-bits approach. This should be more space-efficient
+   * and perhaps faster with relatively low-dimensional vectors O(1000) bits; but computationally
+   * less convenient and perhaps intractable with relatively high-dimensional ones O(10,000) bits. 
+   * 
+   * As binary-vector ESP functions well at the lower end of the dimensionality spectrum, 
+   * this may be a better way to train such models.
+   */
+  BIPOLAR
 }

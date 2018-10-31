@@ -42,6 +42,8 @@ import java.util.logging.Logger;
 import org.apache.lucene.store.IndexInput;
 import org.apache.lucene.store.IndexOutput;
 
+import pitt.search.semanticvectors.FlagConfig;
+import pitt.search.semanticvectors.VectorStoreRAM;
 import pitt.search.semanticvectors.vectors.ComplexVector.Mode;
 
 /**
@@ -55,38 +57,12 @@ import pitt.search.semanticvectors.vectors.ComplexVector.Mode;
  */
 public class PermutationVector implements Vector {
   
-  /**
-   * Enumeration of binding operation options. Change at compile-time to experiment.
-   */
-  public enum RealBindMethod {
-    /**
-     * Uses permutation operations, as in Sahlgren et al.
-     * Fast, exact inverse, but lossy memory of slot-filling. 
-     */
-    PERMUTATION,
-    /**
-     * Uses convolution operations, as in Mewhort and Jones, BEAGLE.
-     * Slower, but optimized using Fast Fourier Transforms.
-     * Approximate inverse, but keeps memory of slot-filling.
-     */
-    CONVOLUTION,
-    /**
-     * As above, but creates normalized version of component vectors before convolution occurs
-     * 
-     */
-    NORMALIZEDCONVOLUTION
-  }
-  
-  public static RealBindMethod BIND_METHOD = RealBindMethod.NORMALIZEDCONVOLUTION;
-  public static void setBindType(RealBindMethod bindMethod) {
-    logger.info("Globally setting real vector BIND_METHOD to: '" + bindMethod + "'");
-    BIND_METHOD = bindMethod;
-  }
-  
+
+
   public static final Logger logger = Logger.getLogger(PermutationVector.class.getCanonicalName());
 
   /** Returns {@link VectorType#REAL} */
-  public VectorType getVectorType() { return VectorType.REAL; }
+  public VectorType getVectorType() { return VectorType.PERMUTATION; }
 
   private final int dimension;
   /**
@@ -121,7 +97,7 @@ public class PermutationVector implements Vector {
   }
 
   public String toString() {
-    StringBuilder debugString = new StringBuilder("RealVector.");
+    StringBuilder debugString = new StringBuilder("PermutationVector.");
     // TODO(widdows): Add heap location?
   
       debugString.append("   Permutations are:\n");
@@ -218,7 +194,7 @@ public class PermutationVector implements Vector {
     PermutationVector integerOther = (PermutationVector) other;
     for (int i = 0; i < dimension; ++i) {
         
- 	   coordinates[i] = (coordinates[i] * integerOther.coordinates[i]) % dimension;
+ 	   coordinates[i] = integerOther.getCoordinates()[coordinates[i]];
    }
     
   }
@@ -230,10 +206,15 @@ public class PermutationVector implements Vector {
   public void release(Vector other) {
     IncompatibleVectorsException.checkVectorsCompatible(this, other);
     PermutationVector integerOther = (PermutationVector) other;
+    int[] inverseOther = PermutationUtils.getInversePermutation(integerOther.getCoordinates());
+    
     for (int i = 0; i < dimension; ++i) {
         
-  	   coordinates[i] = (coordinates[i] / integerOther.coordinates[i]) % dimension;
+  	   coordinates[i] = inverseOther[coordinates[i]];
     }
+     
+  
+  
   }
     
 
@@ -341,6 +322,64 @@ public void writeToLuceneStream(IndexOutput outputStream, int k) {
 	writeToLuceneStream(outputStream);
 }
 
+
+public static void main(String[] args) throws IOException
+{
+	
+	
+	int[] p1 = {1,2,3,0};
+	int[] p2 = {2,0,3,1};
+	PermutationVector test = new PermutationVector(p1);
+	PermutationVector test2= new PermutationVector(p2);
+	
+	System.out.println("v1");
+	System.out.println(test);
+	System.out.println("v2");
+	System.out.println(test2);
+	test.bind(test2);
+	System.out.println("v1*v2");
+	System.out.println("----------");
+	System.out.println(test);
+	System.out.println("----------");
+	
+	System.out.println("v1*v2/v2");
+	test.release(test2);
+	System.out.println(test);
+	
+	System.out.println("v2*v1");
+	test2.bind(test);
+	System.out.println("----------");
+	System.out.println(test2);
+	System.out.println("----------");
+	
+	FlagConfig flagConfig = FlagConfig.getFlagConfig(args);
+	VectorStoreRAM theVSR = new VectorStoreRAM(flagConfig);
+	flagConfig.setVectortype(VectorType.PERMUTATION);
+	theVSR.initFromFile("permutationvectors.bin");
+	
+	PermutationVector v1 = ((PermutationVector) theVSR.getVector("_CAUSES-INV"));
+	PermutationVector v2 = ((PermutationVector) theVSR.getVector("ISA"));
+	
+	PermutationVector v3 = ((PermutationVector) theVSR.getVector("_CAUSES")).copy();
+	v3.bind(theVSR.getVector("ISA"));
+	PermutationVector v3i= new PermutationVector(PermutationUtils.getInversePermutation(v3.getCoordinates()));
+	
+	
+	PermutationVector v4 = ((PermutationVector) theVSR.getVector("CAUSES")).copy();
+	v4.bind(theVSR.getVector("_ISA"));
+	
+	
+	System.out.println(v3i);
+	System.out.println(v4);
+	
+	
+	
+
+	
+	
+	
+	
+}
 
 
 
