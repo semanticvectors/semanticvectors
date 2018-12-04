@@ -969,6 +969,14 @@ public class TermTermVectorsFromLucene { //implements VectorStore {
       if (flagConfig.subsampleinwindow) effectiveWindowRadius = random.nextInt(flagConfig.windowradius()) + 1;
 
       int windowstart = Math.max(0, occupiedPositionNumber - effectiveWindowRadius);
+      
+      //permit assymetrical windows (shorter on the left - for evaluation against empirical data)
+      if (flagConfig.truncatedleftradius() > 0)
+      {
+    	  	 int truncatedLeftRadius = Math.min(flagConfig.truncatedleftradius(), effectiveWindowRadius);
+    	  	 windowstart = Math.max(0, occupiedPositionNumber - truncatedLeftRadius);
+      }
+      
       int windowend = Math.min(occupiedPositionNumber + effectiveWindowRadius, thePositions.size()-1);
 
       for (int cursorPositionNumber = windowstart; cursorPositionNumber <= windowend; cursorPositionNumber++) {
@@ -983,8 +991,7 @@ public class TermTermVectorsFromLucene { //implements VectorStore {
 	//ignore this position if empty / subsampled 
       if (flagConfig.exactwindowpositions() && coterm.equals("_BLANK_")) continue;
       
-	  
-	  //if (coterm.equals(focusterm)) continue;
+    //if (coterm.equals(focusterm)) continue;
 	  
 	  //for permutation-based methods
 	  int[] permutation =  null;
@@ -1120,7 +1127,8 @@ public class TermTermVectorsFromLucene { //implements VectorStore {
             semanticTermVectors.getVector(focusterm).superpose(toSuperpose, globalweight, permutation);
           }
         }
-      } //end of current sliding window
+      } 
+      //end of current sliding window
     } //end of all sliding windows
 
     totalDocCount.incrementAndGet();

@@ -248,6 +248,10 @@ public class FlagConfig {
   /** Window radius used in {@link BuildPositionalIndex}, default value 5. */
   public int windowradius() { return windowradius; }
 
+  private int truncatedleftradius = -1;
+  /** To limit left window radius in {@link BuildPositionalIndex} to this value, default value is -1 (no truncation). */
+  public int truncatedleftradius() { return truncatedleftradius; }
+  
   private SearchType searchtype = SearchType.SUM;
   /** Method used for combining and searching vectors,
    * default value {@link SearchType#SUM} corresponding to "-searchtype sum". */

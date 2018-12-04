@@ -146,6 +146,10 @@ public class BuildPositionalIndex {
         + ", Fields to index: " + Arrays.toString(flagConfig.contentsfields())
         + "\n");
 
+    if (flagConfig.truncatedleftradius() > 0)
+    		VerbatimLogger.info("Truncating left window radius to "+flagConfig.truncatedleftradius()+"\n");
+   
+    
     try {
       TermTermVectorsFromLucene termTermIndexer = new TermTermVectorsFromLucene(
           flagConfig, newElementalTermVectors);
