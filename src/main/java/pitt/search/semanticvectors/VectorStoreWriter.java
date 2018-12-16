@@ -163,7 +163,7 @@ public class VectorStoreWriter {
     // Write each vector.
     while (vecEnum.hasMoreElements()) {
       ObjectVector objectVector = vecEnum.nextElement();
-      outBuf.write(objectVector.getObject().toString() + "|");
+      outBuf.write(objectVector.getObject().toString().replaceAll("\\|", ";") + "|");
       outBuf.write(objectVector.getVector().writeToString());
       outBuf.write("\n");
     }    
