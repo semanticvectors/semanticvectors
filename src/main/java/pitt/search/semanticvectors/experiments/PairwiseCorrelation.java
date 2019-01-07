@@ -85,6 +85,10 @@ public class PairwiseCorrelation {
 			Vector v2 = CompoundVectorBuilder.getQueryVector(
 		              termvectors, null, flagConfig, components[1].split(" "));
 			
+			if (v1.isZeroVector() || v2.isZeroVector()) {inline = theReader.readLine(); continue;}
+			if (v1 == null || v2 == null) {inline = theReader.readLine(); continue;}
+
+			
 			double score = v1.measureOverlap(v2);	
 			
 			if (!Double.isNaN(score))
