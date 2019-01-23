@@ -247,9 +247,13 @@ public class TermTermVectorsFromLucene { //implements VectorStore {
     	  this.semanticTermVectors.initFromFile(flagConfig.initialtermvectors().replaceAll("elemental","embedding"));
       
     	  if (flagConfig.positionalmethod() != PositionalMethod.BASIC && flagConfig.vectortype().equals(VectorType.REAL))
+    	  {
+    		  VectorType repType = flagConfig.vectortype();
+    		  flagConfig.setVectortype(VectorType.PERMUTATION);
     		  this.permutationCache = new VectorStoreRAM(flagConfig);
     		  this.permutationCache.initFromFile(flagConfig.permutationcachefile());
-    		  
+    		  flagConfig.setVectortype(repType);
+    	  }  
       
       }
       
