@@ -62,8 +62,8 @@ public class VectorFactory {
     switch (type) {
       case BINARY:
         return new BinaryVector(dimension);
-      case BIPOLAR:
-          return new BipolarVector(dimension);
+      //case BIPOLAR:
+        //  return new BipolarVector(dimension);
       case REAL:
         return new RealVector(dimension);
       case COMPLEX:
@@ -100,7 +100,9 @@ public class VectorFactory {
         return bipolarInstance.generateRandomVector(dimension, numEntries, random);
     case REAL:
       return realInstance.generateRandomVector(dimension, numEntries, random);
-    case COMPLEX:
+    case PERMUTATION:
+        return new PermutationVector(PermutationUtils.getRandomPermutation(VectorType.REAL, dimension));
+      case COMPLEX:
       if (!ComplexVector.getDominantMode().equals(Mode.HERMITIAN)) 
     	  ComplexVector.setDominantMode(Mode.POLAR_DENSE);
       return complexInstance.generateRandomVector(dimension, numEntries, random);
