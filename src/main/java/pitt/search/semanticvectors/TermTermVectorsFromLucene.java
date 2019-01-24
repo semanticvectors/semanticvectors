@@ -272,6 +272,8 @@ public class TermTermVectorsFromLucene { //implements VectorStore {
       }
     }
 
+    if (permutationCache == null)
+    {
     if (flagConfig.positionalmethod() == PositionalMethod.PERMUTATION
         || flagConfig.positionalmethod() == PositionalMethod.PERMUTATIONPLUSBASIC
         )
@@ -280,6 +282,7 @@ public class TermTermVectorsFromLucene { //implements VectorStore {
       initializeDirectionalPermutations();
     else if (flagConfig.positionalmethod() == PositionalMethod.PROXIMITY)
       initializeNumberRepresentations();
+    }
     trainTermTermVectors();
   }
 
