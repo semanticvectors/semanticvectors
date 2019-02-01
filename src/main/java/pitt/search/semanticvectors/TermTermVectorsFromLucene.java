@@ -771,7 +771,7 @@ public class TermTermVectorsFromLucene { //implements VectorStore {
            	  nextVector.normalize();
         	 
         	 int 	  docID = (Integer) nextObjectVector.getObject();
-             String docName = ""+docID; //luceneUtils.getExternalDocId(docID);
+             String docName = ""+luceneUtils.getExternalDocId(docID);
            
              // All fields in document have been processed. Write out documentID and normalized vector.
             outputStream.writeString(docName);
