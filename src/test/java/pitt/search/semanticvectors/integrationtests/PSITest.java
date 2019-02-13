@@ -95,7 +95,7 @@ public class PSITest {
 
   @Test
   public void testBuildAndSearchRealPSIIndex() throws IOException, IllegalArgumentException {
-    String buildCmd = "-dimension 1000 -maxnonalphabetchars 20 -vectortype real -seedlength 500 -luceneindexpath predication_index";
+    String buildCmd = "-dimension 1000 -maxnonalphabetchars 20 -vectortype real -seedlength 500 -luceneindexpath tmp/predication_index";
     String searchCmd = "-searchtype boundproduct -queryvectorfile semanticvectors.bin -boundvectorfile predicatevectors.bin -searchvectorfile elementalvectors.bin -matchcase mexico HAS_CURRENCY";
     int rank = psiBuildSearchGetRank(buildCmd, searchCmd, "mexican_peso");
     assertTrue(rank <= 3);
@@ -103,7 +103,7 @@ public class PSITest {
   
   @Test
   public void testBuildAndSearchRealPermutationPSIIndex() throws IOException, IllegalArgumentException {
-    String buildCmd = "-dimension 1000 -maxnonalphabetchars 20 -vectortype real -seedlength 500 -realbindmethod permutation -luceneindexpath predication_index";
+    String buildCmd = "-dimension 1000 -maxnonalphabetchars 20 -vectortype real -seedlength 500 -realbindmethod permutation -luceneindexpath tmp/predication_index";
     String searchCmd = "-searchtype boundproduct -realbindmethod permutation -queryvectorfile semanticvectors.bin -boundvectorfile predicatevectors.bin -searchvectorfile elementalvectors.bin -matchcase mexico HAS_CURRENCY";
     int rank = psiBuildSearchGetRank(buildCmd, searchCmd, "mexican_peso");
     assertTrue(rank < 4);
@@ -111,7 +111,7 @@ public class PSITest {
 
   @Test
   public void testBuildAndSearchBinaryPSIIndex() throws IOException, IllegalArgumentException {
-    String buildCmd = "-dimension 4096 -maxnonalphabetchars 20 -vectortype binary -luceneindexpath predication_index";
+    String buildCmd = "-dimension 4096 -maxnonalphabetchars 20 -vectortype binary -luceneindexpath tmp/predication_index";
     String searchCmd = "-searchtype boundproduct -queryvectorfile semanticvectors.bin -boundvectorfile predicatevectors.bin -searchvectorfile elementalvectors.bin -matchcase mexico HAS_CURRENCY";
     int rank = psiBuildSearchGetRank(buildCmd, searchCmd, "mexican_peso");
     assertTrue(rank < 2);
@@ -119,7 +119,7 @@ public class PSITest {
 
   @Test
   public void testBuildAndSearchComplexPSIIndex() throws IOException, IllegalArgumentException {
-    String buildCmd = "-dimension 1000 -maxnonalphabetchars 20 -vectortype complex -seedlength 1000 -luceneindexpath predication_index";
+    String buildCmd = "-dimension 1000 -maxnonalphabetchars 20 -vectortype complex -seedlength 1000 -luceneindexpath tmp/predication_index";
     String searchCmd = "-searchtype boundproduct -queryvectorfile semanticvectors.bin -boundvectorfile predicatevectors.bin -searchvectorfile elementalvectors.bin -matchcase mexico HAS_CURRENCY";
     int rank = psiBuildSearchGetRank(buildCmd, searchCmd, "mexican_peso");
     assertTrue(rank < 2);

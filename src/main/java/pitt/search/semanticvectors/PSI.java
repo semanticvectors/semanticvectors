@@ -95,7 +95,7 @@ public class PSI {
     incrementalPSIVectors.trainIncrementalPSIVectors("");
 
     if (flagConfig.trainingcycles() > 0)
-    {	
+    {
     VerbatimLogger.info("Performing next round of PSI training ...");
     incrementalPSIVectors.elementalItemVectors = incrementalPSIVectors.semanticItemVectors;
     incrementalPSIVectors.elementalPredicateVectors = incrementalPSIVectors.semanticPredicateVectors;
@@ -171,14 +171,14 @@ public class PSI {
       }
 
       elementalPredicateVectors.getVector(term.text().trim());
-      
+
       if (flagConfig.trainingcycles() > 0)
     	  semanticPredicateVectors.putVector(term.text().trim(), VectorFactory.createZeroVector(
           flagConfig.vectortype(), flagConfig.dimension()));
 
       // Add inverse vector for the predicates.
       elementalPredicateVectors.getVector(term.text().trim() + "-INV");
-      
+
       if (flagConfig.trainingcycles() > 0)
     	  semanticPredicateVectors.putVector(term.text().trim() + "-INV", VectorFactory.createZeroVector(
           flagConfig.vectortype(), flagConfig.dimension()));
@@ -227,17 +227,28 @@ public class PSI {
       float predWeight = 1;
 
       // sWeight and oWeight are analogous to global weighting, a function of the number of times these concepts - and predicates - occur
-      // such that less frequent concepts and predicates will contribute more 
+      // such that less frequent concepts and predicates will contribute more
       predWeight 	= luceneUtils.getGlobalTermWeight(new Term(PREDICATE_FIELD, predicate));
-      sWeight 		= luceneUtils.getGlobalTermWeight(new Term(SUBJECT_FIELD, subject));
-      oWeight 		= luceneUtils.getGlobalTermWeight(new Term(OBJECT_FIELD, object));
-      // pWeight is analogous to local weighting, a function of the total number of times a predication occurs 
+      // Filter the frequent , should be extracted as parameter
+      if (luceneUtils.getGlobalTermFreq(new Term(SUBJECT_FIELD, subject)) < flagConfig.minfrequency() ||
+			  luceneUtils.getGlobalTermFreq(new Term(SUBJECT_FIELD, subject)) > flagConfig.maxfrequency()) {
+        sWeight = 0;
+      } else {
+        sWeight = luceneUtils.getGlobalTermWeight(new Term(SUBJECT_FIELD, subject));
+      }
+      if (luceneUtils.getGlobalTermFreq(new Term(OBJECT_FIELD, object)) < flagConfig.minfrequency() || luceneUtils.getGlobalTermFreq(new Term(OBJECT_FIELD, object)) > flagConfig.maxfrequency()) {
+        oWeight = 0;
+      } else {
+        oWeight = luceneUtils.getGlobalTermWeight(new Term(OBJECT_FIELD, object));
+      }
+
+      // pWeight is analogous to local weighting, a function of the total number of times a predication occurs
       // examples are -termweight sqrt (sqrt of total occurences), and -termweight logentropy (log of 1 + occurrences)
       pWeight = luceneUtils.getLocalTermWeight(luceneUtils.getGlobalTermFreq(term));
 
       // with -termweight sqrt we don't take global weighting of predicates into account to preserve a probabilistic interpretation
-      if (flagConfig.termweight().equals(TermWeight.SQRT)) predWeight = 0; 
-      
+      if (flagConfig.termweight().equals(TermWeight.SQRT)) predWeight = 0;
+
       Vector subjectSemanticVector = semanticItemVectors.getVector(subject);
       Vector objectSemanticVector = semanticItemVectors.getVector(object);
       Vector subjectElementalVector = elementalItemVectors.getVector(subject);
@@ -255,17 +266,17 @@ public class PSI {
 
       if (flagConfig.trainingcycles() > 0) //for experiments with generating iterative predicate vectors
       {
-    	  
+
        	  Vector predicateSemanticVector = semanticPredicateVectors.getVector(predicate);
     		  Vector predicateSemanticVectorInv = semanticPredicateVectors.getVector(predicate+ "-INV");
           //construct permuted editions of subject and object vectors (so binding doesn't commute)
           Vector permutedSubjectElementalVector = VectorFactory.createZeroVector(flagConfig.vectortype(), flagConfig.dimension());
           Vector permutedObjectElementalVector = VectorFactory.createZeroVector(flagConfig.vectortype(), flagConfig.dimension());
-          permutedSubjectElementalVector.superpose(subjectElementalVector, 1, predicatePermutation); 
-          permutedObjectElementalVector.superpose(objectElementalVector, 1, predicatePermutation); 
+          permutedSubjectElementalVector.superpose(subjectElementalVector, 1, predicatePermutation);
+          permutedObjectElementalVector.superpose(objectElementalVector, 1, predicatePermutation);
           permutedSubjectElementalVector.normalize();
-          permutedObjectElementalVector.normalize();  
-    	  
+          permutedObjectElementalVector.normalize();
+
       Vector predToAdd = subjectElementalVector.copy();
       predToAdd.bind(permutedObjectElementalVector);
       predicateSemanticVector.superpose(predToAdd, sWeight * oWeight, null);
@@ -289,14 +300,14 @@ public class PSI {
 
     VectorStoreWriter.writeVectors(
         flagConfig.semanticvectorfile() + iterationTag, flagConfig, semanticItemVectors);
-   
+
     if (flagConfig.trainingcycles() > 0)
-    {	
+    {
     VectorStoreWriter.writeVectors(
         flagConfig.semanticpredicatevectorfile() + iterationTag, flagConfig, semanticPredicateVectors);
     }
     VerbatimLogger.info("Finished writing this round of semantic item and predicate vectors.\n");
-    
+
     }
 
   /**

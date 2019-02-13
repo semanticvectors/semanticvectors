@@ -54,7 +54,7 @@ public class LuceneIndexFromTriples {
       IndexWriterConfig writerConfig = new IndexWriterConfig(new WhitespaceAnalyzer());
       IndexWriter writer = new IndexWriter(FSDirectory.open(INDEX_DIR), writerConfig);
 
-      final File triplesTextFile = new File(args[0]);
+      final File triplesTextFile = new File(flagConfig.remainingArgs[0]);
       if (!triplesTextFile.exists() || !triplesTextFile.canRead()) {
         writer.close();
         throw new IOException("Document file '" + triplesTextFile.getAbsolutePath() +
