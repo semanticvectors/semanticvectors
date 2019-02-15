@@ -43,6 +43,7 @@ import java.util.List;
 import java.util.logging.Logger;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
@@ -52,6 +53,7 @@ import pitt.search.semanticvectors.ObjectVector;
 import pitt.search.semanticvectors.Search;
 import pitt.search.semanticvectors.SearchResult;
 
+@Ignore
 public class ThreadSafetyTest {
   private static final Logger logger = Logger.getLogger(ThreadSafetyTest.class.getCanonicalName());
 

@@ -34,6 +34,7 @@
 package pitt.search.semanticvectors.integrationtests;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import pitt.search.lucene.LuceneIndexFromTriples;
 import pitt.search.semanticvectors.FlagConfig;
@@ -108,6 +109,7 @@ public class PSIWikiLinksTest {
 		return rank;
 	}
 
+	@Ignore
 	@Test
 	public void testBuildAndSearchRealPSIIndex() throws IOException, IllegalArgumentException {
 		String buildCmd = "-minfrequency 5 -dimension 1000 -vectortype real -seedlength 500 -luceneindexpath tmp/predication_index -minfrequency 5";

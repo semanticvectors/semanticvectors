@@ -78,6 +78,17 @@ public class FlagConfig {
   
   public String[] remainingArgs;
 
+  // Custom parameters for GraphDB
+  private String input_index = "";
+  public String input_index() {
+    return input_index;
+  }
+
+  private boolean literal_index = false;
+  public boolean literal_index() {
+    return literal_index;
+  }
+
   // Add new command line flags here. By convention, please use lower case.
 
   private int dimension = 200;
@@ -348,7 +359,7 @@ public class FlagConfig {
   private String proximityvectorfile = "proxtermvectors";
   /** "Permuted term vectors, output by -positionalmethod proximity. */
   public String proximityvectorfile() { return proximityvectorfile; }
-  
+
   private String directionalvectorfile ="drxntermvectors";
   /** Permuted term vectors, output by -positionalmethod directional. */
   public String directionalvectorfile() { return directionalvectorfile; }   

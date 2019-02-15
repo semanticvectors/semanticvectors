@@ -50,6 +50,7 @@ import static org.junit.Assert.*;
  *
  * Should be run using "ant run-integration-tests".
  */
+@Ignore
 public class LSATest {
   @Before
   public void setUp() throws IOException {

@@ -50,6 +50,7 @@ import static org.junit.Assert.*;
  *
  * Should be run using "ant run-integration-tests".
  */
+@Ignore
 public class ESPTest {
   @Before
   public void setUp() {

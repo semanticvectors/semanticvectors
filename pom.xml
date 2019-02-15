@@ -4,7 +4,7 @@
     <groupId>pitt.search</groupId>
     <artifactId>semanticvectors</artifactId>
     <!-- Change this to x.y-SNAPSHOT to run mvn release:prepare -->
-    <version>5.9</version>
+    <version>5.9-onto-TR1</version>
     <url>https://github.com/semanticvectors/semanticvectors</url>
 
     <licenses>
@@ -23,13 +23,29 @@
         <version>7</version>
     </parent>
 
-    <scm>
-        <url>https://github.com/semanticvectors/semanticvectors/tags/semanticvectors-5.10</url>
-        <connection>scm:git:https://github.com/semanticvectors/semanticvectors.git</connection>
-        <developerConnection>scm:git:https://github.com/semanticvectors/semanticvectors.git</developerConnection>
-    </scm>
+    <distributionManagement>
+        <repository>
+            <id>internal</id>
+            <name>GraphDB Releases repository</name>
+            <url>${internal.repo}</url>
+        </repository>
+        <snapshotRepository>
+            <id>snapshots</id>
+            <name>GraphDB Snapshots repository</name>
+            <url>${snapshots.repo}</url>
+        </snapshotRepository>
+    </distributionManagement>
+    <!--<scm>-->
+        <!--<url>https://github.com/semanticvectors/semanticvectors/tags/semanticvectors-5.10</url>-->
+        <!--<connection>scm:git:https://github.com/semanticvectors/semanticvectors.git</connection>-->
+        <!--<developerConnection>scm:git:https://github.com/semanticvectors/semanticvectors.git</developerConnection>-->
+    <!--</scm>-->
 
     <properties>
+        <graphdb.version>8.8.0-RC2</graphdb.version>
+        <internal.repo>http://maven.ontotext.com/content/repositories/owlim-releases</internal.repo>
+        <snapshots.repo>http://maven.ontotext.com/content/repositories/owlim-snapshots</snapshots.repo>
+
         <luceneversion>6.6.0</luceneversion>
         <!-- Override using "mvn install -DskipTests=false". -->
         <skipTests>true</skipTests>
@@ -38,6 +54,19 @@
     </properties>
 
     <dependencies>
+        <dependency>
+            <groupId>com.ontotext.graphdb</groupId>
+            <artifactId>graphdb-free-runtime</artifactId>
+            <version>${graphdb.version}</version>
+            <scope>provided</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.eclipse.rdf4j</groupId>
+                    <artifactId>rdf4j-storage</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
         <dependency>
             <groupId>org.apache.lucene</groupId>
             <artifactId>lucene-core</artifactId>
@@ -81,7 +110,7 @@
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>4.11</version>
+            <version>4.12</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
