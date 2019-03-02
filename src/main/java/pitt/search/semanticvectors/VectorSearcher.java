@@ -100,8 +100,8 @@ abstract public class VectorSearcher {
       storeVectors.add(nextObjectVector);
     }
 
-    for (int x=0; x < storeVectors.size()-2; x++) {
-      for (int y=x; y < storeVectors.size()-1; y++) {
+    for (int x=0; x < storeVectors.size()-1; x++) {
+      for (int y=x; y < storeVectors.size(); y++) {
        Vector vec1 = storeVectors.get(x).getVector().copy();
         Vector vec2 = storeVectors.get(y).getVector().copy();
        
@@ -672,6 +672,30 @@ abstract public class VectorSearcher {
       else BinaryVectorUtils.orthogonalizeVectors(this.disjunctSpace);
     }
 
+    /**
+     * @param queryVecStore Vector store to use for query generation.
+     * @param searchVecStore The vector store to search.
+     * @param luceneUtils LuceneUtils object to use for query weighting. (May be null.)
+     * @param queryTerms Terms that will be parsed and used to generate a query subspace.
+     */
+    public VectorSearcherSubspaceSim(VectorStore queryVecStore,
+        VectorStore searchVecStore,
+        LuceneUtils luceneUtils,
+        FlagConfig flagConfig,
+        ArrayList<Vector> disjunctSpace)
+            throws ZeroVectorException {
+      super(queryVecStore, searchVecStore, luceneUtils, flagConfig);
+      this.disjunctSpace = disjunctSpace;
+      this.vectorType = flagConfig.vectortype();
+       
+      if (this.disjunctSpace.size() == 0) {
+        throw new ZeroVectorException("No nonzero input vectors ... no results.");
+      }
+      if (!vectorType.equals(VectorType.BINARY))
+        VectorUtils.orthogonalizeVectors(this.disjunctSpace);
+      else BinaryVectorUtils.orthogonalizeVectors(this.disjunctSpace);
+    }
+    
     /**
      * Scoring works by taking scalar product with disjunctSpace
      * (which must by now be represented using an orthogonal basis).
