@@ -478,9 +478,11 @@ public class BinaryVector implements Vector {
       int q = tempSet.nextSetBit(0);
       while (q != DocIdSetIterator.NO_MORE_DOCS)
       	{
-    	  switcher = random.nextBoolean();//!switcher;
+    	 	  switcher = !switcher;
           if (switcher) tempSet.clear(q);
-          q = tempSet.nextSetBit(q);
+          if (q+1 >= tempSet.length()) q = DocIdSetIterator.NO_MORE_DOCS;
+          else q = tempSet.nextSetBit(q+1);
+         
       	}
       		result.andNot(tempSet);
     }
