@@ -101,10 +101,9 @@ public class BinaryVectorTest extends TestCase {
     BinaryVector vector = (BinaryVector) VectorFactory.createZeroVector(VectorType.BINARY, 64);
     vector.readFromString("0101010111000011110100011111110110100000001110111000011000100100");
     assertEquals("0101010111000011110100011111110110100000001110111000011000100100", vector.writeToString());
-
     vector.normalize();
     assertEquals("0101010111000011110100011111110110100000001110111000011000100100", vector.writeToString());
-
+ 
     BinaryVector vector2 = (BinaryVector) VectorFactory.createZeroVector(VectorType.BINARY, 64);
     vector2.readFromString("0000111111000011110100011111110110100000001110111000011000100100");
     vector.superpose(vector2, 1000, null);
@@ -112,7 +111,7 @@ public class BinaryVectorTest extends TestCase {
     // This is a surprise to me - calling normalize to make the superposition "take" was
     // unexpected.
     //assertEquals("0101010111000011110100011111110110100000001110111000011000100100", vector.writeToString());
-    //vector.normalize();
+    vector.normalize();
     assertEquals("0000111111000011110100011111110110100000001110111000011000100100", vector.writeToString());
 
     BinaryVector vector3 = (BinaryVector) VectorFactory.createZeroVector(VectorType.BINARY, 64);
@@ -121,6 +120,22 @@ public class BinaryVectorTest extends TestCase {
     vector4.readFromString("0100000001111110000111101000111111101101000000011101110000110101");
     vector3.superpose(vector4, 2, null);
     vector3.normalize();
+    
+
+    //Test superposition results in 50/50 split with tied votes
+    BinaryVector vector5 =     (BinaryVector) VectorFactory.createZeroVector(VectorType.BINARY, 64);
+    BinaryVector vector6 =     (BinaryVector) VectorFactory.createZeroVector(VectorType.BINARY, 64);
+    BinaryVector vector7 =     (BinaryVector) VectorFactory.createZeroVector(VectorType.BINARY, 64);
+    vector6.readFromString("0000000000000000111111111111111100000000000000001111111111111111");
+    vector7.readFromString("1111111111111111000000000000000011111111111111110000000000000000");
+    vector5.superpose(vector6, 1, null);
+    vector5.superpose(vector7, 1, null);
+    vector5.normalize();
+    int cardinality = ((BinaryVector) vector5).getCoordinates().cardinality();
+    int min = 26;
+    	int max = 38;
+    assertTrue("Cardinality="+cardinality, min <= cardinality && cardinality <= max);
+    
   }
 
   @Test

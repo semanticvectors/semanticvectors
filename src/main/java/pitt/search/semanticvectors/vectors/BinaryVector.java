@@ -460,7 +460,7 @@ public class BinaryVector implements Vector {
   protected synchronized FixedBitSet concludeVote(int target) {
     int target2 = (int) Math.ceil((double) target / (double) 2);
     target2 = target2 - minimum;
-
+    
     // Unlikely other than in testing: minimum more than half the votes
     if (target2 < 0) {
       FixedBitSet ans = new FixedBitSet(dimension);
@@ -470,20 +470,22 @@ public class BinaryVector implements Vector {
 
     boolean even = (target % 2 == 0);
     FixedBitSet result = concludeVote(target2, votingRecord.size() - 1);
-
+  
     if (even) {
-      setTempSetToExactMatches(target2);
+    	  setTempSetToExactMatches(target2);
       boolean switcher = true;
       // 50% chance of being true with split vote.
       int q = tempSet.nextSetBit(0);
       while (q != DocIdSetIterator.NO_MORE_DOCS)
       	{
-    	  switcher = !switcher;
+    	  	  switcher = !switcher;
           if (switcher) tempSet.clear(q);
-          q = tempSet.nextSetBit(q);
-      	}
-      		result.andNot(tempSet);
-    }
+          if (q+1 >= tempSet.length()) q = DocIdSetIterator.NO_MORE_DOCS;
+          else q = tempSet.nextSetBit(q+1);
+         	}
+      	 result.andNot(tempSet);
+      	
+		    }
     return result;
   }
 
