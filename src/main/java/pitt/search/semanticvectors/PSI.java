@@ -394,6 +394,8 @@ public class PSI {
 						predicateSemanticVectorInv.superpose(predToAddInv, oWeight * sWeight, null);
 						semanticPredicateVectors.updateVector(predicate + "-INV", predicateSemanticVectorInv);
 					}
+				} catch (Throwable e) {
+					logger.info(e.getMessage());
 				} finally {
 					secondLock.unlock();
 					firstLock.unlock();
