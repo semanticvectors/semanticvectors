@@ -36,7 +36,9 @@
 package pitt.search.semanticvectors;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -126,8 +128,8 @@ public class TermVectorsFromLucene {
     VerbatimLogger.log(Level.INFO, "Creating semantic term vectors ...\n");
 
     for (String fieldName : flagConfig.contentsfields()) {
-      Terms termsForField = this.luceneUtils.getTermsForField(fieldName);
-      TermsEnum terms = termsForField.iterator();
+      ArrayList<BytesRef> termsForField = this.luceneUtils.getTermsForField(fieldName);
+      Iterator<BytesRef> terms = termsForField.iterator();
       int tc = 0;
       while (terms.next() != null) {
         tc++;
@@ -138,7 +140,7 @@ public class TermVectorsFromLucene {
     for(String fieldName : flagConfig.contentsfields()) {
       VerbatimLogger.info("Training term vectors for field " + fieldName + "\n");
       int tc = 0;
-      TermsEnum terms = this.luceneUtils.getTermsForField(fieldName).iterator();
+      Iterator<BytesRef> terms = this.luceneUtils.getTermsForField(fieldName).iterator();
       BytesRef bytes;
       while ((bytes = terms.next()) != null) {
         // Output progress counter.
@@ -156,7 +158,8 @@ public class TermVectorsFromLucene {
         // Initialize new termVector.
         Vector termVector = VectorFactory.createZeroVector(flagConfig.vectortype(), flagConfig.dimension());
 
-        PostingsEnum docsEnum = luceneUtils.getDocsForTerm(term);
+        ArrayList<PostingsEnum> allDocsEnum = luceneUtils.getDocsForTerm(term);
+        for (PostingsEnum docsEnum:allDocsEnum)
         while (docsEnum.nextDoc() != PostingsEnum.NO_MORE_DOCS) {
           String docID = luceneUtils.getExternalDocId(docsEnum.docID());
           int freq = docsEnum.freq();
@@ -207,7 +210,7 @@ public class TermVectorsFromLucene {
       logger.info("Generating new elemental term vectors");
       this.termVectors = new ElementalVectorStore(flagConfig);
       for(String fieldName : flagConfig.contentsfields()) {
-        TermsEnum terms = luceneUtils.getTermsForField(fieldName).iterator();
+        Iterator<BytesRef> terms = luceneUtils.getTermsForField(fieldName).iterator();
         BytesRef bytes;
         while ((bytes = terms.next()) != null) {
           Term term = new Term(fieldName, bytes);

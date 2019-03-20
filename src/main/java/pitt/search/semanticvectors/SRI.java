@@ -38,6 +38,7 @@ package pitt.search.semanticvectors;
 
 import java.util.ArrayList;
 import java.util.Hashtable;
+import java.util.Iterator;
 import java.util.Enumeration;
 import java.util.logging.Logger;
 import java.io.IOException;
@@ -247,8 +248,8 @@ public class SRI implements VectorStore {
 
     }
     for (String fieldName : this.flagConfig.contentsfields()) {
-      Terms terms = this.lUtils.getTermsForField(fieldName);
-      TermsEnum termEnum = terms.iterator();
+      ArrayList<BytesRef> terms = this.lUtils.getTermsForField(fieldName);
+      Iterator<BytesRef> termEnum = terms.iterator();
       int tc = 0;
 
       BytesRef bytes;

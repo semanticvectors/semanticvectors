@@ -49,7 +49,9 @@ import pitt.search.semanticvectors.vectors.VectorFactory;
 
 import java.nio.file.FileSystems;
 import java.nio.file.NoSuchFileException;
+import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.Iterator;
 import java.util.Random;
 import java.util.logging.Logger;
 
@@ -90,8 +92,8 @@ public class IncrementalTermVectors implements VectorStore {
     termVectorData = new VectorStoreRAM(flagConfig);
 
     for (String fieldName : this.flagConfig.contentsfields()) {
-      Terms terms = this.luceneUtils.getTermsForField(fieldName);
-      TermsEnum termEnum = terms.iterator();
+      ArrayList<BytesRef> terms = this.luceneUtils.getTermsForField(fieldName);
+      Iterator<BytesRef> termEnum = terms.iterator();
       int tc = 0;
 
       BytesRef bytes;

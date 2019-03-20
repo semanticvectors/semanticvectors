@@ -49,8 +49,10 @@ import pitt.search.semanticvectors.vectors.Vector;
 import pitt.search.semanticvectors.vectors.VectorFactory;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.logging.Logger;
 
 /**
@@ -125,7 +127,7 @@ public class PSI {
     // Term counter to track initialization progress.
     int tc = 0;
     for (String fieldName : itemFields) {
-      Terms terms = luceneUtils.getTermsForField(fieldName);
+      ArrayList<BytesRef> terms = luceneUtils.getTermsForField(fieldName);
 
       if (terms == null) {
         throw new NullPointerException(String.format(
@@ -133,7 +135,7 @@ public class PSI {
             fieldName, flagConfig.luceneindexpath()));
       }
 
-      TermsEnum termsEnum = terms.iterator();
+      Iterator<BytesRef> termsEnum = terms.iterator();
       BytesRef bytes;
       while((bytes = termsEnum.next()) != null) {
         Term term = new Term(fieldName, bytes);
@@ -159,9 +161,9 @@ public class PSI {
     }
 
     // Now elemental vectors for the predicate field.
-    Terms predicateTerms = luceneUtils.getTermsForField(PREDICATE_FIELD);
+    ArrayList<BytesRef> predicateTerms = luceneUtils.getTermsForField(PREDICATE_FIELD);
     String[] dummyArray = new String[] { PREDICATE_FIELD };  // To satisfy LuceneUtils.termFilter interface.
-    TermsEnum termsEnum = predicateTerms.iterator();
+    Iterator<BytesRef> termsEnum = predicateTerms.iterator();
     BytesRef bytes;
     while((bytes = termsEnum.next()) != null) {
       Term term = new Term(PREDICATE_FIELD, bytes);
@@ -193,8 +195,8 @@ public class PSI {
   private void trainIncrementalPSIVectors(String iterationTag) throws IOException {
     String fieldName = PREDICATION_FIELD;
     // Iterate through documents (each document = one predication).
-    Terms allTerms = luceneUtils.getTermsForField(fieldName);
-    TermsEnum termsEnum = allTerms.iterator();
+    ArrayList<BytesRef> allTerms = luceneUtils.getTermsForField(fieldName);
+    Iterator<BytesRef> termsEnum = allTerms.iterator();
     BytesRef bytes;
     int pc = 0;
     while((bytes = termsEnum.next()) != null) {
@@ -206,7 +208,9 @@ public class PSI {
         VerbatimLogger.info("Processed " + pc + " unique predications ... ");
       }
 
-      PostingsEnum termDocs = luceneUtils.getDocsForTerm(term);
+      ArrayList<PostingsEnum> allTermDocs = luceneUtils.getDocsForTerm(term);
+      for (PostingsEnum termDocs:allTermDocs)
+      {
       termDocs.nextDoc();
       Document document = luceneUtils.getDoc(termDocs.docID());
 
@@ -274,6 +278,7 @@ public class PSI {
       predToAddInv.bind(permutedSubjectElementalVector);
       predicateSemanticVectorInv.superpose(predToAddInv, oWeight * sWeight, null);
       }
+      } // Finish iterating through predications in one PostingsEnum  
     } // Finish iterating through predications.
 
     // Normalize semantic vectors and write out.

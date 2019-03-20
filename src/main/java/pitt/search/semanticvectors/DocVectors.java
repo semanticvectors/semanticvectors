@@ -46,6 +46,7 @@ import pitt.search.semanticvectors.vectors.VectorFactory;
 import pitt.search.semanticvectors.vectors.VectorType;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.logging.Logger;
 
@@ -132,11 +133,12 @@ public class DocVectors implements VectorStore {
           float fieldweight = 1;
 
           // Get any docs for this term.
-          PostingsEnum docsEnum = this.luceneUtils.getDocsForTerm(term);
+          ArrayList<PostingsEnum> allDocsEnum = this.luceneUtils.getDocsForTerm(term);
 
           // This may occur frequently if one term vector store is derived from multiple fields
-          if (docsEnum == null)  { continue; }
+          if (allDocsEnum == null)  { continue; }
 
+          for (PostingsEnum docsEnum:allDocsEnum)
           while (docsEnum.nextDoc() != PostingsEnum.NO_MORE_DOCS) {
             String externalDocID = luceneUtils.getExternalDocId(docsEnum.docID());
             // Add vector from this term, taking freq into account.

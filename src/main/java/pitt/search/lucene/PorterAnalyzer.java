@@ -1,8 +1,9 @@
 package pitt.search.lucene;
 
 import org.apache.lucene.analysis.*;
-import org.apache.lucene.analysis.core.LowerCaseTokenizer;
+import org.apache.lucene.analysis.core.LowerCaseFilter;
 import org.apache.lucene.analysis.en.PorterStemFilter;
+import org.apache.lucene.analysis.standard.StandardTokenizer;
 
 import java.io.*;
 import java.util.logging.Logger;
@@ -13,8 +14,8 @@ public class PorterAnalyzer  extends Analyzer {
 
   @Override
   protected TokenStreamComponents createComponents(String s) {
-    Tokenizer source = new LowerCaseTokenizer();
-    return new TokenStreamComponents(source, new PorterStemFilter(source));
+    Tokenizer source = new StandardTokenizer();
+    return new TokenStreamComponents(source, new PorterStemFilter(new LowerCaseFilter(source)));
   }
 
   /**

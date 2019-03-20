@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayList;
 
-import org.apache.lucene.analysis.Token;
 import org.apache.lucene.analysis.standard.StandardTokenizer;
 import org.apache.lucene.index.CorruptIndexException;
 import org.apache.lucene.store.LockObtainFailedException;
@@ -32,7 +31,7 @@ public class LuceneTokenizer {
 		StringReader reader = new StringReader(string);
 		StandardTokenizer tokenizer = new StandardTokenizer();
 		while(tokenizer.incrementToken()){
-			retList.add(tokenizer.getAttribute(Token.class).toString());
+			retList.add(tokenizer.getAttribute(null));
 		}
 		tokenizer.close();
 		reader.close();

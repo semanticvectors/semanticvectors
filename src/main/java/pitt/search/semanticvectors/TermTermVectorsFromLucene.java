@@ -42,6 +42,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.Hashtable;
+import java.util.Iterator;
 import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -519,7 +520,8 @@ public class TermTermVectorsFromLucene { //implements VectorStore {
     totalPool = 0;
 
     // Check that the Lucene index contains Term Positions.
-    FieldInfos fieldsWithPositions = luceneUtils.getFieldInfos();
+    ArrayList<FieldInfos> allFieldsWithPositions = luceneUtils.getFieldInfos();
+    for (FieldInfos fieldsWithPositions:allFieldsWithPositions)
     if (!fieldsWithPositions.hasVectors()) {
       throw new IOException(
           "Term-term indexing requires a Lucene index containing TermPositionVectors."
@@ -533,7 +535,7 @@ public class TermTermVectorsFromLucene { //implements VectorStore {
     // If retraining embeddings, create random vectors for terms that were not originally represented (to facilitate crossing corpora)
     int tc = 0;
     for (String fieldName : flagConfig.contentsfields()) {
-      TermsEnum terms = this.luceneUtils.getTermsForField(fieldName).iterator();
+      Iterator<BytesRef> terms = this.luceneUtils.getTermsForField(fieldName).iterator();
       BytesRef bytes;
       while ((bytes = terms.next()) != null) {
         Term term = new Term(fieldName, bytes);
@@ -583,7 +585,7 @@ public class TermTermVectorsFromLucene { //implements VectorStore {
       VerbatimLogger.info("Populating subsampling probabilities - total term count = " + totalCount + " which is " +tpd_average+ " per doc on average");
       int count = 0;
       for (String fieldName : flagConfig.contentsfields()) {
-        TermsEnum terms = this.luceneUtils.getTermsForField(fieldName).iterator();
+        Iterator<BytesRef> terms = this.luceneUtils.getTermsForField(fieldName).iterator();
         BytesRef bytes;
         while ((bytes = terms.next()) != null) {
           Term term = new Term(fieldName, bytes);

@@ -127,14 +127,14 @@ public class LuceneSearch {
         error = true;
       }
 
-      if (hits.totalHits == 0) {       // if we got no results tell the user
-        System.out.println("<p> I'm sorry, there were no Lucene results. </p>");
+      if (hits.totalHits.value == 0) {       // if we got no results tell the user
+        System.out.println("<p> I'm terribly sorry, there were no Lucene results. </p>");
         error = true;
       }
     }
 
-    if (hits != null && (startIndex + maxPage) > hits.totalHits) {
-      thisPage = hits.totalHits - startIndex;   // set the max index to maxPage or last
+    if (hits != null && (startIndex + maxPage) > hits.totalHits.value) {
+      thisPage = (int) hits.totalHits.value - startIndex;   // set the max index to maxPage or last
     }                                           // actual search result whichever is less
 
     for (int i = startIndex; i < (thisPage + startIndex); i++) {

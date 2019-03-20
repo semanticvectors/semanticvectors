@@ -180,7 +180,7 @@ public class ESP {
     // Term counter to track initialization progress.
     int termCounter = 0;
     for (String fieldName : itemFields) {
-      Terms terms = luceneUtils.getTermsForField(fieldName);
+      ArrayList<BytesRef> terms = luceneUtils.getTermsForField(fieldName);
 
       if (terms == null) {
         throw new NullPointerException(String.format(
@@ -188,7 +188,7 @@ public class ESP {
             fieldName, flagConfig.luceneindexpath()));
       }
 
-      TermsEnum termsEnum = terms.iterator();
+      Iterator<BytesRef> termsEnum = terms.iterator();
       BytesRef bytes;
       while((bytes = termsEnum.next()) != null) {
         Term term = new Term(fieldName, bytes);
@@ -221,7 +221,8 @@ public class ESP {
      	     
           if (flagConfig.semtypesandcuis())
           {
-        	  PostingsEnum docEnum 	= luceneUtils.getDocsForTerm(term);
+        	  PostingsEnum docEnum 	= luceneUtils.getDocsForTerm(term).get(0);
+        	  
               docEnum.nextDoc();
               Document theDoc 	= luceneUtils.getDoc(docEnum.docID());
             
@@ -238,7 +239,7 @@ public class ESP {
           if (!semanticItemVectors.containsVector(term.text()))
           semanticItemVectors.putVector(term.text(), VectorFactory.generateRandomVector(
                       flagConfig.vectortype(), flagConfig.dimension(), flagConfig.seedlength(), random));    
-          
+        	  
           }
           else
           {
@@ -269,6 +270,7 @@ public class ESP {
           if ((termCounter > 0) && ((termCounter % 10000 == 0) || ( termCounter < 10000 && termCounter % 1000 == 0 ))) {
             VerbatimLogger.info("Initialized " + termCounter + " term vectors ... ");
           }
+        
         }
       }
     }
@@ -276,9 +278,9 @@ public class ESP {
     int predCounter = 0;
     
     // Now elemental vectors for the predicate field.
-    Terms predicateTerms = luceneUtils.getTermsForField(PREDICATE_FIELD);
+    ArrayList<BytesRef> predicateTerms = luceneUtils.getTermsForField(PREDICATE_FIELD);
     String[] dummyArray = new String[] { PREDICATE_FIELD };  // To satisfy LuceneUtils.termFilter interface.
-    TermsEnum termsEnum = predicateTerms.iterator();
+    Iterator<BytesRef> termsEnum = predicateTerms.iterator();
     BytesRef bytes;
     while((bytes = termsEnum.next()) != null) {
       Term term = new Term(PREDICATE_FIELD, bytes);

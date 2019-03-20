@@ -157,7 +157,7 @@ public class ESPperm {
 	    
 	    String fieldName = "source";
 	    
-	      Terms terms = luceneUtils.getTermsForField(fieldName);
+	      ArrayList<BytesRef> terms = luceneUtils.getTermsForField(fieldName);
 
 	      if (terms == null) {
 	        throw new NullPointerException(String.format(
@@ -168,7 +168,7 @@ public class ESPperm {
 	      int totalTerms = 0;
 	      
 	      //iterate across terms
-	      TermsEnum termsEnum = terms.iterator();
+	      Iterator<BytesRef> termsEnum = terms.iterator();
 	      BytesRef bytes;
 	      while((bytes = termsEnum.next()) != null) {
 	        Term term = new Term(fieldName, bytes);
@@ -293,7 +293,7 @@ public class ESPperm {
     // Term counter to track initialization progress.
     int termCounter = 0;
     for (String fieldName : itemFields) {
-      Terms terms = luceneUtils.getTermsForField(fieldName);
+      ArrayList<BytesRef> terms = luceneUtils.getTermsForField(fieldName);
 
       if (terms == null) {
         throw new NullPointerException(String.format(
@@ -301,7 +301,7 @@ public class ESPperm {
             fieldName, flagConfig.luceneindexpath()));
       }
 
-      TermsEnum termsEnum = terms.iterator();
+      Iterator<BytesRef> termsEnum = terms.iterator();
       BytesRef bytes;
       while((bytes = termsEnum.next()) != null) {
         Term term = new Term(fieldName, bytes);
@@ -341,26 +341,28 @@ public class ESPperm {
           
           if (flagConfig.semtypesandcuis())
           {
-        	  PostingsEnum docEnum 	= luceneUtils.getDocsForTerm(term);
-              docEnum.nextDoc();
-              Document theDoc 	= luceneUtils.getDoc(docEnum.docID());
+        	  PostingsEnum docEnum 	= luceneUtils.getDocsForTerm(term).get(0);
+          
+        	
+        		  docEnum.nextDoc();
+        		  Document theDoc 	= luceneUtils.getDoc(docEnum.docID());
             
         	  
-          if (term.field().equals(SUBJECT_FIELD)) semtype = theDoc.get("subject_semtype");
-          else if (term.field().equals(OBJECT_FIELD)) semtype = theDoc.get("object_semtype");
-          semtypes.put(term.text(), semtype);
+        		  if (term.field().equals(SUBJECT_FIELD)) semtype = theDoc.get("subject_semtype");
+        		  else if (term.field().equals(OBJECT_FIELD)) semtype = theDoc.get("object_semtype");
+        		  semtypes.put(term.text(), semtype);
            
-          String cui = "";
-          if (term.field().equals(SUBJECT_FIELD)) cui = theDoc.get("subject_CUI");
-          else if (term.field().equals(OBJECT_FIELD)) cui = theDoc.get("object_CUI");
-          cuis.put(term.text(), cui);
+        		  String cui = "";
+        		  if (term.field().equals(SUBJECT_FIELD)) cui = theDoc.get("subject_CUI");
+        		  else if (term.field().equals(OBJECT_FIELD)) cui = theDoc.get("object_CUI");
+        		  cuis.put(term.text(), cui);
 
           
           
-          if (!semanticItemVectors.containsVector(term.text()))
-          semanticItemVectors.putVector(term.text(), VectorFactory.generateRandomVector(
+        		  if (!semanticItemVectors.containsVector(term.text()))
+        			  semanticItemVectors.putVector(term.text(), VectorFactory.generateRandomVector(
                       flagConfig.vectortype(), flagConfig.dimension(), flagConfig.seedlength(), random));    
-          
+        	  
           }
           else
           {
@@ -410,9 +412,9 @@ public class ESPperm {
     }
 
     // Now elemental vectors for the predicate field.
-    Terms predicateTerms = luceneUtils.getTermsForField(PREDICATE_FIELD);
+    ArrayList<BytesRef> predicateTerms = luceneUtils.getTermsForField(PREDICATE_FIELD);
     String[] dummyArray = new String[] { PREDICATE_FIELD };  // To satisfy LuceneUtils.termFilter interface.
-    TermsEnum termsEnum = predicateTerms.iterator();
+    Iterator<BytesRef> termsEnum = predicateTerms.iterator();
     BytesRef bytes;
     while((bytes = termsEnum.next()) != null) {
       Term term = new Term(PREDICATE_FIELD, bytes);

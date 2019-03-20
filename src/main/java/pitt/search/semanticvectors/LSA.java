@@ -17,6 +17,8 @@ import pitt.search.semanticvectors.vectors.VectorType;
 
 import java.io.IOException;
 import java.nio.file.FileSystems;
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.logging.Logger;
 
 import ch.akuhn.edu.mit.tedlab.*;
@@ -91,8 +93,8 @@ public class LSA {
    */
   private SMat smatFromIndex() throws IOException {
     SMat S;
-    Terms terms = this.luceneUtils.getTermsForField(contentsField);
-    TermsEnum termsEnumForCount = terms.iterator();
+    ArrayList<BytesRef> terms = this.luceneUtils.getTermsForField(contentsField);
+    Iterator<BytesRef> termsEnumForCount = terms.iterator();
     int numTerms = 0,   nonZeroVals = 0;
     BytesRef bytes;
 
@@ -102,10 +104,10 @@ public class LSA {
       if (this.luceneUtils.termFilter(term))
         numTerms++;
 
-      PostingsEnum docsEnum = this.luceneUtils.getDocsForTerm(term);
-      while (docsEnum.nextDoc() != PostingsEnum.NO_MORE_DOCS) {
-        ++nonZeroVals;
-      }
+      ArrayList<PostingsEnum> allDocsEnum = this.luceneUtils.getDocsForTerm(term);
+      for (PostingsEnum docsEnum:allDocsEnum)
+    	  	while (docsEnum.nextDoc() != PostingsEnum.NO_MORE_DOCS) 
+    	  		++nonZeroVals;
     }
 
     VerbatimLogger.info(String.format(
@@ -117,7 +119,7 @@ public class LSA {
     S = new SMat(this.luceneUtils.getNumDocs(), numTerms, nonZeroVals);
 
     // Populate "SVDLIBJ" sparse data structure and list of terms.
-    TermsEnum termsEnum = terms.iterator();
+    Iterator<BytesRef> termsEnum = terms.iterator();
     int termCounter = 0;
     int firstNonZero = 0; // Index of first non-zero entry (document) of each column (term).
     
@@ -128,10 +130,10 @@ public class LSA {
           S.pointr[termCounter] = firstNonZero; //index of first non-zero entry
           termList[termCounter] = term.text();
 
-        PostingsEnum docsEnum = this.luceneUtils.getDocsForTerm(term);
+        ArrayList<PostingsEnum> allDocsEnum = this.luceneUtils.getDocsForTerm(term);
         
-        
-        while (docsEnum.nextDoc() != PostingsEnum.NO_MORE_DOCS) {
+        for (PostingsEnum docsEnum:allDocsEnum)
+        		while (docsEnum.nextDoc() != PostingsEnum.NO_MORE_DOCS) {
           /** public int[] pointr; For each col (plus 1), index of
             *  first non-zero entry.  we'll represent the matrix as a
             *  document x term matrix such that terms are columns
@@ -139,11 +141,11 @@ public class LSA {
             *  information from the lucene index)
             */
         	
-          S.rowind[firstNonZero] = docsEnum.docID();  // set row index to document number
-          float value 	= luceneUtils.getGlobalTermWeight(term); //global weight
-          value 		=  value * (float) luceneUtils.getLocalTermWeight(docsEnum.freq()); // multiply by local weight
-          S.value[firstNonZero] = value;  // set value to frequency (with/without weighting)
-          firstNonZero++;
+        			S.rowind[firstNonZero] = docsEnum.docID();  // set row index to document number
+        			float value 	= luceneUtils.getGlobalTermWeight(term); //global weight
+        			value 		=  value * (float) luceneUtils.getLocalTermWeight(docsEnum.freq()); // multiply by local weight
+        			S.value[firstNonZero] = value;  // set value to frequency (with/without weighting)
+        			firstNonZero++;
         }
         termCounter++;
       }

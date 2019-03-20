@@ -48,15 +48,19 @@ import java.util.logging.Logger;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.BaseCompositeReader;
 import org.apache.lucene.index.LeafReader;
+import org.apache.lucene.index.LeafReaderContext;
 import org.apache.lucene.index.DirectoryReader;
-import org.apache.lucene.index.SlowCompositeReaderWrapper;
+import org.apache.lucene.index.CompositeReader;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.index.Terms;
+import org.apache.lucene.index.TermsEnum;
 import org.apache.lucene.index.MultiFields;
+import org.apache.lucene.index.MultiReader;
 import org.apache.lucene.index.PostingsEnum;
 import org.apache.lucene.index.FieldInfos;
 import org.apache.lucene.index.FieldInfo;
 import org.apache.lucene.store.FSDirectory;
+import org.apache.lucene.util.BytesRef;
 import org.apache.lucene.util.Version;
 
 import pitt.search.semanticvectors.utils.StringUtils;
@@ -67,12 +71,12 @@ import pitt.search.semanticvectors.utils.VerbatimLogger;
  * including term frequency, doc frequency.
  */
 public class LuceneUtils {
-  public static final Version LUCENE_VERSION = Version.LUCENE_6_6_0;
+  public static final Version LUCENE_VERSION = Version.LUCENE_8_0_0;
 
   private static final Logger logger = Logger.getLogger(DocVectors.class.getCanonicalName());
   private FlagConfig flagConfig;
   private BaseCompositeReader<LeafReader> compositeReader;
-  private LeafReader leafReader;
+  private ArrayList<LeafReader> leafReaders = new ArrayList<LeafReader>();
   private ConcurrentHashMap<String, Float> termEntropy = new ConcurrentHashMap<String, Float>();
   private ConcurrentHashMap<String, Float> termIDF = new ConcurrentHashMap<String, Float>();
   private ConcurrentHashMap<String, Integer> termFreq = new ConcurrentHashMap<String, Integer>();
@@ -113,8 +117,11 @@ public class LuceneUtils {
 
     this.compositeReader = DirectoryReader.open(
         FSDirectory.open(FileSystems.getDefault().getPath(flagConfig.luceneindexpath())));
-    this.leafReader = SlowCompositeReaderWrapper.wrap(compositeReader);
-    MultiFields.getFields(compositeReader);
+    
+    	//collect leaf readers
+    		for (LeafReaderContext leafReaderContext:compositeReader.leaves())
+    			leafReaders.add(leafReaderContext.reader());
+    		
     this.flagConfig = flagConfig;
     if (!flagConfig.stoplistfile().isEmpty())
       loadStopWords(flagConfig.stoplistfile());
@@ -187,7 +194,7 @@ public class LuceneUtils {
   }
 
   public Document getDoc(int docID) throws IOException {
-    return this.leafReader.document(docID);
+    return this.compositeReader.document(docID);
   }
 
   public String getExternalDocId(int docID) throws IOException {
@@ -213,31 +220,62 @@ public class LuceneUtils {
   /**
    * Gets the terms for a given field. Throws {@link java.lang.NullPointerException} if this is null.
    */
-  public Terms getTermsForField(String field) throws IOException {
-    Terms terms = leafReader.terms(field);
-    if (terms == null) {
-      throw new NullPointerException(String.format(
-          "No terms for field: '%s'.\nKnown fields are: '%s'.", field, StringUtils.join(this.getFieldNames())));
-    }
-    return leafReader.terms(field);
+  public ArrayList<BytesRef> getTermsForField(String field) throws IOException {
+    
+	 ArrayList<BytesRef> bytes = new ArrayList<BytesRef>();
+	 
+	 for (LeafReader leafReader:leafReaders)
+	 {
+		 Terms fieldTerms = leafReader.terms(field);
+		 
+		  if (fieldTerms == null) {
+		      throw new NullPointerException(String.format(
+		          "No terms for field: '%s'.\nKnown fields are: '%s'.", field, StringUtils.join(this.getFieldNames())));
+		    }
+		 
+		 TermsEnum termsEnum = fieldTerms.iterator();
+		 BytesRef nextBytes = null;
+		 nextBytes = termsEnum.next();
+		  while (nextBytes != null)
+		  {
+			 if (! bytes.contains(nextBytes))
+				 bytes.add(nextBytes);
+			 
+			 nextBytes = termsEnum.next();
+		  }
+  
+	 }
+    return bytes;
   }
 
-  public PostingsEnum getDocsForTerm(Term term) throws IOException {
-    return this.leafReader.postings(term);
+  public ArrayList<PostingsEnum> getDocsForTerm(Term term) throws IOException {
+	  ArrayList<PostingsEnum> toReturn = new ArrayList<PostingsEnum>();
+	  for (LeafReader leafReader:leafReaders)
+			 toReturn.add(leafReader.postings(term));
+		 
+	  return toReturn;
   }
 
   public Terms getTermVector(int docID, String field) throws IOException {
-    return this.leafReader.getTermVector(docID, field);
+    return this.compositeReader.getTermVector(docID, field);
   }
 
-  public FieldInfos getFieldInfos() {
-    return this.leafReader.getFieldInfos();
+  public ArrayList<FieldInfos> getFieldInfos() {
+    
+	  ArrayList<FieldInfos> toReturn = new ArrayList<FieldInfos>();
+	  for (LeafReader leafReader:leafReaders)
+			 toReturn.add(leafReader.getFieldInfos());
+		 
+	  return toReturn;
+ 
   }
 
   public List<String> getFieldNames() {
     List<String> fieldNames = new ArrayList<>();
-    for (FieldInfo fieldName : this.leafReader.getFieldInfos()) {
-      fieldNames.add(fieldName.name);
+    		for (LeafReader leafReader:leafReaders)
+    			for (FieldInfo fieldName : leafReader.getFieldInfos()) {
+    				if (! fieldNames.contains(fieldName.name))
+    				fieldNames.add(fieldName.name);
     }
     return fieldNames;
   }
@@ -400,11 +438,12 @@ public class LuceneUtils {
     int gf = getGlobalTermFreq(term);
     double entropy = 0;
     try {
-      PostingsEnum docsEnum = this.getDocsForTerm(term);
-      while ((docsEnum.nextDoc()) != PostingsEnum.NO_MORE_DOCS) {
-        double p = docsEnum.freq(); //frequency in this document
-        p = p / gf;    //frequency across all documents
-        entropy += p * (Math.log(p) / Math.log(2)); //sum of Plog(P)
+      ArrayList<PostingsEnum> docsEnums = this.getDocsForTerm(term);
+      for (PostingsEnum docsEnum:docsEnums)
+    		    while ((docsEnum.nextDoc()) != PostingsEnum.NO_MORE_DOCS) {
+    		    	double p = docsEnum.freq(); //frequency in this document
+    		    	p = p / gf;    //frequency across all documents
+    		    	entropy += p * (Math.log(p) / Math.log(2)); //sum of Plog(P)
       }
       int n = this.getNumDocs();
       double log2n = Math.log(n) / Math.log(2);
