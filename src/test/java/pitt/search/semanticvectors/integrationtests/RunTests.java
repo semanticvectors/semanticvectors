@@ -119,19 +119,19 @@ public class RunTests {
       throw new IOException("No directory for test data at: " + johnTestDataDir.getAbsolutePath());
     }
     
-    if (Arrays.asList(new File(".").list()).contains("positional_index")) {
-      VerbatimLogger.warning(new File(".").getCanonicalPath() + " already contains positional_index. "
+    if (Arrays.asList(new File("tmp").list()).contains("positional_index")) {
+      VerbatimLogger.warning(new File("tmp").getCanonicalPath() + " already contains positional_index. "
           + "Please delete if you want to run from clean.\n");
     } else {
-      IndexFilePositions.main(new String[] {"-luceneindexpath", "positional_index", johnTestDataPath});
+      IndexFilePositions.main(new String[] {"-luceneindexpath", "tmp/positional_index", johnTestDataPath});
     }
     
     String triplesTestDataPath = "src/test/resources/testdata/nationalfacts/nationalfacts.txt";
-    if (Arrays.asList(new File(".").list()).contains("predication_index")) {
-      VerbatimLogger.warning(new File(".").getCanonicalPath() + " already contains predication_index. "
+    if (Arrays.asList(new File("tmp").list()).contains("predication_index")) {
+      VerbatimLogger.warning(new File("tmp").getCanonicalPath() + " already contains predication_index. "
           + "Please delete if you want to run from clean.\n");
     } else {
-      LuceneIndexFromTriples.main(new String[] {triplesTestDataPath});
+    	  LuceneIndexFromTriples.main(new String[] {"-luceneindexpath","tmp/predication_index",triplesTestDataPath});
     }
       
     testDataPrepared = true;
