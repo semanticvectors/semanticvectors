@@ -42,26 +42,24 @@ import java.util.logging.Logger;
 import org.apache.lucene.store.IndexInput;
 import org.apache.lucene.store.IndexOutput;
 
-import pitt.search.semanticvectors.vectors.ComplexVector.Mode;
-
 /**
  * Real number implementation of Vector.
- * 
+ *
  * <p>
  * Supports both sparse and dense formats.  Some methods automatically transform from sparse to
  * dense format. (Method documentation should cover this when there are performance consequences.
- * 
+ *
  * @author Dominic Widdows
  */
 public class RealVector implements Vector {
-  
+
   /**
    * Enumeration of binding operation options. Change at compile-time to experiment.
    */
   public enum RealBindMethod {
     /**
      * Uses permutation operations, as in Sahlgren et al.
-     * Fast, exact inverse, but lossy memory of slot-filling. 
+     * Fast, exact inverse, but lossy memory of slot-filling.
      */
     PERMUTATION,
     /**
@@ -72,17 +70,17 @@ public class RealVector implements Vector {
     CONVOLUTION,
     /**
      * As above, but creates normalized version of component vectors before convolution occurs
-     * 
+     *
      */
     NORMALIZEDCONVOLUTION
   }
-  
+
   public static RealBindMethod BIND_METHOD = RealBindMethod.NORMALIZEDCONVOLUTION;
   public static void setBindType(RealBindMethod bindMethod) {
     logger.info("Globally setting real vector BIND_METHOD to: '" + bindMethod + "'");
     BIND_METHOD = bindMethod;
   }
-  
+
   public static final Logger logger = Logger.getLogger(RealVector.class.getCanonicalName());
 
   /** Returns {@link VectorType#REAL} */
@@ -93,11 +91,11 @@ public class RealVector implements Vector {
    * Dense representation.  Coordinates can be anything expressed by floats.
    */
   private float[] coordinates;
-  /** 
-   * Sparse representation.  Coordinates can only be +/-1.  Array of short signed integers, 
+  /**
+   * Sparse representation.  Coordinates can only be +/-1.  Array of short signed integers,
    * indices to the array locations where a +/-1 entry is located.
    * See also {@link #generateRandomVector}.
-   */ 
+   */
   private short[] sparseOffsets;
   private boolean isSparse;
 
@@ -180,7 +178,7 @@ public class RealVector implements Vector {
    * slightly more space efficient.
    *
    * If seedlength == dimension, a dense real vector is generated instead, with each
-   * dimension initialized to a real value between -1 and 1 
+   * dimension initialized to a real value between -1 and 1
    *
    * @return Sparse representation of basic ternary vector.
    */
@@ -244,7 +242,7 @@ public class RealVector implements Vector {
   @Override
   /**
    * Measures overlap of two vectors using cosine similarity.
-   * 
+   *
    * Causes this and other vector to be converted to dense representation.
    */
   public double measureOverlap(Vector other) {
@@ -327,7 +325,7 @@ public class RealVector implements Vector {
         return;
     }
   }
-  
+
   @Override
   /**
    * Implements release depending on {@link #BIND_TYPE}
@@ -346,10 +344,10 @@ public class RealVector implements Vector {
       return;
     }
   }
-    
+
   public void bindWithConvolution(RealVector realOther, boolean normalizeFirst) {
     RealVector result = null;
-    	if (normalizeFirst) result = RealVectorUtils.normalizedConvolution(this, realOther); 
+    	if (normalizeFirst) result = RealVectorUtils.normalizedConvolution(this, realOther);
     	else	result = RealVectorUtils.fftConvolution(this, realOther);
     this.coordinates = result.coordinates;
   }
@@ -367,7 +365,7 @@ public class RealVector implements Vector {
    * the permutation array each time.
    */
   public void bindWithPermutation(RealVector other) {
-    RealVector result = createZeroVector(dimension);    
+    RealVector result = createZeroVector(dimension);
     result.superpose(
         other, 1, PermutationUtils.getShiftPermutation(VectorType.REAL, dimension, 1));
     result.superpose(
@@ -430,7 +428,7 @@ public class RealVector implements Vector {
 
   /**
    * Writes vector out in dense format.  If vector is originally sparse, writes out a copy so
-   * that vector remains sparse. Truncates to length k. 
+   * that vector remains sparse. Truncates to length k.
    */
   public void writeToLuceneStream(IndexOutput outputStream, int k) {
     float[] coordsToWrite;
@@ -449,10 +447,10 @@ public class RealVector implements Vector {
       }
     }
   }
-  
+
   @Override
   /**
-   * Reads a (dense) version of a vector from a Lucene input stream. 
+   * Reads a (dense) version of a vector from a Lucene input stream.
    */
   public void readFromLuceneStream(IndexInput inputStream) {
     if (isSparse) {
@@ -474,7 +472,7 @@ public class RealVector implements Vector {
   @Override
   /**
    * Writes vector to a string of the form x1|x2|x3| ... where the x's are the coordinates.
-   * 
+   *
    * No terminating newline or | symbol.
    */
   public String writeToString() {
@@ -511,7 +509,7 @@ public class RealVector implements Vector {
 
   /**
    * Automatically translate sparse format (listing of offsets) into full float vector.
-   * 
+   *
    * The sparse vector is in condensed (signed index + 1) representation, and is converted to a
    * full float vector by adding -1 or +1 to the location (index - 1) according to the sign of the
    * index. (The -1 and +1 are necessary because there is no signed version of 0, so we'd have no

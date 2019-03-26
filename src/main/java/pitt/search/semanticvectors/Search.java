@@ -45,6 +45,8 @@ import pitt.search.semanticvectors.vectors.ZeroVectorException;
 import pitt.search.semanticvectors.viz.PathFinder;
 
 import java.io.IOException;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -211,6 +213,7 @@ public class Search {
 
 	public static List<SearchResult> runSearch(FlagConfig flagConfig, Map<String, Float> boostedTerms)
 			throws IllegalArgumentException {
+		Instant startSearch = Instant.now();
 		/**
 		 * The runSearch function has four main stages:
 		 * i. Check flagConfig for null (but so far fails to check other dependencies).
@@ -337,10 +340,12 @@ public class Search {
 			switch (flagConfig.searchtype()) {
 				case SUM:
 					if (boostedTerms != null) {
+						Instant start = Instant.now();
 						Vector qv = CompoundVectorBuilder.getQueryVector(queryVecReader, luceneUtils, flagConfig, queryArgs, (term) -> {
 							Float boostFactor = boostedTerms.get(term);
 							return boostFactor != null ? boostFactor : 1f;
 						});
+						logger.fine("Found vector in : " + Duration.between(start, Instant.now()).toMillis());
 						vecSearcher = new VectorSearcher.VectorSearcherCosine(
 								queryVecReader, searchVecReader, luceneUtils, flagConfig, qv);
 					} else
@@ -430,7 +435,9 @@ public class Search {
 			return new LinkedList<>();
 		}
 
+		Instant start = Instant.now();
 		results = vecSearcher.getNearestNeighbors(flagConfig.numsearchresults());
+		logger.fine("Found nearest vector in: " + Duration.between(start, Instant.now()).toMillis());
 
 		// Optional: Release filesystem resources. Temporarily removed because of errors in
 		// ThreadSafetyTest.
@@ -449,6 +456,7 @@ public class Search {
 			boundVecReader.close();
 		}
 
+		logger.fine("Finished the compete search in : " + Duration.between(startSearch, Instant.now()).toMillis());
 		return results;
 	}
 

@@ -41,12 +41,11 @@ import org.apache.lucene.store.IndexOutput;
 
 import pitt.search.semanticvectors.utils.VerbatimLogger;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.FileSystems;
 import java.util.Enumeration;
+import java.util.Map;
+import java.util.TreeMap;
 
 /**
  * This class provides methods for serializing a VectorStore to disk.
@@ -112,16 +111,33 @@ public class VectorStoreWriter {
     if (parentPath == null) parentPath = "";
     FSDirectory fsDirectory = FSDirectory.open(FileSystems.getDefault().getPath(parentPath));
     IndexOutput outputStream = fsDirectory.createOutput(vectorFile.getName(), IOContext.DEFAULT);
-    writeToIndexOutput(objectVectors, flagConfig, outputStream);
+
+    // This map exploits the fact that the keys are longs from the entity pool
+    TreeMap<String, Long> entityMap = new TreeMap<>();
+    writeToIndexOutput(objectVectors, flagConfig, outputStream, entityMap);
+    writeEntityMap(entityMap, new File(vectorFile.getAbsolutePath() + ".map"));
+
     outputStream.close();
     fsDirectory.close();
+  }
+
+  private static void writeEntityMap(TreeMap<String, Long> entityMap, File file) {
+    try (DataOutputStream os = new DataOutputStream(new FileOutputStream(file))) {
+      for (Long value : entityMap.values()) {
+        os.writeLong(value);
+      }
+    } catch (FileNotFoundException e) {
+      e.printStackTrace();
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
   }
 
   /**
    * Writes the object vectors to this Lucene output stream.
    * Caller is responsible for opening and closing stream output stream.
    */
-  public static void writeToIndexOutput(VectorStore objectVectors, FlagConfig flagConfig, IndexOutput outputStream)
+  public static void writeToIndexOutput(VectorStore objectVectors, FlagConfig flagConfig, IndexOutput outputStream, Map<String, Long> entityMap)
       throws IOException {
     // Write header giving vector type and dimension for all vectors.
     outputStream.writeString(generateHeaderString(flagConfig));
@@ -130,6 +146,10 @@ public class VectorStoreWriter {
     // Write each vector.
     while (vecEnum.hasMoreElements()) {
       ObjectVector objectVector = vecEnum.nextElement();
+
+      if(entityMap != null)
+        entityMap.put(objectVector.getObject().toString(), outputStream.getFilePointer());
+
       outputStream.writeString(objectVector.getObject().toString());
       objectVector.getVector().writeToLuceneStream(outputStream);
     }

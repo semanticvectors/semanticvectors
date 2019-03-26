@@ -36,21 +36,21 @@
 
 package pitt.search.semanticvectors;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.FileSystems;
-import java.util.Enumeration;
-import java.util.logging.Logger;
-
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.store.IOContext;
 import org.apache.lucene.store.IndexInput;
-
 import pitt.search.semanticvectors.utils.VerbatimLogger;
 import pitt.search.semanticvectors.vectors.Vector;
-import pitt.search.semanticvectors.vectors.VectorType;
 import pitt.search.semanticvectors.vectors.VectorFactory;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
+import java.nio.file.FileSystems;
+import java.util.Enumeration;
+import java.util.logging.Logger;
 
 /**
    This class provides methods for reading a VectorStore from disk. <p>
@@ -166,6 +166,15 @@ public class VectorStoreReaderLucene implements CloseableVectorStore {
    * @return vector from the VectorStore, or null if not found.
    */
   public Vector getVector(Object desiredObject) {
+    File map;
+    if ((map = new File(vectorFileName + ".map")).exists()) {
+      Vector vector = findVectorInMap(map, desiredObject);
+
+      if (vector == null) {
+        logger.info("Didn't find vector for '" + desiredObject + "'\n");
+      }
+      return vector;
+    }
     try {
       String stringTarget = desiredObject.toString();
       getIndexInput().seek(0);
@@ -190,6 +199,44 @@ public class VectorStoreReaderLucene implements CloseableVectorStore {
       e.printStackTrace();
     }
     VerbatimLogger.info("Didn't find vector for '" + desiredObject + "'\n");
+    return null;
+  }
+
+  private Vector findVectorInMap(File map, Object desiredObject) {
+    try (FileChannel channel = FileChannel.open(map.toPath())) {
+      return findVectorInMap(channel, desiredObject, 0, (int) channel.size() / Long.BYTES);
+    } catch (IOException e) {
+      logger.severe(e.getMessage());
+      return null;
+    }
+  }
+
+  private Vector findVectorInMap(FileChannel map, Object desiredObject, int start, int end) {
+    if (end < start)
+      return null;
+
+    ByteBuffer buffer = ByteBuffer.allocateDirect(Long.BYTES);
+    int testIdx = (start + end) / 2;
+    try {
+      map.position(testIdx * Long.BYTES).read(buffer);
+      buffer.flip();
+      getIndexInput().seek(buffer.getLong());
+
+      String testObject = getIndexInput().readString();
+      if (testObject.equals(desiredObject.toString())) {
+        VerbatimLogger.info("Found vector for '" + desiredObject + "'\n");
+        Vector vector = VectorFactory.createZeroVector(
+                flagConfig.vectortype(), flagConfig.dimension());
+        vector.readFromLuceneStream(getIndexInput());
+        return vector;
+      } else if (testObject.compareTo(desiredObject.toString()) > 0) {
+        return findVectorInMap(map, desiredObject, start, testIdx - 1);
+      } else {
+        return findVectorInMap(map, desiredObject, testIdx + 1, end);
+      }
+    } catch (IOException e) {
+      logger.severe(e.getMessage());
+    }
     return null;
   }
 
@@ -238,6 +285,10 @@ public class VectorStoreReaderLucene implements CloseableVectorStore {
   @Override
   public boolean containsVector(Object object) {
 	  return this.getVector(object) != null;
+  }
+
+  public final File getVectorFile() {
+    return vectorFile;
   }
 
 }
