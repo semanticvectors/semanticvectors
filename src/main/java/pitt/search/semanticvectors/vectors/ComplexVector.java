@@ -36,6 +36,7 @@
 package pitt.search.semanticvectors.vectors;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.Random;
 import java.util.logging.Logger;
 
@@ -747,6 +748,15 @@ public class ComplexVector implements Vector {
       }
     }
        */
+  }
+
+  @Override
+  public void readFromByteBuffer(ByteBuffer byteBuffer) {
+    opMode = Mode.CARTESIAN;
+    coordinates = new float[dimension * 2];
+    for (int i = 0; i < dimension * 2; ++i) {
+        coordinates[i] = Float.intBitsToFloat(byteBuffer.getInt());
+    }
   }
 
   @Override

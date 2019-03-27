@@ -36,6 +36,8 @@
 package pitt.search.semanticvectors.vectors;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.MappedByteBuffer;
 import java.util.Random;
 import java.util.logging.Logger;
 
@@ -466,6 +468,18 @@ public class RealVector implements Vector {
             + "programming or runtime error, e.g., a dimension mismatch.");
         e.printStackTrace();
       }
+    }
+  }
+
+  @Override
+  public void readFromByteBuffer(ByteBuffer byteBuffer)  {
+    if (isSparse) {
+      coordinates = new float[dimension];
+      sparseOffsets = null;
+      isSparse = false;
+    }
+    for (int i = 0; i < dimension; ++i) {
+      coordinates[i] = Float.intBitsToFloat(byteBuffer.getInt());
     }
   }
 
