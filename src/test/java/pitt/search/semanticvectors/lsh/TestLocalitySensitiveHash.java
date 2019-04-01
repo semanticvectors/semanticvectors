@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 public class TestLocalitySensitiveHash {
 
@@ -25,6 +26,23 @@ public class TestLocalitySensitiveHash {
 			assertEquals(1.0, lsh.randomVectors.get(i).measureOverlap(restored.randomVectors.get(i)), 0.001);
 		}
 
+	}
+
+	@Test
+	public void testIncorrectParameters() {
+		makeSureConfigurationThrows("-lsh_hashes_num 6 -lsh_max_bits_diff 7");
+		makeSureConfigurationThrows("-lsh_hashes_num 6 -lsh_max_bits_diff -1");
+		makeSureConfigurationThrows("-lsh_hashes_num -1 -lsh_max_bits_diff 2");
+		makeSureConfigurationThrows("-lsh_hashes_num 16 -lsh_max_bits_diff 2");
+	}
+
+	private void makeSureConfigurationThrows(String config) {
+		try {
+			FlagConfig.parseFlagsFromString(config);
+			fail("The configuration did not throw: " + config);
+		} catch (RuntimeException e) {
+			// good
+		}
 	}
 
 }

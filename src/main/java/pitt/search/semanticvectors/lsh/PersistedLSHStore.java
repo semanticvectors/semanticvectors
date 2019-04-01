@@ -20,7 +20,9 @@ import java.util.stream.Collectors;
  */
 public class PersistedLSHStore extends LSHStore {
 
+	// Stores the vectors with their hash
 	public static final String STORE_SUFFIX = ".lshstore";
+	// Stores the hashing configuration
 	public static final String LSH_SUFFIX = ".lsh";
 
 	protected File homeDir;
@@ -36,6 +38,10 @@ public class PersistedLSHStore extends LSHStore {
 		this.flagConfig = flagConfig;
 	}
 
+	/**
+	 * If the store exists it gets reinitialized. If the store does not exist a new one is created.
+	 * @throws IOException
+	 */
 	@Override
 	public void initCache() throws IOException {
 		homeDir = new File(vecStoreFile.getParentFile(), "lsh");
@@ -51,6 +57,7 @@ public class PersistedLSHStore extends LSHStore {
 			phm.init();
 			lsh = LocalitySensitiveHash.initFromFile(lshFile);
 		} else {
+			// We create an in-memory store and once it's been initialized we basically persist it. Makes our lives easier
 			InMemoryLSHStore inMemoryStore = new InMemoryLSHStore(vecStoreFile, flagConfig);
 			inMemoryStore.initCache();
 			this.lsh = inMemoryStore.lsh;
@@ -62,13 +69,14 @@ public class PersistedLSHStore extends LSHStore {
 
 	@Override
 	public Enumeration<ObjectVector> getSimilar(Vector vector) throws IOException {
+		// get all hashes which are similar to the vector's hash
 		short[] similarHashes = lsh.getSimilarHashes(vector);
 		Arrays.sort(similarHashes);
 
+		// filter the hashes which are not present in the LSH store
 		List<Short> keys = phm.keys();
 		List<Short> toCheck = keys.stream().filter(aShort -> Arrays.binarySearch(similarHashes, aShort) >= 0).collect(Collectors.toList());
 		Iterator<Short> buckets = toCheck.iterator();
-
 
 		Iterator<Long> iter = new Iterator<Long>() {
 			LongIterator bucketIter;

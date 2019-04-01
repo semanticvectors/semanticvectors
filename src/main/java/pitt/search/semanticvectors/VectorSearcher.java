@@ -376,8 +376,10 @@ abstract public class VectorSearcher {
 
 		@Override
 		public LinkedList<SearchResult> getNearestNeighbors(int numResults) {
+			// If the number of allowed different bits equals the number of hash vectors we skip the whole LSH logic
 			if (flagConfig.lsh_hashes_num() == flagConfig.lsh_max_bits_diff())
 				return super.getNearestNeighbors(numResults);
+			// LSH is supported only for VectorStoreReaderLucene vector stores
 			if (!(searchVecStore instanceof VectorStoreReaderLucene))
 				return super.getNearestNeighbors(numResults);
 

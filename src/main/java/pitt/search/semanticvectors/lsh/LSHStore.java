@@ -28,10 +28,20 @@ public abstract class LSHStore {
 	public void close() {
 	}
 
+	/**
+	 * Returns an Enumeration of vectors given an iterator containing their position in a vector store
+	 * @param iter iterator of vector file positions
+	 * @param vecStore the vector store containing the vectors
+	 * @param flagConfig
+	 * @return
+	 * @throws IOException
+	 */
 	protected Enumeration<ObjectVector> getObjectVectorEnum(Iterator<Long> iter, VectorStoreReaderLucene vecStore, FlagConfig flagConfig) throws IOException {
 		Enumeration<ObjectVector> vecs;
 		File storeFile = vecStore.getVectorFile();
 
+		// The MappedByteBuffer is faster than the IndexInput but supports only smaller files. Creating a class which uses
+		// an array of mapped buffers to cover a big file and have better performance than the InputIndex is IMPOSSIBLE!!!
 		if (storeFile.length() < Integer.MAX_VALUE) {
 			MappedByteBuffer byteBuffer = FileChannel.open(storeFile.toPath()).map(FileChannel.MapMode.READ_ONLY, 0, storeFile.length());
 			DataInput di = new DataInput() {

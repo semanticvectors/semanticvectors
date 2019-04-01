@@ -79,24 +79,29 @@ public class FlagConfig {
 	public String[] remainingArgs;
 
 	// Custom parameters for GraphDB
+
+	// Input index for a Hybrid index
 	private String input_index = "";
 
 	public String input_index() {
 		return input_index;
 	}
 
+	// Whether the text index is literal (for hybrid indexes) or not
 	private boolean literal_index = false;
 
 	public boolean literal_index() {
 		return literal_index;
 	}
 
-	private int lsh_hashes_num = 1;
+	// Number of random vectors for Locality-Sensitive hashing
+	private int lsh_hashes_num = 0;
 	public int lsh_hashes_num() {
 		return lsh_hashes_num;
 	}
 
-	private int lsh_max_bits_diff = 1;
+	// Max number of different bits between 2 similar hashed
+	private int lsh_max_bits_diff = 0;
 	public int lsh_max_bits_diff() {
 		return lsh_max_bits_diff;
 	}
@@ -1032,6 +1037,13 @@ public class FlagConfig {
 		if (vectortype == VectorType.REAL && realbindmethod == RealVector.RealBindMethod.PERMUTATION) {
 			RealVector.setBindType(RealVector.RealBindMethod.PERMUTATION);
 		}
+
+		if (lsh_max_bits_diff > lsh_hashes_num)
+			throw new RuntimeException("Invalid configuration. 'lsh_max_bits_diff' must be less than 'lsh_hashes_num'!");
+		if (lsh_hashes_num > 15)
+			throw new RuntimeException("Invalid configuration. 'lsh_hashes_num' must be less than 15!");
+		if (lsh_hashes_num < 0 || lsh_max_bits_diff < 0)
+			throw new RuntimeException("Invalid configuration. 'lsh_max_bits_diff' and 'lsh_hashes_num' must be positive!");
 	}
 
 	//utility method to allow control of this option without
