@@ -2,6 +2,8 @@ package pitt.search.semanticvectors.lsh;
 
 import org.junit.Test;
 import pitt.search.semanticvectors.FlagConfig;
+import pitt.search.semanticvectors.vectors.VectorFactory;
+import pitt.search.semanticvectors.vectors.VectorType;
 
 import java.io.File;
 import java.io.IOException;
@@ -34,6 +36,40 @@ public class TestLocalitySensitiveHash {
 		makeSureConfigurationThrows("-lsh_hashes_num 6 -lsh_max_bits_diff -1");
 		makeSureConfigurationThrows("-lsh_hashes_num -1 -lsh_max_bits_diff 2");
 		makeSureConfigurationThrows("-lsh_hashes_num 16 -lsh_max_bits_diff 2");
+	}
+
+	@Test
+	public void testCalculatingSimilarHashes() {
+		int numHashes = 8;
+		for (int i = 1; i < numHashes; i++) {
+			testCorrectSimilarHashSize(numHashes, i);
+		}
+	}
+
+	private void testCorrectSimilarHashSize(int numHashes, int bitsDiff) {
+		FlagConfig config = FlagConfig.parseFlagsFromString("-lsh_hashes_num " + numHashes + " -lsh_max_bits_diff " + bitsDiff);
+		LocalitySensitiveHash lsh = new LocalitySensitiveHash(config);
+
+		short[] similarHashes = lsh.getSimilarHashes(VectorFactory.createZeroVector(config.vectortype(), config.dimension()));
+
+		int expected = 0;
+		for (int i = 0; i <= bitsDiff; i++) {
+			expected+= combination(numHashes, i);
+		}
+		assertEquals(expected, similarHashes.length);
+	}
+
+	private int combination(int n, int k) {
+		int result = 1;
+
+		for (int i = 0; i < k; i++) {
+			result*= n - i;
+		}
+		for (int i = 0; i < k; i++) {
+			result/= i + 1;
+		}
+
+		return result;
 	}
 
 	private void makeSureConfigurationThrows(String config) {
