@@ -72,7 +72,7 @@ public class VectorStoreWriterTest extends TestCase {
   public void testWriteLuceneVectorStoreAndRead() throws IOException {
     IndexOutput indexOutput = directory.createOutput("realvectors.bin", IOContext.DEFAULT);
     VectorStore store = createTestVectorStore();
-    VectorStoreWriter.writeToIndexOutput(store, FLAG_CONFIG, indexOutput);
+    VectorStoreWriter.writeToIndexOutput(store, FLAG_CONFIG, indexOutput, null);
     indexOutput.close();
 
     ThreadLocal<IndexInput> threadLocalIndexInput = new ThreadLocal<IndexInput>() {

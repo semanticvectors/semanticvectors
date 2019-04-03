@@ -35,6 +35,7 @@
 
 package pitt.search.semanticvectors.vectors;
 
+import java.nio.ByteBuffer;
 import java.util.Random;
 
 import org.apache.lucene.store.IndexInput;
@@ -127,6 +128,8 @@ public interface Vector {
    * Reads vector from Lucene input stream.  Reads exactly {@link #getDimension} coordinates.
    */
   public abstract void readFromLuceneStream(IndexInput inputStream);
+
+  public abstract void readFromByteBuffer(ByteBuffer byteBuffer);
   
   /**
    * Writes vector to text representation.  Writes exactly {@link #getDimension} coordinates.

@@ -1,6 +1,7 @@
 package pitt.search.semanticvectors.vectors;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Random;
@@ -835,6 +836,18 @@ public class BinaryVector implements Vector {
         e.printStackTrace();
       }
     }
+    this.bitSet = new FixedBitSet(bitArray, dimension);
+    this.isSparse = true;
+  }
+
+  @Override
+  public void readFromByteBuffer(ByteBuffer byteBuffer) {
+    long bitArray[] = new long[(dimension / 64)];
+
+    for (int i = 0; i < dimension / 64; ++i) {
+        bitArray[i] = byteBuffer.getLong();
+        logger.severe("Couldn't read binary vector from lucene output stream.");
+      }
     this.bitSet = new FixedBitSet(bitArray, dimension);
     this.isSparse = true;
   }

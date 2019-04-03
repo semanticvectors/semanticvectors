@@ -1,36 +1,36 @@
-  /**
-   Copyright (c) 2009, the SemanticVectors AUTHORS.
-
-   All rights reserved.
-
-   Redistribution and use in source and binary forms, with or without
-   modification, are permitted provided that the following conditions are
-   met:
-
+/**
+ * Copyright (c) 2009, the SemanticVectors AUTHORS.
+ * <p>
+ * All rights reserved.
+ * <p>
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are
+ * met:
+ * <p>
  * Redistributions of source code must retain the above copyright
-   notice, this list of conditions and the following disclaimer.
-
+ * notice, this list of conditions and the following disclaimer.
+ * <p>
  * Redistributions in binary form must reproduce the above
-   copyright notice, this list of conditions and the following
-   disclaimer in the documentation and/or other materials provided
-   with the distribution.
-
+ * copyright notice, this list of conditions and the following
+ * disclaimer in the documentation and/or other materials provided
+ * with the distribution.
+ * <p>
  * Neither the name of the University of Pittsburgh nor the names
-   of its contributors may be used to endorse or promote products
-   derived from this software without specific prior written
-   permission.
-
-   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-   "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-   LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-   A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
-   CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-   EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-   PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-   PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-   LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-   NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-   SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * of its contributors may be used to endorse or promote products
+ * derived from this software without specific prior written
+ * permission.
+ * <p>
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
+ * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+ * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+ * PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+ * LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  **/
 
 package pitt.search.semanticvectors;
@@ -41,8 +41,8 @@ import pitt.search.semanticvectors.DocVectors.DocIndexingStrategy;
 import pitt.search.semanticvectors.ElementalVectorStore.ElementalGenerationMethod;
 import pitt.search.semanticvectors.LuceneUtils.TermWeight;
 import pitt.search.semanticvectors.Search.SearchType;
-import pitt.search.semanticvectors.TermTermVectorsFromLucene.PositionalMethod;
 import pitt.search.semanticvectors.TermTermVectorsFromLucene.EncodingMethod;
+import pitt.search.semanticvectors.TermTermVectorsFromLucene.PositionalMethod;
 import pitt.search.semanticvectors.VectorStoreUtils.VectorStoreFormat;
 import pitt.search.semanticvectors.utils.VerbatimLogger;
 import pitt.search.semanticvectors.vectors.RealVector;
@@ -60,7 +60,7 @@ import java.util.logging.Logger;
 /**
  * Class for representing and parsing command line flags into a configuration
  * instance to be passed to other components.
- *
+ * <p>
  * Nearly all flags are configured once when an instance is created. Exceptions
  * are {@link #dimension()} and {#link vectortype()}, since these can be set
  * when a {@code VectorStore} is opened for reading.
@@ -68,632 +68,991 @@ import java.util.logging.Logger;
  * @author Dominic Widdows
  */
 public class FlagConfig {
-  private static final Logger logger = Logger.getLogger(FlagConfig.class.getCanonicalName());
-  
-  private FlagConfig() {
-    Field[] fields = FlagConfig.class.getDeclaredFields();
-    for (int q = 0; q < fields.length; q++)
-      fields[q].setAccessible(true);
-  }
-  
-  public String[] remainingArgs;
+	private static final Logger logger = Logger.getLogger(FlagConfig.class.getCanonicalName());
 
-  // Custom parameters for GraphDB
-  private String input_index = "";
-  public String input_index() {
-    return input_index;
-  }
+	private FlagConfig() {
+		Field[] fields = FlagConfig.class.getDeclaredFields();
+		for (int q = 0; q < fields.length; q++)
+			fields[q].setAccessible(true);
+	}
 
-  private boolean literal_index = false;
-  public boolean literal_index() {
-    return literal_index;
-  }
+	public String[] remainingArgs;
 
-  // Add new command line flags here. By convention, please use lower case.
+	// Custom parameters for GraphDB
 
-  private int dimension = 200;
-  /** Dimension of semantic vector space, default value 200. Can be set when a {@code VectorStore} is opened.
-      Recommended values are in the hundreds for {@link VectorType#REAL} and {@link VectorType#COMPLEX} 
-      and in the thousands for {@link VectorType#BINARY}, since binary dimensions are single bits. */
-  public int dimension() { return dimension; }
-  /** Sets the {@link #dimension()}. */
-  public void setDimension(int dimension) {
-    this.dimension = dimension;
-    this.makeFlagsCompatible();
-  }
+	// Input index for a Hybrid index
+	private String input_index = "";
 
-  private VectorType vectortype = VectorType.REAL;
-  /** Ground field for vectors: real, binary or complex. Can be set when a {@code VectorStore} is opened.
-   * Default value {@link VectorType#REAL}, corresponding to "-vectortype real". */
-  public VectorType vectortype() { return vectortype; }
-  /** Sets the {@link #vectortype()}. */
-  public void setVectortype(VectorType vectortype) {
-    this.vectortype = vectortype;
-    this.makeFlagsCompatible();
-  }
+	public String input_index() {
+		return input_index;
+	}
 
-  private RealBindMethod realbindmethod = RealBindMethod.CONVOLUTION; 
-  /** The binding method used for real vectors, see {@link RealVector#BIND_METHOD}. */
-  public RealBindMethod realbindmethod() { return realbindmethod; }
-  
-  private ElementalGenerationMethod elementalmethod = ElementalGenerationMethod.CONTENTHASH;
-  /** The method used for generating elemental vectors. */
-  public ElementalGenerationMethod elementalmethod() { return elementalmethod; }
-  
-  private double samplingthreshold = -1; //suggest 10^-3 to 10^-5
-  /** 
-   * Subsampling threshold for embeddings
-   */
-  public double samplingthreshold() { return samplingthreshold; }
-  
-  public boolean subsampleinwindow = false;
-  /** 
-   * Word2vec approach for approximating "ramped" weighting
-   * of a sliding window by sampling the window size uniformly
-   * such that the proximal parts of the window have a higher
-   * probability of not being ignored
-   */
-  public boolean subsampleinwindow() { return subsampleinwindow; }
-  
-  public boolean balanced_subwords = false;
-  /** 
-   * If true, word vector = S(word) + 1/n * S(subwords). If not, word is added
-   * to the pile of ngrams, which are equally weighted when constructing the word vector
-   * (and during propagation)
-   * 
-   */
-  public boolean balanced_subwords() { return balanced_subwords; }
-  
-  
-  
-  public boolean exactwindowpositions = false;
-  /** 
-   * If true, the position of terms within a window will be preserved
-   * such that subsampled terms will be ignored, rather than replace
-   * 
-   * e.g. [the quick and] the dead, with "and" subsampled
-   * could become: [the quick the] (replaced - two superpositions to update 'quick')
-   * or (if true): [the quick  * ] (ignored  = one superposition to update 'quick')
-   * 
-   */
-  public boolean exactwindowpositions() { return exactwindowpositions; }
-  
-  public boolean notnormalized = false;
-  /** 
-   * Word2vec approach for approximating "ramped" weighting
-   * of a sliding window by sampling the window size uniformly
-   * such that the proximal parts of the window have a higher
-   * probability of not being ignored
-   */
-  public boolean notnormalized() { return notnormalized; }
-  
-  
-  
-  public int numthreads = 4;
-  /** 
-   * Number of threads to use when processing word embeddings
-   */
-  public int numthreads() { return numthreads; }
-  
-  public int negsamples = 5;
-  /** 
-   * Number of negative samples
-   */
-  public int negsamples() { return negsamples; }
-  
-  public int seedlength = 10;
-  /** Number of nonzero entries in a sparse random vector, default value 10 except for
-   * when {@link #vectortype()} is {@link VectorType#BINARY}, in which case default of
-   * {@link #dimension()} / 2 is enforced by {@link #makeFlagsCompatible()}.
-   */
-  public int seedlength() { return seedlength; }
-  
-  private int minfrequency = 0;
-  /** Minimum frequency of a term for it to be indexed, default value 0. */
-  public int minfrequency() { return minfrequency; }
+	// Whether the text index is literal (for hybrid indexes) or not
+	private boolean literal_index = false;
 
-  private int maxfrequency = Integer.MAX_VALUE;
-  /** Maximum frequency of a term for it to be indexed, default value {@link Integer#MAX_VALUE}. */
-  public int maxfrequency() { return maxfrequency; }
+	public boolean literal_index() {
+		return literal_index;
+	}
 
-  private int maxnonalphabetchars = Integer.MAX_VALUE;
-  /** Maximum number of nonalphabetic characters in a term for it to be indexed, default value {@link Integer#MAX_VALUE}. */
-  public int maxnonalphabetchars() { return maxnonalphabetchars; }
+	// Number of random vectors for Locality-Sensitive hashing
+	private int lsh_hashes_num = 0;
+	public int lsh_hashes_num() {
+		return lsh_hashes_num;
+	}
 
-  
-  private int mintermlength = 0;
-  /** Minimum number of characters in a term  */
-  public int mintermlength() { return mintermlength; }
+	// Max number of different bits between 2 similar hashed
+	private int lsh_max_bits_diff = 0;
+	public int lsh_max_bits_diff() {
+		return lsh_max_bits_diff;
+	}
 
-  
-  private boolean filteroutnumbers = false;
-  /** If {@code true}, terms containing only numeric characters are filtered out during indexing, default value {@code true}. */
-  public boolean filteroutnumbers() { return filteroutnumbers; }
 
-  private boolean bindnotreleasehack = false;
-  /** !hack! bind instead of release when constructing queries **/
-  public boolean bindnotreleasehack() { return bindnotreleasehack; }
-  
-  
-  private boolean hybridvectors = false;
-  /** If {@code true}, the StringEdit Class will produce hybrid vectors where each term vector = orthographic vector + semantic vector (from -queryvectorfile), default value {@code false}. */
-  public boolean hybridvectors() { return hybridvectors; }
-   
-  private int numsearchresults = 20;
-  /** Number of search results to return, default value 20. */
-  public int numsearchresults() { return numsearchresults; }
-  
-  private int treceval = -1;
-  /** Output search results in trec_eval format, with query number = treceval**/
-  public int treceval() { return treceval;}
-  
-  private String jsonfile = "";
-  /** Output search results as graph representation of a connectivity matrix in JSON**/
-  public String jsonfile() { return jsonfile;}
-  
-  /** Pathfinder parameters - default q = (n-1), default r = + infinity**/
-  private int pathfinderQ = -1; 
-  public int pathfinderQ() { return pathfinderQ; }
-  private double pathfinderR = Double.POSITIVE_INFINITY;
-  public double pathfinderR() { return pathfinderR; }
-  
-  private double searchresultsminscore = -1.0;
-  /** Search results with similarity scores below this value will not be included in search results, default value -1. */
-  public double searchresultsminscore() { return searchresultsminscore; }
+	// Add new command line flags here. By convention, please use lower case.
 
-  private int numclusters = 10;
-  /** Number of clusters used in {@link ClusterResults} and {@link ClusterVectorStore}, default value 10. */
-  public int numclusters() { return numclusters; }
-  
-  private int trainingcycles = 0;
-  /** Number of training cycles used for Reflective Random Indexing in {@link BuildIndex}. */
-  public int trainingcycles() { return trainingcycles; }
+	private int dimension = 200;
 
-  private boolean rescaleintraining = false;
-  /**
-   * If true, use {@link VectorStoreRAM#createRedistributedVectorStore} to make uniform coordinate distributions
-   * when using several {@link #trainingcycles}. */
-  public boolean rescaleintraining() { return rescaleintraining; }
+	/**
+	 * Dimension of semantic vector space, default value 200. Can be set when a {@code VectorStore} is opened.
+	 * Recommended values are in the hundreds for {@link VectorType#REAL} and {@link VectorType#COMPLEX}
+	 * and in the thousands for {@link VectorType#BINARY}, since binary dimensions are single bits.
+	 */
+	public int dimension() {
+		return dimension;
+	}
 
-  private int windowradius = 5;
-  /** Window radius used in {@link BuildPositionalIndex}, default value 5. */
-  public int windowradius() { return windowradius; }
+	/**
+	 * Sets the {@link #dimension()}.
+	 */
+	public void setDimension(int dimension) {
+		this.dimension = dimension;
+		this.makeFlagsCompatible();
+	}
 
-  private SearchType searchtype = SearchType.SUM;
-  /** Method used for combining and searching vectors,
-   * default value {@link SearchType#SUM} corresponding to "-searchtype sum". */
-  public SearchType searchtype() { return searchtype; }
+	private VectorType vectortype = VectorType.REAL;
 
-  private boolean fieldweight = false;
-  /** Set to true if you want document vectors built from multiple fields to emphasize terms from shorter fields, default value {@code false}. */
-  public boolean fieldweight() { return fieldweight; }
-  
-  private TermWeight termweight = TermWeight.IDF;
-  /** Term weighting used when constructing document vectors, default value {@link TermWeight#IDF} */
-  public LuceneUtils.TermWeight termweight() { return termweight; }
- 
-  private boolean usetermweightsintermsearch = false;
-  /** Tells search implementations to scale each comparison score by a term weight during search, default value false. */
-  public boolean usetermweightsintermsearch() { return usetermweightsintermsearch; }
- 
-  public boolean stdev = false;
-  /** Score search results according to number of SDs above the mean across all search vectors, default false. */
-  public boolean stdev() { return stdev; }
+	/**
+	 * Ground field for vectors: real, binary or complex. Can be set when a {@code VectorStore} is opened.
+	 * Default value {@link VectorType#REAL}, corresponding to "-vectortype real".
+	 */
+	public VectorType vectortype() {
+		return vectortype;
+	}
 
-  private boolean expandsearchspace = false;
-  /** Generate bound products from each pairwise element of the search space, default false.
-   *  Expands the size of the space to n-squared. */
-  public boolean expandsearchspace() { return expandsearchspace; }
+	/**
+	 * Sets the {@link #vectortype()}.
+	 */
+	public void setVectortype(VectorType vectortype) {
+		this.vectortype = vectortype;
+		this.makeFlagsCompatible();
+	}
 
-  
-  private boolean expandsearchspace3 = false;
-  /** Generate bound products from combinations of three elements of the search space, default false.
-   *  Expands the size of the space to n-cubed. */
-  public boolean expandsearchspace3() { return expandsearchspace3; }
-  
-  private VectorStoreFormat indexfileformat = VectorStoreFormat.LUCENE;
-  /** Format used for serializing / deserializing vectors from disk, default lucene. */
-  public VectorStoreFormat indexfileformat() { return indexfileformat; }
+	private RealBindMethod realbindmethod = RealBindMethod.CONVOLUTION;
 
-  private String termvectorsfile = "termvectors";
-  /** File to which termvectors are written during indexing. */
-  public String termvectorsfile() { return termvectorsfile; }
-  
-  private String docvectorsfile = "docvectors";
-  /** File to which docvectors are written during indexing. */
-  public String docvectorsfile() { return docvectorsfile; }
-  
-  private String termtermvectorsfile = "termtermvectors";
-  /** File to which term-term vectors are written during positional indexing. */
-  public String termtermvectorsfile() { return termtermvectorsfile; }
-  
-  private String queryvectorfile = "termvectors";
-  /** Principal vector store for finding query vectors, default termvectors.bin. */
-  public String queryvectorfile() { return queryvectorfile; }
-  
-  private String searchvectorfile = "";
-  /** Vector store for searching. Defaults to being the same as {@link #queryvectorfile}.
-    May be different from queryvectorfile e.g., when using terms to search for documents. */
-  public String searchvectorfile() { return searchvectorfile; }
-  
-  private String boundvectorfile = "";
-  /** Auxiliary vector store used when searching for boundproducts. Used only in some searchtypes. */
-  public String boundvectorfile() { return boundvectorfile; }
+	/**
+	 * The binding method used for real vectors, see {@link RealVector#BIND_METHOD}.
+	 */
+	public RealBindMethod realbindmethod() {
+		return realbindmethod;
+	}
 
-  private String elementalvectorfile = "elementalvectors";
-  /** Random elemental vectors, sometimes written out, and used (e.g.) in conjunction with permuted vector file. */
-  public String elementalvectorfile() { return elementalvectorfile; }
+	private ElementalGenerationMethod elementalmethod = ElementalGenerationMethod.CONTENTHASH;
 
-  private String permutationcachefile = "permutationvectors";
-  /** Random elemental vectors, sometimes written out, and used (e.g.) in conjunction with permuted vector file. */
-  public String permutationcachefile() { return permutationcachefile; }
-  
-  private String semanticvectorfile = "semanticvectors";
-  /** Semantic vectors; used so far as a name in PSI. */
-  public String semanticvectorfile() { return semanticvectorfile; }
+	/**
+	 * The method used for generating elemental vectors.
+	 */
+	public ElementalGenerationMethod elementalmethod() {
+		return elementalmethod;
+	}
 
-  private String elementalpredicatevectorfile = "predicatevectors";
+	private double samplingthreshold = -1; //suggest 10^-3 to 10^-5
 
-  /**
-   * Vectors used to represent elemental predicate vectors in PSI. For compatibility reasons,
-   * the default name "predicatevectors" is typically used for these elemental vectors.
-   */
-  public String elementalpredicatevectorfile() {
-    return elementalpredicatevectorfile;
-  }
+	/**
+	 * Subsampling threshold for embeddings
+	 */
+	public double samplingthreshold() {
+		return samplingthreshold;
+	}
 
-  private String semanticpredicatevectorfile = "semanticpredicatevectors";
+	public boolean subsampleinwindow = false;
 
-  /**
-   * Vectors used to represent elemental predicate vectors in PSI. For compatibility reasons,
-   * the default name "predicatevectors" is typically used for these elemental vectors.
-   */
-  public String semanticpredicatevectorfile() {
-    return semanticpredicatevectorfile;
-  }
+	/**
+	 * Word2vec approach for approximating "ramped" weighting
+	 * of a sliding window by sampling the window size uniformly
+	 * such that the proximal parts of the window have a higher
+	 * probability of not being ignored
+	 */
+	public boolean subsampleinwindow() {
+		return subsampleinwindow;
+	}
 
-  private String permutedvectorfile = "permtermvectors";
-  /** "Permuted term vectors, output by -positionalmethod permutation. */
-  public String permutedvectorfile() { return permutedvectorfile; }
-  
-  private String proximityvectorfile = "proxtermvectors";
-  /** "Permuted term vectors, output by -positionalmethod proximity. */
-  public String proximityvectorfile() { return proximityvectorfile; }
+	public boolean balanced_subwords = false;
 
-  private String directionalvectorfile ="drxntermvectors";
-  /** Permuted term vectors, output by -positionalmethod directional. */
-  public String directionalvectorfile() { return directionalvectorfile; }   
-  
-  private String embeddingvectorfile ="embeddingvectors";
-  /** Permuted term vectors, output by -positionalmethod directional. */
-  public String embeddingvectorfile() { return embeddingvectorfile; } 
-  
-  private String permplustermvectorfile ="permplustermvectors";
-  /** "Permuted term vectors, output by -positionalmethod permutationplusbasic. */
-  public String permplustermvectorfile() { return permplustermvectorfile; }      
-  
-  private PositionalMethod positionalmethod = PositionalMethod.BASIC;
-  /** Method used for positional indexing. */
-  public PositionalMethod positionalmethod() { return positionalmethod; }
-  
-  private EncodingMethod encodingmethod = EncodingMethod.RANDOM_INDEXING;
-  /** Method used for positional indexing. */
-  public EncodingMethod encodingmethod() { return encodingmethod; }
-  
-  private AnalysisMethod analysismethod = AnalysisMethod.STANDARDANALYZER;
-  /** Lucene analyzer to use for indexing. */
-  public AnalysisMethod analysismethod() { return analysismethod; }
-  
-  
-  private boolean aggressivesubsampling = false;
-  /** Determines subsampling formula - 
-   *  p(ignore_term) = 1 - sqrt(T/F) as per the Mikolov paper
-   *  or the more aggressive (and harder to remember)
-   *  formulation per the Mikolov code
-   * 
-   * @return
-   */
-  public boolean aggressivesubsampling() {	return aggressivesubsampling;}
-  
-  private boolean semtypesandcuis = false;
-  /**
-   * Determines whether or not UMLS semantic types are considered when using ESP
-   * (to be used with index built by LuceneIndexFromSemrepTriples)
-   */
-  public boolean semtypesandcuis() { return semtypesandcuis;}
-  
-  private boolean mutablepredicatevectors = false;
-  /**
-   * Determines whether or not predicate vectors are adjusted during
-   * the process of training an ESP model
-   */
-  public boolean mutablepredicatevectors() { return mutablepredicatevectors; }
-  
-  
-  private boolean	subword_embeddings 	= false;
-  private int  minimum_ngram_length 	= 3;
-  private int  maximum_ngram_length 	= 6;
-  
-  /**
-   * For subword embeddings - minimum and maximum length of ngrams to be considered
-   */
-  public boolean subword_embeddings() 	{return subword_embeddings;}
-  public int	minimum_ngram_length() 	{return minimum_ngram_length;}
-  public int 	maximum_ngram_length()  {return maximum_ngram_length;}
-  
-  
-  
-  private boolean discountnegativesampling = false;
-  /** 
-   * if set to true, likelihood of a term being negatively sampled
-   * is based on its subsampled frequency, not its raw frequency
-   * @return
-   */
-  public boolean discountnegativesampling() {	return discountnegativesampling;}
-  
- 
-  private double initial_alpha = 0.05;
-  /*
-   * Initial learning rate for neural embeddings
-   */
-  public double initial_alpha() { return initial_alpha;}
-  
-  private String stoplistfile = "";
-  /** Path to file containing stopwords, one word per line, no default value. */
-  public String stoplistfile() { return stoplistfile; }
+	/**
+	 * If true, word vector = S(word) + 1/n * S(subwords). If not, word is added
+	 * to the pile of ngrams, which are equally weighted when constructing the word vector
+	 * (and during propagation)
+	 */
+	public boolean balanced_subwords() {
+		return balanced_subwords;
+	}
 
-  private String startlistfile = "";
-  /** Path to file containing startwords, to be indexed always, no default value. */
-  public String startlistfile() { return startlistfile; }
-  
-  private String luceneindexpath = "";
-  /** Path to a Lucene index. Must contain term position information for positional applications,
-   * See {@link BuildPositionalIndex}.
-   */
-  public String luceneindexpath() { return luceneindexpath; }
-  
-  private String initialtermvectors = "";
-  /** If set, use the vectors in this file for initialization instead of new random vectors. */
-  public String initialtermvectors() { return initialtermvectors; }
 
-  private String initialdocumentvectors = "";
-  /** If set, use the vectors in this file for initialization instead of new random vectors. */
-  public String initialdocumentvectors() { return initialdocumentvectors; }
+	public boolean exactwindowpositions = false;
 
-  private DocIndexingStrategy docindexing = DocIndexingStrategy.INCREMENTAL;
-  /** Memory management method used for indexing documents. */
-  public DocIndexingStrategy docindexing() { return docindexing; }
+	/**
+	 * If true, the position of terms within a window will be preserved
+	 * such that subsampled terms will be ignored, rather than replace
+	 * <p>
+	 * e.g. [the quick and] the dead, with "and" subsampled
+	 * could become: [the quick the] (replaced - two superpositions to update 'quick')
+	 * or (if true): [the quick  * ] (ignored  = one superposition to update 'quick')
+	 */
+	public boolean exactwindowpositions() {
+		return exactwindowpositions;
+	}
 
-  private VectorLookupSyntax vectorlookupsyntax = VectorLookupSyntax.EXACTMATCH;
-  /** Method used for looking up vectors in a vector store, default value {@link VectorLookupSyntax#EXACTMATCH}. */
-  public VectorLookupSyntax vectorlookupsyntax() { return vectorlookupsyntax; }
+	public boolean notnormalized = false;
 
-  private boolean matchcase = false;
-  /** If true, matching of query terms is case-sensitive; otherwise case-insensitive, default false. */
-  public boolean matchcase() { return matchcase; }
+	/**
+	 * Word2vec approach for approximating "ramped" weighting
+	 * of a sliding window by sampling the window size uniformly
+	 * such that the proximal parts of the window have a higher
+	 * probability of not being ignored
+	 */
+	public boolean notnormalized() {
+		return notnormalized;
+	}
 
-  private String batchcompareseparator = "\\|";
-  /** Separator for documents on a single line in batch comparison mode, default '\\|' (as a regular expression for '|'). */
-  public String batchcompareseparator() { return batchcompareseparator; }
 
-  private boolean suppressnegatedqueries = false;
-  /** If true, suppress checking for the query negation token which indicates subsequent terms are to be negated when comparing terms, default false.
-   * If this is set to {@code true}, all terms are treated as positive. */
-  public boolean suppressnegatedqueries() { return suppressnegatedqueries; }
+	public int numthreads = 4;
 
-  private String[] contentsfields = {"contents"};
-  /** Fields to be indexed for their contents, e.g., "title,description,notes", default "contents". */
-  public String[] contentsfields() { return contentsfields; }
-  /** Set contentsfields (e.g. to specify for TermFilter **/
-  public void setContentsfields(String[] contentsfields) {
+	/**
+	 * Number of threads to use when processing word embeddings
+	 */
+	public int numthreads() {
+		return numthreads;
+	}
+
+	public int negsamples = 5;
+
+	/**
+	 * Number of negative samples
+	 */
+	public int negsamples() {
+		return negsamples;
+	}
+
+	public int seedlength = 10;
+
+	/**
+	 * Number of nonzero entries in a sparse random vector, default value 10 except for
+	 * when {@link #vectortype()} is {@link VectorType#BINARY}, in which case default of
+	 * {@link #dimension()} / 2 is enforced by {@link #makeFlagsCompatible()}.
+	 */
+	public int seedlength() {
+		return seedlength;
+	}
+
+	private int minfrequency = 0;
+
+	/**
+	 * Minimum frequency of a term for it to be indexed, default value 0.
+	 */
+	public int minfrequency() {
+		return minfrequency;
+	}
+
+	private int maxfrequency = Integer.MAX_VALUE;
+
+	/**
+	 * Maximum frequency of a term for it to be indexed, default value {@link Integer#MAX_VALUE}.
+	 */
+	public int maxfrequency() {
+		return maxfrequency;
+	}
+
+	private int maxnonalphabetchars = Integer.MAX_VALUE;
+
+	/**
+	 * Maximum number of nonalphabetic characters in a term for it to be indexed, default value {@link Integer#MAX_VALUE}.
+	 */
+	public int maxnonalphabetchars() {
+		return maxnonalphabetchars;
+	}
+
+
+	private int mintermlength = 0;
+
+	/**
+	 * Minimum number of characters in a term
+	 */
+	public int mintermlength() {
+		return mintermlength;
+	}
+
+
+	private boolean filteroutnumbers = false;
+
+	/**
+	 * If {@code true}, terms containing only numeric characters are filtered out during indexing, default value {@code true}.
+	 */
+	public boolean filteroutnumbers() {
+		return filteroutnumbers;
+	}
+
+	private boolean bindnotreleasehack = false;
+
+	/**
+	 * !hack! bind instead of release when constructing queries
+	 **/
+	public boolean bindnotreleasehack() {
+		return bindnotreleasehack;
+	}
+
+
+	private boolean hybridvectors = false;
+
+	/**
+	 * If {@code true}, the StringEdit Class will produce hybrid vectors where each term vector = orthographic vector + semantic vector (from -queryvectorfile), default value {@code false}.
+	 */
+	public boolean hybridvectors() {
+		return hybridvectors;
+	}
+
+	private int numsearchresults = 20;
+
+	/**
+	 * Number of search results to return, default value 20.
+	 */
+	public int numsearchresults() {
+		return numsearchresults;
+	}
+
+	private int treceval = -1;
+
+	/**
+	 * Output search results in trec_eval format, with query number = treceval
+	 **/
+	public int treceval() {
+		return treceval;
+	}
+
+	private String jsonfile = "";
+
+	/**
+	 * Output search results as graph representation of a connectivity matrix in JSON
+	 **/
+	public String jsonfile() {
+		return jsonfile;
+	}
+
+	/**
+	 * Pathfinder parameters - default q = (n-1), default r = + infinity
+	 **/
+	private int pathfinderQ = -1;
+
+	public int pathfinderQ() {
+		return pathfinderQ;
+	}
+
+	private double pathfinderR = Double.POSITIVE_INFINITY;
+
+	public double pathfinderR() {
+		return pathfinderR;
+	}
+
+	private double searchresultsminscore = -1.0;
+
+	/**
+	 * Search results with similarity scores below this value will not be included in search results, default value -1.
+	 */
+	public double searchresultsminscore() {
+		return searchresultsminscore;
+	}
+
+	private int numclusters = 10;
+
+	/**
+	 * Number of clusters used in {@link ClusterResults} and {@link ClusterVectorStore}, default value 10.
+	 */
+	public int numclusters() {
+		return numclusters;
+	}
+
+	private int trainingcycles = 0;
+
+	/**
+	 * Number of training cycles used for Reflective Random Indexing in {@link BuildIndex}.
+	 */
+	public int trainingcycles() {
+		return trainingcycles;
+	}
+
+	private boolean rescaleintraining = false;
+
+	/**
+	 * If true, use {@link VectorStoreRAM#createRedistributedVectorStore} to make uniform coordinate distributions
+	 * when using several {@link #trainingcycles}.
+	 */
+	public boolean rescaleintraining() {
+		return rescaleintraining;
+	}
+
+	private int windowradius = 5;
+
+	/**
+	 * Window radius used in {@link BuildPositionalIndex}, default value 5.
+	 */
+	public int windowradius() {
+		return windowradius;
+	}
+
+	private SearchType searchtype = SearchType.SUM;
+
+	/**
+	 * Method used for combining and searching vectors,
+	 * default value {@link SearchType#SUM} corresponding to "-searchtype sum".
+	 */
+	public SearchType searchtype() {
+		return searchtype;
+	}
+
+	private boolean fieldweight = false;
+
+	/**
+	 * Set to true if you want document vectors built from multiple fields to emphasize terms from shorter fields, default value {@code false}.
+	 */
+	public boolean fieldweight() {
+		return fieldweight;
+	}
+
+	private TermWeight termweight = TermWeight.IDF;
+
+	/**
+	 * Term weighting used when constructing document vectors, default value {@link TermWeight#IDF}
+	 */
+	public LuceneUtils.TermWeight termweight() {
+		return termweight;
+	}
+
+	private boolean usetermweightsintermsearch = false;
+
+	/**
+	 * Tells search implementations to scale each comparison score by a term weight during search, default value false.
+	 */
+	public boolean usetermweightsintermsearch() {
+		return usetermweightsintermsearch;
+	}
+
+	public boolean stdev = false;
+
+	/**
+	 * Score search results according to number of SDs above the mean across all search vectors, default false.
+	 */
+	public boolean stdev() {
+		return stdev;
+	}
+
+	private boolean expandsearchspace = false;
+
+	/**
+	 * Generate bound products from each pairwise element of the search space, default false.
+	 * Expands the size of the space to n-squared.
+	 */
+	public boolean expandsearchspace() {
+		return expandsearchspace;
+	}
+
+
+	private boolean expandsearchspace3 = false;
+
+	/**
+	 * Generate bound products from combinations of three elements of the search space, default false.
+	 * Expands the size of the space to n-cubed.
+	 */
+	public boolean expandsearchspace3() {
+		return expandsearchspace3;
+	}
+
+	private VectorStoreFormat indexfileformat = VectorStoreFormat.LUCENE;
+
+	/**
+	 * Format used for serializing / deserializing vectors from disk, default lucene.
+	 */
+	public VectorStoreFormat indexfileformat() {
+		return indexfileformat;
+	}
+
+	private String termvectorsfile = "termvectors";
+
+	/**
+	 * File to which termvectors are written during indexing.
+	 */
+	public String termvectorsfile() {
+		return termvectorsfile;
+	}
+
+	private String docvectorsfile = "docvectors";
+
+	/**
+	 * File to which docvectors are written during indexing.
+	 */
+	public String docvectorsfile() {
+		return docvectorsfile;
+	}
+
+	private String termtermvectorsfile = "termtermvectors";
+
+	/**
+	 * File to which term-term vectors are written during positional indexing.
+	 */
+	public String termtermvectorsfile() {
+		return termtermvectorsfile;
+	}
+
+	private String queryvectorfile = "termvectors";
+
+	/**
+	 * Principal vector store for finding query vectors, default termvectors.bin.
+	 */
+	public String queryvectorfile() {
+		return queryvectorfile;
+	}
+
+	private String searchvectorfile = "";
+
+	/**
+	 * Vector store for searching. Defaults to being the same as {@link #queryvectorfile}.
+	 * May be different from queryvectorfile e.g., when using terms to search for documents.
+	 */
+	public String searchvectorfile() {
+		return searchvectorfile;
+	}
+
+	private String boundvectorfile = "";
+
+	/**
+	 * Auxiliary vector store used when searching for boundproducts. Used only in some searchtypes.
+	 */
+	public String boundvectorfile() {
+		return boundvectorfile;
+	}
+
+	private String elementalvectorfile = "elementalvectors";
+
+	/**
+	 * Random elemental vectors, sometimes written out, and used (e.g.) in conjunction with permuted vector file.
+	 */
+	public String elementalvectorfile() {
+		return elementalvectorfile;
+	}
+
+	private String permutationcachefile = "permutationvectors";
+
+	/**
+	 * Random elemental vectors, sometimes written out, and used (e.g.) in conjunction with permuted vector file.
+	 */
+	public String permutationcachefile() {
+		return permutationcachefile;
+	}
+
+	private String semanticvectorfile = "semanticvectors";
+
+	/**
+	 * Semantic vectors; used so far as a name in PSI.
+	 */
+	public String semanticvectorfile() {
+		return semanticvectorfile;
+	}
+
+	private String elementalpredicatevectorfile = "predicatevectors";
+
+	/**
+	 * Vectors used to represent elemental predicate vectors in PSI. For compatibility reasons,
+	 * the default name "predicatevectors" is typically used for these elemental vectors.
+	 */
+	public String elementalpredicatevectorfile() {
+		return elementalpredicatevectorfile;
+	}
+
+	private String semanticpredicatevectorfile = "semanticpredicatevectors";
+
+	/**
+	 * Vectors used to represent elemental predicate vectors in PSI. For compatibility reasons,
+	 * the default name "predicatevectors" is typically used for these elemental vectors.
+	 */
+	public String semanticpredicatevectorfile() {
+		return semanticpredicatevectorfile;
+	}
+
+	private String permutedvectorfile = "permtermvectors";
+
+	/**
+	 * "Permuted term vectors, output by -positionalmethod permutation.
+	 */
+	public String permutedvectorfile() {
+		return permutedvectorfile;
+	}
+
+	private String proximityvectorfile = "proxtermvectors";
+
+	/**
+	 * "Permuted term vectors, output by -positionalmethod proximity.
+	 */
+	public String proximityvectorfile() {
+		return proximityvectorfile;
+	}
+
+	private String directionalvectorfile = "drxntermvectors";
+
+	/**
+	 * Permuted term vectors, output by -positionalmethod directional.
+	 */
+	public String directionalvectorfile() {
+		return directionalvectorfile;
+	}
+
+	private String embeddingvectorfile = "embeddingvectors";
+
+	/**
+	 * Permuted term vectors, output by -positionalmethod directional.
+	 */
+	public String embeddingvectorfile() {
+		return embeddingvectorfile;
+	}
+
+	private String permplustermvectorfile = "permplustermvectors";
+
+	/**
+	 * "Permuted term vectors, output by -positionalmethod permutationplusbasic.
+	 */
+	public String permplustermvectorfile() {
+		return permplustermvectorfile;
+	}
+
+	private PositionalMethod positionalmethod = PositionalMethod.BASIC;
+
+	/**
+	 * Method used for positional indexing.
+	 */
+	public PositionalMethod positionalmethod() {
+		return positionalmethod;
+	}
+
+	private EncodingMethod encodingmethod = EncodingMethod.RANDOM_INDEXING;
+
+	/**
+	 * Method used for positional indexing.
+	 */
+	public EncodingMethod encodingmethod() {
+		return encodingmethod;
+	}
+
+	private AnalysisMethod analysismethod = AnalysisMethod.STANDARDANALYZER;
+
+	/**
+	 * Lucene analyzer to use for indexing.
+	 */
+	public AnalysisMethod analysismethod() {
+		return analysismethod;
+	}
+
+
+	private boolean aggressivesubsampling = false;
+
+	/**
+	 * Determines subsampling formula -
+	 * p(ignore_term) = 1 - sqrt(T/F) as per the Mikolov paper
+	 * or the more aggressive (and harder to remember)
+	 * formulation per the Mikolov code
+	 *
+	 * @return
+	 */
+	public boolean aggressivesubsampling() {
+		return aggressivesubsampling;
+	}
+
+	private boolean semtypesandcuis = false;
+
+	/**
+	 * Determines whether or not UMLS semantic types are considered when using ESP
+	 * (to be used with index built by LuceneIndexFromSemrepTriples)
+	 */
+	public boolean semtypesandcuis() {
+		return semtypesandcuis;
+	}
+
+	private boolean mutablepredicatevectors = false;
+
+	/**
+	 * Determines whether or not predicate vectors are adjusted during
+	 * the process of training an ESP model
+	 */
+	public boolean mutablepredicatevectors() {
+		return mutablepredicatevectors;
+	}
+
+
+	private boolean subword_embeddings = false;
+	private int minimum_ngram_length = 3;
+	private int maximum_ngram_length = 6;
+
+	/**
+	 * For subword embeddings - minimum and maximum length of ngrams to be considered
+	 */
+	public boolean subword_embeddings() {
+		return subword_embeddings;
+	}
+
+	public int minimum_ngram_length() {
+		return minimum_ngram_length;
+	}
+
+	public int maximum_ngram_length() {
+		return maximum_ngram_length;
+	}
+
+
+	private boolean discountnegativesampling = false;
+
+	/**
+	 * if set to true, likelihood of a term being negatively sampled
+	 * is based on its subsampled frequency, not its raw frequency
+	 *
+	 * @return
+	 */
+	public boolean discountnegativesampling() {
+		return discountnegativesampling;
+	}
+
+
+	private double initial_alpha = 0.05;
+
+	/*
+	 * Initial learning rate for neural embeddings
+	 */
+	public double initial_alpha() {
+		return initial_alpha;
+	}
+
+	private String stoplistfile = "";
+
+	/**
+	 * Path to file containing stopwords, one word per line, no default value.
+	 */
+	public String stoplistfile() {
+		return stoplistfile;
+	}
+
+	private String startlistfile = "";
+
+	/**
+	 * Path to file containing startwords, to be indexed always, no default value.
+	 */
+	public String startlistfile() {
+		return startlistfile;
+	}
+
+	private String luceneindexpath = "";
+
+	/**
+	 * Path to a Lucene index. Must contain term position information for positional applications,
+	 * See {@link BuildPositionalIndex}.
+	 */
+	public String luceneindexpath() {
+		return luceneindexpath;
+	}
+
+	private String initialtermvectors = "";
+
+	/**
+	 * If set, use the vectors in this file for initialization instead of new random vectors.
+	 */
+	public String initialtermvectors() {
+		return initialtermvectors;
+	}
+
+	private String initialdocumentvectors = "";
+
+	/**
+	 * If set, use the vectors in this file for initialization instead of new random vectors.
+	 */
+	public String initialdocumentvectors() {
+		return initialdocumentvectors;
+	}
+
+	private DocIndexingStrategy docindexing = DocIndexingStrategy.INCREMENTAL;
+
+	/**
+	 * Memory management method used for indexing documents.
+	 */
+	public DocIndexingStrategy docindexing() {
+		return docindexing;
+	}
+
+	private VectorLookupSyntax vectorlookupsyntax = VectorLookupSyntax.EXACTMATCH;
+
+	/**
+	 * Method used for looking up vectors in a vector store, default value {@link VectorLookupSyntax#EXACTMATCH}.
+	 */
+	public VectorLookupSyntax vectorlookupsyntax() {
+		return vectorlookupsyntax;
+	}
+
+	private boolean matchcase = false;
+
+	/**
+	 * If true, matching of query terms is case-sensitive; otherwise case-insensitive, default false.
+	 */
+	public boolean matchcase() {
+		return matchcase;
+	}
+
+	private String batchcompareseparator = "\\|";
+
+	/**
+	 * Separator for documents on a single line in batch comparison mode, default '\\|' (as a regular expression for '|').
+	 */
+	public String batchcompareseparator() {
+		return batchcompareseparator;
+	}
+
+	private boolean suppressnegatedqueries = false;
+
+	/**
+	 * If true, suppress checking for the query negation token which indicates subsequent terms are to be negated when comparing terms, default false.
+	 * If this is set to {@code true}, all terms are treated as positive.
+	 */
+	public boolean suppressnegatedqueries() {
+		return suppressnegatedqueries;
+	}
+
+	private String[] contentsfields = {"contents"};
+
+	/**
+	 * Fields to be indexed for their contents, e.g., "title,description,notes", default "contents".
+	 */
+	public String[] contentsfields() {
+		return contentsfields;
+	}
+
+	/**
+	 * Set contentsfields (e.g. to specify for TermFilter
+	 **/
+	public void setContentsfields(String[] contentsfields) {
 		this.contentsfields = contentsfields;
 	}
 
-  
-  private String docidfield = "path";
 
-  /** Field used by Lucene to record the identifier for each document, default "path". */
-  public String docidfield() { return docidfield; }
-  
-  /**
-   * Parse flags from a single string.  Presumes that string contains only command line flags.
-   */
-  public static FlagConfig parseFlagsFromString(String header) {
-    String[] args = header.split("\\s");
-    return getFlagConfig(args);
-  }
+	private String docidfield = "path";
 
-  /**
-   * Parse command line flags and create public data structures for accessing them.
-   * @param args
-   * @return trimmed list of arguments with command line flags consumed
-   */
-  // This implementation is linear in the number of flags available
-  // and the number of command line arguments given. This is quadratic
-  // and so inefficient, but in practice we only have to do it once
-  // per command so it's probably negligible.
-  public static FlagConfig getFlagConfig(String[] args) throws IllegalArgumentException {
-    FlagConfig flagConfig = new FlagConfig();
-    
-    if (args == null || args.length == 0) {
-      flagConfig.remainingArgs = new String[0];
-      return flagConfig;
-    }
-    
-    int argc = 0;
-    while (args[argc].charAt(0) == '-') {
-      String flagName = args[argc];
-      // Ignore trivial flags (without raising an error).
-      if (flagName.equals("-")) continue;
-      // Strip off initial "-" repeatedly to get desired flag name.
-      while (flagName.charAt(0) == '-') {
-        flagName = flagName.substring(1, flagName.length());
-      }
+	/**
+	 * Field used by Lucene to record the identifier for each document, default "path".
+	 */
+	public String docidfield() {
+		return docidfield;
+	}
 
-      try {
-        Field field = FlagConfig.class.getDeclaredField(flagName);
+	/**
+	 * Parse flags from a single string.  Presumes that string contains only command line flags.
+	 */
+	public static FlagConfig parseFlagsFromString(String header) {
+		String[] args = header.split("\\s");
+		return getFlagConfig(args);
+	}
 
-        // Parse String arguments.
-        if (field.getType().getName().equals("java.lang.String")) {
-          String flagValue;
-          try {
-            flagValue = args[argc + 1];
-          } catch (ArrayIndexOutOfBoundsException e) {
-            throw new IllegalArgumentException("option -" + flagName + " requires an argument");
-          }
-          field.set(flagConfig, flagValue);
-          argc += 2;
-          // Parse String[] arguments, presuming they are comma-separated.
-          // String[] arguments do not currently support fixed Value lists.
-        } else if (field.getType().getName().equals("[Ljava.lang.String;")) {
-          // All string values are lowercased.
-          String flagValue;
-          try {
-            flagValue = args[argc + 1].toLowerCase();
-          } catch (ArrayIndexOutOfBoundsException e) {
-            throw new IllegalArgumentException("option -" + flagName + " requires an argument");
-          }
-          field.set(flagConfig, flagValue.split(","));
-          argc += 2;
-        } else if (field.getType().getName().equals("int")) {
-          // Parse int arguments.
-          try {
-            field.setInt(flagConfig, Integer.parseInt(args[argc + 1]));
-          } catch (ArrayIndexOutOfBoundsException e) {
-            throw new IllegalArgumentException("option -" + flagName + " requires an argument");
-          }
-          argc += 2;
-        } else if (field.getType().getName().equals("double")) {
-          // Parse double arguments.
-          try {
-            field.setDouble(flagConfig, Double.parseDouble(args[argc + 1]));
-          } catch (ArrayIndexOutOfBoundsException e) {
-            throw new IllegalArgumentException("option -" + flagName + " requires an argument");
-          }
-          argc += 2;
-        } else if (field.getType().isEnum()) {
-          // Parse enum arguments.
-          try {
-            @SuppressWarnings({ "rawtypes", "unchecked" })
-            Class<Enum> className = (Class<Enum>) field.getType();
-            try {
-              field.set(flagConfig, Enum.valueOf(className, args[argc + 1].toUpperCase()));
-            } catch (IllegalArgumentException e) {
-              throw new IllegalArgumentException(String.format(
-                  e.getMessage() +
-                  "\nAccepted values for '-%s' are:\n%s%n",
-                  field.getName(), Arrays.asList(className.getEnumConstants()), e));
-            }
-          } catch (ArrayIndexOutOfBoundsException e) {
-            throw new IllegalArgumentException("option -" + flagName + " requires an argument");
-          }
-          argc += 2;
-        } else if (field.getType().getName().equals("boolean")) {
-          // Parse boolean arguments.
-          field.setBoolean(flagConfig, true);
-          ++argc;
-        } else {
-          logger.warning("No support for fields of type: "  + field.getType().getName());
-          argc += 2;
-        }
-      } catch (NoSuchFieldException e) {
-        throw new IllegalArgumentException("Command line flag not defined: " + flagName);
-      } catch (IllegalAccessException e) {
-        logger.warning("Must be able to access all fields publicly, including: " + flagName);
-        e.printStackTrace();
-      }
+	/**
+	 * Parse command line flags and create public data structures for accessing them.
+	 *
+	 * @param args
+	 * @return trimmed list of arguments with command line flags consumed
+	 */
+	// This implementation is linear in the number of flags available
+	// and the number of command line arguments given. This is quadratic
+	// and so inefficient, but in practice we only have to do it once
+	// per command so it's probably negligible.
+	public static FlagConfig getFlagConfig(String[] args) throws IllegalArgumentException {
+		FlagConfig flagConfig = new FlagConfig();
 
-      if (argc >= args.length) {
-        logger.fine("Consumed all command line input while parsing flags");
-        flagConfig.makeFlagsCompatible();
-        return flagConfig;
-      }
-    }
+		if (args == null || args.length == 0) {
+			flagConfig.remainingArgs = new String[0];
+			return flagConfig;
+		}
 
-    // Enforce constraints between flags.
-    flagConfig.makeFlagsCompatible();
+		int argc = 0;
+		while (args[argc].charAt(0) == '-') {
+			String flagName = args[argc];
+			// Ignore trivial flags (without raising an error).
+			if (flagName.equals("-")) continue;
+			// Strip off initial "-" repeatedly to get desired flag name.
+			while (flagName.charAt(0) == '-') {
+				flagName = flagName.substring(1, flagName.length());
+			}
 
-    // No more command line flags to parse. Trim args[] list and return.
-    flagConfig.remainingArgs = new String[args.length - argc];
-    for (int i = 0; i < args.length - argc; ++i) {
-      flagConfig.remainingArgs[i] = args[argc + i];
-    }
-    return flagConfig;
-  }
+			try {
+				Field field = FlagConfig.class.getDeclaredField(flagName);
 
-  public static void mergeWriteableFlagsFromString(String source, FlagConfig target) {
-    FlagConfig sourceConfig = FlagConfig.parseFlagsFromString(source);
-    mergeWriteableFlags(sourceConfig, target);
-  }
-  
-  /**
-   * Sets dimension and vectortype of target to be the same as that of source.
-   */
-  public static void mergeWriteableFlags(FlagConfig source, FlagConfig target) {
-    if (target.dimension != source.dimension)
-    {
-      VerbatimLogger.info("Setting dimension of target config to: " + source.dimension + "\n");
-      target.dimension = source.dimension;
-    }
-    if (target.vectortype != source.vectortype)
-    {
-      VerbatimLogger.info("Setting vectortype of target config to: " + source.vectortype + "\n");
-      target.vectortype = source.vectortype;
-    }
-    target.makeFlagsCompatible();
-  }
-  
-  /**
-   * Checks some interaction between flags, and fixes them up to make them compatible.
-   * 
-   * <br/>
-   * In practice, this means:
-   * <ul><li>If {@link #vectortype()} is {@code binary}, {@link #dimension()} is a multiple of 64,
-   * or is increased to be become a multiple of 64.  {@link #seedlength()} is set to be half this
-   * number.</li>
-   * <li>Setting {@link #searchvectorfile()} to {@link #queryvectorfile()} unless explicitly set otherwise.</li>
-   * <li>Setting {@link RealVector#setBindType} if directed (this is something of a hack).</li>
-   * </ul>
-   */
-  private void makeFlagsCompatible() {
-    if (vectortype == VectorType.BINARY) {
-      // Impose "multiple-of-64" constraint, to facilitate permutation of 64-bit chunks.
-      if (dimension % 64 != 0) {
-        dimension = (1 + (dimension / 64)) * 64;
-        logger.fine("For performance reasons, dimensions for binary vectors must be a mutliple "
-            + "of 64. Flags.dimension set to: " + dimension + ".");
-      }
-      // Impose "balanced binary vectors" constraint, to facilitate reasonable voting.
-      if (seedlength != dimension / 2) {
-        seedlength = dimension / 2;
-        logger.fine("Binary vectors must be generated with a balanced number of zeros and ones."
-            + " FlagConfig.seedlength set to: " + seedlength + ".");
-      }
-    }
-    
-    if (searchvectorfile.isEmpty()) searchvectorfile = queryvectorfile;
-    
-    // This is a potentially dangerous pattern! An alternative would be to make this setting
-    // part of each real vector, as with complex Modes. But they aren't so nice either.
-    // Let's avoid getting too committed to either approach and refactor at will.
-    // dwiddows, 2013-09-27.
-    if (vectortype == VectorType.REAL && realbindmethod == RealVector.RealBindMethod.PERMUTATION) {
-      RealVector.setBindType(RealVector.RealBindMethod.PERMUTATION);
-    }
-  }
-  
-  //utility method to allow control of this option without
-  //reconfiguring a FlagConfig
-public void setExpandsearchspace(boolean b) {
-	// TODO Auto-generated method stub
-	this.expandsearchspace = b;
-}
+				// Parse String arguments.
+				if (field.getType().getName().equals("java.lang.String")) {
+					String flagValue;
+					try {
+						flagValue = args[argc + 1];
+					} catch (ArrayIndexOutOfBoundsException e) {
+						throw new IllegalArgumentException("option -" + flagName + " requires an argument");
+					}
+					field.set(flagConfig, flagValue);
+					argc += 2;
+					// Parse String[] arguments, presuming they are comma-separated.
+					// String[] arguments do not currently support fixed Value lists.
+				} else if (field.getType().getName().equals("[Ljava.lang.String;")) {
+					// All string values are lowercased.
+					String flagValue;
+					try {
+						flagValue = args[argc + 1].toLowerCase();
+					} catch (ArrayIndexOutOfBoundsException e) {
+						throw new IllegalArgumentException("option -" + flagName + " requires an argument");
+					}
+					field.set(flagConfig, flagValue.split(","));
+					argc += 2;
+				} else if (field.getType().getName().equals("int")) {
+					// Parse int arguments.
+					try {
+						field.setInt(flagConfig, Integer.parseInt(args[argc + 1]));
+					} catch (ArrayIndexOutOfBoundsException e) {
+						throw new IllegalArgumentException("option -" + flagName + " requires an argument");
+					}
+					argc += 2;
+				} else if (field.getType().getName().equals("double")) {
+					// Parse double arguments.
+					try {
+						field.setDouble(flagConfig, Double.parseDouble(args[argc + 1]));
+					} catch (ArrayIndexOutOfBoundsException e) {
+						throw new IllegalArgumentException("option -" + flagName + " requires an argument");
+					}
+					argc += 2;
+				} else if (field.getType().isEnum()) {
+					// Parse enum arguments.
+					try {
+						@SuppressWarnings({"rawtypes", "unchecked"})
+						Class<Enum> className = (Class<Enum>) field.getType();
+						try {
+							field.set(flagConfig, Enum.valueOf(className, args[argc + 1].toUpperCase()));
+						} catch (IllegalArgumentException e) {
+							throw new IllegalArgumentException(String.format(
+									e.getMessage() +
+											"\nAccepted values for '-%s' are:\n%s%n",
+									field.getName(), Arrays.asList(className.getEnumConstants()), e));
+						}
+					} catch (ArrayIndexOutOfBoundsException e) {
+						throw new IllegalArgumentException("option -" + flagName + " requires an argument");
+					}
+					argc += 2;
+				} else if (field.getType().getName().equals("boolean")) {
+					// Parse boolean arguments.
+					field.setBoolean(flagConfig, true);
+					++argc;
+				} else {
+					logger.warning("No support for fields of type: " + field.getType().getName());
+					argc += 2;
+				}
+			} catch (NoSuchFieldException e) {
+				throw new IllegalArgumentException("Command line flag not defined: " + flagName);
+			} catch (IllegalAccessException e) {
+				logger.warning("Must be able to access all fields publicly, including: " + flagName);
+				e.printStackTrace();
+			}
 
+			if (argc >= args.length) {
+				logger.fine("Consumed all command line input while parsing flags");
+				flagConfig.makeFlagsCompatible();
+				return flagConfig;
+			}
+		}
 
+		// Enforce constraints between flags.
+		flagConfig.makeFlagsCompatible();
 
+		// No more command line flags to parse. Trim args[] list and return.
+		flagConfig.remainingArgs = new String[args.length - argc];
+		for (int i = 0; i < args.length - argc; ++i) {
+			flagConfig.remainingArgs[i] = args[argc + i];
+		}
+		return flagConfig;
+	}
 
+	public static void mergeWriteableFlagsFromString(String source, FlagConfig target) {
+		FlagConfig sourceConfig = FlagConfig.parseFlagsFromString(source);
+		mergeWriteableFlags(sourceConfig, target);
+	}
 
-  
+	/**
+	 * Sets dimension and vectortype of target to be the same as that of source.
+	 */
+	public static void mergeWriteableFlags(FlagConfig source, FlagConfig target) {
+		if (target.dimension != source.dimension) {
+			VerbatimLogger.info("Setting dimension of target config to: " + source.dimension + "\n");
+			target.dimension = source.dimension;
+		}
+		if (target.vectortype != source.vectortype) {
+			VerbatimLogger.info("Setting vectortype of target config to: " + source.vectortype + "\n");
+			target.vectortype = source.vectortype;
+		}
+		target.makeFlagsCompatible();
+	}
+
+	/**
+	 * Checks some interaction between flags, and fixes them up to make them compatible.
+	 * <p>
+	 * <br/>
+	 * In practice, this means:
+	 * <ul><li>If {@link #vectortype()} is {@code binary}, {@link #dimension()} is a multiple of 64,
+	 * or is increased to be become a multiple of 64.  {@link #seedlength()} is set to be half this
+	 * number.</li>
+	 * <li>Setting {@link #searchvectorfile()} to {@link #queryvectorfile()} unless explicitly set otherwise.</li>
+	 * <li>Setting {@link RealVector#setBindType} if directed (this is something of a hack).</li>
+	 * </ul>
+	 */
+	private void makeFlagsCompatible() {
+		if (vectortype == VectorType.BINARY) {
+			// Impose "multiple-of-64" constraint, to facilitate permutation of 64-bit chunks.
+			if (dimension % 64 != 0) {
+				dimension = (1 + (dimension / 64)) * 64;
+				logger.fine("For performance reasons, dimensions for binary vectors must be a mutliple "
+						+ "of 64. Flags.dimension set to: " + dimension + ".");
+			}
+			// Impose "balanced binary vectors" constraint, to facilitate reasonable voting.
+			if (seedlength != dimension / 2) {
+				seedlength = dimension / 2;
+				logger.fine("Binary vectors must be generated with a balanced number of zeros and ones."
+						+ " FlagConfig.seedlength set to: " + seedlength + ".");
+			}
+		}
+
+		if (searchvectorfile.isEmpty()) searchvectorfile = queryvectorfile;
+
+		// This is a potentially dangerous pattern! An alternative would be to make this setting
+		// part of each real vector, as with complex Modes. But they aren't so nice either.
+		// Let's avoid getting too committed to either approach and refactor at will.
+		// dwiddows, 2013-09-27.
+		if (vectortype == VectorType.REAL && realbindmethod == RealVector.RealBindMethod.PERMUTATION) {
+			RealVector.setBindType(RealVector.RealBindMethod.PERMUTATION);
+		}
+
+		if (lsh_max_bits_diff > lsh_hashes_num)
+			throw new RuntimeException("Invalid configuration. 'lsh_max_bits_diff' must be less than 'lsh_hashes_num'!");
+		if (lsh_hashes_num > 15)
+			throw new RuntimeException("Invalid configuration. 'lsh_hashes_num' must be less than 15!");
+		if (lsh_hashes_num < 0 || lsh_max_bits_diff < 0)
+			throw new RuntimeException("Invalid configuration. 'lsh_max_bits_diff' and 'lsh_hashes_num' must be positive!");
+	}
+
+	//utility method to allow control of this option without
+	//reconfiguring a FlagConfig
+	public void setExpandsearchspace(boolean b) {
+		// TODO Auto-generated method stub
+		this.expandsearchspace = b;
+	}
+
 
 }
 

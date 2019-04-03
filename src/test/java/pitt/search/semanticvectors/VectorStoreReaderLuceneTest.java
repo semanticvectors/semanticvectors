@@ -33,15 +33,13 @@
 
 package pitt.search.semanticvectors;
 
+import junit.framework.TestCase;
 import org.apache.lucene.store.IOContext;
 import org.apache.lucene.store.IndexInput;
 import org.apache.lucene.store.IndexOutput;
 import org.apache.lucene.store.RAMDirectory;
 import org.junit.Before;
 import org.junit.Test;
-
-import pitt.search.semanticvectors.ObjectVector;
-import pitt.search.semanticvectors.VectorStoreReaderLucene;
 import pitt.search.semanticvectors.vectors.RealVector;
 import pitt.search.semanticvectors.vectors.Vector;
 
@@ -49,8 +47,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.NoSuchElementException;
-
-import junit.framework.TestCase;
 
 public class VectorStoreReaderLuceneTest extends TestCase {
   private static final String[] COMMAND_LINE_ARGS = {"-vectortype", "real", "-dimension", "2"};
@@ -70,7 +66,7 @@ public class VectorStoreReaderLuceneTest extends TestCase {
     store.putVector("abraham", new RealVector(new float[] {0.7f, 0.7f}));
     try {
       indexOutput = directory.createOutput(TEST_VECTOR_FILE, IOContext.DEFAULT);
-      VectorStoreWriter.writeToIndexOutput(store, FLAG_CONFIG, indexOutput);
+      VectorStoreWriter.writeToIndexOutput(store, FLAG_CONFIG, indexOutput, null);
       indexOutput.close();
 
       threadLocalIndexInput = new ThreadLocal<IndexInput>() {

@@ -24,7 +24,8 @@ public class VectorStoreFactory {
 		if (converter != null) {
 			try {
 				File tempFile = Config.createTempFile("vecReader", ".tmp");
-				return new FileVectorStore(tempFile, converter);
+				FileVectorStore fvs = new FileVectorStore(tempFile, converter);
+				return fvs;
 			} catch (IOException e) {
 				throw new PluginException("Could not create file for vector store", e);
 			}
