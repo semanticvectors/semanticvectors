@@ -340,22 +340,11 @@ public class PSI {
 					// sWeight and oWeight are analogous to global weighting, a function of the number of times these concepts - and predicates - occur
 					// such that less frequent concepts and predicates will contribute more
 					predWeight = luceneUtils.getGlobalTermWeight(new Term(PREDICATE_FIELD, predicate));
+					sWeight = luceneUtils.getGlobalTermWeight(new Term(SUBJECT_FIELD, subject));
+					oWeight = luceneUtils.getGlobalTermWeight(new Term(OBJECT_FIELD, object));
 					// pWeight is analogous to local weighting, a function of the total number of times a predication occurs
 					// examples are -termweight sqrt (sqrt of total occurences), and -termweight logentropy (log of 1 + occurrences)
 					pWeight = luceneUtils.getLocalTermWeight(luceneUtils.getGlobalTermFreq(term));
-
-					// Set weight to 0 for terms that do not pass frequency filters
-					if (luceneUtils.getGlobalTermFreq(new Term(SUBJECT_FIELD, subject)) < flagConfig.minfrequency() ||
-							luceneUtils.getGlobalTermFreq(new Term(SUBJECT_FIELD, subject)) > flagConfig.maxfrequency()) {
-						sWeight = 0;
-					} else {
-						sWeight = luceneUtils.getGlobalTermWeight(new Term(SUBJECT_FIELD, subject));
-					}
-					if (luceneUtils.getGlobalTermFreq(new Term(OBJECT_FIELD, object)) < flagConfig.minfrequency() || luceneUtils.getGlobalTermFreq(new Term(OBJECT_FIELD, object)) > flagConfig.maxfrequency()) {
-						oWeight = 0;
-					} else {
-						oWeight = luceneUtils.getGlobalTermWeight(new Term(OBJECT_FIELD, object));
-					}
 
 					// with -termweight sqrt we don't take global weighting of predicates into account to preserve a probabilistic interpretation
 					if (flagConfig.termweight().equals(TermWeight.SQRT)) predWeight = 0;
