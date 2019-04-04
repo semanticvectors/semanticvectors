@@ -439,11 +439,11 @@ public double shiftToward(Vector v1, Vector v2, FlagConfig flagConfig, BLAS blas
  * @param blas
  */
 
-
+/**
 private void processPredication(String subject, String predicate, String object, String subsem, String obsem, BLAS blas)
 {
 	  Vector subjectSemanticVector 			= semanticItemVectors.getVector(subject);
-      Vector copyOfSubjectSemanticVector 	= semanticItemVectors.getVector(subject).copy();
+      Vector semanticBoundProduct 			= semanticItemVectors.getVector(subject).copy();
       
       Vector objectElementalVector 			= elementalItemVectors.getVector(object);
       
@@ -495,7 +495,7 @@ private void processPredication(String subject, String predicate, String object,
   
 	     //alter subject's semantic vector
       elementalBoundProduct.bind(objectElementalVector);          //eg. E(TREATS)*E(schizophrenia)
-      copyOfSubjectSemanticVector.release(predicateElementalVector);  //e.g. S(haloperidol)/E(TREATS) ?= E(schizophrenia)
+      semanticBoundProduct.release(predicateElementalVector);  //e.g. S(haloperidol)/E(TREATS) ?= E(schizophrenia)
 
       //to train predicate vector
       Vector copyOfElementalVector = null;
@@ -509,8 +509,8 @@ private void processPredication(String subject, String predicate, String object,
      double shiftToward = shiftToward(subjectSemanticVector,elementalBoundProduct,flagConfig, blas);
      subjectSemanticVector.superpose(elementalBoundProduct, alpha*shiftToward, null); //sim (S(haloperidol), E(TREATS)*E(schizophrenia) \approx sim(S(haloperidol)/E(TREATS), E(schizophrenia))
 	
-     shiftToward = shiftToward(copyOfSubjectSemanticVector,objectElementalVector,flagConfig, blas);
-     objectElementalVector.superpose(copyOfSubjectSemanticVector, alpha*shiftToward, null); 
+     shiftToward = shiftToward(semanticBoundProduct,objectElementalVector,flagConfig, blas);
+     objectElementalVector.superpose(semanticBoundProduct, alpha*shiftToward, null); 
 
      //train predicate vector too
      if (flagConfig.mutablepredicatevectors()) 
@@ -535,8 +535,8 @@ private void processPredication(String subject, String predicate, String object,
 		 double shiftAway   = shiftAway(subjectSemanticVector, negativeElementalBoundProduct,flagConfig, blas);
 		 subjectSemanticVector.superpose(negativeElementalBoundProduct, alpha*shiftAway, null);
 		 
-		 shiftAway   = shiftAway(copyOfSubjectSemanticVector, objNegativeSample,flagConfig, blas);
-		 objNegativeSample.superpose(copyOfSubjectSemanticVector, alpha*shiftAway, null);
+		 shiftAway   = shiftAway(semanticBoundProduct, objNegativeSample,flagConfig, blas);
+		 objNegativeSample.superpose(semanticBoundProduct, alpha*shiftAway, null);
 
 		 if (flagConfig.mutablepredicatevectors()) 
 		 {
@@ -547,44 +547,50 @@ private void processPredication(String subject, String predicate, String object,
 	 
       }
       
-
+**/
 
 
 private void processCompositePredication(ArrayList<String> subjects, ArrayList<String> predicates, ArrayList<String> objects, String subsem, String obsem, BLAS blas)
 {
 	
 	  ArrayList<Vector> subjectSemanticVectors = new ArrayList<Vector>();
-	  Vector summedSubjectSemanticVector = VectorFactory.createZeroVector(flagConfig.vectortype(), flagConfig.dimension());
+	  Vector semanticBoundProduct = VectorFactory.createZeroVector(flagConfig.vectortype(), flagConfig.dimension());
 	  ArrayList<Vector> objectElementalVectors = new ArrayList<Vector>();
 	  Vector summedObjectElementalVector = VectorFactory.createZeroVector(flagConfig.vectortype(), flagConfig.dimension());
 	  ArrayList<Vector> predicateElementalVectors = new ArrayList<Vector>();
-	  Vector summedPredicateElementalVector = VectorFactory.createZeroVector(flagConfig.vectortype(), flagConfig.dimension());
+	  Vector elementalBoundProduct = VectorFactory.createZeroVector(flagConfig.vectortype(), flagConfig.dimension());
 	
 	  for (String subject:subjects)
 	  {
 		  subjectSemanticVectors.add(semanticItemVectors.getVector(subject));
-		  summedSubjectSemanticVector.superpose(semanticItemVectors.getVector(subject),1 / (double) subjects.size(),null);
+		  semanticBoundProduct.superpose(semanticItemVectors.getVector(subject),1,null);
 	  }
 	  
 	  for (String object:objects)
 	  {
 		  objectElementalVectors.add(elementalItemVectors.getVector(object));
-		  summedObjectElementalVector.superpose(elementalItemVectors.getVector(object),1 / (double) objects.size(),null);
+		  summedObjectElementalVector.superpose(elementalItemVectors.getVector(object),1 ,null);
 	 }
 	  
 	  for (String predicate:predicates)
 	  {
-		  summedPredicateElementalVector.superpose(elementalPredicateVectors.getVector(predicate),1 / (double) predicates.size(),null);
+		  elementalBoundProduct.superpose(elementalPredicateVectors.getVector(predicate),1 ,null);
 		  predicateElementalVectors.add(elementalPredicateVectors.getVector(predicate));
 	  }
       
 	  summedObjectElementalVector.normalize();
-	  summedSubjectSemanticVector.normalize();
-	  summedPredicateElementalVector.normalize();
+	  semanticBoundProduct.normalize();
+	  elementalBoundProduct.normalize();
 	  
-	  Vector unboundPredicateElementalVectorCopy = summedPredicateElementalVector.copy();
-      Vector unboundCopyOfSubjectSemanticVector  = summedSubjectSemanticVector.copy();
+	  Vector unboundPredicateElementalVectorCopy = elementalBoundProduct.copy();
+      Vector unboundCopyOfSubjectSemanticVector  = semanticBoundProduct.copy();
 	  
+      //alter subject's semantic vector
+      elementalBoundProduct.bind(summedObjectElementalVector);          //eg. E(TREATS)*E(schizophrenia)
+      semanticBoundProduct.release(unboundPredicateElementalVectorCopy);  //e.g. S(haloperidol)/E(TREATS) ?= E(schizophrenia)
+      //predicateElementalVector and subjectSemanticVector are now BOUND
+      
+      
       if (!flagConfig.semtypesandcuis()) //if UMLS semantic types not available
       {
 		subsem = "universal";
@@ -626,11 +632,7 @@ private void processCompositePredication(ArrayList<String> subjects, ArrayList<S
       objNegSamples.add(objectsNegativeSample);
       }
   
-	     //alter subject's semantic vector
-      summedPredicateElementalVector.bind(summedObjectElementalVector);          //eg. E(TREATS)*E(schizophrenia)
-      summedSubjectSemanticVector.release(unboundPredicateElementalVectorCopy);  //e.g. S(haloperidol)/E(TREATS) ?= E(schizophrenia)
-      //predicateElementalVector and subjectSemanticVector are now BOUND
-      
+	
       
       //to train predicate vector
       Vector subjectObjectVector = null;
@@ -641,13 +643,13 @@ private void processCompositePredication(ArrayList<String> subjects, ArrayList<S
       subjectObjectVector.bind(unboundCopyOfSubjectSemanticVector);
     }  
      //observed predication
-     double shiftToward = shiftToward(unboundCopyOfSubjectSemanticVector,summedPredicateElementalVector,flagConfig, blas);
+     double shiftToward = shiftToward(unboundCopyOfSubjectSemanticVector,elementalBoundProduct,flagConfig, blas);
      for (Vector subVector:subjectSemanticVectors)
-    	 	subVector.superpose(summedPredicateElementalVector, alpha*shiftToward / (double) subjectSemanticVectors.size(), null); //sim (S(haloperidol), E(TREATS)*E(schizophrenia) \approx sim(S(haloperidol)/E(TREATS), E(schizophrenia))
+    	 	subVector.superpose(elementalBoundProduct, alpha*shiftToward / (double) subjectSemanticVectors.size(), null); //sim (S(haloperidol), E(TREATS)*E(schizophrenia) \approx sim(S(haloperidol)/E(TREATS), E(schizophrenia))
 	
-     shiftToward = shiftToward(summedSubjectSemanticVector,summedObjectElementalVector,flagConfig, blas);
+     shiftToward = shiftToward(semanticBoundProduct,summedObjectElementalVector,flagConfig, blas);
      	for (Vector objVector:objectElementalVectors)
-     		objVector.superpose(summedSubjectSemanticVector, alpha*shiftToward  / (double) objectElementalVectors.size(), null); 
+     		objVector.superpose(semanticBoundProduct, alpha*shiftToward  / (double) objectElementalVectors.size(), null); 
 
      //train predicate vector too
      if (flagConfig.mutablepredicatevectors()) 
@@ -660,27 +662,56 @@ private void processCompositePredication(ArrayList<String> subjects, ArrayList<S
      //negative samples
      for (Vector objNegativeSample:objNegSamples)
      {
-    	 Vector negativeElementalBoundProduct 	= unboundPredicateElementalVectorCopy.copy();
-		   	negativeElementalBoundProduct.bind(objNegativeSample);  //eg. E(TREATS)*E(diabetes)
 
-		  Vector boundArguments = null;
-		   		if (flagConfig.mutablepredicatevectors())
-		   		{
-		   			boundArguments=objNegativeSample.copy();
-		   			boundArguments.bind(unboundCopyOfSubjectSemanticVector);
-		   		}
+		  
+		   		Vector currentSubjectSemanticVector
+		   		 = VectorFactory.createZeroVector(flagConfig.vectortype(), flagConfig.dimension());
 		   		
-		 double shiftAway   = shiftAway(unboundCopyOfSubjectSemanticVector, negativeElementalBoundProduct,flagConfig, blas);
-		 
+		   		Vector currentPredicateVector
+		   		 = VectorFactory.createZeroVector(flagConfig.vectortype(), flagConfig.dimension());
+		   		
+		   		Vector currentElementalVector
+		   		 = VectorFactory.createZeroVector(flagConfig.vectortype(), flagConfig.dimension());
+		   		
+		   		for (String subject:subjects)
+		   		currentSubjectSemanticVector.superpose(semanticItemVectors.getVector(subject),1,null);
+		   		
+		   		for (String predicate:predicates)
+			   		currentPredicateVector.superpose(elementalPredicateVectors.getVector(predicate),1,null);
+			
+		   		for (String object:objects)
+			   		currentElementalVector.superpose(elementalItemVectors.getVector(object),1,null);
+			   	
+		   		currentPredicateVector.normalize();
+		   		currentSubjectSemanticVector.normalize();
+		   		currentElementalVector.normalize();
+		   		
+		   		
+		    	 Vector negativeElementalBoundProduct 	= currentPredicateVector.copy();
+				   	negativeElementalBoundProduct.bind(objNegativeSample);  //eg. E(TREATS)*E(diabetes)
+				   	
+		     Vector boundArguments = null;
+		   		
+		   		
+		 double shiftAway   = shiftAway(currentSubjectSemanticVector, negativeElementalBoundProduct,flagConfig, blas);
 		 for (Vector subVector:subjectSemanticVectors)
 			 subVector.superpose(negativeElementalBoundProduct, alpha*shiftAway  / (double) subjectSemanticVectors.size(), null);
 		 
-		 shiftAway   = shiftAway(summedSubjectSemanticVector, objNegativeSample,flagConfig, blas);
-		 objNegativeSample.superpose(summedSubjectSemanticVector, alpha*shiftAway, null);
+		 //create bound product for predication updates
+	 		if (flagConfig.mutablepredicatevectors())
+	   		{
+	   			boundArguments=objNegativeSample.copy();
+	   			boundArguments.bind(currentSubjectSemanticVector);
+	   		}
+		 
+		 		 currentSubjectSemanticVector.release(currentPredicateVector);
+		 
+		 shiftAway   = shiftAway(currentSubjectSemanticVector, objNegativeSample,flagConfig, blas);
+		 objNegativeSample.superpose(currentSubjectSemanticVector, alpha*shiftAway, null);
 
 		 if (flagConfig.mutablepredicatevectors()) 
 		 {
-		 shiftAway   = shiftAway(unboundPredicateElementalVectorCopy,boundArguments, flagConfig, blas);
+		 shiftAway   = shiftAway(currentPredicateVector,boundArguments, flagConfig, blas);
 		 
 		 for (Vector predVector:predicateElementalVectors)
 			 predVector.superpose(boundArguments, alpha*shiftAway  / (double) predicateElementalVectors.size(), null);
