@@ -17,7 +17,6 @@ import org.apache.lucene.index.Term;
 import org.apache.lucene.index.TermsEnum;
 import org.apache.lucene.util.BytesRef;
 
-import junit.extensions.TestSetup;
 import pitt.search.semanticvectors.CompoundVectorBuilder;
 import pitt.search.semanticvectors.FlagConfig;
 import pitt.search.semanticvectors.LuceneUtils;
