@@ -539,7 +539,7 @@ public class CompoundVectorBuilder {
      
         queryVec.superpose(tmpVec, weight, null);
       } else {
-        VerbatimLogger.warning("No vector for '" + queryTerms[j] + "'\n");
+        VerbatimLogger.fine("No vector for '" + queryTerms[j] + "'\n");
       }
     }
 
