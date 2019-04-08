@@ -111,14 +111,14 @@ public class LuceneIndexFromSemrepTriples {
 		    continue;
 		}
 
-		String subject = theTokenizer.nextToken().trim().toLowerCase().replaceAll(" ", "_").replaceAll("\\|\\|\\|.*", "");
-		String subject_CUI = theTokenizer.nextToken().trim().toLowerCase().replaceAll(" ", "_");
-		String subject_semtype = theTokenizer.nextToken().trim().toLowerCase().replaceAll(" ", "_");
+		String subject = theTokenizer.nextToken().trim().toLowerCase().replaceAll("_","-").replaceAll(" ", "_").replaceAll("\\|\\|\\|.*", "");
+		String subject_CUI = theTokenizer.nextToken().trim().toLowerCase().replaceAll("_","-").replaceAll(" ", "_");
+		String subject_semtype = theTokenizer.nextToken().trim().toLowerCase().replaceAll("_","-").replaceAll(" ", "_");
         
-		String predicate = theTokenizer.nextToken().trim().toUpperCase().replaceAll(" ", "_");
-		String object = theTokenizer.nextToken().trim().toLowerCase().replaceAll(" ", "_").replaceAll("\\|\\|\\|.*", "");
-		String object_CUI = theTokenizer.nextToken().trim().toLowerCase().replaceAll(" ", "_");
-		String object_semtype = theTokenizer.nextToken().trim().toLowerCase().replaceAll(" ", "_");
+		String predicate = theTokenizer.nextToken().trim().toUpperCase().replaceAll("_","-").replaceAll(" ", "_");
+		String object = theTokenizer.nextToken().trim().toLowerCase().replaceAll("_","-").replaceAll(" ", "_").replaceAll("\\|\\|\\|.*", "");
+		String object_CUI = theTokenizer.nextToken().trim().toLowerCase().replaceAll("_","-").replaceAll(" ", "_");
+		String object_semtype = theTokenizer.nextToken().trim().toLowerCase().replaceAll("_","-").replaceAll(" ", "_");
         
 		String PMID = theTokenizer.nextToken();
 		String source = theTokenizer.nextToken();
