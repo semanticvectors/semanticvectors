@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Logger;
 
 import org.apache.lucene.search.DocIdSetIterator;
@@ -91,9 +91,9 @@ public class BinaryVector implements Vector {
   private ArrayList<FixedBitSet> votingRecord;
 
   /** BINARY_VECTOR_DECIMAL_PLACESum of the weights with which vectors have been added into the voting record */
-  AtomicInteger totalNumberOfVotes = new AtomicInteger(0);
+  private AtomicLong totalNumberOfVotes = new AtomicLong(0);
   // TODO(widdows) Understand and comment this.
-  int minimum = 0;
+  private long minimum = 0;
 
   // Used only for temporary internal storage.
   private FixedBitSet tempSet;
@@ -126,7 +126,7 @@ public class BinaryVector implements Vector {
   copy.tempSet = tempSet.clone();
   }
   copy.minimum = minimum;
-  copy.totalNumberOfVotes = new AtomicInteger(totalNumberOfVotes.intValue());
+  copy.totalNumberOfVotes = new AtomicLong(totalNumberOfVotes.longValue());
   copy.unTallied = new AtomicBoolean(unTallied.get());
   copy.isSparse = isSparse;
 
@@ -167,7 +167,7 @@ public class BinaryVector implements Vector {
       }
 
       for (int x = 0; x < DEBUG_PRINT_LENGTH; x++) {
-        debugString.append((int) ((minimum + actualvals[x]) / Math.pow(10, BINARY_VECTOR_DECIMAL_PLACES)) + " ");
+        debugString.append((long) ((minimum + actualvals[x]) / Math.pow(10, BINARY_VECTOR_DECIMAL_PLACES)) + " ");
       }
 
       // TODO - output count from first DEBUG_PRINT_LENGTH dimension
@@ -344,12 +344,6 @@ public class BinaryVector implements Vector {
     if (weight == 0) return;
 
     // Keep track of number (or cumulative weight) of votes.
-    if ((long) totalNumberOfVotes.get()+ (long) weight > Integer.MAX_VALUE)
-    {
-    	  System.err.println("Overflow error");
-    	  System.err.println(this);
-    }
-    else
     totalNumberOfVotes.set(totalNumberOfVotes.get() + (int) weight);
 
     // Decompose superposition task such that addition of some power of 2 (e.g. 64) is accomplished
@@ -433,7 +427,7 @@ public class BinaryVector implements Vector {
    * Sets {@link #tempSet} to be a bitset with a "1" in the position of every dimension
    * in the {@link #votingRecord} that exactly matches the target number.
    */
-  private synchronized void setTempSetToExactMatches(int target) {
+  private synchronized void setTempSetToExactMatches(long target) {
     if (target == 0) {
       tempSet.set(0, dimension);
       tempSet.xor(votingRecord.get(0));
@@ -441,7 +435,7 @@ public class BinaryVector implements Vector {
         tempSet.andNot(votingRecord.get(x));
     } else
     {
-      String inbinary = reverse(Integer.toBinaryString(target));
+      String inbinary = reverse(Long.toBinaryString(target));
       tempSet.xor(tempSet);
        try {
 	  tempSet.xor(votingRecord.get(inbinary.indexOf("1"))); //this requires error checking, it is throwing an index out of bounds exception
@@ -473,8 +467,8 @@ public class BinaryVector implements Vector {
     else return concludeVote(totalNumberOfVotes.get());
   }
 
-  protected synchronized FixedBitSet concludeVote(int target) {
-    int target2 = (int) Math.ceil((double) target / (double) 2);
+  protected synchronized FixedBitSet concludeVote(long target) {
+    long target2 = (long) Math.ceil((double) target / (double) 2);
     target2 = target2 - minimum;
     
     // Unlikely other than in testing: minimum more than half the votes
@@ -505,7 +499,7 @@ public class BinaryVector implements Vector {
     return result;
   }
 
-  protected synchronized FixedBitSet concludeVote(int target, int row_ceiling) {
+  protected synchronized FixedBitSet concludeVote(long target, int row_ceiling) {
     /**
 	  logger.info("Entering conclude vote, target " + target + " row_ceiling " + row_ceiling + 
     		"voting record " + votingRecord.size() + 
@@ -520,7 +514,7 @@ public class BinaryVector implements Vector {
 
     double rowfloor = Math.log(target)/Math.log(2);
     int row_floor = (int) Math.floor(rowfloor);  //for 0 index
-    int remainder =  target - (int) Math.pow(2,row_floor);
+    long remainder = target - (long) Math.pow(2, row_floor);
 
     //System.out.println(target+"\t"+rowfloor+"\t"+row_floor+"\t"+remainder);
 
@@ -708,7 +702,7 @@ public class BinaryVector implements Vector {
     random.setSeed(theSuperpositionSeed);
 
     //Determine value above the universal minimum for each dimension of the voting record
-    int max = totalNumberOfVotes.get();
+    long max = totalNumberOfVotes.get();
 
     //Determine the maximum possible votes on the voting record
     int maxpossiblevotesonrecord = 0;
