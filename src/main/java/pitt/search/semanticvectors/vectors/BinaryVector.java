@@ -961,7 +961,7 @@ public class BinaryVector implements Vector {
     this.bitSet = incomingBitSet;
   }
 
-  //set DEBUG_PRINT_LENGTTH
+  //set DEBUG_PRINT_LENGTH
   public static void setDebugPrintLength(int length){
     DEBUG_PRINT_LENGTH = length;
   }
