@@ -543,6 +543,7 @@ public class CompoundVectorBuilder {
       }
     }
 
+    if (!queryVec.isZeroVector())
     queryVec.normalize();
     return queryVec;
   }
