@@ -115,7 +115,7 @@ public class LuceneIndexFromSemrepTriples {
 		String subject_CUI = theTokenizer.nextToken().trim().toLowerCase().replaceAll("_","-").replaceAll(" ", "_");
 		String subject_semtype = theTokenizer.nextToken().trim().toLowerCase().replaceAll("_","-").replaceAll(" ", "_");
         
-		String predicate = theTokenizer.nextToken().trim().toUpperCase().replaceAll("_","-").replaceAll(" ", "_");
+		String predicate = theTokenizer.nextToken().trim().toUpperCase();
 		String object = theTokenizer.nextToken().trim().toLowerCase().replaceAll("_","-").replaceAll(" ", "_").replaceAll("\\|\\|\\|.*", "");
 		String object_CUI = theTokenizer.nextToken().trim().toLowerCase().replaceAll("_","-").replaceAll(" ", "_");
 		String object_semtype = theTokenizer.nextToken().trim().toLowerCase().replaceAll("_","-").replaceAll(" ", "_");
