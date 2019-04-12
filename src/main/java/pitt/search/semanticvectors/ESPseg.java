@@ -198,10 +198,8 @@ public class ESPseg {
           continue;
         }
 
-        String toSplit = term.text(); //+" "+term.text().replaceAll("_", " ");
-        String[] termTokens = toSplit.split(" ");
-        for (String componentTerm:termTokens)
-        {
+        String componentTerm = term.text(); //+" "+term.text().replaceAll("_", " ");
+       
         	if (!addedConcepts.contains(componentTerm)) {
           addedConcepts.add(componentTerm);
           
@@ -273,7 +271,7 @@ public class ESPseg {
           if ((termCounter > 0) && ((termCounter % 10000 == 0) || ( termCounter < 10000 && termCounter % 1000 == 0 ))) {
             VerbatimLogger.info("Initialized "+semanticItemVectors.getNumVectors() +" vectors for " + termCounter + " terms ... ");
           }
-        }
+        
       }
     
     }
@@ -293,11 +291,8 @@ public class ESPseg {
         if (flagConfig.mutablepredicatevectors() && !luceneUtils.termFilter(term, dummyArray,flagConfig.minfrequency(), flagConfig.maxfrequency(),Integer.MAX_VALUE, 1)) 
           continue;
         
-        String toSplit = term.text(); //+" "+term.text().replaceAll("_", " ");
-        String[] termTokens = toSplit.replaceAll("_ENTITY","-ENTITY").split("_");
+        String componentTerm = term.text(); //+" "+term.text().replaceAll("_", " ");
        
-        for (String componentTerm:termTokens)
-        {
         		elementalPredicateVectors.getVector(componentTerm.trim());
    
         		// Add inverse vector for the predicates.
@@ -307,7 +302,7 @@ public class ESPseg {
       predCounter++;
       if ((predCounter > 0) && ((predCounter % 10000 == 0) || ( predCounter < 10000 && predCounter % 1000 == 0 ))) {
         VerbatimLogger.info("Initialized " +elementalPredicateVectors.getNumVectors()+" predicate term vectors for "+predCounter + " predicate term vectors ... ");}
-        }
+        
     }
     
     //precalculate probabilities for subsampling (need to iterate again once total term frequency known)
@@ -550,43 +545,31 @@ private void processPredication(String subject, String predicate, String object,
 **/
 
 
-private void processCompositePredication(ArrayList<String> subjects, ArrayList<String> predicates, ArrayList<String> objects, String subsem, String obsem, BLAS blas)
+private void processCompositePredication(String subject, ArrayList<String> predicates, String object, String subsem, String obsem, BLAS blas)
 {
 	
-	  ArrayList<Vector> subjectSemanticVectors = new ArrayList<Vector>();
-	  Vector semanticBoundProduct = VectorFactory.createZeroVector(flagConfig.vectortype(), flagConfig.dimension());
-	  ArrayList<Vector> objectElementalVectors = new ArrayList<Vector>();
-	  Vector summedObjectElementalVector = VectorFactory.createZeroVector(flagConfig.vectortype(), flagConfig.dimension());
-	  ArrayList<Vector> predicateElementalVectors = new ArrayList<Vector>();
-	  Vector elementalBoundProduct = VectorFactory.createZeroVector(flagConfig.vectortype(), flagConfig.dimension());
+	Vector semanticVector	    = semanticItemVectors.getVector(subject);  
+	Vector semanticBoundProduct = semanticItemVectors.getVector(subject).copy();  
 	
-	  for (String subject:subjects)
-	  {
-		  subjectSemanticVectors.add(semanticItemVectors.getVector(subject));
-		  semanticBoundProduct.superpose(semanticItemVectors.getVector(subject),1,null);
-	  }
-	  
-	  for (String object:objects)
-	  {
-		  objectElementalVectors.add(elementalItemVectors.getVector(object));
-		  summedObjectElementalVector.superpose(elementalItemVectors.getVector(object),1 ,null);
-	 }
+	Vector elementalVector		 = elementalItemVectors.getVector(object);
+	
+	    ArrayList<Vector> predicateElementalVectors = new ArrayList<Vector>();
+	  Vector predicateVector = VectorFactory.createZeroVector(flagConfig.vectortype(), flagConfig.dimension());
+	
 	  
 	  for (String predicate:predicates)
 	  {
-		  elementalBoundProduct.superpose(elementalPredicateVectors.getVector(predicate),1 ,null);
+		  predicateVector.superpose(elementalPredicateVectors.getVector(predicate),1 ,null);
 		  predicateElementalVectors.add(elementalPredicateVectors.getVector(predicate));
 	  }
       
-	  summedObjectElementalVector.normalize();
-	  semanticBoundProduct.normalize();
-	  elementalBoundProduct.normalize();
+	  predicateVector.normalize();
 	  
-	  Vector unboundPredicateElementalVectorCopy = elementalBoundProduct.copy();
-      Vector unboundCopyOfSubjectSemanticVector  = semanticBoundProduct.copy();
+	  Vector unboundPredicateElementalVectorCopy = predicateVector.copy();
+      Vector unboundCopyOfSubjectSemanticVector  = semanticVector.copy();
 	  
       //alter subject's semantic vector
-      elementalBoundProduct.bind(summedObjectElementalVector);          //eg. E(TREATS)*E(schizophrenia)
+      predicateVector.bind(elementalVector);          //eg. E(TREATS)*E(schizophrenia)
       semanticBoundProduct.release(unboundPredicateElementalVectorCopy);  //e.g. S(haloperidol)/E(TREATS) ?= E(schizophrenia)
       //predicateElementalVector and subjectSemanticVector are now BOUND
       
@@ -623,7 +606,7 @@ private void processCompositePredication(ArrayList<String> subjects, ArrayList<S
             	  
             	  if (duplicates.contains(testConcept)) continue;
               	  duplicates.add(testConcept);  
-    	  if (!objects.contains(testConcept)) // don't use the observed object as a negative sample
+    	  if (object.equals(testConcept)) // don't use the observed object as a negative sample
     			  objectsNegativeSample =  elementalItemVectors.getVector(testConcept);
     			  
     	}
@@ -639,22 +622,20 @@ private void processCompositePredication(ArrayList<String> subjects, ArrayList<S
       
       if (flagConfig.mutablepredicatevectors())
     {
-      subjectObjectVector=summedObjectElementalVector.copy();
+      subjectObjectVector=elementalVector.copy();
       subjectObjectVector.bind(unboundCopyOfSubjectSemanticVector);
     }  
      //observed predication
-     double shiftToward = shiftToward(unboundCopyOfSubjectSemanticVector,elementalBoundProduct,flagConfig, blas);
-     for (Vector subVector:subjectSemanticVectors)
-    	 	subVector.superpose(elementalBoundProduct, alpha*shiftToward / (double) subjectSemanticVectors.size(), null); //sim (S(haloperidol), E(TREATS)*E(schizophrenia) \approx sim(S(haloperidol)/E(TREATS), E(schizophrenia))
+     double shiftToward = shiftToward(unboundCopyOfSubjectSemanticVector,predicateVector,flagConfig, blas);
+     semanticItemVectors.getVector(subject).superpose(predicateVector, alpha*shiftToward, null); //sim (S(haloperidol), E(TREATS)*E(schizophrenia) \approx sim(S(haloperidol)/E(TREATS), E(schizophrenia))
 	
-     shiftToward = shiftToward(semanticBoundProduct,summedObjectElementalVector,flagConfig, blas);
-     	for (Vector objVector:objectElementalVectors)
-     		objVector.superpose(semanticBoundProduct, alpha*shiftToward  / (double) objectElementalVectors.size(), null); 
+     shiftToward = shiftToward(semanticBoundProduct,elementalVector,flagConfig, blas);
+     elementalItemVectors.getVector(object).superpose(semanticBoundProduct, alpha*shiftToward, null); 
 
      //train predicate vector too
      if (flagConfig.mutablepredicatevectors()) 
      {
-    	 shiftToward = shiftToward(unboundPredicateElementalVectorCopy,subjectObjectVector,flagConfig, blas);
+    	 	shiftToward = shiftToward(unboundPredicateElementalVectorCopy,subjectObjectVector,flagConfig, blas);
     	 	for (Vector predVector:predicateElementalVectors)
     	 		predVector.superpose(subjectObjectVector, alpha*shiftToward  / (double) predicateElementalVectors.size(), null);
      }
@@ -662,46 +643,32 @@ private void processCompositePredication(ArrayList<String> subjects, ArrayList<S
      //negative samples
      for (Vector objNegativeSample:objNegSamples)
      {
-
-		  
-		   		Vector currentSubjectSemanticVector
+    	 			Vector currentPredicateVector
 		   		 = VectorFactory.createZeroVector(flagConfig.vectortype(), flagConfig.dimension());
 		   		
-		   		Vector currentPredicateVector
-		   		 = VectorFactory.createZeroVector(flagConfig.vectortype(), flagConfig.dimension());
-		   		
-		   		Vector currentElementalVector
-		   		 = VectorFactory.createZeroVector(flagConfig.vectortype(), flagConfig.dimension());
-		   		
-		   		for (String subject:subjects)
-		   		currentSubjectSemanticVector.superpose(semanticItemVectors.getVector(subject),1,null);
+		   		Vector currentSubjectSemanticVector=semanticItemVectors.getVector(subject).copy();
 		   		
 		   		for (String predicate:predicates)
 			   		currentPredicateVector.superpose(elementalPredicateVectors.getVector(predicate),1,null);
 			
-		   		for (String object:objects)
-			   		currentElementalVector.superpose(elementalItemVectors.getVector(object),1,null);
-			   	
+		   			
 		   		currentPredicateVector.normalize();
-		   		currentSubjectSemanticVector.normalize();
-		   		currentElementalVector.normalize();
-		   		
-		   		
-		    	 Vector negativeElementalBoundProduct 	= currentPredicateVector.copy();
+		   	
+		   		Vector negativeElementalBoundProduct 	= currentPredicateVector.copy();
 				   	negativeElementalBoundProduct.bind(objNegativeSample);  //eg. E(TREATS)*E(diabetes)
 				   	
-		     Vector boundArguments = null;
+				  Vector negativeSubjectObjectVector = null;
 		   		
 		   		
 		 double shiftAway   = shiftAway(currentSubjectSemanticVector, negativeElementalBoundProduct,flagConfig, blas);
-		 for (Vector subVector:subjectSemanticVectors)
-			 subVector.superpose(negativeElementalBoundProduct, alpha*shiftAway  / (double) subjectSemanticVectors.size(), null);
+		
+		 semanticItemVectors.getVector(subject).superpose(negativeElementalBoundProduct, alpha*shiftAway, null);
 		 
 		 //create bound product for predication updates
 	 		if (flagConfig.mutablepredicatevectors())
 	   		{
-	   			boundArguments=objNegativeSample.copy();
-	   			boundArguments.bind(currentSubjectSemanticVector);
+	   			negativeSubjectObjectVector=objNegativeSample.copy();
+	   			negativeSubjectObjectVector.bind(currentSubjectSemanticVector);
 	   		}
 		 
 		 		 currentSubjectSemanticVector.release(currentPredicateVector);
@@ -711,10 +678,10 @@ private void processCompositePredication(ArrayList<String> subjects, ArrayList<S
 
 		 if (flagConfig.mutablepredicatevectors()) 
 		 {
-		 shiftAway   = shiftAway(currentPredicateVector,boundArguments, flagConfig, blas);
+		 shiftAway   = shiftAway(currentPredicateVector,negativeSubjectObjectVector, flagConfig, blas);
 		 
 		 for (Vector predVector:predicateElementalVectors)
-			 predVector.superpose(boundArguments, alpha*shiftAway  / (double) predicateElementalVectors.size(), null);
+			 predVector.superpose(negativeSubjectObjectVector, alpha*shiftAway  / (double) predicateElementalVectors.size(), null);
 		 }
 		 }
 	 
@@ -744,10 +711,17 @@ private void processPredicationDocument(Document document, BLAS blas)
 	      
 	      if (!(elementalItemVectors.containsVector(object)
 	          && elementalItemVectors.containsVector(subject)
-	          && elementalPredicateVectors.containsVector(predicate.replaceAll("_ENTITY","-ENTITY").split("_")[0]))) {
+	          )) {
 	        logger.fine("skipping predication " + subject + " " + predicate + " " + object);
 	        encode = false;
 	      }
+	      
+	      for (String component:predicate.split(" "))
+	    if (! elementalPredicateVectors.containsVector(component))
+	      {
+      logger.fine("skipping predication " + subject + " " + predicate + " " + object);
+      encode = false;
+    }
 	      
 	      //subsampling of predications
 	      int    predCount	= luceneUtils.getGlobalTermFreq(new Term(PREDICATION_FIELD,predication));
@@ -771,29 +745,20 @@ private void processPredicationDocument(Document document, BLAS blas)
 	      if (encode)
 	      {
 	    	  
-	    	  String[] subjects = subject.split(" ");
-	    	  String[] objects  = object.split(" ");
 	    	  String[] predicates = predicate.replaceAll("_ENTITY","-ENTITY").split("_");
 	    	  
-	    	  ArrayList<String> subjectA = new ArrayList<String>();
-	    	  ArrayList<String> objectA = new ArrayList<String>();
 	    	  ArrayList<String> predicateA = new ArrayList<String>();
 	    	  ArrayList<String> invPredicateA = new ArrayList<String>();
 	    	  
-	    	  for (String sub:subjects)
-	    		  subjectA.add(sub);
-	    		  
-	    	  for (String obj:objects)
-	    		  objectA.add(obj);
-	    	  
+	 
 	    	  for (String pred:predicates)
 	    	  	{	
 	    		  predicateA.add(pred); 
 	    		  invPredicateA.add(pred+"-INV");
 	    	  	}
 	    	  
-	    	  this.processCompositePredication(subjectA, predicateA, objectA, subsem, obsem, blas);
-	    	  this.processCompositePredication(objectA, invPredicateA, subjectA, obsem, subsem, blas);
+	    	  this.processCompositePredication(subject, predicateA, object, subsem, obsem, blas);
+	    	  this.processCompositePredication(object, invPredicateA, subject, obsem, subsem, blas);
 	    	  pc.incrementAndGet();
 	      }
 	      
