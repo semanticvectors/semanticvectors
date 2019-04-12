@@ -789,7 +789,7 @@ private void processPredicationDocument(Document document, BLAS blas)
 	    	  for (String pred:predicates)
 	    	  	{	
 	    		  predicateA.add(pred); 
-	    		  invPredicateA.add(pred.replaceAll("_", "-INV_")+"-INV");
+	    		  invPredicateA.add(pred+"-INV");
 	    	  	}
 	    	  
 	    	  this.processCompositePredication(subjectA, predicateA, objectA, subsem, obsem, blas);
