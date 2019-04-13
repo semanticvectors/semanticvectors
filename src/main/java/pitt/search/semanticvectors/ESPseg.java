@@ -715,13 +715,13 @@ private void processPredicationDocument(Document document, BLAS blas)
 	        logger.fine("skipping predication " + subject + " " + predicate + " " + object);
 	        encode = false;
 	      }
-	      
+	  /**    
 	      for (String component:predicate.split(" "))
 	    if (! elementalPredicateVectors.containsVector(component))
 	      {
       logger.fine("skipping predication " + subject + " " + predicate + " " + object);
       encode = false;
-    }
+    }**/
 	      
 	      //subsampling of predications
 	      int    predCount	= luceneUtils.getGlobalTermFreq(new Term(PREDICATION_FIELD,predication));
@@ -752,7 +752,8 @@ private void processPredicationDocument(Document document, BLAS blas)
 	    	  
 	 
 	    	  for (String pred:predicates)
-	    	  	{	
+	    	  if (elementalPredicateVectors.containsVector(pred))	
+	    	  {	
 	    		  predicateA.add(pred); 
 	    		  invPredicateA.add(pred+"-INV");
 	    	  	}
