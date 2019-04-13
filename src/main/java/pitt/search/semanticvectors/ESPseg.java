@@ -301,7 +301,7 @@ public class ESPseg {
       // Output predicate counter.
       predCounter++;
       if ((predCounter > 0) && ((predCounter % 10000 == 0) || ( predCounter < 10000 && predCounter % 1000 == 0 ))) {
-        VerbatimLogger.info("Initialized " +elementalPredicateVectors.getNumVectors()+" predicate term vectors for "+predCounter + " predicate term vectors ... ");}
+        VerbatimLogger.info("Initialized " +elementalPredicateVectors.getNumVectors()+" predicate term vectors for "+predCounter + " predicates ... ");}
         
     }
     
@@ -745,7 +745,7 @@ private void processPredicationDocument(Document document, BLAS blas)
 	      if (encode)
 	      {
 	    	  
-	    	  String[] predicates = predicate.replaceAll("_ENTITY","-ENTITY").split("_");
+	    	  String[] predicates = predicate.split(" ");
 	    	  
 	    	  ArrayList<String> predicateA = new ArrayList<String>();
 	    	  ArrayList<String> invPredicateA = new ArrayList<String>();
@@ -759,8 +759,9 @@ private void processPredicationDocument(Document document, BLAS blas)
 	    	  
 	    	  this.processCompositePredication(subject, predicateA, object, subsem, obsem, blas);
 	    	  this.processCompositePredication(object, invPredicateA, subject, obsem, subsem, blas);
-	    	  pc.incrementAndGet();
 	      }
+	    	  pc.incrementAndGet();
+	      
 	      
 	      
 	   	  if (pc.get() > 0 && pc.get() % 10000 == 0) {
