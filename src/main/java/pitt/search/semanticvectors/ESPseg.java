@@ -367,8 +367,9 @@ public class ESPseg {
     		  document = theQ.poll();
     	  	}
     	  if (document != null)
+    	  {
     		  processPredicationDocument(document, blas);
-    	  
+    	   }
 	  }
 	    }
   }
@@ -553,7 +554,7 @@ private void processCompositePredication(String subject, ArrayList<String> predi
 	
 	Vector elementalVector		 = elementalItemVectors.getVector(object);
 	
-	    ArrayList<Vector> predicateElementalVectors = new ArrayList<Vector>();
+	  ArrayList<Vector> predicateElementalVectors = new ArrayList<Vector>();
 	  Vector predicateVector = VectorFactory.createZeroVector(flagConfig.vectortype(), flagConfig.dimension());
 	
 	  
@@ -587,12 +588,14 @@ private void processCompositePredication(String subject, ArrayList<String> predi
       //get flagConfig.negsamples() negative samples as counterpoint to E(object)
       while (objNegSamples.size() <= flagConfig.negsamples())
       {
+    	   
     	  Vector objectsNegativeSample 	= null;
     	  int ocnt=0;
     	     
       //draw negative samples, using a unigram distribution for now
       while (objectsNegativeSample == null)
       	{   
+    		  
     	  double test = random.nextDouble()*totalPool.get(obsem);
               if (termDic.get(obsem).ceilingEntry(test) != null) {
             
@@ -606,11 +609,11 @@ private void processCompositePredication(String subject, ArrayList<String> predi
             	  
             	  if (duplicates.contains(testConcept)) continue;
               	  duplicates.add(testConcept);  
-    	  if (object.equals(testConcept)) // don't use the observed object as a negative sample
+    	  if (!object.equals(testConcept)) // don't use the observed object as a negative sample
     			  objectsNegativeSample =  elementalItemVectors.getVector(testConcept);
     			  
     	}
-      	}
+         	}
       
       objNegSamples.add(objectsNegativeSample);
       }
@@ -741,7 +744,7 @@ private void processPredicationDocument(Document document, BLAS blas)
 	    	 logger.fine("skipping predication " + subject + " " + predicate + " " + object);
 		    }
 	       
-
+  
 	      if (encode)
 	      {
 	    	  
@@ -757,13 +760,14 @@ private void processPredicationDocument(Document document, BLAS blas)
 	    		  predicateA.add(pred); 
 	    		  invPredicateA.add(pred+"-INV");
 	    	  	}
+	    	  if (predicateA.size() > 0)
+	    	  {
+	     this.processCompositePredication(subject, predicateA, object, subsem, obsem, blas);
+	    	 this.processCompositePredication(object, invPredicateA, subject, obsem, subsem, blas);
+	    	  }
 	    	  
-	    	  this.processCompositePredication(subject, predicateA, object, subsem, obsem, blas);
-	    	  this.processCompositePredication(object, invPredicateA, subject, obsem, subsem, blas);
-	      }
 	    	  pc.incrementAndGet();
-	      
-	      
+	      }
 	      
 	   	  if (pc.get() > 0 && pc.get() % 10000 == 0) {
             VerbatimLogger.info("Processed " + pc + " predications ... ");
