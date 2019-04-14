@@ -640,7 +640,7 @@ private void processCompositePredication(String subject, ArrayList<String> predi
      {
     	 	shiftToward = shiftToward(unboundPredicateElementalVectorCopy,subjectObjectVector,flagConfig, blas);
     	 	for (Vector predVector:predicateElementalVectors)
-    	 		predVector.superpose(subjectObjectVector, alpha*shiftToward  / (double) predicateElementalVectors.size(), null);
+    	 		predVector.superpose(subjectObjectVector, alpha*shiftToward, null);
      }
 	 
      //negative samples
@@ -684,7 +684,7 @@ private void processCompositePredication(String subject, ArrayList<String> predi
 		 shiftAway   = shiftAway(currentPredicateVector,negativeSubjectObjectVector, flagConfig, blas);
 		 
 		 for (Vector predVector:predicateElementalVectors)
-			 predVector.superpose(negativeSubjectObjectVector, alpha*shiftAway  / (double) predicateElementalVectors.size(), null);
+			 predVector.superpose(negativeSubjectObjectVector, alpha*shiftAway, null);
 		 }
 		 }
 	 
