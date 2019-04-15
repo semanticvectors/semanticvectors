@@ -962,7 +962,7 @@ public class BinaryVector implements Vector {
   }
 
   //set DEBUG_PRINT_LENGTH
-  public static void setDebugPrintLength(int length){
+  public static void setDebugPrintLength(int length) {
     DEBUG_PRINT_LENGTH = length;
   }
 
