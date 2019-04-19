@@ -617,8 +617,8 @@ private void processCompositePredication(String subject, ArrayList<String> predi
       objNegSamples.add(objectsNegativeSample);
       }
   
-	
-      
+      //update the predicate vector
+  
       //to train predicate vector
       Vector subjectObjectVector = null;
       
@@ -645,18 +645,31 @@ private void processCompositePredication(String subject, ArrayList<String> predi
      //negative samples
      for (Vector objNegativeSample:objNegSamples)
      {
-    	 			Vector currentPredicateVector
-		   		 = unboundPredicateElementalVectorCopy;
-		   			   	
-    	 			Vector currentSemanticVector
+         Vector currentPredicateVector = 
+       		  VectorFactory.createZeroVector(flagConfig.vectortype(), flagConfig.dimension());
+   	
+   	  	for (String predicate:predicates)
+   	  		currentPredicateVector.superpose(elementalPredicateVectors.getVector(predicate),1 ,null);
+   		
+   	  	currentPredicateVector.normalize();
+   	 
+    	 	Vector currentSemanticVector
     	 			= semanticVector.copy();
     	 			
+    	 			Vector negativeSubjectObjectVector=null;
+    	 			
+    	 			if (flagConfig.mutablepredicatevectors())
+	    		   		{
+    	 					negativeSubjectObjectVector=objNegativeSample.copy();
+    	 					negativeSubjectObjectVector.bind(currentSemanticVector);
+    	 		   		}
+    		   		
 		   		Vector negativeElementalBoundProduct = currentPredicateVector.copy();
 				negativeElementalBoundProduct.bind(objNegativeSample);  //eg. E(TREATS)*E(diabetes)
 				double shiftAway   = shiftAway(semanticVector, negativeElementalBoundProduct,flagConfig, blas);
 				semanticVector.superpose(negativeElementalBoundProduct, alpha*shiftAway, null);
 				
-				Vector negativeSemanticBoundProduct= currentSemanticVector.copy();
+				Vector negativeSemanticBoundProduct= currentSemanticVector;
 		   		negativeSemanticBoundProduct.release(currentPredicateVector);
 				shiftAway   = shiftAway(negativeSemanticBoundProduct, objNegativeSample,flagConfig, blas);
 				objNegativeSample.superpose(negativeSemanticBoundProduct, alpha*shiftAway, null);
@@ -664,10 +677,7 @@ private void processCompositePredication(String subject, ArrayList<String> predi
 				//create bound product for predication updates
 	 		if (flagConfig.mutablepredicatevectors())
 	   		{
-	   			Vector negativeSubjectObjectVector=objNegativeSample.copy();
-	   			negativeSubjectObjectVector.bind(currentSemanticVector);
 	   			shiftAway   = shiftAway(currentPredicateVector,negativeSubjectObjectVector, flagConfig, blas);
-	   			
 	   			for (Vector predVector:predicateElementalVectors)
 	   				predVector.superpose(negativeSubjectObjectVector, alpha*shiftAway, null);
 		 }
