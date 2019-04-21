@@ -84,6 +84,9 @@ public class DbaEval {
 				continue;
 				}
 			
+			if (input[1].startsWith("_"))
+				input[1] = input[1].substring(1);
+			
 			flagConfig.setVectortype(vtype1);
 			flagConfig.setDimension(dimension1);
 			Vector testv1 = CompoundVectorBuilder.getQueryVector(semanticVectors, null, flagConfig, (input[0]+" "+input[0].replaceAll("_"," ")).split(" "));
@@ -97,8 +100,11 @@ public class DbaEval {
 					
 			if (test1 && test2)
 			{
-			if (random.nextDouble() > .9)
+			if (random.nextDouble() > .99)
+			{
 				cues.add(inputString);
+			}
+			
 			else
 				targets.add(inputString);
 				
@@ -117,7 +123,6 @@ public class DbaEval {
 			while (randomDrug.isEmpty() || negativetargets.contains(randomDrug+"\t"+input[1]) || targets.contains(randomDrug+"\t"+input[1]) || cues.contains(randomDrug+"\t"+input[1]))
 			{
 				String next = drugs.get(random.nextInt(drugs.size()));
-				if (semanticVectors.containsVector(next) && embeddingVectors.containsVector(next))
 				randomDrug = next;
 			}
 			
@@ -234,6 +239,7 @@ public class DbaEval {
 			
 			
 		}
+		
 		
 		for (int q=0; q < labels.length; q++)
 		{
