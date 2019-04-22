@@ -98,7 +98,7 @@ public class DbaEval {
 			boolean test1 = (!testv1.isZeroVector() && !testv11.isZeroVector());
 			boolean test2 = (!testv2.isZeroVector() && !testv22.isZeroVector());
 					
-			if (test1 && test2)
+			if (test1 && test2 && random.nextDouble() > .9)
 			{
 			if (random.nextDouble() > .99)
 			{
@@ -107,12 +107,15 @@ public class DbaEval {
 			
 			else
 				targets.add(inputString);
-				
-			drugs.add(input[0]);
 			}
+			if (test1 && test2 && !drugs.contains(input[0]))
+			drugs.add(input[0]);
+			
 			inputString = inputReader.readLine();
 		}
 		inputReader.close();
+		
+
 		
 		//add negative test cases
 		for (String posExample:targets)
