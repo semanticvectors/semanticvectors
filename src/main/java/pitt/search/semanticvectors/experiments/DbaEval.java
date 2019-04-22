@@ -137,6 +137,8 @@ public class DbaEval {
 	
 		for (String cue:cues)
 		{
+			
+			System.out.println("CUE "+cue);
 			String[] input = cue.split("\t");
 			Vector sVec = 
 					CompoundVectorBuilder.getQueryVector(semanticVectors, null, flagConfig, (input[0]+" "+input[0].replaceAll("_"," ")).split(" "));
