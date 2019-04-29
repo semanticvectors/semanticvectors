@@ -98,7 +98,7 @@ public class DbaEval {
 			boolean test1 = (!testv1.isZeroVector() && !testv11.isZeroVector());
 			boolean test2 = (!testv2.isZeroVector() && !testv22.isZeroVector());
 					
-			if (test1 && test2 && random.nextDouble() > .9)
+			if (test1 && test2)
 			{
 			if (random.nextDouble() > .99)
 			{

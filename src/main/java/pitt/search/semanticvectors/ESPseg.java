@@ -549,30 +549,53 @@ private void processPredication(String subject, String predicate, String object,
 private void processCompositePredication(String subject, ArrayList<String> predicates, String object, String subsem, String obsem, BLAS blas)
 {
 	
-	Vector semanticVector	    = semanticItemVectors.getVector(subject);  
-	Vector semanticBoundProduct = semanticItemVectors.getVector(subject).copy();  
 	
+	Vector semanticVector	    = semanticItemVectors.getVector(subject);  
 	Vector elementalVector		 = elementalItemVectors.getVector(object);
+	
+	Vector semanticBoundProduct = semanticVector.copy();  
 	
 	  ArrayList<Vector> predicateElementalVectors = new ArrayList<Vector>();
 	  Vector predicateBoundProduct = VectorFactory.createZeroVector(flagConfig.vectortype(), flagConfig.dimension());
 	
-	  
+	  String allPreds = "";
 	  for (String predicate:predicates)
 	  {
+		  allPreds += predicate+" ";
 		  predicateBoundProduct.superpose(elementalPredicateVectors.getVector(predicate),1 ,null);
 		  predicateElementalVectors.add(elementalPredicateVectors.getVector(predicate));
 	  }
-      
+       
+	  
+	
+	  
+	  if (semanticVector.isZeroVector() || elementalVector.isZeroVector() || predicateBoundProduct.isZeroVector() )
+	  {
+		  System.out.println("ZeroVector");
+		  return;
+	  }
+	  
 	  predicateBoundProduct.normalize();
 	  
-	  Vector unboundPredicateElementalVectorCopy = predicateBoundProduct.copy();
+	  Vector unboundPredicateVectorCopy = predicateBoundProduct.copy();
       
       //alter subject's semantic vector
-      predicateBoundProduct.bind(elementalVector);          //eg. E(TREATS)*E(schizophrenia)
-      semanticBoundProduct.release(unboundPredicateElementalVectorCopy);  //e.g. S(haloperidol)/E(TREATS) ?= E(schizophrenia)
-      //predicateElementalVector and subjectSemanticVector are now BOUND
+	  predicateBoundProduct.bind(elementalVector);    //eg. E(TREATS)*E(schizophrenia)
+      //hack of sorts - make sure tallying the votes (in ScalarProduct) doesn't flip this back to its pre-bound state
+	  predicateBoundProduct.superpose(predicateBoundProduct,.02,null);
       
+      double sim = VectorUtils.scalarProduct(semanticBoundProduct,unboundPredicateVectorCopy, flagConfig, blas);
+       String former = semanticBoundProduct.toString();
+       //if (sim > .15) System.out.println(sim+"\t"+subject+"\t"+allPreds+"\n");
+       
+       semanticBoundProduct.release(unboundPredicateVectorCopy);  //e.g. S(haloperidol)/E(TREATS) ?= E(schizophrenia)
+    
+      //int testy = ((BinaryVector) semanticBoundProduct).getCoordinates().cardinality();
+   	  //if (testy < 150 || testy > (256 + 150)) System.out.print("."+testy+"\nsim: "+sim+"\n"+subject+"\n"+former+"\n"+allPreds+"\n"+unboundPredicateVectorCopy+"\n"+semanticBoundProduct+"\n--------------------------------------\n");
+  
+      //predicateElementalVector and subjectSemanticVector are now BOUND
+    
+   	
       
       if (!flagConfig.semtypesandcuis()) //if UMLS semantic types not available
       {
@@ -621,23 +644,30 @@ private void processCompositePredication(String subject, ArrayList<String> predi
   
       //to train predicate vector
       Vector subjectObjectVector = null;
-      
+     
       if (flagConfig.mutablepredicatevectors())
     {
       subjectObjectVector=elementalVector.copy();
       subjectObjectVector.bind(semanticVector);
     }  
+      
+  
      //observed predication
      double shiftToward = shiftToward(semanticVector,predicateBoundProduct,flagConfig, blas);
-     semanticItemVectors.getVector(subject).superpose(predicateBoundProduct, alpha*shiftToward, null); //sim (S(haloperidol), E(TREATS)*E(schizophrenia) \approx sim(S(haloperidol)/E(TREATS), E(schizophrenia))
+     //commenting out the next line stops the bleeding
+     semanticVector.superpose(predicateBoundProduct, alpha*shiftToward, null); //sim (S(haloperidol), E(TREATS)*E(schizophrenia) \approx sim(S(haloperidol)/E(TREATS), E(schizophrenia))
 	
+     
+     
      shiftToward = shiftToward(semanticBoundProduct,elementalVector,flagConfig, blas);
      elementalVector.superpose(semanticBoundProduct, alpha*shiftToward, null); 
 
+   
+     
      //train predicate vector too
      if (flagConfig.mutablepredicatevectors()) 
      {
-    	 	shiftToward = shiftToward(unboundPredicateElementalVectorCopy,subjectObjectVector,flagConfig, blas);
+    	 	shiftToward = shiftToward(unboundPredicateVectorCopy,subjectObjectVector,flagConfig, blas);
     	 	for (Vector predVector:predicateElementalVectors)
     	 		predVector.superpose(subjectObjectVector, alpha*shiftToward, null);
      }
@@ -647,12 +677,13 @@ private void processCompositePredication(String subject, ArrayList<String> predi
      {
          Vector currentPredicateVector = 
        		  VectorFactory.createZeroVector(flagConfig.vectortype(), flagConfig.dimension());
-   	
+   	    
    	  	for (String predicate:predicates)
+   	  	{
    	  		currentPredicateVector.superpose(elementalPredicateVectors.getVector(predicate),1 ,null);
-   		
+   	  	}
    	  	currentPredicateVector.normalize();
-   	 
+  
     	 	Vector currentSemanticVector
     	 			= semanticVector.copy();
     	 			
@@ -664,8 +695,13 @@ private void processCompositePredication(String subject, ArrayList<String> predi
     	 					negativeSubjectObjectVector.bind(currentSemanticVector);
     	 		   		}
     		   		
-		   		Vector negativeElementalBoundProduct = currentPredicateVector.copy();
+    	 			
+    	 	
+		 Vector negativeElementalBoundProduct = currentPredicateVector.copy();
 				negativeElementalBoundProduct.bind(objNegativeSample);  //eg. E(TREATS)*E(diabetes)
+				//hack of sorts - make sure tallying the votes (in ScalarProduct) doesn't flip this back to its pre-bound state
+				negativeElementalBoundProduct.superpose(negativeElementalBoundProduct,.02,null);
+			      
 				double shiftAway   = shiftAway(semanticVector, negativeElementalBoundProduct,flagConfig, blas);
 				semanticVector.superpose(negativeElementalBoundProduct, alpha*shiftAway, null);
 				
@@ -708,8 +744,8 @@ private void processPredicationDocument(Document document, BLAS blas)
 	      boolean encode 	 = true;
 	      
 	      if (!(elementalItemVectors.containsVector(object)
-	          && elementalItemVectors.containsVector(subject)
-	          )) {
+	          && semanticItemVectors.containsVector(subject)
+	           )) {
 	        logger.fine("skipping predication " + subject + " " + predicate + " " + object);
 	        encode = false;
 	      }
@@ -757,8 +793,8 @@ private void processPredicationDocument(Document document, BLAS blas)
 	    	  	}
 	    	  if (predicateA.size() > 0)
 	    	  {
-	     this.processCompositePredication(subject, predicateA, object, subsem, obsem, blas);
-	    	 this.processCompositePredication(object, invPredicateA, subject, obsem, subsem, blas);
+	    		  this.processCompositePredication(subject, predicateA, object, subsem, obsem, blas);
+	    		  this.processCompositePredication(object, invPredicateA, subject, obsem, subsem, blas);
 	    	  }
 	    	  
 	    	  pc.incrementAndGet();

@@ -160,7 +160,7 @@ public class BinaryVector implements Vector {
       }
 
       for (int x = 0; x < DEBUG_PRINT_LENGTH; x++) {
-        debugString.append((int) ((minimum + actualvals[x]) / Math.pow(10, BINARY_VECTOR_DECIMAL_PLACES)) + " ");
+        debugString.append((int) ((minimum + actualvals[x])) + " ");
       }
 
       // TODO - output count from first DEBUG_PRINT_LENGTH dimension
