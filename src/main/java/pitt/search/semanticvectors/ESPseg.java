@@ -584,9 +584,10 @@ private void processCompositePredication(String subject, ArrayList<String> predi
       //hack of sorts - make sure tallying the votes (in ScalarProduct) doesn't flip this back to its pre-bound state
 	  predicateBoundProduct.superpose(predicateBoundProduct,.02,null);
       
+	  ((BinaryVector) predicateBoundProduct).tallyVotes();
       double sim = VectorUtils.scalarProduct(semanticBoundProduct,unboundPredicateVectorCopy, flagConfig, blas);
        String former = semanticBoundProduct.toString();
-       //if (sim > .15) System.out.println(sim+"\t"+subject+"\t"+allPreds+"\n");
+       if (sim > .15) System.out.println(sim+"\t"+subject+"\t"+allPreds+"\n");
        
        semanticBoundProduct.release(unboundPredicateVectorCopy);  //e.g. S(haloperidol)/E(TREATS) ?= E(schizophrenia)
     
