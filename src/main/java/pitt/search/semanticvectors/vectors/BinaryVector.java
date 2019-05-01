@@ -645,6 +645,16 @@ public class BinaryVector implements Vector {
     } else {
       bind(other, 1);
     }
+    	
+    //cleanup - the voting record is erased upon 
+    //binding, so tallying the votes won't walk back 
+    //the bind
+    votingRecord = new ArrayList<FixedBitSet>();
+    votingRecord.add((FixedBitSet) bitSet.clone());
+    totalNumberOfVotes.set(1);
+    tempSet = new FixedBitSet(dimension);
+    minimum = 0;
+    
   }
 
   @Override

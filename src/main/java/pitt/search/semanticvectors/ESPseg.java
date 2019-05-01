@@ -567,8 +567,6 @@ private void processCompositePredication(String subject, ArrayList<String> predi
 	  }
        
 	  
-	
-	  
 	  if (semanticVector.isZeroVector() || elementalVector.isZeroVector() || predicateBoundProduct.isZeroVector() )
 	  {
 		  System.out.println("ZeroVector");
@@ -581,14 +579,13 @@ private void processCompositePredication(String subject, ArrayList<String> predi
       
       //alter subject's semantic vector
 	  predicateBoundProduct.bind(elementalVector);    //eg. E(TREATS)*E(schizophrenia)
-      //hack of sorts - make sure tallying the votes (in ScalarProduct) doesn't flip this back to its pre-bound state
-	  predicateBoundProduct.superpose(predicateBoundProduct,.02,null);
       
+	  /**
 	  ((BinaryVector) predicateBoundProduct).tallyVotes();
       double sim = VectorUtils.scalarProduct(semanticBoundProduct,unboundPredicateVectorCopy, flagConfig, blas);
        String former = semanticBoundProduct.toString();
-       if (sim > .15) System.out.println(sim+"\t"+subject+"\t"+allPreds+"\n");
-       
+       if (sim > .2) System.out.println(sim+"\t"+subject+"\t"+allPreds+"\n");
+       **/
        semanticBoundProduct.release(unboundPredicateVectorCopy);  //e.g. S(haloperidol)/E(TREATS) ?= E(schizophrenia)
     
       //int testy = ((BinaryVector) semanticBoundProduct).getCoordinates().cardinality();
@@ -700,9 +697,7 @@ private void processCompositePredication(String subject, ArrayList<String> predi
     	 	
 		 Vector negativeElementalBoundProduct = currentPredicateVector.copy();
 				negativeElementalBoundProduct.bind(objNegativeSample);  //eg. E(TREATS)*E(diabetes)
-				//hack of sorts - make sure tallying the votes (in ScalarProduct) doesn't flip this back to its pre-bound state
-				negativeElementalBoundProduct.superpose(negativeElementalBoundProduct,.02,null);
-			      
+				    
 				double shiftAway   = shiftAway(semanticVector, negativeElementalBoundProduct,flagConfig, blas);
 				semanticVector.superpose(negativeElementalBoundProduct, alpha*shiftAway, null);
 				
