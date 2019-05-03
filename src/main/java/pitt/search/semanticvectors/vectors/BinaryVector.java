@@ -115,17 +115,25 @@ public class BinaryVector implements Vector {
   }
 
   /**
-   * Returns a new copy of this vector, in dense format.
-   */
+  * Returns a new copy of this vector, in dense format.
+  */
   @SuppressWarnings("unchecked")
   public BinaryVector copy() {
-    BinaryVector copy = new BinaryVector(dimension);
-    copy.bitSet = (FixedBitSet) bitSet.clone();
-    if (!isSparse)
-      copy.votingRecord = (ArrayList<FixedBitSet>) votingRecord.clone();
-    return copy;
+  BinaryVector copy = new BinaryVector(dimension);
+  copy.bitSet = (FixedBitSet) bitSet.clone();
+  if (!isSparse)
+  copy.votingRecord = (ArrayList<FixedBitSet>) votingRecord.clone();
+  if (tempSet != null) {
+  copy.tempSet = tempSet.clone();
   }
+  copy.minimum = minimum;
+  copy.totalNumberOfVotes = new AtomicLong(totalNumberOfVotes.intValue());
+  copy.unTallied = new AtomicBoolean(unTallied.get());
+  copy.isSparse = isSparse;
 
+  return copy;
+  }
+  
   public String toString() {
     StringBuilder debugString = new StringBuilder("");
     
@@ -160,22 +168,20 @@ public class BinaryVector implements Vector {
       }
 
       for (int x = 0; x < DEBUG_PRINT_LENGTH; x++) {
-        debugString.append((int) ((minimum + actualvals[x])) + " ");
+        debugString.append((int) ((minimum + actualvals[x]) / Math.pow(10, BINARY_VECTOR_DECIMAL_PLACES)) + " ");
       }
 
       // TODO - output count from first DEBUG_PRINT_LENGTH dimension
-      /**
       debugString.append("\nNORMALIZED: ");
       this.normalize();
       for (int x = 0; x < DEBUG_PRINT_LENGTH; x++) debugString.append(bitSet.get(x) + " ");
       debugString.append("\n");
-**/
 
-      //this.tallyVotes();
-      
-       debugString.append("\nTotal votes " + totalNumberOfVotes.get()+"\n");
-      debugString.append("Minimum " + minimum + "\n");
+
+
       debugString.append("\nCardinality " + bitSet.cardinality()+"\n");
+      debugString.append("Votes " + totalNumberOfVotes.get()+"\n");
+      debugString.append("Minimum " + minimum + "\n");
       
       debugString.append("\n");
     }
@@ -465,7 +471,7 @@ public class BinaryVector implements Vector {
   protected synchronized FixedBitSet concludeVote(long target) {
     long target2 = (int) Math.ceil((double) target / (double) 2);
     target2 = target2 - minimum;
-
+    
     // Unlikely other than in testing: minimum more than half the votes
     if (target2 < 0) {
       FixedBitSet ans = new FixedBitSet(dimension);
@@ -477,20 +483,20 @@ public class BinaryVector implements Vector {
     FixedBitSet result = concludeVote(target2, votingRecord.size() - 1);
 
     if (even) {
-      setTempSetToExactMatches(target2);
+    	  setTempSetToExactMatches(target2);
       boolean switcher = true;
       // 50% chance of being true with split vote.
       int q = tempSet.nextSetBit(0);
       while (q != DocIdSetIterator.NO_MORE_DOCS)
       	{
-    	 	  switcher = !switcher;
+    	  	  switcher = !switcher;
           if (switcher) tempSet.clear(q);
           if (q+1 >= tempSet.length()) q = DocIdSetIterator.NO_MORE_DOCS;
           else q = tempSet.nextSetBit(q+1);
-         
-      	}
-      		result.andNot(tempSet);
-    }
+         	}
+      	 result.andNot(tempSet);
+      	
+		    }
     return result;
   }
 
@@ -654,7 +660,6 @@ public class BinaryVector implements Vector {
     totalNumberOfVotes.set(1);
     tempSet = new FixedBitSet(dimension);
     minimum = 0;
-    
   }
 
   @Override
@@ -971,28 +976,7 @@ public class BinaryVector implements Vector {
 	DEBUG_PRINT_LENGTH = length;	
 	}
 
-	/**
-	 *  code to reproduce the overflow error (before change to long/AtomicLong)
-	 *  
-	public static void main(String[] args)
-	{
-		String[] argString = {"-dimension","2048","-vectortype","binary"};
-		FlagConfig flagConfig = FlagConfig.getFlagConfig(argString);
-		
-		Vector theBinvec = VectorFactory.createZeroVector(flagConfig.vectortype(), flagConfig.dimension());
-		Random random = new Random();
-		
-		for (int x=0; x < 100000; x++)
-		{
-			Vector randVec = VectorFactory.generateRandomVector(flagConfig.vectortype(), flagConfig.dimension(), flagConfig.dimension() /2, random);
-			theBinvec.superpose(randVec, 10000*random.nextDouble(), null);
-			if (x % 10000 == 0) System.out.println(theBinvec);
-		}
-		
-				
-				
-	}
-	**/
+	
 	
 }
 
