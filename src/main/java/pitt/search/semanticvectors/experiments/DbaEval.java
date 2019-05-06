@@ -153,7 +153,7 @@ public class DbaEval {
 		
 		int[] labels = new int[targets.size()+negativetargets.size()];
 		double[] scores = new double[targets.size()+negativetargets.size()];
-		
+		double[] nobindscores = new double[targets.size() + negativetargets.size()];
 		int cnt = 0;
 		
 		for (String target:targets)
@@ -163,6 +163,10 @@ public class DbaEval {
 					CompoundVectorBuilder.getQueryVector(semanticVectors, null, flagConfig, (input[0]+" "+input[0].replaceAll("_"," ")).split(" "));
 			Vector eVec = 
 					CompoundVectorBuilder.getQueryVector(elementalVectors, null, flagConfig, (input[1]+" "+input[1].replaceAll("_"," ")).split(" "));
+			
+			nobindscores[cnt] = sVec.measureOverlap(CompoundVectorBuilder.getQueryVector(semanticVectors, null, flagConfig, (input[1]+" "+input[1].replaceAll("_"," ")).split(" ")));
+			
+			
 			sVec.bind(cueVector);
 			double score = sVec.measureOverlap(eVec);
 			scores[cnt] = score;
@@ -178,6 +182,10 @@ public class DbaEval {
 					CompoundVectorBuilder.getQueryVector(semanticVectors, null, flagConfig, (input[0]+" "+input[0].replaceAll("_"," ")).split(" "));
 			Vector eVec = 
 					CompoundVectorBuilder.getQueryVector(elementalVectors, null, flagConfig, (input[1]+" "+input[1].replaceAll("_"," ")).split(" "));
+			
+			nobindscores[cnt] = sVec.measureOverlap(CompoundVectorBuilder.getQueryVector(semanticVectors, null, flagConfig, (input[1]+" "+input[1].replaceAll("_"," ")).split(" ")));
+			
+			
 			sVec.bind(cueVector);
 			
 			double score = sVec.measureOverlap(eVec);
@@ -208,6 +216,7 @@ public class DbaEval {
 		cueVector2.normalize();
 		int[] labels2 = new int[targets.size()+negativetargets.size()];
 		double[] scores2 = new double[targets.size()+negativetargets.size()];
+		double[] scores3 = new double[targets.size()+negativetargets.size()];
 		
 		int cnt2 = 0;
 		ArrayList<String> test = new ArrayList<String>();
@@ -219,9 +228,12 @@ public class DbaEval {
 					CompoundVectorBuilder.getQueryVector(embeddingVectors, null, flagConfig, (input[0]+" "+input[0].replaceAll("_"," ")).split(" "));
 			Vector eVec = 
 					CompoundVectorBuilder.getQueryVector(embeddingVectors, null, flagConfig, (input[1]+" "+input[1].replaceAll("_"," ")).split(" "));
+			
+			scores3[cnt2] = sVec.measureOverlap(eVec);
 			sVec.superpose(cueVector2,1,null);
 			double score = sVec.measureOverlap(eVec);
 			scores2[cnt2] = score;
+		
 			labels2[cnt2++]=1;
 			//System.out.println("sv1\t"+score);
 			
@@ -234,6 +246,9 @@ public class DbaEval {
 					CompoundVectorBuilder.getQueryVector(embeddingVectors, null, flagConfig, (input[0]+" "+input[0].replaceAll("_"," ")).split(" "));
 			Vector eVec = 
 					CompoundVectorBuilder.getQueryVector(embeddingVectors, null, flagConfig, (input[1]+" "+input[1].replaceAll("_"," ")).split(" "));
+			
+			scores3[cnt2] = sVec.measureOverlap(eVec);
+			
 			sVec.superpose(cueVector2,1,null);
 			
 			double score = sVec.measureOverlap(eVec);
@@ -249,8 +264,10 @@ public class DbaEval {
 		for (int q=0; q < labels.length; q++)
 		{
 			
-			System.out.println(labels[q]+" "+scores[q]+" "+scores2[q]+" "+test.get(q));
+			System.out.println("SCORES "+labels[q]+" "+scores[q]+" "+nobindscores[q]+" "+scores2[q]+" "+scores3[q]+" "+test.get(q));
 		}
-	}
 	
+	
+	System.out.println("footer DEP DEPnobind SGNS SGNSnobind");
+	}
 }
