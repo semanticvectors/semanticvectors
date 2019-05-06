@@ -100,7 +100,7 @@ public class DbaEval {
 					
 			if (test1 && test2)
 			{
-			if (random.nextDouble() > .99)
+			if (random.nextDouble() > .9)
 			{
 				cues.add(inputString);
 			}
