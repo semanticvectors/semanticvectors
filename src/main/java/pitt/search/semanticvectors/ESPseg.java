@@ -115,6 +115,7 @@ public class ESPseg {
   private ConcurrentHashMap<String,String> semtypes = new ConcurrentHashMap<String,String>();
   private HashMap<Object,String> cuis = new HashMap<Object,String>();
   private ConcurrentHashMap<String, Double> subsamplingProbabilities;
+  private ConcurrentHashMap<String, Double> predsamplingProbabilities;
   
 
   
@@ -275,11 +276,25 @@ public class ESPseg {
       }
     
     }
-    int predCounter = 0;
     
     // Now elemental vectors for the predicate field.
     Terms predicateTerms = luceneUtils.getTermsForField(PREDICATE_FIELD);
     String[] dummyArray = new String[] { PREDICATE_FIELD };  // To satisfy LuceneUtils.termFilter interface.
+    
+    int predCounter = 0;
+    BytesRef bytess;
+    TermsEnum componentCounter = predicateTerms.iterator();
+    while((bytess = componentCounter.next()) != null) 
+    {
+    	 Term term = new Term(PREDICATE_FIELD, bytess);
+     predCounter += luceneUtils.getGlobalTermFreq(term); 
+    }
+    //precalculate probabilities for subsampling (need to iterate again once total term frequency known)
+    if (flagConfig.samplingthreshold() > -1 && flagConfig.samplingthreshold() < 1) {
+    	{
+    	subsamplingProbabilities = new ConcurrentHashMap<String, Double>();
+    	predsamplingProbabilities = new ConcurrentHashMap<String, Double>();
+ 	}
     TermsEnum termsEnum = predicateTerms.iterator();
     BytesRef bytes;
     while((bytes = termsEnum.next()) != null) {
@@ -298,6 +313,16 @@ public class ESPseg {
         		// Add inverse vector for the predicates.
         		elementalPredicateVectors.getVector(componentTerm.trim() + "-INV");
       	
+        		 double predFreq  	= luceneUtils.getGlobalDocFreq(new Term("predicate",componentTerm.toString()));
+                 
+        		 double globalFreq = (predFreq) / (double) predCounter;
+
+                 if (globalFreq > flagConfig.samplingthreshold()) {
+                   double discount = 1; //(globalFreq - flagConfig.samplingthreshold()) / globalFreq;
+                   predsamplingProbabilities.put(componentTerm.toString(), (discount - Math.sqrt(flagConfig.samplingthreshold() / globalFreq)));
+                   //VerbatimLogger.info(globalFreq+" "+term.text()+" "+subsamplingProbabilities.get(fieldName+":"+bytes.utf8ToString()));
+                 }
+        		
       // Output predicate counter.
       predCounter++;
       if ((predCounter > 0) && ((predCounter % 10000 == 0) || ( predCounter < 10000 && predCounter % 1000 == 0 ))) {
@@ -305,10 +330,7 @@ public class ESPseg {
         
     }
     
-    //precalculate probabilities for subsampling (need to iterate again once total term frequency known)
-    if (flagConfig.samplingthreshold() > -1 && flagConfig.samplingthreshold() < 1) {
-      subsamplingProbabilities = new ConcurrentHashMap<String, Double>();
-
+  
       double totalConceptCount = luceneUtils.getNumDocs()*2; //there are two concepts per predication
       VerbatimLogger.info("Populating subsampling probabilities - total concept count = " + totalConceptCount + " which is " + (totalConceptCount / luceneUtils.getNumDocs()) + " per doc on average");
       int count = 0;
@@ -783,7 +805,8 @@ private void processPredicationDocument(Document document, BLAS blas)
 	 
 	    	  for (String pred:predicates)
 	    	  if (elementalPredicateVectors.containsVector(pred))	
-	    	  {	
+	    	  if (!(this.predsamplingProbabilities != null && this.predsamplingProbabilities.contains(pred) && random.nextDouble() <= this.subsamplingProbabilities.get(pred)))
+	   	    {	
 	    		  predicateA.add(pred); 
 	    		  invPredicateA.add(pred+"-INV");
 	    	  	}
