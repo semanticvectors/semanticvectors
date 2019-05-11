@@ -93,7 +93,7 @@ public class ESPperm {
   private static final int MAX_EXP = 6;
   private static final Logger logger = Logger.getLogger(ESPperm.class.getCanonicalName());
   private FlagConfig flagConfig;
-  private VectorStore elementalItemVectors, termVectors; 
+  private VectorStore elementalItemVectors; 
   private VectorStoreRAM semanticItemVectors, permutationVectors;
   private static final String SUBJECT_FIELD = "subject";
   private static final String PREDICATE_FIELD = "predicate";
@@ -135,115 +135,13 @@ public class ESPperm {
     random = new Random();
     incrementalESPVectors.flagConfig = flagConfig;
     incrementalESPVectors.initialize();
-    incrementalESPVectors.initializeTerms();
     VerbatimLogger.info("Performing first round of ESP training ...");
     incrementalESPVectors.trainIncrementalESPVectors();
 
     VerbatimLogger.info("Done with createIncrementalESPVectors.");
   }
   
-  private void initializeTerms() throws IOException {
-	    
-	  	termVectors = new ElementalVectorStore(flagConfig);
-	    int termCounter = 0;
-	    
-	    String[] falseArgs = {"-luceneindexpath",flagConfig.luceneindexpath(),"-minfrequency","50","-maxfrequency","1000000","-maxnonalphabetchars", "3","-filteroutnumbers","-contentsfields","source"};
-        
-        FlagConfig falseFlag = 
-        		FlagConfig.getFlagConfig(falseArgs);
-        
-        LuceneUtils falseUtils = new LuceneUtils(falseFlag);
-
-	    
-	    String fieldName = "source";
-	    
-	      Terms terms = luceneUtils.getTermsForField(fieldName);
-
-	      if (terms == null) {
-	        throw new NullPointerException(String.format(
-	            "No terms for field '%s'. Please check that index at '%s' was built correctly for use with ESP.",
-	            fieldName, flagConfig.luceneindexpath()));
-	      }
-
-	      int totalTerms = 0;
-	      
-	      //iterate across terms
-	      TermsEnum termsEnum = terms.iterator();
-	      BytesRef bytes;
-	      while((bytes = termsEnum.next()) != null) {
-	        Term term = new Term(fieldName, bytes);
-	         if (!falseUtils.termFilter(term)) {
-	          VerbatimLogger.fine("Filtering out term: " + term + "\n");
-	          continue;
-	        }
-	       totalTerms += luceneUtils.getGlobalTermFreq(term);
-	         
-	      }
-	      System.out.println("Total (non-unique) term count) ="+ totalTerms);
-	      //and again
-	      termsEnum = terms.iterator();
-	     
-	            
-	      while((bytes = termsEnum.next()) != null) {
-	        Term term = new Term(fieldName, bytes);
-
-	   
-	        if (!falseUtils.termFilter(term)) {
-	          VerbatimLogger.fine("Filtering out term: " + term + "\n");
-	          continue;
-	        }
- 
-	          if (!termVectors.containsVector(term.text()))
-	          { 
-	        	  	termVectors.getVector(term.text());  // Causes vector to be created.
-	        	   
-	          }
-	          
-	            
-	          //table for negative sampling, stratified by semantic type (if available)
-	          /**
-	          if (! termDic.containsKey("source"))
-	          {
-	        	  	System.out.println("source");
-	        	  	totalPool.put("source",0d);
-	        	  	termDic.put("source", new ConcurrentSkipListMap<Double, String>());
-	          }
-	         **/
-	          //determine frequency with which a concept is drawn as a negative sample
-	          //following the word2vec work, we use unigram^.75
-	          //totalPool is a ConcurrentHashMap - it defines a range for each concept (for each semantic type, if these are used)
-	          //the relative size of the range determines the negative sampling frequency for each concept
-	          int countSource = luceneUtils.getGlobalTermFreq(term);
-	          double globalFreq = countSource / (double) totalTerms;
-	          double discount = 1; 
-	          
-	          /**
-	          if (flagConfig.discountnegativesampling() && globalFreq > flagConfig.samplingthreshold()) {
-	             discount = Math.sqrt(flagConfig.samplingthreshold() / globalFreq);
-	            }
-	          
-	          //negative sampling table
-	          totalPool.put("source", totalPool.get("source")+Math.pow(discount*(globalFreq), .75));
-	          termDic.get("source").put(totalPool.get("source"), term.text());
-	          **/
-	          //subsampling table 
-	          if (subsamplingProbabilities != null && globalFreq > flagConfig.samplingthreshold())
-	          { 
-	        	   discount = 1; //(globalFreq - flagConfig.samplingthreshold()) / globalFreq;
-	        	  subsamplingProbabilities.put("source_"+term.text(), (discount - Math.sqrt(flagConfig.samplingthreshold() / globalFreq)));
-		       }
-	          // Output term counter.
-	          termCounter++;
-	          if ((termCounter > 0) && ((termCounter % 10000 == 0) || ( termCounter < 10000 && termCounter % 1000 == 0 ))) {
-	            VerbatimLogger.info("Initialized " + termCounter + " term vectors ... ");
-	          }
-	          
-	        
-	      
-	    }
-
-	 
-	  }
+     
   
 
   /**
@@ -470,8 +368,7 @@ public class ESPperm {
         VerbatimLogger.info("Selected for subsampling: " + subsamplingProbabilities.size() + " terms.\n");
     } 
     
-    if (flagConfig.bindnotreleasehack()) initializeTerms();
-    
+     
   }
 
   /**
@@ -697,94 +594,6 @@ private void processPredicationDocument(Document document, BLAS blas)
 		      if (encode)
 		      {
 	      
-		    	  //start processing terms
-		    	 if (termVectors != null && random.nextDouble() > .9)
-		    	 {	 
-		    		   String[] terms  = document.get("source").split(" ");
-		    		      
-			      ArrayList<Vector> incomingTermVectors = new ArrayList<Vector>();
-			      ArrayList<Vector> incomingConceptVectors = new ArrayList<Vector>();
-			      ArrayList<Integer> incomingLabels = new ArrayList<Integer>();
-			      
-			     for (String term:terms)
-			          {
-			    	  		if (termVectors.containsVector(term))
-			    	  	  	if (this.subsamplingProbabilities == null || !this.subsamplingProbabilities.contains("source_"+term) || random.nextDouble() > this.subsamplingProbabilities.get("source_"+term))
-			          	incomingTermVectors.add(termVectors.getVector(term));
-			          }	
-			      			incomingConceptVectors.add(elementalItemVectors.getVector(subject));
-			          		incomingLabels.add(1);
-			          		incomingConceptVectors.add(elementalItemVectors.getVector(object));
-			          		incomingLabels.add(1);
-			          		
-			          
-			          		
-			          		 //get flagConfig.negsamples() negative samples as counterpoint to E(object)
-			                while (incomingConceptVectors.size()-2 <= flagConfig.negsamples())
-			                {
-			              	  Vector objectsNegativeSample 	= null;
-			              	  int ocnt=0;
-			              	     
-			                //draw negative samples, using a unigram distribution for now
-			                	while (objectsNegativeSample == null)
-			                	{   
-			              	  double test = random.nextDouble()*totalPool.get(obsem);
-			                        if (termDic.get(obsem).ceilingEntry(test) != null) {
-			                        		String testConcept = termDic.get(obsem).ceilingEntry(test).getValue();
-			                      	
-			                      	  if  (++ocnt > 10 && flagConfig.semtypesandcuis()) //probably a rare semantic type
-			                      	  {
-			                      		  test = random.nextDouble()*totalPool.get("dsyn");
-			                      		  testConcept 	= termDic.get("dsyn").ceilingEntry(test).getValue();
-			                      	  }
-			                      	  
-			         
-			              	  if (!testConcept.equals(object))// don't use the observed object as a negative sample
-			              			  objectsNegativeSample =  elementalItemVectors.getVector(testConcept);
-			              	 	 
-			              	}
-			                	}
-			                
-			                incomingConceptVectors.add(objectsNegativeSample);
-			                incomingLabels.add(0);
-			                }
-			          		
-			       		 //get flagConfig.negsamples() negative samples as counterpoint to E(object)
-			                while (incomingConceptVectors.size()-2 <= 2*flagConfig.negsamples())
-			                {
-			              	  Vector subjectsNegativeSample 	= null;
-			              	  int ocnt=0;
-			              	     
-			                //draw negative samples, using a unigram distribution for now
-			                	while (subjectsNegativeSample == null)
-			                	{   
-			              	  double test = random.nextDouble()*totalPool.get(subsem);
-			                        if (termDic.get(subsem).ceilingEntry(test) != null) {
-			                        		String testConcept = termDic.get(subsem).ceilingEntry(test).getValue();
-			                      	
-			                      	  if  (++ocnt > 10 && flagConfig.semtypesandcuis()) //probably a rare semantic type
-			                      	  {
-			                      		  test = random.nextDouble()*totalPool.get("dsyn");
-			                      		  testConcept 	= termDic.get("dsyn").ceilingEntry(test).getValue();
-			                      	  }
-			                      	  
-			         
-			              	  if (!testConcept.equals(subject))// don't use the observed object as a negative sample
-			              			  subjectsNegativeSample =  elementalItemVectors.getVector(testConcept);
-			              	 	 
-			              	}
-			                	}
-			                
-			                incomingConceptVectors.add(subjectsNegativeSample);
-			                incomingLabels.add(0);
-			                }
-			          		
-				            
-				           this.processEmbeddings(incomingTermVectors, incomingConceptVectors, incomingLabels, alpha*2 / (double) incomingLabels.size(), blas, null, null);
-		
-		    	 }
-	      //end processing terms
-	   
 	    	  this.processPredication(subject, predicate, object, subsem, obsem, blas);
 	    	  this.processPredication(object, predicate+"-INV", subject, obsem, subsem, blas);
 	    	  pc.incrementAndGet();
@@ -1065,20 +874,7 @@ private void initializeRandomizationStartpoints()
     		if (!flagConfig.notnormalized) nextVec.normalize();
     }
     
-    e = termVectors.getAllVectors();
-    while (e.hasMoreElements()) {
-    	
-    	Vector nextVec =  e.nextElement().getVector();
-    	   if (flagConfig.vectortype().equals(VectorType.BINARY))
-    	    	  ((BinaryVector) nextVec).tallyVotes();
-    	   else 
-    		if (!flagConfig.notnormalized) nextVec.normalize();
-    }
-    
-    VectorStoreWriter.writeVectors(
-            "espPerm_"+flagConfig.termvectorsfile(), flagConfig, termVectors);
-        
-   
+
     VectorStoreWriter.writeVectors(
         flagConfig.semanticvectorfile(), flagConfig, semanticItemVectors);
     
