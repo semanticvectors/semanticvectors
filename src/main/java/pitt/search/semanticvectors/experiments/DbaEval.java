@@ -89,14 +89,14 @@ public class DbaEval {
 			
 			flagConfig.setVectortype(vtype1);
 			flagConfig.setDimension(dimension1);
-			Vector testv1 = CompoundVectorBuilder.getQueryVector(semanticVectors, null, flagConfig, (input[0]+" "+input[0].replaceAll("_"," ")).split(" "));
-			Vector testv11= CompoundVectorBuilder.getQueryVector(elementalVectors, null, flagConfig, (input[1]+" "+input[1].replaceAll("_"," ")).split(" "));
+			Vector testv1 = semanticVectors.getVector(input[0]); //CompoundVectorBuilder.getQueryVector(semanticVectors, null, flagConfig, (input[0]+" "+input[0].replaceAll("_"," ")).split(" "));
+			Vector testv11= elementalVectors.getVector(input[1]); //CompoundVectorBuilder.getQueryVector(elementalVectors, null, flagConfig, (input[1]+" "+input[1].replaceAll("_"," ")).split(" "));
 			flagConfig.setVectortype(vtype2);
 			flagConfig.setDimension(dimension2);
-			Vector testv2 = CompoundVectorBuilder.getQueryVector(embeddingVectors, null, flagConfig, (input[0]+" "+input[0].replaceAll("_"," ")).split(" "));
-			Vector testv22= CompoundVectorBuilder.getQueryVector(embeddingVectors, null, flagConfig, (input[1]+" "+input[1].replaceAll("_"," ")).split(" "));
-			boolean test1 = (!testv1.isZeroVector() && !testv11.isZeroVector());
-			boolean test2 = (!testv2.isZeroVector() && !testv22.isZeroVector());
+			Vector testv2 = embeddingVectors.getVector(input[0]); //CompoundVectorBuilder.getQueryVector(embeddingVectors, null, flagConfig, (input[0]+" "+input[0].replaceAll("_"," ")).split(" "));
+			Vector testv22= embeddingVectors.getVector(input[1]); //CompoundVectorBuilder.getQueryVector(embeddingVectors, null, flagConfig, (input[1]+" "+input[1].replaceAll("_"," ")).split(" "));
+			boolean test1 = (testv1 != null && testv11 != null && !testv1.isZeroVector() && !testv11.isZeroVector());
+			boolean test2 = (testv2 != null && testv22 != null && !testv2.isZeroVector() && !testv22.isZeroVector());
 					
 			if (test1 && test2)
 			{
@@ -140,10 +140,10 @@ public class DbaEval {
 			
 			System.out.println("CUE "+cue);
 			String[] input = cue.split("\t");
-			Vector sVec = 
-					CompoundVectorBuilder.getQueryVector(semanticVectors, null, flagConfig, (input[0]+" "+input[0].replaceAll("_"," ")).split(" "));
-			Vector eVec = 
-					CompoundVectorBuilder.getQueryVector(elementalVectors, null, flagConfig, (input[1]+" "+input[1].replaceAll("_"," ")).split(" "));
+			Vector sVec = semanticVectors.getVector(input[0]);
+					//CompoundVectorBuilder.getQueryVector(semanticVectors, null, flagConfig, (input[0]+" "+input[0].replaceAll("_"," ")).split(" "));
+			Vector eVec =  elementalVectors.getVector(input[1]); 
+					//CompoundVectorBuilder.getQueryVector(elementalVectors, null, flagConfig, (input[1]+" "+input[1].replaceAll("_"," ")).split(" "));
 
 			sVec.bind(eVec);
 			cueVector.superpose(sVec,1,null);
@@ -242,10 +242,10 @@ public class DbaEval {
 		{
 			test.add(ntarget);
 			String[] input = ntarget.split("\t");
-			Vector sVec = 
-					CompoundVectorBuilder.getQueryVector(embeddingVectors, null, flagConfig, (input[0]+" "+input[0].replaceAll("_"," ")).split(" "));
-			Vector eVec = 
-					CompoundVectorBuilder.getQueryVector(embeddingVectors, null, flagConfig, (input[1]+" "+input[1].replaceAll("_"," ")).split(" "));
+			Vector sVec =  embeddingVectors.getVector(input[0]); 
+				//	CompoundVectorBuilder.getQueryVector(embeddingVectors, null, flagConfig, (input[0]+" "+input[0].replaceAll("_"," ")).split(" "));
+			Vector eVec =  embeddingVectors.getVector(input[1]); 
+				//	CompoundVectorBuilder.getQueryVector(embeddingVectors, null, flagConfig, (input[1]+" "+input[1].replaceAll("_"," ")).split(" "));
 			
 			scores3[cnt2] = sVec.measureOverlap(eVec);
 			
