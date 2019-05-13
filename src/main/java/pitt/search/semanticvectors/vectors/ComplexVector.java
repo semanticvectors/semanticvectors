@@ -38,6 +38,7 @@ package pitt.search.semanticvectors.vectors;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Random;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Logger;
 
 import org.apache.lucene.store.IndexInput;
@@ -677,10 +678,11 @@ public class ComplexVector implements Vector {
   /**
    * Transforms vector to cartesian form and writes vector out in dense format.
    */
-  public void writeToLuceneStream(IndexOutput outputStream) {
+  public void writeToLuceneStream(IndexOutput outputStream, AtomicBoolean... isCreationInterruptedByUser) {
     toCartesian();
     for (int i = 0; i < dimension * 2; ++i) {
       try {
+        checkAbortedAndThrowExceptionIfNeeded(isCreationInterruptedByUser);
         outputStream.writeInt(Float.floatToIntBits(coordinates[i]));
       } catch (IOException e) {
         e.printStackTrace();
@@ -692,10 +694,11 @@ public class ComplexVector implements Vector {
    * Transforms vector to cartesian form and writes vector out in dense format, truncating the
    * vectors to the assigned dimensionality
    */
-  public void writeToLuceneStream(IndexOutput outputStream, int k) {
+  public void writeToLuceneStream(IndexOutput outputStream, int k, AtomicBoolean... isCreationInterruptedByUser) {
     toCartesian();
     for (int i = 0; i < k * 2; ++i) {
       try {
+        checkAbortedAndThrowExceptionIfNeeded(isCreationInterruptedByUser);
         outputStream.writeInt(Float.floatToIntBits(coordinates[i]));
       } catch (IOException e) {
         e.printStackTrace();

@@ -36,9 +36,11 @@
 package pitt.search.semanticvectors;
 
 import pitt.search.semanticvectors.utils.VerbatimLogger;
+import pitt.search.semanticvectors.vectors.VectorFactory;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Logger;
 
 /**
@@ -82,7 +84,7 @@ public class BuildIndex {
 		buildIndex(flagConfig);
 	}
 
-	public static boolean buildIndex(FlagConfig flagConfig) throws IOException {
+	public static boolean buildIndex(FlagConfig flagConfig, AtomicBoolean... creationInterruptedByUser) throws IOException {
 		if (flagConfig.luceneindexpath().isEmpty()) {
 			throw (new IllegalArgumentException("-luceneindexpath must be set."));
 		}
@@ -124,7 +126,7 @@ public class BuildIndex {
 
 			// Should happen inside the loops ... I think. This has become messy. TODO: cleanup.
 			VerbatimLogger.info("Writing term vectors to " + termFile + "\n");
-			VectorStoreWriter.writeVectors(termFile, flagConfig, termVectorIndexer.getSemanticTermVectors());
+			VectorStoreWriter.writeVectors(termFile, flagConfig, termVectorIndexer.getSemanticTermVectors(), creationInterruptedByUser);
 
 			// Create doc vectors and write them to disk.
 			switch (flagConfig.docindexing()) {
@@ -170,7 +172,7 @@ public class BuildIndex {
 			}
 		} catch (IOException e) {
 			logger.warning(e.getMessage());
-			return false;
+			throw e;
 		}
 
 		return true;

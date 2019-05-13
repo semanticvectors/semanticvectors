@@ -39,6 +39,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.util.Random;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Logger;
 
 import org.apache.lucene.store.IndexInput;
@@ -410,7 +411,7 @@ public class RealVector implements Vector {
    * Writes vector out in dense format.  If vector is originally sparse, writes out a copy so
    * that vector remains sparse.
    */
-  public void writeToLuceneStream(IndexOutput outputStream) {
+  public void writeToLuceneStream(IndexOutput outputStream, AtomicBoolean... isCreationInterruptedByUser) {
     float[] coordsToWrite;
     if (isSparse) {
       RealVector copy = copy();
@@ -421,6 +422,7 @@ public class RealVector implements Vector {
     }
     for (int i = 0; i < dimension; ++i) {
       try {
+        checkAbortedAndThrowExceptionIfNeeded(isCreationInterruptedByUser);
         outputStream.writeInt(Float.floatToIntBits(coordsToWrite[i]));
       } catch (IOException e) {
         e.printStackTrace();
@@ -432,7 +434,7 @@ public class RealVector implements Vector {
    * Writes vector out in dense format.  If vector is originally sparse, writes out a copy so
    * that vector remains sparse. Truncates to length k.
    */
-  public void writeToLuceneStream(IndexOutput outputStream, int k) {
+  public void writeToLuceneStream(IndexOutput outputStream, int k, AtomicBoolean... isCreationInterruptedByUser) {
     float[] coordsToWrite;
     if (isSparse) {
       RealVector copy = copy();
@@ -443,6 +445,7 @@ public class RealVector implements Vector {
     }
     for (int i = 0; i < k; ++i) {
       try {
+        checkAbortedAndThrowExceptionIfNeeded(isCreationInterruptedByUser);
         outputStream.writeInt(Float.floatToIntBits(coordsToWrite[i]));
       } catch (IOException e) {
         e.printStackTrace();

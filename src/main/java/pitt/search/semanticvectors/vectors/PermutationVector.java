@@ -38,6 +38,7 @@ package pitt.search.semanticvectors.vectors;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Random;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Logger;
 
 import org.apache.lucene.store.IndexInput;
@@ -252,13 +253,14 @@ public class PermutationVector implements Vector {
   /**
    * Writes vector out in dense format.
    */
-  public void writeToLuceneStream(IndexOutput outputStream) {
+  public void writeToLuceneStream(IndexOutput outputStream, AtomicBoolean... isCreationInterruptedByUser) {
     int[] coordsToWrite;
     
       coordsToWrite = coordinates;
     
     for (int i = 0; i < dimension; ++i) {
       try {
+        checkAbortedAndThrowExceptionIfNeeded(isCreationInterruptedByUser);
         outputStream.writeInt((coordsToWrite[i]));
       } catch (IOException e) {
         e.printStackTrace();
@@ -344,9 +346,9 @@ public Vector generateRandomVector(int dimension, int numEntries, Random random)
 }
 
 @Override
-public void writeToLuceneStream(IndexOutput outputStream, int k) {
+public void writeToLuceneStream(IndexOutput outputStream, int k, AtomicBoolean... isCreationInterruptedByUser) {
 	// TODO Auto-generated method stub
-	writeToLuceneStream(outputStream);
+	writeToLuceneStream(outputStream, isCreationInterruptedByUser);
 }
 
 

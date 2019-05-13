@@ -785,7 +785,7 @@ public class BinaryVector implements Vector {
   /**
    * Writes vector out to object output stream.  Converts to dense format if necessary.
    */
-  public void writeToLuceneStream(IndexOutput outputStream) {
+  public void writeToLuceneStream(IndexOutput outputStream, AtomicBoolean... isCreationInterruptedByUser) {
     if (isSparse) {
       elementalToSemantic();
     }
@@ -793,6 +793,7 @@ public class BinaryVector implements Vector {
 
     for (int i = 0; i < bitArray.length; i++) {
       try {
+        checkAbortedAndThrowExceptionIfNeeded(isCreationInterruptedByUser);
         outputStream.writeLong(bitArray[i]);
       } catch (IOException e) {
         logger.severe("Couldn't write binary vector to lucene output stream.");
@@ -804,7 +805,7 @@ public class BinaryVector implements Vector {
   /**
    * Writes vector out to object output stream.  Converts to dense format if necessary. Truncates to length k.
    */
-  public void writeToLuceneStream(IndexOutput outputStream, int k) {
+  public void writeToLuceneStream(IndexOutput outputStream, int k, AtomicBoolean... isCreationInterruptedByUser) {
     if (isSparse) {
       elementalToSemantic();
     }
@@ -812,6 +813,7 @@ public class BinaryVector implements Vector {
 
     for (int i = 0; i < k/64; i++) {
       try {
+        checkAbortedAndThrowExceptionIfNeeded(isCreationInterruptedByUser);
         outputStream.writeLong(bitArray[i]);
       } catch (IOException e) {
         logger.severe("Couldn't write binary vector to lucene output stream.");

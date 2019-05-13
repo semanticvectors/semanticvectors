@@ -37,9 +37,11 @@ package pitt.search.semanticvectors.vectors;
 
 import java.nio.ByteBuffer;
 import java.util.Random;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.lucene.store.IndexInput;
 import org.apache.lucene.store.IndexOutput;
+import org.eclipse.rdf4j.query.QueryInterruptedException;
 
 /**
  * Base representation of a vector over a particular ground field and vector operations.
@@ -117,12 +119,12 @@ public interface Vector {
   /**
    * Writes vector to Lucene output stream.  Writes exactly {@link #getDimension} coordinates.
    */
-  public abstract void writeToLuceneStream(IndexOutput outputStream);
+  public abstract void writeToLuceneStream(IndexOutput outputStream, AtomicBoolean... isCreationInterruptedByUser);
   
   /**
    * Writes truncated vector to Lucene output stream.  Writes exactly k coordinates.
    */
-  public abstract void writeToLuceneStream(IndexOutput outputStream, int k);
+  public abstract void writeToLuceneStream(IndexOutput outputStream, int k, AtomicBoolean... isCreationInterruptedByUser);
 
   /**
    * Reads vector from Lucene input stream.  Reads exactly {@link #getDimension} coordinates.
@@ -147,4 +149,10 @@ public interface Vector {
   * more explicit than the {@code writeToString} method.
   */
   public abstract String toString();
+
+  default void checkAbortedAndThrowExceptionIfNeeded(AtomicBoolean... isCreationInterruptedByUser) {
+    if (isCreationInterruptedByUser != null && isCreationInterruptedByUser.length > 0 && isCreationInterruptedByUser[0].get()) {
+      throw new QueryInterruptedException("Transaction was aborted by the user");
+    }
+  }
 }

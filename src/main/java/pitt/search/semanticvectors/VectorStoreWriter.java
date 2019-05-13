@@ -39,6 +39,7 @@ import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.store.IOContext;
 import org.apache.lucene.store.IndexOutput;
 
+import org.eclipse.rdf4j.query.QueryInterruptedException;
 import pitt.search.semanticvectors.utils.VerbatimLogger;
 
 import java.io.*;
@@ -46,6 +47,7 @@ import java.nio.file.FileSystems;
 import java.util.Enumeration;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * This class provides methods for serializing a VectorStore to disk.
@@ -80,15 +82,15 @@ public class VectorStoreWriter {
    * @param storeName The name of the vector store to write to
    * @param objectVectors The vector store to be written to disk
    */
-  public static void writeVectors(String storeName, FlagConfig flagConfig, VectorStore objectVectors)
+  public static void writeVectors(String storeName, FlagConfig flagConfig, VectorStore objectVectors, AtomicBoolean... isCreationInterruptedByUser)
       throws IOException {
     String vectorFileName = VectorStoreUtils.getStoreFileName(storeName, flagConfig);
     switch (flagConfig.indexfileformat()) {
     case LUCENE:
-      writeVectorsInLuceneFormat(vectorFileName, flagConfig, objectVectors);
+      writeVectorsInLuceneFormat(vectorFileName, flagConfig, objectVectors, isCreationInterruptedByUser);
       break;
     case TEXT:
-      writeVectorsInTextFormat(vectorFileName, flagConfig, objectVectors);
+      writeVectorsInTextFormat(vectorFileName, flagConfig, objectVectors, isCreationInterruptedByUser);
       break;
     default:
       throw new IllegalStateException("Unknown -indexfileformat: " + flagConfig.indexfileformat());
@@ -101,7 +103,7 @@ public class VectorStoreWriter {
    * @param vectorFileName The name of the file to write to
    * @param objectVectors The vector store to be written to disk
    */
-  public static void writeVectorsInLuceneFormat(String vectorFileName, FlagConfig flagConfig, VectorStore objectVectors)
+  public static void writeVectorsInLuceneFormat(String vectorFileName, FlagConfig flagConfig, VectorStore objectVectors, AtomicBoolean... isCreationInterruptedByUser)
       throws IOException {
     VerbatimLogger.info("About to write " + objectVectors.getNumVectors() + " vectors of dimension "
         + flagConfig.dimension() + " to Lucene format file: " + vectorFileName + " ... ");
@@ -114,7 +116,7 @@ public class VectorStoreWriter {
 
     // This map exploits the fact that the keys are longs from the entity pool
     TreeMap<String, Long> entityMap = new TreeMap<>();
-    writeToIndexOutput(objectVectors, flagConfig, outputStream, entityMap);
+    writeToIndexOutput(objectVectors, flagConfig, outputStream, entityMap, isCreationInterruptedByUser);
     writeEntityMap(entityMap, new File(vectorFile.getAbsolutePath() + ".map"));
 
     outputStream.close();
@@ -137,7 +139,8 @@ public class VectorStoreWriter {
    * Writes the object vectors to this Lucene output stream.
    * Caller is responsible for opening and closing stream output stream.
    */
-  public static void writeToIndexOutput(VectorStore objectVectors, FlagConfig flagConfig, IndexOutput outputStream, Map<String, Long> entityMap)
+  public static void writeToIndexOutput(VectorStore objectVectors, FlagConfig flagConfig, IndexOutput outputStream,
+                                        Map<String, Long> entityMap, AtomicBoolean... isCreationInterruptedByUser)
       throws IOException {
     // Write header giving vector type and dimension for all vectors.
     outputStream.writeString(generateHeaderString(flagConfig));
@@ -151,7 +154,7 @@ public class VectorStoreWriter {
         entityMap.put(objectVector.getObject().toString(), outputStream.getFilePointer());
 
       outputStream.writeString(objectVector.getObject().toString());
-      objectVector.getVector().writeToLuceneStream(outputStream);
+      objectVector.getVector().writeToLuceneStream(outputStream, isCreationInterruptedByUser);
     }
     VerbatimLogger.info("finished writing vectors.\n");
   }
@@ -163,17 +166,19 @@ public class VectorStoreWriter {
    * @param flagConfig For reading dimension and vector type
    * @param objectVectors The vector store to be written to disk
    */
-  public static void writeVectorsInTextFormat(String vectorFileName, FlagConfig flagConfig, VectorStore objectVectors)
+  public static void writeVectorsInTextFormat(String vectorFileName, FlagConfig flagConfig,
+                                              VectorStore objectVectors, AtomicBoolean... isCreationInterruptedByUser)
       throws IOException {
     VerbatimLogger.info("About to write " + objectVectors.getNumVectors() + " vectors of dimension "
         + flagConfig.dimension() + " to text file: " + vectorFileName + " ... ");
     BufferedWriter outBuf = new BufferedWriter(new FileWriter(vectorFileName));
-    writeToTextBuffer(objectVectors, flagConfig, outBuf);
+    writeToTextBuffer(objectVectors, flagConfig, outBuf, isCreationInterruptedByUser);
     outBuf.close();
     VerbatimLogger.info("finished writing vectors.\n");
   }
 
-  public static void writeToTextBuffer(VectorStore objectVectors, FlagConfig flagConfig, BufferedWriter outBuf)
+  public static void writeToTextBuffer(VectorStore objectVectors, FlagConfig flagConfig,
+                                       BufferedWriter outBuf, AtomicBoolean... isCreationInterruptedByUser)
       throws IOException {
     Enumeration<ObjectVector> vecEnum = objectVectors.getAllVectors();
 
@@ -182,6 +187,9 @@ public class VectorStoreWriter {
 
     // Write each vector.
     while (vecEnum.hasMoreElements()) {
+      if (isCreationInterruptedByUser[0] != null && isCreationInterruptedByUser[0].get()) {
+        throw new QueryInterruptedException("Transaction was aborted by the user");
+      }
       ObjectVector objectVector = vecEnum.nextElement();
       outBuf.write(objectVector.getObject().toString().replaceAll("\\|", ";") + "|");
       outBuf.write(objectVector.getVector().writeToString());
