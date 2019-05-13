@@ -159,10 +159,10 @@ public class DbaEval {
 		for (String target:targets)
 		{
 			String[] input = target.split("\t");
-			Vector sVec = 
-					CompoundVectorBuilder.getQueryVector(semanticVectors, null, flagConfig, (input[0]+" "+input[0].replaceAll("_"," ")).split(" "));
-			Vector eVec = 
-					CompoundVectorBuilder.getQueryVector(elementalVectors, null, flagConfig, (input[1]+" "+input[1].replaceAll("_"," ")).split(" "));
+			Vector sVec = semanticVectors.getVector(input[0]);
+					//CompoundVectorBuilder.getQueryVector(semanticVectors, null, flagConfig, (input[0]+" "+input[0].replaceAll("_"," ")).split(" "));
+			Vector eVec = elementalVectors.getVector(input[1]); 
+					//CompoundVectorBuilder.getQueryVector(elementalVectors, null, flagConfig, (input[1]+" "+input[1].replaceAll("_"," ")).split(" "));
 			
 			nobindscores[cnt] = sVec.measureOverlap(CompoundVectorBuilder.getQueryVector(semanticVectors, null, flagConfig, (input[1]+" "+input[1].replaceAll("_"," ")).split(" ")));
 			
@@ -178,10 +178,10 @@ public class DbaEval {
 		for (String ntarget:negativetargets)
 		{
 			String[] input = ntarget.split("\t");
-			Vector sVec = 
-					CompoundVectorBuilder.getQueryVector(semanticVectors, null, flagConfig, (input[0]+" "+input[0].replaceAll("_"," ")).split(" "));
-			Vector eVec = 
-					CompoundVectorBuilder.getQueryVector(elementalVectors, null, flagConfig, (input[1]+" "+input[1].replaceAll("_"," ")).split(" "));
+			Vector sVec = semanticVectors.getVector(input[0]);
+					//CompoundVectorBuilder.getQueryVector(semanticVectors, null, flagConfig, (input[0]+" "+input[0].replaceAll("_"," ")).split(" "));
+			Vector eVec = elementalVectors.getVector(input[1]);
+				 	// CompoundVectorBuilder.getQueryVector(elementalVectors, null, flagConfig, (input[1]+" "+input[1].replaceAll("_"," ")).split(" "));
 			
 			nobindscores[cnt] = sVec.measureOverlap(CompoundVectorBuilder.getQueryVector(semanticVectors, null, flagConfig, (input[1]+" "+input[1].replaceAll("_"," ")).split(" ")));
 			
@@ -204,10 +204,10 @@ public class DbaEval {
 		for (String cue:cues)
 		{
 			String[] input = cue.split("\t");
-			Vector sVec = 
-					CompoundVectorBuilder.getQueryVector(embeddingVectors, null, flagConfig, (input[0]+" "+input[0].replaceAll("_"," ")).split(" "));
-			Vector eVec = 
-					CompoundVectorBuilder.getQueryVector(embeddingVectors, null, flagConfig, (input[1]+" "+input[1].replaceAll("_"," ")).split(" "));
+			Vector sVec = embeddingVectors.getVector(input[0]); 
+					//CompoundVectorBuilder.getQueryVector(embeddingVectors, null, flagConfig, (input[0]+" "+input[0].replaceAll("_"," ")).split(" "));
+			Vector eVec = embeddingVectors.getVector(input[1]);
+					//CompoundVectorBuilder.getQueryVector(embeddingVectors, null, flagConfig, (input[1]+" "+input[1].replaceAll("_"," ")).split(" "));
 
 			eVec.superpose(sVec,-1,null);
 			cueVector2.superpose(eVec,1,null);
@@ -224,10 +224,10 @@ public class DbaEval {
 		{
 			String[] input = target.split("\t");
 			test.add(target);
-			Vector sVec = 
-					CompoundVectorBuilder.getQueryVector(embeddingVectors, null, flagConfig, (input[0]+" "+input[0].replaceAll("_"," ")).split(" "));
-			Vector eVec = 
-					CompoundVectorBuilder.getQueryVector(embeddingVectors, null, flagConfig, (input[1]+" "+input[1].replaceAll("_"," ")).split(" "));
+			Vector sVec =  embeddingVectors.getVector(input[0]); 
+					//CompoundVectorBuilder.getQueryVector(embeddingVectors, null, flagConfig, (input[0]+" "+input[0].replaceAll("_"," ")).split(" "));
+			Vector eVec =   embeddingVectors.getVector(input[1]); 
+					//CompoundVectorBuilder.getQueryVector(embeddingVectors, null, flagConfig, (input[1]+" "+input[1].replaceAll("_"," ")).split(" "));
 			
 			scores3[cnt2] = sVec.measureOverlap(eVec);
 			sVec.superpose(cueVector2,1,null);
