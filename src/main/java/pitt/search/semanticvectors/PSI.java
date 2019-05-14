@@ -317,12 +317,8 @@ public class PSI {
 			}
 
 			es.submit(() -> {
-				if (interrupted)
+				if (interrupted || this.isCreationInterruptedByUser != null && this.isCreationInterruptedByUser.get())
 					return;
-
-				if (this.isCreationInterruptedByUser != null && this.isCreationInterruptedByUser.get()) {
-					shutdown();
-				}
 
 				Thread.currentThread().setName("psi-index-builder");
 
@@ -419,6 +415,7 @@ public class PSI {
 			});
 
 			if (this.isCreationInterruptedByUser != null && this.isCreationInterruptedByUser.get()) {
+				shutdown();
 				throw new QueryInterruptedException("Transaction was aborted by the user");
 			}
 		} // Finish iterating through predications.
@@ -474,7 +471,7 @@ public class PSI {
 		try {
 			es.awaitTermination(30, TimeUnit.SECONDS);
 		} catch (InterruptedException e) {
-			throw new PluginException("Couldn't terminate process");
+//			throw new PluginException("Couldn't terminate process");
 		}
 	}
 
