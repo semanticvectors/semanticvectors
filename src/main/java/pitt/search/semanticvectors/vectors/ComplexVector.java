@@ -37,11 +37,13 @@ package pitt.search.semanticvectors.vectors;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.channels.ClosedByInterruptException;
 import java.util.Random;
 import java.util.logging.Logger;
 
 import org.apache.lucene.store.IndexInput;
 import org.apache.lucene.store.IndexOutput;
+import org.eclipse.rdf4j.query.QueryInterruptedException;
 
 
 /**
@@ -682,6 +684,8 @@ public class ComplexVector implements Vector {
     for (int i = 0; i < dimension * 2; ++i) {
       try {
         outputStream.writeInt(Float.floatToIntBits(coordinates[i]));
+      }catch (ClosedByInterruptException e) {
+        throw new QueryInterruptedException("Transaction was aborted by the user");
       } catch (IOException e) {
         e.printStackTrace();
       }
@@ -697,6 +701,8 @@ public class ComplexVector implements Vector {
     for (int i = 0; i < k * 2; ++i) {
       try {
         outputStream.writeInt(Float.floatToIntBits(coordinates[i]));
+      }catch (ClosedByInterruptException e) {
+        throw new QueryInterruptedException("Transaction was aborted by the user");
       } catch (IOException e) {
         e.printStackTrace();
       }

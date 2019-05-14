@@ -2,6 +2,7 @@ package pitt.search.semanticvectors.vectors;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.channels.ClosedByInterruptException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Random;
@@ -13,6 +14,7 @@ import org.apache.lucene.search.DocIdSetIterator;
 import org.apache.lucene.store.IndexInput;
 import org.apache.lucene.store.IndexOutput;
 import org.apache.lucene.util.FixedBitSet;
+import org.eclipse.rdf4j.query.QueryInterruptedException;
 
 
 /**
@@ -794,6 +796,8 @@ public class BinaryVector implements Vector {
     for (int i = 0; i < bitArray.length; i++) {
       try {
         outputStream.writeLong(bitArray[i]);
+      }catch (ClosedByInterruptException e) {
+        throw new QueryInterruptedException("Transaction was aborted by the user");
       } catch (IOException e) {
         logger.severe("Couldn't write binary vector to lucene output stream.");
         e.printStackTrace();
@@ -813,6 +817,8 @@ public class BinaryVector implements Vector {
     for (int i = 0; i < k/64; i++) {
       try {
         outputStream.writeLong(bitArray[i]);
+      }catch (ClosedByInterruptException e) {
+        throw new QueryInterruptedException("Transaction was aborted by the user");
       } catch (IOException e) {
         logger.severe("Couldn't write binary vector to lucene output stream.");
         e.printStackTrace();
