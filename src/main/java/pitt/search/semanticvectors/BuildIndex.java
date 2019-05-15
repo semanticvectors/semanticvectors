@@ -170,7 +170,7 @@ public class BuildIndex {
 			}
 		} catch (IOException e) {
 			logger.warning(e.getMessage());
-			return false;
+			throw e;
 		}
 
 		return true;

@@ -687,7 +687,7 @@ public class ComplexVector implements Vector {
       }catch (ClosedByInterruptException e) {
         throw new QueryInterruptedException("Transaction was aborted by the user");
       } catch (IOException e) {
-        e.printStackTrace();
+        logger.severe(e.toString());
       }
     }
   }
@@ -704,7 +704,7 @@ public class ComplexVector implements Vector {
       }catch (ClosedByInterruptException e) {
         throw new QueryInterruptedException("Transaction was aborted by the user");
       } catch (IOException e) {
-        e.printStackTrace();
+        logger.severe(e.toString());
       }
     }
       
@@ -737,7 +737,7 @@ public class ComplexVector implements Vector {
       } catch (IOException e) {
         logger.severe("Failed to parse vector from Lucene stream.  This signifies a "
             + "programming or runtime error, e.g., a dimension mismatch.");
-        e.printStackTrace();
+        logger.severe(e.toString());
       }
     }
 
