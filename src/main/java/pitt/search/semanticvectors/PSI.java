@@ -42,6 +42,7 @@ import org.apache.lucene.index.Term;
 import org.apache.lucene.index.Terms;
 import org.apache.lucene.index.TermsEnum;
 import org.apache.lucene.util.BytesRef;
+import org.eclipse.rdf4j.query.QueryInterruptedException;
 import pitt.search.semanticvectors.LuceneUtils.TermWeight;
 import pitt.search.semanticvectors.collections.ModifiableVectorStore;
 import pitt.search.semanticvectors.collections.VectorStoreFactory;
@@ -58,6 +59,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -87,13 +89,16 @@ public class PSI {
 	private ExecutorService es;
 	private Thread shutdownHook;
 	private volatile boolean interrupted = false;
-
+	private AtomicBoolean isCreationInterruptedByUser;
 
 	public PSI(FlagConfig flagConfig) {
-		predicatePermutation = PermutationUtils.getShiftPermutation(flagConfig.vectortype(), flagConfig.dimension(), 1);
+		this(flagConfig, new AtomicBoolean(false));
 	}
 
-	;
+	public PSI(FlagConfig flagConfig, AtomicBoolean isCreationInterruptedByUser) {
+		predicatePermutation = PermutationUtils.getShiftPermutation(flagConfig.vectortype(), flagConfig.dimension(), 1);
+		this.isCreationInterruptedByUser = isCreationInterruptedByUser;
+	}
 
 	/**
 	 * Creates PSI vectors incrementally, using the fields "subject" and "object" from a Lucene index.
@@ -101,6 +106,7 @@ public class PSI {
 	public boolean createIncrementalPSIVectors(FlagConfig flagConfig) throws IOException {
 		PSI incrementalPSIVectors = new PSI(flagConfig);
 		incrementalPSIVectors.flagConfig = flagConfig;
+		incrementalPSIVectors.isCreationInterruptedByUser = this.isCreationInterruptedByUser;
 		incrementalPSIVectors.initialize();
 
 		VectorStoreWriter.writeVectors(
@@ -312,7 +318,7 @@ public class PSI {
 			}
 
 			es.submit(() -> {
-				if (interrupted)
+				if (interrupted || this.isCreationInterruptedByUser.get())
 					return;
 				Thread.currentThread().setName("psi-index-builder");
 
@@ -407,6 +413,11 @@ public class PSI {
 					logger.info("Processed " + currCnt + " unique predications ...");
 				}
 			});
+
+			if (this.isCreationInterruptedByUser.get()) {
+				shutdown();
+				throw new QueryInterruptedException("Transaction was aborted by the user");
+			}
 		} // Finish iterating through predications.
 
 		es.shutdown();
@@ -449,11 +460,18 @@ public class PSI {
 		logger.info("Shutting down PSI");
 		if (shutdownHook != null) {
 			try {
+				es.shutdownNow();
 				closeVectorStores();
 				Runtime.getRuntime().removeShutdownHook(shutdownHook);
 			} catch (IllegalStateException e) {
 				// ignore as the runtime is in shutdown state
 			}
+		}
+
+		try {
+			es.awaitTermination(30, TimeUnit.SECONDS);
+		} catch (InterruptedException e) {
+			throw new PluginException("Couldn't terminate process");
 		}
 	}
 
