@@ -25,6 +25,7 @@ import pitt.search.semanticvectors.SearchResult;
 import pitt.search.semanticvectors.VectorSearcher;
 import pitt.search.semanticvectors.VectorSearcher.VectorSearcherPerm;
 import pitt.search.semanticvectors.VectorStoreRAM;
+import pitt.search.semanticvectors.utils.Bobcat;
 import pitt.search.semanticvectors.vectors.PermutationUtils;
 import pitt.search.semanticvectors.vectors.PermutationVector;
 import pitt.search.semanticvectors.vectors.Vector;
@@ -47,7 +48,11 @@ public class DbaEval {
 		VectorStoreRAM elementalVectors = new VectorStoreRAM(flagConfig);
 		elementalVectors.initFromFile(flagConfig.elementalvectorfile());
 		
-		String inputFile = flagConfig.remainingArgs[0];
+		String inputFile = flagConfig.startlistfile();
+		String randomSeed = "seed";
+		
+		if (flagConfig.remainingArgs.length > 0) 
+			randomSeed = flagConfig.remainingArgs[0];
 		
 		BufferedReader inputReader = new BufferedReader(new FileReader(new File(inputFile)));
 		String inputString = inputReader.readLine();
@@ -58,8 +63,8 @@ public class DbaEval {
 		
 		ArrayList <String> drugs = new ArrayList<String>();
 		
-		Random random = new Random();
-		
+		Random random = new Random(Bobcat.asLong(randomSeed));
+		System.err.println("Using random seed "+randomSeed+":"+Bobcat.asLong(randomSeed));
 		Vector cueVector = VectorFactory.createZeroVector(flagConfig.vectortype(), flagConfig.dimension());
 		
 		VectorType vtype1 = flagConfig.vectortype();
