@@ -51,7 +51,7 @@ public class DbaEval {
 		String inputFile = flagConfig.startlistfile();
 		String randomSeed = "seed";
 		
-		if (flagConfig.remainingArgs.length > 0) 
+		if (flagConfig.remainingArgs != null) 
 			randomSeed = flagConfig.remainingArgs[0];
 		
 		BufferedReader inputReader = new BufferedReader(new FileReader(new File(inputFile)));
