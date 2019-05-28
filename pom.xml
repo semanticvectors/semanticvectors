@@ -176,6 +176,15 @@
             </plugin>
 
         </plugins>
+
+	    <extensions>
+        <!--Enabling the use of FTP-->
+			  <extension>
+				  <groupId>org.apache.maven.wagon</groupId>
+				  <artifactId>wagon-ftp</artifactId>
+				  <version>1.0-beta-6</version>
+			  </extension>
+        </extensions>
     </build>
     
     <profiles>
@@ -211,6 +220,12 @@
         <profile>
             <!-- In order to activate shading plugin (e.g., to generate an end-user-friendly uber-jar), run "mvn package -P endUserRelease" -->
             <id>endUserRelease</id>
+            <activation>
+                <property>
+                    <!-- "mvn deploy -DcreateShadedJar" will upload shaded jar in our maven repository -->
+                    <name>createShadedJar</name>
+                </property>
+            </activation>
             <build>
                 <plugins>
                     <plugin>
