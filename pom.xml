@@ -211,6 +211,12 @@
         <profile>
             <!-- In order to activate shading plugin (e.g., to generate an end-user-friendly uber-jar), run "mvn package -P endUserRelease" -->
             <id>endUserRelease</id>
+            <activation>
+                <property>
+                    <!-- "mvn deploy -DcreateShadedJar" will upload shaded jar in our maven repository -->
+                    <name>createShadedJar</name>
+                </property>
+            </activation>
             <build>
                 <plugins>
                     <plugin>
