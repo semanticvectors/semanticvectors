@@ -411,8 +411,8 @@ public class TermTermVectorsFromLucene { //implements VectorStore {
 	    permutationCache.putVector(""+1, new PermutationVector(PermutationUtils.getRandomPermutation( flagConfig.vectortype(), flagConfig.dimension())));
 	    permutationCache.putVector("_"+1, new PermutationVector(PermutationUtils.getInversePermutation( ((PermutationVector) permutationCache.getVector(""+1)).getCoordinates())));
 		 
-	    permutationCache.putVector(""+-1, new PermutationVector(PermutationUtils.getRandomPermutation( flagConfig.vectortype(), flagConfig.dimension())));
-	    permutationCache.putVector("_"+-1, new PermutationVector(PermutationUtils.getInversePermutation( ((PermutationVector) permutationCache.getVector(""+-1)).getCoordinates())));
+	    permutationCache.putVector(""+(-1), new PermutationVector(PermutationUtils.getRandomPermutation( flagConfig.vectortype(), flagConfig.dimension())));
+	    permutationCache.putVector("_"+(-1), new PermutationVector(PermutationUtils.getInversePermutation( ((PermutationVector) permutationCache.getVector(""+(-1))).getCoordinates())));
 	    
 	    //for (int i = 0; i < 2 * flagConfig.windowradius() + 1; ++i) {
 	      //todo replace with PermutationFactory syntax
@@ -452,8 +452,8 @@ public class TermTermVectorsFromLucene { //implements VectorStore {
 	    flagConfig.setVectortype(typeA);
 	  //  new int[2][PermutationUtils.getPermutationLength(flagConfig.vectortype(), flagConfig.dimension())];
 
-    permutationCache.putVector(""+-1,  new PermutationVector(PermutationUtils.getRandomPermutation( flagConfig.vectortype(), flagConfig.dimension())));
-    permutationCache.putVector("_"+-1, new PermutationVector(PermutationUtils.getInversePermutation( ((PermutationVector) permutationCache.getVector(""+-1)).getCoordinates())));
+    permutationCache.putVector(""+(-1),  new PermutationVector(PermutationUtils.getRandomPermutation( flagConfig.vectortype(), flagConfig.dimension())));
+    permutationCache.putVector("_"+(-1), new PermutationVector(PermutationUtils.getInversePermutation( ((PermutationVector) permutationCache.getVector(""+(-1))).getCoordinates())));
 	
     //todo replace with PermutationFactory
     
@@ -1037,8 +1037,8 @@ public class TermTermVectorsFromLucene { //implements VectorStore {
                 if (inversePermutation == null) VerbatimLogger.info("null inverse permutation");
       	      
     	          	} else if (flagConfig.positionalmethod().equals(PositionalMethod.DIRECTIONAL)) {
-            	permutation =  ((PermutationVector) permutationCache.getVector((int) Math.signum(desiredPermutation))).getCoordinates();
-            	inversePermutation =  ((PermutationVector) permutationCache.getVector("_"+ (int) Math.signum(desiredPermutation))).getCoordinates();
+            	permutation =  ((PermutationVector) permutationCache.getVector(""+(int) Math.signum(desiredPermutation))).getCoordinates();
+            	inversePermutation =  ((PermutationVector) permutationCache.getVector("_"+  (int) Math.signum(desiredPermutation))).getCoordinates();
                 
             	if (permutation == null) VerbatimLogger.info("null permutation");
                 if (inversePermutation == null) VerbatimLogger.info("null inverse permutation");
@@ -1150,7 +1150,7 @@ public class TermTermVectorsFromLucene { //implements VectorStore {
             
             semanticTermVectors.getVector(focusterm).superpose(toSuperpose, globalweight, permutation);
           } else if (flagConfig.positionalmethod() == PositionalMethod.DIRECTIONAL) {
-              permutation =  ((PermutationVector) permutationCache.getVector(""+(Math.signum(cursorPositionNumber - focusposn)))).getCoordinates();
+              permutation =  ((PermutationVector) permutationCache.getVector(""+(int) Math.signum(cursorPositionNumber - focusposn))).getCoordinates();
               
             semanticTermVectors.getVector(focusterm).superpose(toSuperpose, globalweight, permutation);
           }
