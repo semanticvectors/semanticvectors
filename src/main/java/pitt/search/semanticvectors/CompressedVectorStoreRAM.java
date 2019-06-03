@@ -3,6 +3,7 @@ package pitt.search.semanticvectors;
 import java.util.ArrayList;
 import java.util.Random;
 
+import pitt.search.semanticvectors.utils.VerbatimLogger;
 import pitt.search.semanticvectors.vectors.Vector;
 import pitt.search.semanticvectors.vectors.VectorFactory;
 
@@ -34,6 +35,31 @@ public class CompressedVectorStoreRAM  {
 		observationCounts = new long[maxVectors];
 		vectorTable = new Vector[maxVectors];
 	}
+	
+	/**
+	 * Load previous model
+	 * @param flagConfig
+	 * @param vectorStoreRAM
+	 */
+	
+	public CompressedVectorStoreRAM(FlagConfig flagConfig, VectorStoreRAM vectorStoreRAM) 
+	{
+		random = new Random();
+		this.flagConfig = flagConfig;
+		observationCounts = new long[maxVectors];
+		vectorTable = new Vector[maxVectors];
+		int loadCount = 0;
+		
+		for (int q=0; q < maxVectors; q++)
+			if (vectorStoreRAM.containsVector(""+q))
+				{
+					vectorTable[q] = vectorStoreRAM.getVector(""+q);
+					loadCount++;
+				}
+		
+		VerbatimLogger.info("Loaded "+loadCount+" subword vectors");
+	} 
+	
 	
 	 /**
 	  * Get the hashed key for an object. Bojanowski et al use the FNV1a hash, which may
@@ -126,6 +152,25 @@ public class CompressedVectorStoreRAM  {
 		  
 		  return outgoingNgrams;
 	  }
+	  
+	   /**
+	    * Export as VectorStoreRAM to facilitate
+	    * writing to disk
+	    * @return
+	    */
+	  public VectorStoreRAM exportVectorStoreRAM()
+	  {
+		  VectorStoreRAM vectorStore = new VectorStoreRAM(flagConfig);
+		  for (int q=0; q < vectorTable.length; q++)
+		  {
+			  if (vectorTable[q] != null)
+			  {
+				  vectorStore.putVector(""+q, vectorTable[q]);
+			  }
+		  }
+		   return vectorStore;
+	  }
+	  
 	  
 	  /**
 	   * For test purposes only

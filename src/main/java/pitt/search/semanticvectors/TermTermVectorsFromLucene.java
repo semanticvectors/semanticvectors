@@ -743,6 +743,21 @@ public class TermTermVectorsFromLucene { //implements VectorStore {
     flagConfig.setVectortype(typeA);
     }
     
+    if (flagConfig.subword_embeddings())
+    {
+        VerbatimLogger.info("Normalizing and writing subword to " + flagConfig.elementalvectorfile() + "\n");
+        VectorStoreRAM subwordEmbeddings = subwordEmbeddingVectors.exportVectorStoreRAM();
+        Enumeration<ObjectVector> h = subwordEmbeddings.getAllVectors();
+
+        if (!flagConfig.notnormalized())
+        while (h.hasMoreElements()) {
+          h.nextElement().getVector().normalize();
+        }
+        
+        VectorStoreWriter.writeVectorsInLuceneFormat("subwordembeddings"+".bin", flagConfig, subwordEmbeddings); 
+    }
+    
+    
     //write out document vectors
     if (flagConfig.encodingmethod().equals(EncodingMethod.EMBEDDINGS) && flagConfig.docindexing().equals(DocIndexingStrategy.INMEMORY))
     {
