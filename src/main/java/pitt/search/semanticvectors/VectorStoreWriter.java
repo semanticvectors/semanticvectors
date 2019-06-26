@@ -121,7 +121,8 @@ public class VectorStoreWriter {
     fsDirectory.close();
   }
 
-  private static void writeEntityMap(TreeMap<String, Long> entityMap, File file) {
+  private static void writeEntityMap(TreeMap<String, Long> entityMap, File file) throws IOException {
+    java.nio.file.Files.deleteIfExists(file.toPath());
     try (DataOutputStream os = new DataOutputStream(new FileOutputStream(file))) {
       for (Long value : entityMap.values()) {
         os.writeLong(value);

@@ -104,32 +104,37 @@ public class PSI {
 	 * Creates PSI vectors incrementally, using the fields "subject" and "object" from a Lucene index.
 	 */
 	public boolean createIncrementalPSIVectors(FlagConfig flagConfig) throws IOException {
-		PSI incrementalPSIVectors = new PSI(flagConfig);
-		incrementalPSIVectors.flagConfig = flagConfig;
-		incrementalPSIVectors.isCreationInterruptedByUser = this.isCreationInterruptedByUser;
-		incrementalPSIVectors.initialize();
+		this.flagConfig = flagConfig;
+
+		initialize();
 
 		VectorStoreWriter.writeVectors(
-				flagConfig.elementalvectorfile(), flagConfig, incrementalPSIVectors.elementalItemVectors);
+				flagConfig.elementalvectorfile(), flagConfig, elementalItemVectors);
 		VectorStoreWriter.writeVectors(
-				flagConfig.elementalpredicatevectorfile(), flagConfig, incrementalPSIVectors.elementalPredicateVectors);
+				flagConfig.elementalpredicatevectorfile(), flagConfig, elementalPredicateVectors);
 
 		VerbatimLogger.info("Performing first round of PSI training ...");
-		incrementalPSIVectors.trainIncrementalPSIVectors(0);
+		trainIncrementalPSIVectors("");
 
 		int trainingCycles = flagConfig.trainingcycles();
 
 		if (trainingCycles > 0) {
 			for (int i = 0; i < trainingCycles; i++) {
 				VerbatimLogger.info("Performing next round of PSI training ...");
-				incrementalPSIVectors.elementalItemVectors = incrementalPSIVectors.semanticItemVectors;
-				incrementalPSIVectors.elementalPredicateVectors = incrementalPSIVectors.semanticPredicateVectors;
-				incrementalPSIVectors.trainIncrementalPSIVectors(i + 1);
+				elementalItemVectors = semanticItemVectors;
+				elementalPredicateVectors = semanticPredicateVectors;
+				trainIncrementalPSIVectors(String.valueOf(trainingCycles));
 			}
 		}
 
-		incrementalPSIVectors.getStoreFile(flagConfig.semanticvectorfile() + trainingCycles).renameTo(incrementalPSIVectors.getStoreFile(flagConfig.semanticvectorfile()));
-		incrementalPSIVectors.getStoreFile(flagConfig.semanticpredicatevectorfile() + trainingCycles).renameTo(incrementalPSIVectors.getStoreFile(flagConfig.semanticpredicatevectorfile()));
+		if (trainingCycles > 0) {
+			// If there are training cycles initial vectors and entityMap files should
+			// be removed and trained files renamed in order to get better results
+			VectorStoreUtils.renameTrainedVectorsFile(flagConfig.semanticvectorfile(), flagConfig, false);
+			VectorStoreUtils.renameTrainedVectorsFile(flagConfig.semanticpredicatevectorfile(), flagConfig, false);
+			VectorStoreUtils.renameTrainedVectorsFile(flagConfig.semanticvectorfile(), flagConfig, true);
+			VectorStoreUtils.renameTrainedVectorsFile(flagConfig.semanticpredicatevectorfile(), flagConfig, true);
+		}
 
 		if (!interrupted) {
 			logger.info("Done with createIncrementalPSIVectors.");
@@ -286,7 +291,8 @@ public class PSI {
 	 *
 	 * @throws IOException
 	 */
-	private void trainIncrementalPSIVectors(int iterationTag) throws IOException {
+
+	private void trainIncrementalPSIVectors(String iterationTag) throws IOException {
 		String fieldName = PREDICATION_FIELD;
 		// Iterate through documents (each document = one predication).
 		Terms allTerms = luceneUtils.getTermsForField(fieldName);
@@ -447,11 +453,6 @@ public class PSI {
 						flagConfig.semanticpredicatevectorfile() + iterationTag, flagConfig, semanticPredicateVectors);
 			}
 
-			if (iterationTag > 1) {
-				getStoreFile(flagConfig.semanticvectorfile() + (iterationTag - 1)).delete();
-				getStoreFile(flagConfig.semanticpredicatevectorfile() + (iterationTag - 1)).delete();
-			}
-
 			VerbatimLogger.info("Finished writing this round of semantic item and predicate vectors.\n");
 		}
 	}
@@ -493,21 +494,6 @@ public class PSI {
 			semanticItemVectors.close();
 		if (semanticPredicateVectors != null)
 			semanticPredicateVectors.close();
-	}
-
-	private File getStoreFile(String fileName) {
-		String extension = "";
-
-		switch (flagConfig.indexfileformat()) {
-			case LUCENE:
-				extension = ".bin";
-				break;
-			case TEXT:
-				extension = ".txt";
-				break;
-		}
-
-		return new File(fileName + extension);
 	}
 
 	/**
