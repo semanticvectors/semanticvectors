@@ -143,6 +143,10 @@ public class BuildIndex {
 
 						IncrementalDocVectors.createIncrementalDocVectors(itermVectors, flagConfig, luceneUtils);
 					}
+					if (flagConfig.trainingcycles() > 0) {
+						VectorStoreUtils.renameTrainedVectorsFile(flagConfig.termvectorsfile(), flagConfig);
+						VectorStoreUtils.renameEntityMapVectorsFile(flagConfig.termvectorsfile(), flagConfig);
+					}
 					break;
 				case INMEMORY:
 					DocVectors docVectors = new DocVectors(termVectorIndexer.getSemanticTermVectors(), flagConfig, luceneUtils);
@@ -156,6 +160,11 @@ public class BuildIndex {
 							VectorStoreUtils.getStoreFileName(
 									flagConfig.termvectorsfile() + flagConfig.trainingcycles(), flagConfig),
 							flagConfig, termVectorIndexer.getSemanticTermVectors());
+
+					if (flagConfig.trainingcycles() > 0) {
+						VectorStoreUtils.renameTrainedVectorsFile(flagConfig.termvectorsfile(), flagConfig);
+						VectorStoreUtils.renameEntityMapVectorsFile(flagConfig.termvectorsfile(), flagConfig);
+					}
 
 					// At end of training, convert document vectors from ID keys to pathname keys.
 					VectorStore writeableDocVectors = docVectors.makeWriteableVectorStore();

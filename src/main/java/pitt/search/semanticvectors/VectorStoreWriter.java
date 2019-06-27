@@ -115,13 +115,15 @@ public class VectorStoreWriter {
     // This map exploits the fact that the keys are longs from the entity pool
     TreeMap<String, Long> entityMap = new TreeMap<>();
     writeToIndexOutput(objectVectors, flagConfig, outputStream, entityMap);
-    writeEntityMap(entityMap, new File(vectorFile.getAbsolutePath() + ".map"));
+    File mapFile = new File(vectorFile.getAbsolutePath() + ".map");
+    java.nio.file.Files.deleteIfExists(mapFile.toPath());
+    writeEntityMap(entityMap, mapFile);
 
     outputStream.close();
     fsDirectory.close();
   }
 
-  private static void writeEntityMap(TreeMap<String, Long> entityMap, File file) {
+  private static void writeEntityMap(TreeMap<String, Long> entityMap, File file) throws IOException {
     try (DataOutputStream os = new DataOutputStream(new FileOutputStream(file))) {
       for (Long value : entityMap.values()) {
         os.writeLong(value);
