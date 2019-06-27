@@ -130,10 +130,10 @@ public class PSI {
 		if (trainingCycles > 0) {
 			// If there are training cycles initial vectors and entityMap files should
 			// be removed and trained files renamed in order to get better results
-			VectorStoreUtils.renameTrainedVectorsFile(flagConfig.semanticvectorfile(), flagConfig, false);
-			VectorStoreUtils.renameTrainedVectorsFile(flagConfig.semanticpredicatevectorfile(), flagConfig, false);
-			VectorStoreUtils.renameTrainedVectorsFile(flagConfig.semanticvectorfile(), flagConfig, true);
-			VectorStoreUtils.renameTrainedVectorsFile(flagConfig.semanticpredicatevectorfile(), flagConfig, true);
+			VectorStoreUtils.renameTrainedVectorsFile(flagConfig.semanticvectorfile(), flagConfig);
+			VectorStoreUtils.renameTrainedVectorsFile(flagConfig.semanticpredicatevectorfile(), flagConfig);
+			VectorStoreUtils.renameEntityMapVectorsFile(flagConfig.semanticvectorfile(), flagConfig);
+			VectorStoreUtils.renameEntityMapVectorsFile(flagConfig.semanticpredicatevectorfile(), flagConfig);
 		}
 
 		if (!interrupted) {

@@ -74,15 +74,25 @@ public class VectorStoreUtils {
 		}
 	}
 
-	private static File getStoreFile(String fileName, FlagConfig flagConfig, boolean getEntityMapFile) {
-		String extension = "";
 
+
+	private static File getStoreFile(String fileName, FlagConfig flagConfig) {
+		return getFile(fileName, flagConfig, "");
+	}
+
+	private static File getEntityMapFile(String fileName, FlagConfig flagConfig) {
+		return getFile(fileName, flagConfig, ".map");
+	}
+
+
+	private static File getFile(String fileName, FlagConfig flagConfig, String suffix) {
+		String extension = "";
 		switch (flagConfig.indexfileformat()) {
 			case LUCENE:
-				extension = getEntityMapFile ? ".bin.map" : ".bin";
+				extension = ".bin" + suffix;
 				break;
 			case TEXT:
-				extension = getEntityMapFile ? ".txt.map" : ".txt";
+				extension = ".txt" + suffix;
 				break;
 		}
 
@@ -96,10 +106,20 @@ public class VectorStoreUtils {
 	 * @param flagConfig
 	 */
 
-	static void renameTrainedVectorsFile(String fileName, FlagConfig flagConfig, boolean renameEntityMapFile) {
-		File initialFile = getStoreFile(fileName, flagConfig, renameEntityMapFile);
+	static void renameTrainedVectorsFile(String fileName, FlagConfig flagConfig) {
+		File initialFile = getStoreFile(fileName, flagConfig);
 		if (initialFile.delete()) {
-			getStoreFile(fileName + flagConfig.trainingcycles(), flagConfig, renameEntityMapFile)
+			getStoreFile(fileName + flagConfig.trainingcycles(), flagConfig)
+					.renameTo(initialFile);
+		} else {
+			throw new PluginException("Could not delete initial file");
+		}
+	}
+
+	static void renameEntityMapVectorsFile(String fileName, FlagConfig flagConfig) {
+		File initialFile = getEntityMapFile(fileName, flagConfig);
+		if (initialFile.delete()) {
+			getEntityMapFile(fileName + flagConfig.trainingcycles(), flagConfig)
 					.renameTo(initialFile);
 		} else {
 			throw new PluginException("Could not delete initial file");
