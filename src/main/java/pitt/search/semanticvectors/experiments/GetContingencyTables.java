@@ -77,7 +77,7 @@ public class GetContingencyTables {
 			else
 			{
 				Term t1 = new Term("contents",incomingArray[0]);
-				Term t2 = new Term("contents",">"+incomingArray[1]);
+				Term t2 = new Term("contents",incomingArray[1]);
 				
 				   long startTime = System.currentTimeMillis();
 				   
