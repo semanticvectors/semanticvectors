@@ -1064,6 +1064,8 @@ private void initializeRandomizationStartpoints()
     		if (!flagConfig.notnormalized) nextVec.normalize();
     }
     
+    if (flagConfig.bindnotreleasehack())
+    {
     e = termVectors.getAllVectors();
     while (e.hasMoreElements()) {
     	
@@ -1076,7 +1078,7 @@ private void initializeRandomizationStartpoints()
     
     VectorStoreWriter.writeVectors(
             "espPerm_"+flagConfig.termvectorsfile(), flagConfig, termVectors);
-        
+    }   
    
     VectorStoreWriter.writeVectors(
         flagConfig.semanticvectorfile(), flagConfig, semanticItemVectors);
