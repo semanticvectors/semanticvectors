@@ -135,7 +135,7 @@ public class ESPperm {
     random = new Random();
     incrementalESPVectors.flagConfig = flagConfig;
     incrementalESPVectors.initialize();
-    incrementalESPVectors.initializeTerms();
+    if (flagConfig.bindnotreleasehack()) incrementalESPVectors.initializeTerms();
     VerbatimLogger.info("Performing first round of ESP training ...");
     incrementalESPVectors.trainIncrementalESPVectors();
 
@@ -470,8 +470,7 @@ public class ESPperm {
         VerbatimLogger.info("Selected for subsampling: " + subsamplingProbabilities.size() + " terms.\n");
     } 
     
-    if (flagConfig.bindnotreleasehack()) initializeTerms();
-    
+     
   }
 
   /**
