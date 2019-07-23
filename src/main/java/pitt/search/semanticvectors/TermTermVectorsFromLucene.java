@@ -419,7 +419,7 @@ public class TermTermVectorsFromLucene { //implements VectorStore {
 	    for (int i = -2; i >= -1*flagConfig.windowradius();  --i) {
 	      
 	    	
-	    			int[] toAdd = PermutationUtils.getSwapPermutation(flagConfig.vectortype(), ((PermutationVector) permutationCache.getVector(""+i+1)).getCoordinates(), .25);
+	    			int[] toAdd = PermutationUtils.getSwapPermutation(flagConfig.vectortype(), ((PermutationVector) permutationCache.getVector(""+(i+1))).getCoordinates(), .25);
 	    			
 	    		  	permutationCache.putVector(""+i, new PermutationVector(toAdd));
 	    		    permutationCache.putVector("_"+i, new PermutationVector(PermutationUtils.getInversePermutation(toAdd)));
