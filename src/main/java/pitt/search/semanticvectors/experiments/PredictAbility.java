@@ -109,13 +109,14 @@ public class PredictAbility {
 		
 		BufferedReader theReader = new BufferedReader(new FileReader(new File(theFile)));
 		
-		VectorStoreRAM permutationCache = new VectorStoreRAM(flagConfig);
+		VectorStoreRAM permutationCache = null;
 		boolean doPermute = false;
 		
 		//If this is an EARP model, load the permutations into memory
-		if (!flagConfig.permutationcachefile().isEmpty() && !flagConfig.positionalmethod().equals(PositionalMethod.BASIC))
+		if (!flagConfig.positionalmethod().equals(PositionalMethod.BASIC) && !flagConfig.permutationcachefile().isEmpty())
 		{
 			VectorType originalVectorType = flagConfig.vectortype();
+			permutationCache=new VectorStoreRAM(flagConfig);
 			permutationCache.initFromFile(flagConfig.permutationcachefile());
 			doPermute = true; 
 			flagConfig.setVectortype(originalVectorType);			
@@ -152,12 +153,6 @@ public class PredictAbility {
 		String nextLine = theReader.readLine();
 		String allTerms = "";
 		
-		//collapse file into a string, removing all non-alphabet characters (except ')
-		while (nextLine != null)
-		{
-			allTerms=allTerms.concat((nextLine.replaceAll("[^a-z']", " ")+" "));
-			nextLine = theReader.readLine();
-		}
 		
 		ArrayList<String> focusTerms = new ArrayList<String>();
 		Hashtable<String,Double> termPerplexities = new Hashtable<String,Double>();
@@ -168,23 +163,33 @@ public class PredictAbility {
 		
 		double logProbability  = 0; //capture sum of log probability of observed word pairs
 		double allCountz = 0; //count the number of observed word pairs
+		int lineCount=0;
 		
-		String[] terms = allTerms.split(" +"); //tokenize on any number of spaces
-		
-		for (int q=0; q < terms.length; q++) //move sliding window through the terms
-			{
-				int windowStart = Math.max(0, q-flagConfig.windowradius());
-				int windowEnd  =  Math.min(terms.length-1, q+flagConfig.windowradius());
+		//collapse line into a string, removing all non-alphabet characters (except ')
+		while (nextLine != null)
+		{
+			lineCount++;
+			double localLogProbability  = 0; //capture sum of log probability of observed word pairs
+			
+			allTerms=nextLine.replaceAll("[^a-z']", " ")+" ";
+			String[] terms = allTerms.split(" +"); //tokenize on any number of spaces
+			double windowProbabilities = 0;
+			double windowCount = 0; //keep track of number windows processed
+			
+			for (int q=0; q < terms.length; q++) //move sliding window through the terms
+				{
+					int windowStart = Math.max(0, q-flagConfig.windowradius());
+					int windowEnd  =  Math.min(terms.length-1, q+flagConfig.windowradius());
 			  
-				String focusTerm = terms[q]; //the center of the sliding window
+					String focusTerm = terms[q]; //the center of the sliding window
 			  
-				double localErrors = 0; //keep track of local (window-level) error
-				double localCounts = 0; //keep track of local (window-level) counts
-				double localProbs  = 1; //keep track of product of local probabilities
+					double localErrors = 0; //keep track of windows with some predictions
+					double localCounts = 0; //keep track of local (window-level) counts
+					double localProbs  = 1; //keep track of product of local probabilities
 			  
-				Vector focusTermVector = null;
+					Vector focusTermVector = null;
 				
-				if (!flagConfig.subword_embeddings())
+					if (!flagConfig.subword_embeddings())
 					{
 						if (semanticVectors.containsVector(focusTerm)) 
 						focusTermVector = semanticVectors.getVector(focusTerm);
@@ -193,20 +198,19 @@ public class PredictAbility {
 				
 		
 				
-			  if (focusTermVector != null && !focusTermVector.isZeroVector()) //skip words that were not found in the training corpus unless subword embeddings are used
-			  {
+					if (focusTermVector != null && !focusTermVector.isZeroVector()) //skip words that were not found in the training corpus unless subword embeddings are used
+					{
 				
-				  //keep track of per-term statistics - may be of interest for clustering downstream
-				  if (!termPerplexities.containsKey(focusTerm))
-				  {
-					  termPerplexities.put(focusTerm, new Double(0));
-					  allCounts.put(focusTerm, new Integer(0));
-				  }
+						//keep track of per-term statistics - may be of interest for clustering downstream
+						if (!termPerplexities.containsKey(focusTerm))
+						{
+							termPerplexities.put(focusTerm, new Double(0));
+							allCounts.put(focusTerm, new Integer(0));
+						}
 				
-				  int[] permutation = null;
+						int[] permutation = null;
 				  
-				  String window = ""; //reconstruct the sliding window as text, as this may be interesting to look at later
-				  
+						String window = ""; //reconstruct the sliding window as text, as this may be interesting to look at later
 				  //process a sliding window
 				  for (int cursor=windowStart;  cursor <= windowEnd; cursor++)
 				  	{
@@ -238,13 +242,12 @@ public class PredictAbility {
 					    {
 					    	//a relic - initial experiments used mean squared error instead of perplexity
 					    	double error =  Math.pow(2,1-sigmoidTable.sigmoid(VectorUtils.scalarProduct(focusTermVector,contextVectors.getVector(contextTerm), flagConfig, blas,permutation))); 
-					    
-					    	double pWord = sigmoidTable.sigmoid(VectorUtils.scalarProduct(focusTermVector,contextVectors.getVector(contextTerm), flagConfig, blas,permutation)); 
+					    double pWord = sigmoidTable.sigmoid(VectorUtils.scalarProduct(focusTermVector,contextVectors.getVector(contextTerm), flagConfig, blas,permutation)); 
 					    	
 					    	if (pWord > 0) 
 					    	{
 					    		//global stats
-					    	    logProbability += Math.log(pWord)/Math.log(2);   //not exactly perplexity, but no underflow errors which is nice
+					    	    localLogProbability += Math.log(pWord)/Math.log(2);   //not exactly perplexity, but no underflow errors which is nice
 					    		allCountz++;
 						    		
 					    		//local stats
@@ -264,10 +267,11 @@ public class PredictAbility {
 					    	
 					    	}
 					    }
-				  	}
+				  	} //end current sliding window position
 				  
 		      if (localCounts > 0) //i.e. some non-zero predictions occurred
 		      {
+		    	     windowCount++;
 		    	  	//window-level perplexity
 		    	  	double localPerplexity = Math.pow(localProbs, -1/ (double) localCounts);	   
 		    	  	
@@ -283,15 +287,28 @@ public class PredictAbility {
 		    	  	//if the -bindnotreleasehack flag is used, output the window-level perplexity
 			  if (flagConfig.bindnotreleasehack()) 
 				  System.out.println("-E-\t"+(localPerplexity)+"\t"+window);
-			  }
 			  
-			  }
-			}
+			  //average log prob for sliding window
+				windowProbabilities += localLogProbability / (double) localCounts; 
+			
+		      } //end counts > 0 condition
+			  
+		   
+		      
+			  } //end focus term exists condition
+					
+				if (windowCount > 0)	
+					logProbability += windowProbabilities / (double) windowCount; 
+					
+				} //end current line
 		
+			
+		nextLine = theReader.readLine();
 		
+		}
 		theReader.close();
 		System.out.print("\n"+theFile+"_perplexity\t");
-		System.out.println(-logProbability / (double) allCountz); //average -log(probabity) for all term/context pairs in the file
+		System.out.println(-logProbability / (double) lineCount); //average -log(probability) for all term/context pairs in the file
 		
 		//untested - if bindnotreleasehack, output term level perplexities
 		if (flagConfig.bindnotreleasehack())
