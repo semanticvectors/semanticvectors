@@ -290,8 +290,8 @@ public class PredictAbility {
 			  if (flagConfig.bindnotreleasehack()) 
 				  System.out.println("-E-\t"+(localPerplexity)+"\t"+window);
 			  
-			  //average log prob for sliding window
-				windowProbabilities += localLogProbability / (double) localCounts; 
+			  //sum log prob for sliding window
+				windowProbabilities += localLogProbability; 
 			
 		      } //end counts > 0 condition
 			  
@@ -300,7 +300,7 @@ public class PredictAbility {
 			  } //end focus term exists condition
 					
 				if (windowCount > 0)	
-					logProbability += windowProbabilities / (double) windowCount; 
+					logProbability += windowProbabilities; //sum log probs (double) windowCount; 
 					
 				} //end current line
 		
@@ -310,7 +310,7 @@ public class PredictAbility {
 		}
 		theReader.close();
 		System.out.print("\n"+theFile+"_perplexity\t");
-		System.out.println(-logProbability / (double) lineCount); //average -log(probability) for all term/context pairs in the file
+		System.out.println(-logProbability / allCountz); //average -log(probability) for all term/context pairs in the file
 		
 		//untested - if bindnotreleasehack, output term level perplexities
 		if (flagConfig.bindnotreleasehack())
