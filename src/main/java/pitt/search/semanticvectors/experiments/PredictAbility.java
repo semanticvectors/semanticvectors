@@ -173,11 +173,12 @@ public class PredictAbility {
 			
 			allTerms=nextLine.replaceAll("[^a-z']", " ")+" ";
 			String[] terms = allTerms.split(" +"); //tokenize on any number of spaces
-			double windowProbabilities = 0;
 			double windowCount = 0; //keep track of number windows processed
 			
 			for (int q=0; q < terms.length; q++) //move sliding window through the terms
 				{
+					double windowProbabilities = 0;
+				
 					int windowStart = Math.max(0, q-flagConfig.windowradius());
 					int windowEnd  =  Math.min(terms.length-1, q+flagConfig.windowradius());
 			  
@@ -236,7 +237,8 @@ public class PredictAbility {
 					   { nextPos = "" + (int) Math.signum(cursor-q);}
 					   
 					   //get the relevant permutation if this is an EARP model (otherwise leave permutation as null)
-					   if (doPermute) permutation = ((PermutationVector) permutationCache.getVector(nextPos)).getCoordinates();
+					   if (doPermute) permutation = ((PermutationVector) permutationCache.getVector(nextPos).copy()).getCoordinates();
+					   
 					   
 					    if (contextVectors.containsVector(contextTerm) &&  ! contextVectors.getVector(contextTerm).isZeroVector())
 					    {
