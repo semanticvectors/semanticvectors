@@ -71,14 +71,8 @@ public class PredictAbility {
 		String nextLine = theReader.readLine();
 		String allTerms = "";
 		
-		//collapse file into a string, removing all non-alphabet characters (except ')
-		while (nextLine != null)
-		{
-			allTerms=allTerms.concat((nextLine.replaceAll("[^a-z']", " ")+" "));
-			nextLine = theReader.readLine();
-		}
-		
-		
+		double allLogProbs=0;
+		double linesProcessed=0;
 		ArrayList<String> focusTerms = new ArrayList<String>();
 		Hashtable<String,Double> termPerplexities = new Hashtable<String,Double>();
 		Hashtable<String,Integer> allCounts = new Hashtable<String,Integer>();
@@ -89,6 +83,14 @@ public class PredictAbility {
 		double logProbability  = 0; //capture sum of log probability of observed word pairs
 		double allCountz = 0; //count the number of observed word pairs
 		
+		//collapse file into a string, removing all non-alphabet characters (except ')
+		while (nextLine != null)
+		{
+			allTerms=nextLine.replaceAll("[^a-z']", " ")+" ";
+			double lineLogProb = 0;
+			double lineCounts  = 0;
+		
+	
 		String[] terms = allTerms.split(" +"); //tokenize on any number of spaces
 		
 		for (int q=0; q < terms.length; q++) //move sliding window through the terms
@@ -153,6 +155,8 @@ public class PredictAbility {
 					    	{
 					    		//global stats
 					    	    logProbability += Math.log(pWord)/Math.log(2);   //not exactly perplexity, but no underflow errors which is nice
+					    		lineLogProb += Math.log(pWord)/Math.log(2);
+					    	    lineCounts++;
 					    		allCountz++;
 						    		
 					    		//local stats
@@ -162,7 +166,7 @@ public class PredictAbility {
 					    
 					    	}
 					    }
-				  	}
+				  	} //end current sliding window
 				  
 		      if (localCounts > 0) //i.e. some non-zero predictions occurred
 		      {
@@ -181,16 +185,21 @@ public class PredictAbility {
 		    	  	//if the -bindnotreleasehack flag is used, output the window-level perplexity
 			  if (flagConfig.bindnotreleasehack()) 
 				  System.out.println("-E-\t"+(localPerplexity)+"\t"+window);
-			  }
+			  } //end localcounts > 0 condition
 			  
-			  }
+			  } //end focus term exists condition
+			} //end sliding windows for line
+				allLogProbs+= lineLogProb;
+				linesProcessed++;
+				nextLine = theReader.readLine();
 			}
-		
 		
 		theReader.close();
 		System.out.print("\n"+theFile+"_perplexity\t");
-		System.out.println(-logProbability / (double) allCountz); //average -log(probabity) for all term/context pairs in the file
+		//System.out.println(-logProbability / (double) allCountz); //average -log(probabity) for all term/context pairs in the file
+		System.out.println(-allLogProbs / (double) linesProcessed); //average -log(probabity) for all term/context pairs in the file
 		
+
 		//untested - if bindnotreleasehack, output term level perplexities
 		if (flagConfig.bindnotreleasehack())
 		{
