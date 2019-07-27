@@ -196,8 +196,8 @@ public class PredictAbility {
 		
 		theReader.close();
 		System.out.print("\n"+theFile+"_perplexity\t");
-		//System.out.println(-logProbability / (double) allCountz); //average -log(probabity) for all term/context pairs in the file
-		System.out.println(-allLogProbs / (double) linesProcessed); //average -log(probabity) for all term/context pairs in the file
+		System.out.println(-logProbability / (double) allCountz); //average -log(probabity) for all term/context pairs in the file
+		//System.out.println(-allLogProbs / (double) linesProcessed); //average -log(probabity) for all term/context pairs in the file
 		
 
 		//untested - if bindnotreleasehack, output term level perplexities
