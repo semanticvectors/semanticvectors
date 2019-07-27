@@ -189,7 +189,7 @@ public class PredictAbility {
 			  
 			  } //end focus term exists condition
 			} //end sliding windows for line
-				allLogProbs+= lineLogProb;
+				allLogProbs+= lineLogProb / (double) lineCounts;
 				linesProcessed++;
 				nextLine = theReader.readLine();
 			}
