@@ -16,6 +16,7 @@ import pitt.search.semanticvectors.ObjectVector;
 import pitt.search.semanticvectors.TermTermVectorsFromLucene.PositionalMethod;
 import pitt.search.semanticvectors.VectorStoreRAM;
 import pitt.search.semanticvectors.utils.SigmoidTable;
+import pitt.search.semanticvectors.utils.VerbatimLogger;
 import pitt.search.semanticvectors.vectors.PermutationVector;
 import pitt.search.semanticvectors.vectors.VectorType;
 import pitt.search.semanticvectors.vectors.VectorUtils;
@@ -132,16 +133,27 @@ public class PredictAbility {
 					   window += contextTerm+" ";
 					   
 					   //work out the position relative to the focus term for permutation-based models
-					   String nextPos = ""+(cursor-q);
-					   
-					   //for the "directional" model - is this before or after the focus term?
-					   if (flagConfig.positionalmethod().equals(PositionalMethod.DIRECTIONAL))
-					   { nextPos = "" + (int) Math.signum(cursor-q);}
-					   
-					   //get the relevant permutation if this is an EARP model (otherwise leave permutation as null)
-					   if (doPermute) permutation = ((PermutationVector) permutationCache.getVector(nextPos)).getCoordinates();
-					   
-					    if (contextVectors.containsVector(contextTerm) &&  ! contextVectors.getVector(contextTerm).isZeroVector())
+					   int desiredPermutation = cursor-q;
+					   if (flagConfig.positionalmethod().equals(PositionalMethod.PERMUTATION) || flagConfig.positionalmethod().equals(PositionalMethod.PROXIMITY)) 
+					     {
+				    	    		permutation =  ((PermutationVector) permutationCache.getVector(""+desiredPermutation)).getCoordinates();
+				    	        if (permutation == null) 
+				    	        {
+				    	        	VerbatimLogger.info("Fatal error: null permutation for "+desiredPermutation);
+				    	        System.exit(0);
+				    	        }
+				         } 
+					     else if (flagConfig.positionalmethod().equals(PositionalMethod.DIRECTIONAL)) 
+					     {
+				            	permutation =  ((PermutationVector) permutationCache.getVector(""+(int) Math.signum(desiredPermutation))).getCoordinates();
+				            	  if (permutation == null) 
+					    	        {
+					    	        	VerbatimLogger.info("Fatal error: null permutation for "+(int) Math.signum(desiredPermutation));
+					    	        System.exit(0);
+					    	        }
+					     }
+				      
+					   if (contextVectors.containsVector(contextTerm) &&  ! contextVectors.getVector(contextTerm).isZeroVector())
 					    {
 					    	//a relic - initial experiments used mean squared error instead of perplexity
 					    	double error =  Math.pow(2,1-sigmoidTable.sigmoid(VectorUtils.scalarProduct(semanticVectors.getVector(focusTerm),contextVectors.getVector(contextTerm), flagConfig, blas,permutation))); 
