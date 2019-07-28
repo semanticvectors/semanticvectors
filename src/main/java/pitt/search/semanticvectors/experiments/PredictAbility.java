@@ -168,6 +168,10 @@ public class PredictAbility {
 						    	localProbs *= pWord;
 						    	localErrors +=	error;
 						    	localCounts++;
+						    	
+							  	//add to log probability for score for transcript
+					    	  	logProbability += Math.log(pWord)/Math.log(2);   //not exactly perplexity, but no underflow errors which is nice
+					    		allCountz++; 
 					    
 					    	}
 					    }
@@ -183,9 +187,7 @@ public class PredictAbility {
 		    	  	//window-level perplexity
 		    	  	double localPerplexity = Math.pow(localProbs, -1/ (double) localCounts);	   
 		    	  	
-		    	  	//add to log probability for score for transcript
-		    	  	logProbability += Math.log(localProbs)/Math.log(2);   //not exactly perplexity, but no underflow errors which is nice
-		    		allCountz++; 
+		    
 		    		//count number of sliding windows - score = sum(-log(p)) / num_windows
 			    
 		    	  	//term-level perplexity (for downstream analysis) - average of all window-level perplexities for term
