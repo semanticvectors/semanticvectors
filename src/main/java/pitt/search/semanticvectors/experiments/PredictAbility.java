@@ -87,10 +87,7 @@ public class PredictAbility {
 		while (nextLine != null)
 		{
 			allTerms=nextLine.replaceAll("[^a-z']", " ")+" ";
-			double lineLogProb = 0;
-			double lineCounts  = 0;
-		
-	
+			
 		String[] terms = allTerms.split(" +"); //tokenize on any number of spaces
 		
 		for (int q=0; q < terms.length; q++) //move sliding window through the terms
@@ -154,11 +151,7 @@ public class PredictAbility {
 					    	if (pWord > 0) //todo: find the source of the zero probabilities 
 					    	{
 					    		//global stats
-					    	    logProbability += Math.log(pWord)/Math.log(2);   //not exactly perplexity, but no underflow errors which is nice
-					    		lineLogProb += Math.log(pWord)/Math.log(2);
-					    	    lineCounts++;
-					    		allCountz++;
-						    		
+					    	    		
 					    		//local stats
 						    	localProbs *= pWord;
 						    	localErrors +=	error;
@@ -166,13 +159,23 @@ public class PredictAbility {
 					    
 					    	}
 					    }
+					    
 				  	} //end current sliding window
 				  
 		      if (localCounts > 0) //i.e. some non-zero predictions occurred
 		      {
+		    	  	
+				
+		    	  
+		    	  
 		    	  	//window-level perplexity
 		    	  	double localPerplexity = Math.pow(localProbs, -1/ (double) localCounts);	   
 		    	  	
+		    	  	//add to log probability for score for transcript
+		    	  	logProbability += Math.log(localProbs)/Math.log(2);   //not exactly perplexity, but no underflow errors which is nice
+		    		allCountz++; 
+		    		//count number of sliding windows - score = sum(-log(p)) / num_windows
+			    
 		    	  	//term-level perplexity (for downstream analysis) - average of all window-level perplexities for term
 		    	  	if (!focusTerms.contains(focusTerm)) focusTerms.add(focusTerm);
 		    	  	double prior = termPerplexities.get(focusTerm);
@@ -189,8 +192,6 @@ public class PredictAbility {
 			  
 			  } //end focus term exists condition
 			} //end sliding windows for line
-				allLogProbs+= lineLogProb / (double) lineCounts;
-				linesProcessed++;
 				nextLine = theReader.readLine();
 			}
 		
