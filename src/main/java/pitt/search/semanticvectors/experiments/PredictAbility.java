@@ -16,7 +16,6 @@ import pitt.search.semanticvectors.ObjectVector;
 import pitt.search.semanticvectors.TermTermVectorsFromLucene.PositionalMethod;
 import pitt.search.semanticvectors.VectorStoreRAM;
 import pitt.search.semanticvectors.utils.SigmoidTable;
-import pitt.search.semanticvectors.utils.VerbatimLogger;
 import pitt.search.semanticvectors.vectors.PermutationVector;
 import pitt.search.semanticvectors.vectors.VectorType;
 import pitt.search.semanticvectors.vectors.VectorUtils;
@@ -72,8 +71,14 @@ public class PredictAbility {
 		String nextLine = theReader.readLine();
 		String allTerms = "";
 		
-		double allLogProbs=0;
-		double linesProcessed=0;
+		//collapse file into a string, removing all non-alphabet characters (except ')
+		while (nextLine != null)
+		{
+			allTerms=allTerms.concat((nextLine.replaceAll("[^a-z']", " ")+" "));
+			nextLine = theReader.readLine();
+		}
+		
+		
 		ArrayList<String> focusTerms = new ArrayList<String>();
 		Hashtable<String,Double> termPerplexities = new Hashtable<String,Double>();
 		Hashtable<String,Integer> allCounts = new Hashtable<String,Integer>();
@@ -84,11 +89,6 @@ public class PredictAbility {
 		double logProbability  = 0; //capture sum of log probability of observed word pairs
 		double allCountz = 0; //count the number of observed word pairs
 		
-		//collapse file into a string, removing all non-alphabet characters (except ')
-		while (nextLine != null)
-		{
-			allTerms=nextLine.replaceAll("[^a-z']", " ")+" ";
-			
 		String[] terms = allTerms.split(" +"); //tokenize on any number of spaces
 		
 		for (int q=0; q < terms.length; q++) //move sliding window through the terms
@@ -133,27 +133,26 @@ public class PredictAbility {
 					   window += contextTerm+" ";
 					   
 					   //work out the position relative to the focus term for permutation-based models
-					   int desiredPermutation = cursor-q;
-					   if (flagConfig.positionalmethod().equals(PositionalMethod.PERMUTATION) || flagConfig.positionalmethod().equals(PositionalMethod.PROXIMITY)) 
-					     {
-				    	    		permutation =  ((PermutationVector) permutationCache.getVector(""+desiredPermutation)).getCoordinates();
-				    	        if (permutation == null) 
-				    	        {
-				    	        	VerbatimLogger.info("Fatal error: null permutation for "+desiredPermutation);
-				    	        System.exit(0);
-				    	        }
-				         } 
-					     else if (flagConfig.positionalmethod().equals(PositionalMethod.DIRECTIONAL)) 
-					     {
-				            	permutation =  ((PermutationVector) permutationCache.getVector(""+(int) Math.signum(desiredPermutation))).getCoordinates();
-				            	  if (permutation == null) 
-					    	        {
-					    	        	VerbatimLogger.info("Fatal error: null permutation for "+(int) Math.signum(desiredPermutation));
-					    	        System.exit(0);
-					    	        }
-					     }
-				      
-					   if (contextVectors.containsVector(contextTerm) &&  ! contextVectors.getVector(contextTerm).isZeroVector())
+					   String nextPos = ""+(cursor-q);
+					   
+					   //for the "directional" model - is this before or after the focus term?
+					   if (flagConfig.positionalmethod().equals(PositionalMethod.DIRECTIONAL))
+					   { nextPos = "" + (int) Math.signum(cursor-q);}
+					   
+					   //get the relevant permutation if this is an EARP model (otherwise leave permutation as null)
+					   if (doPermute) 
+						   {
+						   
+						   	permutation = ((PermutationVector) permutationCache.getVector(nextPos)).getCoordinates();
+						    if (permutation == null) 
+						    	{   //ensure permutations retrieved as intended
+ 						    		System.out.println("Fatal error: null permutation for "+nextPos);
+						    		System.exit(0);
+						    	}
+			    	        }
+						   
+					   
+					    if (contextVectors.containsVector(contextTerm) &&  ! contextVectors.getVector(contextTerm).isZeroVector())
 					    {
 					    	//a relic - initial experiments used mean squared error instead of perplexity
 					    	double error =  Math.pow(2,1-sigmoidTable.sigmoid(VectorUtils.scalarProduct(semanticVectors.getVector(focusTerm),contextVectors.getVector(contextTerm), flagConfig, blas,permutation))); 
@@ -163,33 +162,23 @@ public class PredictAbility {
 					    	if (pWord > 0) //todo: find the source of the zero probabilities 
 					    	{
 					    		//global stats
-					    	    		
+					    	    logProbability += Math.log(pWord)/Math.log(2);   //not exactly perplexity, but no underflow errors which is nice
+					    		allCountz++;
+						    		
 					    		//local stats
 						    	localProbs *= pWord;
 						    	localErrors +=	error;
 						    	localCounts++;
-						    	
-							  	//add to log probability for score for transcript
-					    	  	logProbability += Math.log(pWord)/Math.log(2);   //not exactly perplexity, but no underflow errors which is nice
-					    		allCountz++; 
 					    
 					    	}
 					    }
-					    
-				  	} //end current sliding window
+				  	}
 				  
 		      if (localCounts > 0) //i.e. some non-zero predictions occurred
 		      {
-		    	  	
-				
-		    	  
-		    	  
 		    	  	//window-level perplexity
 		    	  	double localPerplexity = Math.pow(localProbs, -1/ (double) localCounts);	   
 		    	  	
-		    
-		    		//count number of sliding windows - score = sum(-log(p)) / num_windows
-			    
 		    	  	//term-level perplexity (for downstream analysis) - average of all window-level perplexities for term
 		    	  	if (!focusTerms.contains(focusTerm)) focusTerms.add(focusTerm);
 		    	  	double prior = termPerplexities.get(focusTerm);
@@ -202,19 +191,16 @@ public class PredictAbility {
 		    	  	//if the -bindnotreleasehack flag is used, output the window-level perplexity
 			  if (flagConfig.bindnotreleasehack()) 
 				  System.out.println("-E-\t"+(localPerplexity)+"\t"+window);
-			  } //end localcounts > 0 condition
+			  }
 			  
-			  } //end focus term exists condition
-			} //end sliding windows for line
-				nextLine = theReader.readLine();
+			  }
 			}
+		
 		
 		theReader.close();
 		System.out.print("\n"+theFile+"_perplexity\t");
 		System.out.println(-logProbability / (double) allCountz); //average -log(probabity) for all term/context pairs in the file
-		//System.out.println(-allLogProbs / (double) linesProcessed); //average -log(probabity) for all term/context pairs in the file
 		
-
 		//untested - if bindnotreleasehack, output term level perplexities
 		if (flagConfig.bindnotreleasehack())
 		{
