@@ -740,7 +740,7 @@ public class FlagConfig {
 	private List<String> stopWordsList = new ArrayList<>();
 
 	/**
-	 * List of stop words, which will be used from LuceneUtils.
+	 * List of stop words, which will be used from LuceneUtils later.
 	 */
 	public List<String> stopWordsList() {
 		return stopWordsList;
