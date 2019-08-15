@@ -116,8 +116,8 @@ public class LuceneUtils {
     this.leafReader = SlowCompositeReaderWrapper.wrap(compositeReader);
     MultiFields.getFields(compositeReader);
     this.flagConfig = flagConfig;
-    if (!flagConfig.stoplistfile().isEmpty())
-      loadStopWords(flagConfig.stoplistfile());
+    if (!flagConfig.stopWordsList().isEmpty())
+      loadStopWords(flagConfig.stopWordsList());
 
     if (!flagConfig.startlistfile().isEmpty())
       loadStartWords(flagConfig.startlistfile());
@@ -127,24 +127,12 @@ public class LuceneUtils {
   }
 
   /**
-   * Loads the stopword file into the {@link #stopwords} data structure.
-   * @param stoppath Path to stopword file.
-   * @throws IOException If stopword file cannot be read.
+   * Loads the stop words list into the {@link #stopwords} data structure.
+   * @param stopWordsList List provided from graphdb similarity plugin.
    */
-  public void loadStopWords(String stoppath) throws IOException {
-    logger.info("Using stopword file: " + stoppath);
+  public void loadStopWords(List<String> stopWordsList) {
     stopwords = new TreeSet<String>();
-    try {
-      BufferedReader readIn = new BufferedReader(new FileReader(stoppath));
-      String in = readIn.readLine();
-      while (in != null) {
-        stopwords.add(in);
-        in = readIn.readLine();
-      }
-      readIn.close();
-    } catch (IOException e) {
-      throw new IOException("Couldn't open file " + stoppath);
-    }
+    stopwords.addAll(stopWordsList);
   }
 
   /**
@@ -301,7 +289,7 @@ public class LuceneUtils {
    * {@link FlagConfig#termweight()}.
    *
    * Used in indexing. Used in query weighting if
-   * {@link FlagConfig#usetermweightsintermsearch} is true.
+   * {@link FlagConfig#} is true.
    *
    * @param term whose frequency you want
    * @return Global term weight, or 1 if unavailable.
