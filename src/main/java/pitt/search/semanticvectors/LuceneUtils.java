@@ -118,7 +118,7 @@ public class LuceneUtils {
     this.flagConfig = flagConfig;
     if (!flagConfig.stopWordsList().isEmpty()) {
       loadStopWords(flagConfig.stopWordsList());
-    } else {
+    } else if (!flagConfig.stoplistfile().isEmpty()) {
       loadStopWords(flagConfig.stoplistfile());
     }
 
