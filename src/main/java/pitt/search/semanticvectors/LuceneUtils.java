@@ -116,14 +116,38 @@ public class LuceneUtils {
     this.leafReader = SlowCompositeReaderWrapper.wrap(compositeReader);
     MultiFields.getFields(compositeReader);
     this.flagConfig = flagConfig;
-    if (!flagConfig.stopWordsList().isEmpty())
+    if (!flagConfig.stopWordsList().isEmpty()) {
       loadStopWords(flagConfig.stopWordsList());
+    } else {
+      loadStopWords(flagConfig.stoplistfile());
+    }
 
     if (!flagConfig.startlistfile().isEmpty())
       loadStartWords(flagConfig.startlistfile());
 
     VerbatimLogger.info("Initialized LuceneUtils from Lucene index in directory: " + flagConfig.luceneindexpath() + "\n");
     VerbatimLogger.info("Fields in index are: " + String.join(", ", this.getFieldNames()) + "\n");
+  }
+
+  /**
+   * Loads the stopword file into the {@link #stopwords} data structure.
+   * @param stoppath Path to stopword file.
+   * @throws IOException If stopword file cannot be read.
+   */
+  public void loadStopWords(String stoppath) throws IOException {
+    logger.info("Using stopword file: " + stoppath);
+    stopwords = new TreeSet<String>();
+    try {
+      BufferedReader readIn = new BufferedReader(new FileReader(stoppath));
+      String in = readIn.readLine();
+      while (in != null) {
+        stopwords.add(in);
+        in = readIn.readLine();
+      }
+      readIn.close();
+    } catch (IOException e) {
+      throw new IOException("Couldn't open file " + stoppath);
+    }
   }
 
   /**

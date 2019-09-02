@@ -739,6 +739,14 @@ public class FlagConfig {
 
 	private List<String> stopWordsList = new ArrayList<>();
 
+	private String stoplistfile = "";
+	/**
+	 * Path to file containing stopwords, one word per line, no default value.
+	 */
+	public String stoplistfile() {
+		return stoplistfile;
+	}
+
 	/**
 	 * List of stop words, which will be used from LuceneUtils later.
 	 */
