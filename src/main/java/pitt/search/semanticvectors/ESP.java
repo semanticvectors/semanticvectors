@@ -56,9 +56,13 @@ import pitt.search.semanticvectors.vectors.VectorFactory;
 import pitt.search.semanticvectors.vectors.VectorType;
 import pitt.search.semanticvectors.vectors.VectorUtils;
 
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.FileSystems;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Enumeration;
@@ -818,9 +822,16 @@ private void initializeRandomizationStartpoints()
    * Main method for building ESP indexes.
    */
   public static void main(String[] args) throws IllegalArgumentException, IOException {
-    FlagConfig flagConfig = FlagConfig.getFlagConfig(args);
+    
+	String logString = "";
+	for (String argument : args)
+			logString = logString + argument+" ";  
+	    
+	FlagConfig flagConfig = FlagConfig.getFlagConfig(args);
     args = flagConfig.remainingArgs;
 
+    
+    
     if (flagConfig.luceneindexpath().isEmpty()) {
       throw (new IllegalArgumentException("-luceneindexpath argument must be provided."));
     }
@@ -831,6 +842,15 @@ private void initializeRandomizationStartpoints()
     VerbatimLogger.info("Number non-alphabet characters = " + flagConfig.maxnonalphabetchars() + "\n");
 
     createIncrementalESPVectors(flagConfig);
+    DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");  
+	LocalDateTime now = LocalDateTime.now();  
+	  
+	String fileName = "log_"+now+".txt";
+	BufferedWriter logWriter = new BufferedWriter(new FileWriter(fileName));
+	logWriter.write(logString+"\n");  
+	logWriter.flush();
+	logWriter.close();
+    
   }
 }
 
