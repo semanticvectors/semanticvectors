@@ -50,7 +50,9 @@ import pitt.search.semanticvectors.vectors.RealVector.RealBindMethod;
 import pitt.search.semanticvectors.vectors.VectorType;
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.logging.Logger;
 
 /**
@@ -735,13 +737,21 @@ public class FlagConfig {
 		return initial_alpha;
 	}
 
-	private String stoplistfile = "";
+	private List<String> stopWordsList = new ArrayList<>();
 
+	private String stoplistfile = "";
 	/**
 	 * Path to file containing stopwords, one word per line, no default value.
 	 */
 	public String stoplistfile() {
 		return stoplistfile;
+	}
+
+	/**
+	 * List of stop words, which will be used from LuceneUtils later.
+	 */
+	public List<String> stopWordsList() {
+		return stopWordsList;
 	}
 
 	private String startlistfile = "";

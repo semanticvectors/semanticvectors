@@ -339,7 +339,8 @@ public class Search {
 		try {
 			switch (flagConfig.searchtype()) {
 				case SUM:
-					if (boostedTerms != null) {
+					// If there aren't boosted terms we just process empty map
+					if (boostedTerms != null && !boostedTerms.isEmpty()) {
 						Instant start = Instant.now();
 						Vector qv = CompoundVectorBuilder.getQueryVector(queryVecReader, luceneUtils, flagConfig, queryArgs, (term) -> {
 							Float boostFactor = boostedTerms.get(term);
