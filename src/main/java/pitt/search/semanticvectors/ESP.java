@@ -407,7 +407,7 @@ public double shiftAway(Vector v1, Vector v2, FlagConfig flagConfig, BLAS blas)
 	else
 		 loss = -100*Math.max(VectorUtils.scalarProduct(v1, v2, flagConfig, blas),0);
 		
-	if (loss > 0) raw_loss.add(loss);
+	raw_loss.add(Math.abs(loss));
 	return loss;
 }
 
@@ -431,7 +431,7 @@ public double shiftToward(Vector v1, Vector v2, FlagConfig flagConfig, BLAS blas
 		else
 			 loss = 100-100*Math.max(VectorUtils.scalarProduct(v1, v2, flagConfig, blas),0);
 			
-		raw_loss.add(loss);
+		raw_loss.add(Math.abs(loss));
 		return loss;
 }
 
