@@ -204,6 +204,14 @@ public class FlagConfig {
   public boolean bindnotreleasehack() { return bindnotreleasehack; }
   
   
+  private boolean explicitmatrix = false;
+  /** 
+   * Create and save matrix of term co-occurrence counts 
+   * For BuildPositionalIndex only (currently)
+   * Currently a dense matrix (!) - ill-advised for large vocabularies 
+   * **/
+  public boolean explicitmatrix() { return explicitmatrix; }
+  
   private boolean hybridvectors = false;
   /** If {@code true}, the StringEdit Class will produce hybrid vectors where each term vector = orthographic vector + semantic vector (from -queryvectorfile), default value {@code false}. */
   public boolean hybridvectors() { return hybridvectors; }

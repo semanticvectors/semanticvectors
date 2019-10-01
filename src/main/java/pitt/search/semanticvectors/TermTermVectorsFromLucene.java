@@ -68,6 +68,7 @@ import pitt.search.semanticvectors.utils.SigmoidTable;
 import pitt.search.semanticvectors.utils.VerbatimLogger;
 import pitt.search.semanticvectors.vectors.PermutationUtils;
 import pitt.search.semanticvectors.vectors.PermutationVector;
+import pitt.search.semanticvectors.vectors.RealVector;
 import pitt.search.semanticvectors.vectors.Vector;
 import pitt.search.semanticvectors.vectors.VectorFactory;
 import pitt.search.semanticvectors.vectors.VectorType;
@@ -132,6 +133,8 @@ public class TermTermVectorsFromLucene { //implements VectorStore {
   private double alpha = initial_alpha;
   private double minimum_alpha = 0.0001*initial_alpha;
   private AtomicInteger totalDocCount = new AtomicInteger();
+  private AtomicInteger[][] explicitCounts;
+  private Hashtable<String,Integer> explicitIndex;
   private AtomicInteger totalQueueCount = new AtomicInteger();
   private SigmoidTable sigmoidTable		= new SigmoidTable(MAX_EXP,1000);
   private long tpd_average; //average number of terms per document
@@ -545,6 +548,12 @@ public class TermTermVectorsFromLucene { //implements VectorStore {
     // If not retraining, create random elemental vectors as well.
     // If retraining embeddings, create random vectors for terms that were not originally represented (to facilitate crossing corpora)
     int tc = 0;
+    
+    int explicitCount = 0;
+    if (flagConfig.explicitmatrix())
+    		explicitIndex = new Hashtable<String,Integer>();
+    	
+    
     for (String fieldName : flagConfig.contentsfields()) {
       TermsEnum terms = this.luceneUtils.getTermsForField(fieldName).iterator();
       BytesRef bytes;
@@ -571,8 +580,12 @@ public class TermTermVectorsFromLucene { //implements VectorStore {
         } else termVector = VectorFactory.createZeroVector(flagConfig.vectortype(), flagConfig.dimension());
         // Place each term vector in the vector store.
         if (!this.semanticTermVectors.containsVector(term.text())) 
-        	this.semanticTermVectors.putVector(term.text(), termVector);
-        // Do the same for random index vectors unless retraining with trained term vectors
+        {
+        		this.semanticTermVectors.putVector(term.text(), termVector);
+        		if (flagConfig.explicitmatrix())
+        			explicitIndex.put(term.text(), explicitCount++);
+        }
+        		// Do the same for random index vectors unless retraining with trained term vectors
         if (!retraining) {
           this.elementalTermVectors.getVector(term.text());
         
@@ -585,6 +598,9 @@ public class TermTermVectorsFromLucene { //implements VectorStore {
     }
     
     VerbatimLogger.info("\nNumber term vectors "+semanticTermVectors.getNumVectors()+"\t"+elementalTermVectors.getNumVectors());
+    
+    if (flagConfig.explicitmatrix())
+    		explicitCounts = new AtomicInteger[explicitIndex.size()][explicitIndex.size()];
     
     tpd_average =  totalCount / luceneUtils.getNumDocs();
     
@@ -799,6 +815,34 @@ public class TermTermVectorsFromLucene { //implements VectorStore {
             
          
     }
+    
+
+    if (flagConfig.encodingmethod().equals(EncodingMethod.RANDOM_INDEXING) && flagConfig.explicitmatrix())
+    {
+    		String[] nuArgs = {"-dimension",(""+explicitIndex.size())};
+		FlagConfig nu_flagConfig = FlagConfig.getFlagConfig(nuArgs);
+		
+    		VectorStoreRAM explicitVecs = new VectorStoreRAM(nu_flagConfig);
+    		Enumeration<String> keys = explicitIndex.keys();
+    		while (keys.hasMoreElements())
+    		{
+    			String key = keys.nextElement();
+    			int index = explicitIndex.get(key);
+    			float[] counts = new float[explicitIndex.size()];
+    			int count = 0;
+    			for (AtomicInteger ai : explicitCounts[index])
+    				if (ai != null)
+    				counts[count++] += ai.intValue();
+    			
+    			explicitVecs.putVector(key, new RealVector(counts));
+    		}
+    		
+    		VectorStoreWriter.writeVectorsInLuceneFormat("explicitcounts.bin", nu_flagConfig, explicitVecs);
+    				
+    				
+    
+    }
+    
   }
 
   private void processEmbeddings(
@@ -1153,8 +1197,19 @@ public class TermTermVectorsFromLucene { //implements VectorStore {
               permutation =  ((PermutationVector) permutationCache.getVector(""+(int) Math.signum(cursorPositionNumber - focusposn))).getCoordinates();
               
             semanticTermVectors.getVector(focusterm).superpose(toSuperpose, globalweight, permutation);
-          }
+           }
+      
+          if (flagConfig.explicitmatrix())
+  		{
+  			int focusIndex = explicitIndex.get(focusterm);
+  			int coIndex = explicitIndex.get(coterm);
+  			if (explicitCounts[focusIndex][coIndex] == null)
+  				explicitCounts[focusIndex][coIndex] = new AtomicInteger();
+  			explicitCounts[focusIndex][coIndex].incrementAndGet();
+      	}
+        
         }
+        
       } 
       //end of current sliding window
     } //end of all sliding windows
