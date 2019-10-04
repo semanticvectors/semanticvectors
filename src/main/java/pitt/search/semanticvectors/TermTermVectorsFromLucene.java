@@ -1175,24 +1175,20 @@ public class TermTermVectorsFromLucene { //implements VectorStore {
           //random indexing variants
           float globalweight = luceneUtils.getGlobalTermWeight(new Term(field, coterm));
 
-          // bind to appropriate position vector
-          if (flagConfig.positionalmethod() == PositionalMethod.PROXIMITY) {
-            toSuperpose = elementalTermVectors.getVector(coterm).copy();
-            toSuperpose.bind(positionalNumberVectors.getVector(cursorPositionNumber - focusposn));
-          }
 
           // calculate permutation required for either Sahlgren (2008) implementation
           // encoding word order, or encoding direction as in Burgess and Lund's HAL
           if (flagConfig.positionalmethod() == PositionalMethod.BASIC
               || flagConfig.positionalmethod() == PositionalMethod.PERMUTATIONPLUSBASIC
-              || flagConfig.positionalmethod() == PositionalMethod.PROXIMITY) {
+              ) {
             semanticTermVectors.getVector(focusterm).superpose(toSuperpose, globalweight, null);
           }
           if (flagConfig.positionalmethod() == PositionalMethod.PERMUTATION
-              || flagConfig.positionalmethod() == PositionalMethod.PERMUTATIONPLUSBASIC) {
+              || flagConfig.positionalmethod() == PositionalMethod.PERMUTATIONPLUSBASIC
+              || flagConfig.positionalmethod().equals(PositionalMethod.PROXIMITY)) {
+      	   
            permutation =  ((PermutationVector) permutationCache.getVector(""+(cursorPositionNumber - focusposn))).getCoordinates();
-            
-            semanticTermVectors.getVector(focusterm).superpose(toSuperpose, globalweight, permutation);
+           semanticTermVectors.getVector(focusterm).superpose(toSuperpose, globalweight, permutation);
           } else if (flagConfig.positionalmethod() == PositionalMethod.DIRECTIONAL) {
               permutation =  ((PermutationVector) permutationCache.getVector(""+(int) Math.signum(cursorPositionNumber - focusposn))).getCoordinates();
               
