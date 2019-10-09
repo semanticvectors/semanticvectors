@@ -1174,27 +1174,9 @@ public class TermTermVectorsFromLucene { //implements VectorStore {
         } else {
           //random indexing variants
           float globalweight = luceneUtils.getGlobalTermWeight(new Term(field, coterm));
-
-
-          // calculate permutation required for either Sahlgren (2008) implementation
-          // encoding word order, or encoding direction as in Burgess and Lund's HAL
-          if (flagConfig.positionalmethod() == PositionalMethod.BASIC
-              || flagConfig.positionalmethod() == PositionalMethod.PERMUTATIONPLUSBASIC
-              ) {
-            semanticTermVectors.getVector(focusterm).superpose(toSuperpose, globalweight, null);
-          }
-          if (flagConfig.positionalmethod() == PositionalMethod.PERMUTATION
-              || flagConfig.positionalmethod() == PositionalMethod.PERMUTATIONPLUSBASIC
-              || flagConfig.positionalmethod().equals(PositionalMethod.PROXIMITY)) {
-      	   
-           permutation =  ((PermutationVector) permutationCache.getVector(""+(cursorPositionNumber - focusposn))).getCoordinates();
-           semanticTermVectors.getVector(focusterm).superpose(toSuperpose, globalweight, permutation);
-          } else if (flagConfig.positionalmethod() == PositionalMethod.DIRECTIONAL) {
-              permutation =  ((PermutationVector) permutationCache.getVector(""+(int) Math.signum(cursorPositionNumber - focusposn))).getCoordinates();
-              
-            semanticTermVectors.getVector(focusterm).superpose(toSuperpose, globalweight, permutation);
-           }
-      
+          semanticTermVectors.getVector(focusterm).superpose(toSuperpose, globalweight, permutation);
+          
+          
           if (flagConfig.explicitmatrix())
   		{
   			int focusIndex = explicitIndex.get(focusterm);
