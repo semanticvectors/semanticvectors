@@ -78,9 +78,9 @@ public class LuceneIndexFromMegaTriples {
    */
   static void indexDoc(IndexWriter fsWriter, File triplesTextFile) throws IOException {
     BufferedReader theReader = new BufferedReader(new FileReader(triplesTextFile));
-    int linecnt = 0;
+    long linecnt = 0;
     
-    //store up to 1000 predications per Lucene doc (to avoid Lucene max doc limits)
+    //store up to 10000 predications per Lucene doc (to avoid Lucene max doc limits)
     String subjects = "";
     String objects = "";
     String predicates = "";
@@ -111,7 +111,7 @@ public class LuceneIndexFromMegaTriples {
         objects += object+" ";
         	predications += subject+predicate+object+" ";
         
-        if (linecnt % 1000 == 0)
+        if (linecnt > 0 && linecnt % 10000 == 0)
         {
         Document doc = new Document();
         doc.add(new TextField("subjects", subjects, Field.Store.YES));
