@@ -157,7 +157,7 @@ public class ESPperm {
 	    
 	    String fieldName = "source";
 	    
-	      ArrayList<BytesRef> terms = luceneUtils.getTermsForField(fieldName);
+	      ArrayList<String> terms = luceneUtils.getTermsForField(fieldName);
 
 	      if (terms == null) {
 	        throw new NullPointerException(String.format(
@@ -168,9 +168,7 @@ public class ESPperm {
 	      int totalTerms = 0;
 	      
 	      //iterate across terms
-	      Iterator<BytesRef> termsEnum = terms.iterator();
-	      BytesRef bytes;
-	      while((bytes = termsEnum.next()) != null) {
+	      for(String bytes:terms) {
 	        Term term = new Term(fieldName, bytes);
 	         if (!falseUtils.termFilter(term)) {
 	          VerbatimLogger.fine("Filtering out term: " + term + "\n");
@@ -181,10 +179,8 @@ public class ESPperm {
 	      }
 	      System.out.println("Total (non-unique) term count) ="+ totalTerms);
 	      //and again
-	      termsEnum = terms.iterator();
-	     
 	            
-	      while((bytes = termsEnum.next()) != null) {
+	      for(String bytes:terms) {
 	        Term term = new Term(fieldName, bytes);
 
 	   
@@ -293,7 +289,7 @@ public class ESPperm {
     // Term counter to track initialization progress.
     int termCounter = 0;
     for (String fieldName : itemFields) {
-      ArrayList<BytesRef> terms = luceneUtils.getTermsForField(fieldName);
+      ArrayList<String> terms = luceneUtils.getTermsForField(fieldName);
 
       if (terms == null) {
         throw new NullPointerException(String.format(
@@ -301,9 +297,7 @@ public class ESPperm {
             fieldName, flagConfig.luceneindexpath()));
       }
 
-      Iterator<BytesRef> termsEnum = terms.iterator();
-      BytesRef bytes;
-      while((bytes = termsEnum.next()) != null) {
+      for(String bytes:terms) {
         Term term = new Term(fieldName, bytes);
 
         if (!luceneUtils.termFilter(term)) {
@@ -412,11 +406,9 @@ public class ESPperm {
     }
 
     // Now elemental vectors for the predicate field.
-    ArrayList<BytesRef> predicateTerms = luceneUtils.getTermsForField(PREDICATE_FIELD);
+    ArrayList<String> predicateTerms = luceneUtils.getTermsForField(PREDICATE_FIELD);
     String[] dummyArray = new String[] { PREDICATE_FIELD };  // To satisfy LuceneUtils.termFilter interface.
-    Iterator<BytesRef> termsEnum = predicateTerms.iterator();
-    BytesRef bytes;
-    while((bytes = termsEnum.next()) != null) {
+    for(String bytes:predicateTerms) {
       Term term = new Term(PREDICATE_FIELD, bytes);
       // frequency thresholds do not apply to predicates... but the stopword list does
       if (!luceneUtils.termFilter(term, dummyArray, 0, Integer.MAX_VALUE, Integer.MAX_VALUE, 1)) 

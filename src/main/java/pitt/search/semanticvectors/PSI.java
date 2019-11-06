@@ -127,7 +127,7 @@ public class PSI {
     // Term counter to track initialization progress.
     int tc = 0;
     for (String fieldName : itemFields) {
-      ArrayList<BytesRef> terms = luceneUtils.getTermsForField(fieldName);
+      ArrayList<String> terms = luceneUtils.getTermsForField(fieldName);
 
       if (terms == null) {
         throw new NullPointerException(String.format(
@@ -135,9 +135,7 @@ public class PSI {
             fieldName, flagConfig.luceneindexpath()));
       }
 
-      Iterator<BytesRef> termsEnum = terms.iterator();
-      BytesRef bytes;
-      while((bytes = termsEnum.next()) != null) {
+      for (String bytes:terms) {
         Term term = new Term(fieldName, bytes);
 
         if (!luceneUtils.termFilter(term)) {
@@ -161,11 +159,9 @@ public class PSI {
     }
 
     // Now elemental vectors for the predicate field.
-    ArrayList<BytesRef> predicateTerms = luceneUtils.getTermsForField(PREDICATE_FIELD);
+    ArrayList<String> predicateTerms = luceneUtils.getTermsForField(PREDICATE_FIELD);
     String[] dummyArray = new String[] { PREDICATE_FIELD };  // To satisfy LuceneUtils.termFilter interface.
-    Iterator<BytesRef> termsEnum = predicateTerms.iterator();
-    BytesRef bytes;
-    while((bytes = termsEnum.next()) != null) {
+    for(String bytes:predicateTerms) {
       Term term = new Term(PREDICATE_FIELD, bytes);
       // frequency thresholds do not apply to predicates... but the stopword list does
       if (!luceneUtils.termFilter(term, dummyArray, 0, Integer.MAX_VALUE, Integer.MAX_VALUE, 1)) {
@@ -195,11 +191,9 @@ public class PSI {
   private void trainIncrementalPSIVectors(String iterationTag) throws IOException {
     String fieldName = PREDICATION_FIELD;
     // Iterate through documents (each document = one predication).
-    ArrayList<BytesRef> allTerms = luceneUtils.getTermsForField(fieldName);
-    Iterator<BytesRef> termsEnum = allTerms.iterator();
-    BytesRef bytes;
+    ArrayList<String> allTerms = luceneUtils.getTermsForField(fieldName);
     int pc = 0;
-    while((bytes = termsEnum.next()) != null) {
+    for(String bytes : allTerms) {
       Term term = new Term(fieldName, bytes);
 
       // Output progress counter.

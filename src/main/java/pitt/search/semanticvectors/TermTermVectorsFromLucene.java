@@ -535,9 +535,8 @@ public class TermTermVectorsFromLucene { //implements VectorStore {
     // If retraining embeddings, create random vectors for terms that were not originally represented (to facilitate crossing corpora)
     int tc = 0;
     for (String fieldName : flagConfig.contentsfields()) {
-      Iterator<BytesRef> terms = this.luceneUtils.getTermsForField(fieldName).iterator();
-      BytesRef bytes;
-      while ((bytes = terms.next()) != null) {
+      ArrayList<String> terms = this.luceneUtils.getTermsForField(fieldName);
+       for (String bytes : terms) {
         Term term = new Term(fieldName, bytes);
         
         // Skip terms that don't pass the filter.
@@ -585,9 +584,8 @@ public class TermTermVectorsFromLucene { //implements VectorStore {
       VerbatimLogger.info("Populating subsampling probabilities - total term count = " + totalCount + " which is " +tpd_average+ " per doc on average");
       int count = 0;
       for (String fieldName : flagConfig.contentsfields()) {
-        Iterator<BytesRef> terms = this.luceneUtils.getTermsForField(fieldName).iterator();
-        BytesRef bytes;
-        while ((bytes = terms.next()) != null) {
+        ArrayList<String> terms = this.luceneUtils.getTermsForField(fieldName);
+       for (String bytes:terms) {
           Term term = new Term(fieldName, bytes);
           if (++count % 10000 == 0) VerbatimLogger.info(".");
 
@@ -606,7 +604,7 @@ public class TermTermVectorsFromLucene { //implements VectorStore {
             	//	* (flagConfig.samplingthreshold()  / globalFreq);
         		  subsample_probability = 1 - (Math.sqrt(flagConfig.samplingthreshold()/ globalFreq) + (flagConfig.samplingthreshold()/ globalFreq));
         		  
-              subsamplingProbabilities.put(fieldName + ":" + bytes.utf8ToString(), subsample_probability);
+              subsamplingProbabilities.put(fieldName + ":" + bytes, subsample_probability);
              if (flagConfig.discountnegativesampling())
             	 subdiscount = 1-subsample_probability; //negative sample in accordance with subsampled frequency
             //VerbatimLogger.info("\n"+luceneUtils.getGlobalTermFreq(term) +" "+term.text()+" "+subsamplingProbabilities.get(fieldName+":"+bytes.utf8ToString()));

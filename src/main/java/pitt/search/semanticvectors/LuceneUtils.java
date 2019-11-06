@@ -220,12 +220,18 @@ public class LuceneUtils {
   /**
    * Gets the terms for a given field. Throws {@link java.lang.NullPointerException} if this is null.
    */
-  public ArrayList<BytesRef> getTermsForField(String field) throws IOException {
+  public ArrayList<String> getTermsForField(String field) throws IOException {
     
-	 ArrayList<BytesRef> bytes = new ArrayList<BytesRef>();
+	 ArrayList<String> bytes = new ArrayList<String>();
+	 
+	 
+	 int leafCount = 0;
+	 
 	 
 	 for (LeafReader leafReader:leafReaders)
-	 {
+	 {	 
+		 leafCount++;
+		 VerbatimLogger.info("Leaf "+leafCount+" of "+ leafReaders.size()+".");
 		 Terms fieldTerms = leafReader.terms(field);
 		 
 		  if (fieldTerms == null) {
@@ -236,14 +242,20 @@ public class LuceneUtils {
 		 TermsEnum termsEnum = fieldTerms.iterator();
 		 BytesRef nextBytes = null;
 		 nextBytes = termsEnum.next();
-		  while (nextBytes != null)
+		 while (nextBytes != null)
 		  {
-			 if (! bytes.contains(nextBytes))
-				 bytes.add(nextBytes);
+			 if (! bytes.contains(nextBytes.utf8ToString()))
+			 { 
+				 bytes.add(nextBytes.utf8ToString());
+				 if (bytes.size() % 10000 == 0)
+					 VerbatimLogger.info(".");
+					
+			 }
 			 
+			 	
 			 nextBytes = termsEnum.next();
-		  }
-  
+			 	  }
+		 System.out.println();
 	 }
     return bytes;
   }
@@ -251,7 +263,11 @@ public class LuceneUtils {
   public ArrayList<PostingsEnum> getDocsForTerm(Term term) throws IOException {
 	  ArrayList<PostingsEnum> toReturn = new ArrayList<PostingsEnum>();
 	  for (LeafReader leafReader:leafReaders)
-			 toReturn.add(leafReader.postings(term));
+			 {
+		  		
+		  		System.out.println(term+"\t"+leafReader.docFreq(term));
+		  		toReturn.add(leafReader.postings(term));
+			 }
 		 
 	  return toReturn;
   }

@@ -92,12 +92,10 @@ public class IncrementalTermVectors implements VectorStore {
     termVectorData = new VectorStoreRAM(flagConfig);
 
     for (String fieldName : this.flagConfig.contentsfields()) {
-      ArrayList<BytesRef> terms = this.luceneUtils.getTermsForField(fieldName);
-      Iterator<BytesRef> termEnum = terms.iterator();
+      ArrayList<String> terms = this.luceneUtils.getTermsForField(fieldName);
       int tc = 0;
 
-      BytesRef bytes;
-      while ((bytes = termEnum.next()) != null) {
+     for (String bytes:terms) {
         Term term = new Term(fieldName, bytes);
 
         if (termVectorData.getVector(term.text()) != null) continue;

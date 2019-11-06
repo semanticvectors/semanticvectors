@@ -93,13 +93,11 @@ public class LSA {
    */
   private SMat smatFromIndex() throws IOException {
     SMat S;
-    ArrayList<BytesRef> terms = this.luceneUtils.getTermsForField(contentsField);
-    Iterator<BytesRef> termsEnumForCount = terms.iterator();
+    ArrayList<String> terms = this.luceneUtils.getTermsForField(contentsField);
     int numTerms = 0,   nonZeroVals = 0;
-    BytesRef bytes;
-
+    
     //count number of terms meeting term filter constraints, and number of nonzero matrix entries  
-    while ((bytes = termsEnumForCount.next()) != null) {
+    for (String bytes:terms) {
       Term term = new Term(contentsField, bytes);
       if (this.luceneUtils.termFilter(term))
         numTerms++;
@@ -119,11 +117,10 @@ public class LSA {
     S = new SMat(this.luceneUtils.getNumDocs(), numTerms, nonZeroVals);
 
     // Populate "SVDLIBJ" sparse data structure and list of terms.
-    Iterator<BytesRef> termsEnum = terms.iterator();
     int termCounter = 0;
     int firstNonZero = 0; // Index of first non-zero entry (document) of each column (term).
     
-    while((bytes = termsEnum.next()) != null) {
+    for (String bytes:terms) {
       Term term = new Term(contentsField, bytes);
       
       if (this.luceneUtils.termFilter(term)) {

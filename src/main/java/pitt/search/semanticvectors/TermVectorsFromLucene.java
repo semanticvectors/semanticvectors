@@ -127,12 +127,18 @@ public class TermVectorsFromLucene {
     // Iterate through an enumeration of terms and create termVector table.
     VerbatimLogger.log(Level.INFO, "Creating semantic term vectors ...\n");
 
+    
     for (String fieldName : flagConfig.contentsfields()) {
-      ArrayList<BytesRef> termsForField = this.luceneUtils.getTermsForField(fieldName);
-      Iterator<BytesRef> terms = termsForField.iterator();
+      ArrayList<String> termsForFields = this.luceneUtils.getTermsForField(fieldName);
+      
       int tc = 0;
-      while (terms.next() != null) {
-        tc++;
+      System.out.println("here");
+         
+      
+      for (String terms: termsForFields)
+      {
+    	  	System.out.println(terms);
+    	  	tc++;
       }
       VerbatimLogger.info("There are " + tc + " terms (and " + luceneUtils.getNumDocs() + " docs).\n");
     }
@@ -140,9 +146,12 @@ public class TermVectorsFromLucene {
     for(String fieldName : flagConfig.contentsfields()) {
       VerbatimLogger.info("Training term vectors for field " + fieldName + "\n");
       int tc = 0;
-      Iterator<BytesRef> terms = this.luceneUtils.getTermsForField(fieldName).iterator();
-      BytesRef bytes;
-      while ((bytes = terms.next()) != null) {
+      ArrayList<String> termsForField = this.luceneUtils.getTermsForField(fieldName);
+      Iterator<String> terms = termsForField.iterator();
+      String bytes;
+      while (terms.hasNext()) {
+    	  	bytes = terms.next();
+    	  	System.out.println(bytes);
         // Output progress counter.
         if (( tc % 10000 == 0 ) || ( tc < 10000 && tc % 1000 == 0 )) {
           VerbatimLogger.info("Processed " + tc + " terms ... ");
@@ -160,7 +169,8 @@ public class TermVectorsFromLucene {
 
         ArrayList<PostingsEnum> allDocsEnum = luceneUtils.getDocsForTerm(term);
         for (PostingsEnum docsEnum:allDocsEnum)
-        while (docsEnum.nextDoc() != PostingsEnum.NO_MORE_DOCS) {
+        if (docsEnum != null)
+        	while (docsEnum.nextDoc() != PostingsEnum.NO_MORE_DOCS) {
           String docID = luceneUtils.getExternalDocId(docsEnum.docID());
           int freq = docsEnum.freq();
           termVector.superpose(elementalDocVectors.getVector(docID), freq, null);
@@ -210,8 +220,8 @@ public class TermVectorsFromLucene {
       logger.info("Generating new elemental term vectors");
       this.termVectors = new ElementalVectorStore(flagConfig);
       for(String fieldName : flagConfig.contentsfields()) {
-        Iterator<BytesRef> terms = luceneUtils.getTermsForField(fieldName).iterator();
-        BytesRef bytes;
+        Iterator<String> terms = luceneUtils.getTermsForField(fieldName).iterator();
+        String bytes;
         while ((bytes = terms.next()) != null) {
           Term term = new Term(fieldName, bytes);
           // Skip terms that don't pass the filter.
