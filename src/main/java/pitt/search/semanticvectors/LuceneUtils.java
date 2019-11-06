@@ -40,6 +40,8 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.FileSystems;
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
@@ -220,13 +222,10 @@ public class LuceneUtils {
   /**
    * Gets the terms for a given field. Throws {@link java.lang.NullPointerException} if this is null.
    */
-  public ArrayList<String> getTermsForField(String field) throws IOException {
+  public Iterator<String> getTermsForField(String field) throws IOException {
     
-	 ArrayList<String> bytes = new ArrayList<String>();
-	 
-	 
+	 HashSet<String> bytes = new HashSet<String>();
 	 int leafCount = 0;
-	 
 	 
 	 for (LeafReader leafReader:leafReaders)
 	 {	 
@@ -255,9 +254,9 @@ public class LuceneUtils {
 			 	
 			 nextBytes = termsEnum.next();
 			 	  }
-		 System.out.println();
+		 
 	 }
-    return bytes;
+    return bytes.iterator();
   }
 
   public ArrayList<PostingsEnum> getDocsForTerm(Term term) throws IOException {

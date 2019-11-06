@@ -180,7 +180,7 @@ public class ESP {
     // Term counter to track initialization progress.
     int termCounter = 0;
     for (String fieldName : itemFields) {
-      ArrayList<String> terms = luceneUtils.getTermsForField(fieldName);
+      Iterator<String> terms = luceneUtils.getTermsForField(fieldName);
 
       if (terms == null) {
         throw new NullPointerException(String.format(
@@ -189,7 +189,8 @@ public class ESP {
       }
 
       
-      for(String bytes:terms) {
+      while(terms.hasNext()) {
+    	  	String bytes = terms.next();
         Term term = new Term(fieldName, bytes);
 
         if (!luceneUtils.termFilter(term)) {
@@ -277,9 +278,10 @@ public class ESP {
     int predCounter = 0;
     
     // Now elemental vectors for the predicate field.
-    ArrayList<String> predicateTerms = luceneUtils.getTermsForField(PREDICATE_FIELD);
+    Iterator<String> predicateTerms = luceneUtils.getTermsForField(PREDICATE_FIELD);
     String[] dummyArray = new String[] { PREDICATE_FIELD };  // To satisfy LuceneUtils.termFilter interface.
-    for (String bytes:predicateTerms) {
+    while (predicateTerms.hasNext()) {
+    	  String bytes = predicateTerms.next();
       Term term = new Term(PREDICATE_FIELD, bytes);
       // frequency thresholds do not apply to predicates... but the stopword list does
       if (!luceneUtils.termFilter(term, dummyArray, 0, Integer.MAX_VALUE, Integer.MAX_VALUE, 1)) 

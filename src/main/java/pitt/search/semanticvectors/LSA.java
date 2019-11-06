@@ -93,12 +93,12 @@ public class LSA {
    */
   private SMat smatFromIndex() throws IOException {
     SMat S;
-    ArrayList<String> terms = this.luceneUtils.getTermsForField(contentsField);
+    Iterator<String> terms = this.luceneUtils.getTermsForField(contentsField);
     int numTerms = 0,   nonZeroVals = 0;
     
     //count number of terms meeting term filter constraints, and number of nonzero matrix entries  
-    for (String bytes:terms) {
-      Term term = new Term(contentsField, bytes);
+    while (terms.hasNext()) {
+      Term term = new Term(contentsField, terms.next());
       if (this.luceneUtils.termFilter(term))
         numTerms++;
 
@@ -120,8 +120,8 @@ public class LSA {
     int termCounter = 0;
     int firstNonZero = 0; // Index of first non-zero entry (document) of each column (term).
     
-    for (String bytes:terms) {
-      Term term = new Term(contentsField, bytes);
+    while (terms.hasNext()) {
+      Term term = new Term(contentsField, terms.next());
       
       if (this.luceneUtils.termFilter(term)) {
           S.pointr[termCounter] = firstNonZero; //index of first non-zero entry

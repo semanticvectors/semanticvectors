@@ -248,11 +248,11 @@ public class SRI implements VectorStore {
 
     }
     for (String fieldName : this.flagConfig.contentsfields()) {
-      ArrayList<String> terms = this.lUtils.getTermsForField(fieldName);
+      Iterator<String> terms = this.lUtils.getTermsForField(fieldName);
        int tc = 0;
 
-      for (String bytes : terms) {
-        Term term = new Term(fieldName, bytes);
+      while (terms.hasNext()) {
+        Term term = new Term(fieldName, terms.next());
 
         if (termVectors.getVector(term.text()) != null) continue;
         if (!lUtils.termFilter(term)) continue;

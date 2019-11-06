@@ -129,15 +129,14 @@ public class TermVectorsFromLucene {
 
     
     for (String fieldName : flagConfig.contentsfields()) {
-      ArrayList<String> termsForFields = this.luceneUtils.getTermsForField(fieldName);
+      Iterator<String> termsForFields = this.luceneUtils.getTermsForField(fieldName);
       
       int tc = 0;
       System.out.println("here");
          
       
-      for (String terms: termsForFields)
+      while (termsForFields.hasNext())
       {
-    	  	System.out.println(terms);
     	  	tc++;
       }
       VerbatimLogger.info("There are " + tc + " terms (and " + luceneUtils.getNumDocs() + " docs).\n");
@@ -146,8 +145,7 @@ public class TermVectorsFromLucene {
     for(String fieldName : flagConfig.contentsfields()) {
       VerbatimLogger.info("Training term vectors for field " + fieldName + "\n");
       int tc = 0;
-      ArrayList<String> termsForField = this.luceneUtils.getTermsForField(fieldName);
-      Iterator<String> terms = termsForField.iterator();
+      Iterator<String> terms = this.luceneUtils.getTermsForField(fieldName);
       String bytes;
       while (terms.hasNext()) {
     	  	bytes = terms.next();
@@ -220,7 +218,7 @@ public class TermVectorsFromLucene {
       logger.info("Generating new elemental term vectors");
       this.termVectors = new ElementalVectorStore(flagConfig);
       for(String fieldName : flagConfig.contentsfields()) {
-        Iterator<String> terms = luceneUtils.getTermsForField(fieldName).iterator();
+        Iterator<String> terms = luceneUtils.getTermsForField(fieldName);
         String bytes;
         while ((bytes = terms.next()) != null) {
           Term term = new Term(fieldName, bytes);

@@ -535,12 +535,16 @@ public class TermTermVectorsFromLucene { //implements VectorStore {
     // If retraining embeddings, create random vectors for terms that were not originally represented (to facilitate crossing corpora)
     int tc = 0;
     for (String fieldName : flagConfig.contentsfields()) {
-      ArrayList<String> terms = this.luceneUtils.getTermsForField(fieldName);
-       for (String bytes : terms) {
-        Term term = new Term(fieldName, bytes);
+      Iterator<String> terms = this.luceneUtils.getTermsForField(fieldName);
+      String bytes;
+      while (terms.hasNext()) { 
+      bytes = terms.next();  
+    	  Term term = new Term(fieldName, bytes);
         
         // Skip terms that don't pass the filter.
-        if (!luceneUtils.termFilter(term)) continue;
+        if (!luceneUtils.termFilter(term)) 
+        		continue;
+        	
         tc++;
         totalCount += luceneUtils.getGlobalTermFreq(term);
         
@@ -569,6 +573,7 @@ public class TermTermVectorsFromLucene { //implements VectorStore {
         	//from previous corpus
         	((VectorStoreRAM) this.elementalTermVectors).putVector(term.text(),VectorFactory.generateRandomVector(flagConfig.vectortype(), flagConfig.dimension(), flagConfig.seedlength, random));
         }
+     
       }
     }
     
@@ -584,8 +589,10 @@ public class TermTermVectorsFromLucene { //implements VectorStore {
       VerbatimLogger.info("Populating subsampling probabilities - total term count = " + totalCount + " which is " +tpd_average+ " per doc on average");
       int count = 0;
       for (String fieldName : flagConfig.contentsfields()) {
-        ArrayList<String> terms = this.luceneUtils.getTermsForField(fieldName);
-       for (String bytes:terms) {
+        Iterator<String> terms = this.luceneUtils.getTermsForField(fieldName);
+        String bytes;
+        while (terms.hasNext())  {
+        	  bytes = terms.next();
           Term term = new Term(fieldName, bytes);
           if (++count % 10000 == 0) VerbatimLogger.info(".");
 
