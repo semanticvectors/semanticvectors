@@ -56,9 +56,13 @@ import pitt.search.semanticvectors.vectors.VectorFactory;
 import pitt.search.semanticvectors.vectors.VectorType;
 import pitt.search.semanticvectors.vectors.VectorUtils;
 
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.FileSystems;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Enumeration;
@@ -97,6 +101,7 @@ public class ESP {
   private static final String PREDICATION_FIELD = "predication";
   private String[] itemFields = {SUBJECT_FIELD, OBJECT_FIELD};
   private int tc = 0;
+  private java.util.concurrent.atomic.DoubleAdder  raw_loss = new java.util.concurrent.atomic.DoubleAdder();
   private double initial_alpha = 0.025;
   private double  alpha		   = 0.025;
   private double min_alpha = 0.0001;
@@ -396,10 +401,15 @@ public double sigmoid(double z)
   
 public double shiftAway(Vector v1, Vector v2, FlagConfig flagConfig, BLAS blas)
 {
-		if (!flagConfig.vectortype().equals(VectorType.BINARY))
-		 return -sigmoid(VectorUtils.scalarProduct(v1, v2, flagConfig, blas));
-		 else
-  		 return -100*Math.max(VectorUtils.scalarProduct(v1, v2, flagConfig, blas),0);
+	double loss;
+	
+	if (!flagConfig.vectortype().equals(VectorType.BINARY))
+		loss = -sigmoid(VectorUtils.scalarProduct(v1, v2, flagConfig, blas));
+	else
+		 loss = -100*Math.max(VectorUtils.scalarProduct(v1, v2, flagConfig, blas),0);
+		
+	raw_loss.add(Math.abs(loss));
+	return loss;
 }
 
 /**
@@ -415,10 +425,15 @@ public double shiftAway(Vector v1, Vector v2, FlagConfig flagConfig, BLAS blas)
 
 public double shiftToward(Vector v1, Vector v2, FlagConfig flagConfig, BLAS blas)
 {
+		double loss;
+	
 		if (!flagConfig.vectortype().equals(VectorType.BINARY))
-		 return 1-sigmoid(VectorUtils.scalarProduct(v1, v2, flagConfig, blas));
-		 else
-  		 return 100-100*Math.max(VectorUtils.scalarProduct(v1, v2, flagConfig, blas),0);
+			loss = 1-sigmoid(VectorUtils.scalarProduct(v1, v2, flagConfig, blas));
+		else
+			 loss = 100-100*Math.max(VectorUtils.scalarProduct(v1, v2, flagConfig, blas),0);
+			
+		raw_loss.add(Math.abs(loss));
+		return loss;
 }
 
 /**
@@ -594,7 +609,7 @@ private void processPredicationDocument(Document document, BLAS blas)
 	      }
 	      
 	      
-	   	  if (pc.get() > 0 && pc.get() % 10000 == 0) {
+	   	  if (pc.get() > 0 && pc.get() % 100000 == 0) {
             VerbatimLogger.info("Processed " + pc + " predications ... ");
             double progress 	= (tc*luceneUtils.getNumDocs() + dc.get()) / ((double) luceneUtils.getNumDocs()*(flagConfig.trainingcycles() +1) );
             VerbatimLogger.info((100*progress)+"% complete ...");
@@ -670,7 +685,7 @@ private void initializeRandomizationStartpoints()
 		}
 		}
   	    
-	    VerbatimLogger.info("Added "+qplus+" documents to queue, now carrying "+theQ.size());
+	    VerbatimLogger.info("\nAdded "+qplus+" documents to queue, now carrying "+theQ.size());
 		if (qplus == 0) return -1;
 		else return qplus;
    	
@@ -721,8 +736,15 @@ private void initializeRandomizationStartpoints()
     	
       }
       
-      VerbatimLogger.info("Time for cycle "+tc+" : "+((System.currentTimeMillis() - time) / (1000*60))  +" minutes");
-      VerbatimLogger.info("Processed "+pc.get()+" total predications (total on disk = "+luceneUtils.getNumDocs()+")");
+      int mp = flagConfig.mutablepredicatevectors() ? 1 : 0;
+      double num_updates = pc.get() * (1 + flagConfig.negsamples()) * (4 + 2*mp);
+      double lo = raw_loss.sumThenReset();
+      double ave_loss = lo / num_updates;
+      
+      VerbatimLogger.info("\nTime for cycle "+tc+" : "+((System.currentTimeMillis() - time) / (1000*60))  +" minutes");
+      VerbatimLogger.info("\nSummed loss = "+lo);
+      VerbatimLogger.info("\nMean loss = "+ave_loss);
+      VerbatimLogger.info("\nProcessed "+pc.get()+" total predications (total on disk = "+luceneUtils.getNumDocs()+")");
       
       //normalization with each epoch if the vectors are not binary vectors
       if (!flagConfig.vectortype().equals(VectorType.BINARY))
@@ -819,9 +841,16 @@ private void initializeRandomizationStartpoints()
    * Main method for building ESP indexes.
    */
   public static void main(String[] args) throws IllegalArgumentException, IOException {
-    FlagConfig flagConfig = FlagConfig.getFlagConfig(args);
+    
+	String logString = "";
+	for (String argument : args)
+			logString = logString + argument+" ";  
+	    
+	FlagConfig flagConfig = FlagConfig.getFlagConfig(args);
     args = flagConfig.remainingArgs;
 
+    
+    
     if (flagConfig.luceneindexpath().isEmpty()) {
       throw (new IllegalArgumentException("-luceneindexpath argument must be provided."));
     }
@@ -832,6 +861,13 @@ private void initializeRandomizationStartpoints()
     VerbatimLogger.info("Number non-alphabet characters = " + flagConfig.maxnonalphabetchars() + "\n");
 
     createIncrementalESPVectors(flagConfig);
+    LocalDateTime now = LocalDateTime.now();  
+	String fileName = "log_"+now+".txt";
+	BufferedWriter logWriter = new BufferedWriter(new FileWriter(fileName));
+	logWriter.write(logString+"\n");  
+	logWriter.flush();
+	logWriter.close();
+    
   }
 }
 

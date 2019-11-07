@@ -58,9 +58,12 @@ import pitt.search.semanticvectors.vectors.VectorFactory;
 import pitt.search.semanticvectors.vectors.VectorType;
 import pitt.search.semanticvectors.vectors.VectorUtils;
 
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.FileSystems;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Enumeration;
@@ -93,7 +96,7 @@ public class ESPperm {
   private static final int MAX_EXP = 6;
   private static final Logger logger = Logger.getLogger(ESPperm.class.getCanonicalName());
   private FlagConfig flagConfig;
-  private VectorStore elementalItemVectors, termVectors; 
+  private VectorStore elementalItemVectors; 
   private VectorStoreRAM semanticItemVectors, permutationVectors;
   private static final String SUBJECT_FIELD = "subject";
   private static final String PREDICATE_FIELD = "predicate";
@@ -112,6 +115,7 @@ public class ESPperm {
   private LuceneUtils luceneUtils;
   private HashSet<String> addedConcepts;
   private static Random random;
+  private java.util.concurrent.atomic.DoubleAdder  raw_loss = new java.util.concurrent.atomic.DoubleAdder();
   private java.util.concurrent.atomic.AtomicInteger dc = new java.util.concurrent.atomic.AtomicInteger(0);
   private java.util.concurrent.atomic.AtomicInteger pc = new java.util.concurrent.atomic.AtomicInteger(0);
   private ConcurrentLinkedQueue<Document> theQ = new ConcurrentLinkedQueue<Document>();
@@ -135,111 +139,13 @@ public class ESPperm {
     random = new Random();
     incrementalESPVectors.flagConfig = flagConfig;
     incrementalESPVectors.initialize();
-    incrementalESPVectors.initializeTerms();
     VerbatimLogger.info("Performing first round of ESP training ...");
     incrementalESPVectors.trainIncrementalESPVectors();
 
     VerbatimLogger.info("Done with createIncrementalESPVectors.");
   }
   
-  private void initializeTerms() throws IOException {
-	    
-	  	termVectors = new ElementalVectorStore(flagConfig);
-	    int termCounter = 0;
-	    
-	    String[] falseArgs = {"-luceneindexpath",flagConfig.luceneindexpath(),"-minfrequency","50","-maxfrequency","1000000","-maxnonalphabetchars", "3","-filteroutnumbers","-contentsfields","source"};
-        
-        FlagConfig falseFlag = 
-        		FlagConfig.getFlagConfig(falseArgs);
-        
-        LuceneUtils falseUtils = new LuceneUtils(falseFlag);
 
-	    
-	    String fieldName = "source";
-	    
-	      Iterator<String> terms = luceneUtils.getTermsForField(fieldName);
-
-	      if (terms == null) {
-	        throw new NullPointerException(String.format(
-	            "No terms for field '%s'. Please check that index at '%s' was built correctly for use with ESP.",
-	            fieldName, flagConfig.luceneindexpath()));
-	      }
-
-	      int totalTerms = 0;
-	      
-	      //iterate across terms
-	      while (terms.hasNext()) {
-	        Term term = new Term(fieldName, terms.next());
-	         if (!falseUtils.termFilter(term)) {
-	          VerbatimLogger.fine("Filtering out term: " + term + "\n");
-	          continue;
-	        }
-	       totalTerms += luceneUtils.getGlobalTermFreq(term);
-	         
-	      }
-	      System.out.println("Total (non-unique) term count) ="+ totalTerms);
-	      //and again
-	            
-	      while (terms.hasNext()) {
-	        Term term = new Term(fieldName, terms.next());
-
-	   
-	        if (!falseUtils.termFilter(term)) {
-	          VerbatimLogger.fine("Filtering out term: " + term + "\n");
-	          continue;
-	        }
- 
-	          if (!termVectors.containsVector(term.text()))
-	          { 
-	        	  	termVectors.getVector(term.text());  // Causes vector to be created.
-	        	   
-	          }
-	          
-	            
-	          //table for negative sampling, stratified by semantic type (if available)
-	          /**
-	          if (! termDic.containsKey("source"))
-	          {
-	        	  	System.out.println("source");
-	        	  	totalPool.put("source",0d);
-	        	  	termDic.put("source", new ConcurrentSkipListMap<Double, String>());
-	          }
-	         **/
-	          //determine frequency with which a concept is drawn as a negative sample
-	          //following the word2vec work, we use unigram^.75
-	          //totalPool is a ConcurrentHashMap - it defines a range for each concept (for each semantic type, if these are used)
-	          //the relative size of the range determines the negative sampling frequency for each concept
-	          int countSource = luceneUtils.getGlobalTermFreq(term);
-	          double globalFreq = countSource / (double) totalTerms;
-	          double discount = 1; 
-	          
-	          /**
-	          if (flagConfig.discountnegativesampling() && globalFreq > flagConfig.samplingthreshold()) {
-	             discount = Math.sqrt(flagConfig.samplingthreshold() / globalFreq);
-	            }
-	          
-	          //negative sampling table
-	          totalPool.put("source", totalPool.get("source")+Math.pow(discount*(globalFreq), .75));
-	          termDic.get("source").put(totalPool.get("source"), term.text());
-	          **/
-	          //subsampling table 
-	          if (subsamplingProbabilities != null && globalFreq > flagConfig.samplingthreshold())
-	          { 
-	        	   discount = 1; //(globalFreq - flagConfig.samplingthreshold()) / globalFreq;
-	        	  subsamplingProbabilities.put("source_"+term.text(), (discount - Math.sqrt(flagConfig.samplingthreshold() / globalFreq)));
-		       }
-	          // Output term counter.
-	          termCounter++;
-	          if ((termCounter > 0) && ((termCounter % 10000 == 0) || ( termCounter < 10000 && termCounter % 1000 == 0 ))) {
-	            VerbatimLogger.info("Initialized " + termCounter + " term vectors ... ");
-	          }
-	          
-	        
-	      
-	    }
-
-	 
-	  }
   
 
   /**
@@ -465,8 +371,7 @@ public class ESPperm {
         VerbatimLogger.info("Selected for subsampling: " + subsamplingProbabilities.size() + " terms.\n");
     } 
     
-    if (flagConfig.bindnotreleasehack()) initializeTerms();
-    
+     
   }
 
   /**
@@ -530,10 +435,15 @@ public double sigmoid(double z)
   
 public double shiftAway(Vector v1, Vector v2, FlagConfig flagConfig, BLAS blas, int[] permutation)
 {
-		if (!flagConfig.vectortype().equals(VectorType.BINARY))
-		 return -sigmoid(VectorUtils.scalarProduct(v1, v2, flagConfig, blas, permutation));
-		 else
-  		 return -100*Math.max(VectorUtils.scalarProduct(v1, v2, flagConfig, blas, permutation),0);
+	double loss;
+	
+	if (!flagConfig.vectortype().equals(VectorType.BINARY))
+		loss = -sigmoid(VectorUtils.scalarProduct(v1, v2, flagConfig, blas, permutation));
+	else
+		 loss = -100*Math.max(VectorUtils.scalarProduct(v1, v2, flagConfig, blas, permutation),0);
+		
+	raw_loss.add(Math.abs(loss));
+	return loss;
 }
 
 /**
@@ -547,12 +457,19 @@ public double shiftAway(Vector v1, Vector v2, FlagConfig flagConfig, BLAS blas, 
  * @return
  */
 
+
+
 public double shiftToward(Vector v1, Vector v2, FlagConfig flagConfig, BLAS blas, int[] permutation)
 {
+		double loss;
+	
 		if (!flagConfig.vectortype().equals(VectorType.BINARY))
-		 return 1-sigmoid(VectorUtils.scalarProduct(v1, v2, flagConfig, blas, permutation));
-		 else
-  		 return 100-100*Math.max(VectorUtils.scalarProduct(v1, v2, flagConfig, blas, permutation),0);
+			loss = 1-sigmoid(VectorUtils.scalarProduct(v1, v2, flagConfig, blas, permutation));
+		else
+			 loss = 100-100*Math.max(VectorUtils.scalarProduct(v1, v2, flagConfig, blas, permutation),0);
+			
+		raw_loss.add(Math.abs(loss));
+		return loss;
 }
 
 /**
@@ -692,101 +609,13 @@ private void processPredicationDocument(Document document, BLAS blas)
 		      if (encode)
 		      {
 	      
-		    	  //start processing terms
-		    	 if (termVectors != null && random.nextDouble() > .9)
-		    	 {	 
-		    		   String[] terms  = document.get("source").split(" ");
-		    		      
-			      ArrayList<Vector> incomingTermVectors = new ArrayList<Vector>();
-			      ArrayList<Vector> incomingConceptVectors = new ArrayList<Vector>();
-			      ArrayList<Integer> incomingLabels = new ArrayList<Integer>();
-			      
-			     for (String term:terms)
-			          {
-			    	  		if (termVectors.containsVector(term))
-			    	  	  	if (this.subsamplingProbabilities == null || !this.subsamplingProbabilities.contains("source_"+term) || random.nextDouble() > this.subsamplingProbabilities.get("source_"+term))
-			          	incomingTermVectors.add(termVectors.getVector(term));
-			          }	
-			      			incomingConceptVectors.add(elementalItemVectors.getVector(subject));
-			          		incomingLabels.add(1);
-			          		incomingConceptVectors.add(elementalItemVectors.getVector(object));
-			          		incomingLabels.add(1);
-			          		
-			          
-			          		
-			          		 //get flagConfig.negsamples() negative samples as counterpoint to E(object)
-			                while (incomingConceptVectors.size()-2 <= flagConfig.negsamples())
-			                {
-			              	  Vector objectsNegativeSample 	= null;
-			              	  int ocnt=0;
-			              	     
-			                //draw negative samples, using a unigram distribution for now
-			                	while (objectsNegativeSample == null)
-			                	{   
-			              	  double test = random.nextDouble()*totalPool.get(obsem);
-			                        if (termDic.get(obsem).ceilingEntry(test) != null) {
-			                        		String testConcept = termDic.get(obsem).ceilingEntry(test).getValue();
-			                      	
-			                      	  if  (++ocnt > 10 && flagConfig.semtypesandcuis()) //probably a rare semantic type
-			                      	  {
-			                      		  test = random.nextDouble()*totalPool.get("dsyn");
-			                      		  testConcept 	= termDic.get("dsyn").ceilingEntry(test).getValue();
-			                      	  }
-			                      	  
-			         
-			              	  if (!testConcept.equals(object))// don't use the observed object as a negative sample
-			              			  objectsNegativeSample =  elementalItemVectors.getVector(testConcept);
-			              	 	 
-			              	}
-			                	}
-			                
-			                incomingConceptVectors.add(objectsNegativeSample);
-			                incomingLabels.add(0);
-			                }
-			          		
-			       		 //get flagConfig.negsamples() negative samples as counterpoint to E(object)
-			                while (incomingConceptVectors.size()-2 <= 2*flagConfig.negsamples())
-			                {
-			              	  Vector subjectsNegativeSample 	= null;
-			              	  int ocnt=0;
-			              	     
-			                //draw negative samples, using a unigram distribution for now
-			                	while (subjectsNegativeSample == null)
-			                	{   
-			              	  double test = random.nextDouble()*totalPool.get(subsem);
-			                        if (termDic.get(subsem).ceilingEntry(test) != null) {
-			                        		String testConcept = termDic.get(subsem).ceilingEntry(test).getValue();
-			                      	
-			                      	  if  (++ocnt > 10 && flagConfig.semtypesandcuis()) //probably a rare semantic type
-			                      	  {
-			                      		  test = random.nextDouble()*totalPool.get("dsyn");
-			                      		  testConcept 	= termDic.get("dsyn").ceilingEntry(test).getValue();
-			                      	  }
-			                      	  
-			         
-			              	  if (!testConcept.equals(subject))// don't use the observed object as a negative sample
-			              			  subjectsNegativeSample =  elementalItemVectors.getVector(testConcept);
-			              	 	 
-			              	}
-			                	}
-			                
-			                incomingConceptVectors.add(subjectsNegativeSample);
-			                incomingLabels.add(0);
-			                }
-			          		
-				            
-				           this.processEmbeddings(incomingTermVectors, incomingConceptVectors, incomingLabels, alpha*2 / (double) incomingLabels.size(), blas, null, null);
-		
-		    	 }
-	      //end processing terms
-	   
 	    	  this.processPredication(subject, predicate, object, subsem, obsem, blas);
 	    	  this.processPredication(object, predicate+"-INV", subject, obsem, subsem, blas);
 	    	  pc.incrementAndGet();
 	      }
 	      
 	      
-	   	  if (pc.get() > 0 && pc.get() % 10000 == 0) {
+	   	  if (pc.get() > 0 && pc.get() % 100000 == 0) {
             VerbatimLogger.info("Processed " + pc + " predications ... ");
             double progress 	= (tc*luceneUtils.getNumDocs() + dc.get()) / ((double) luceneUtils.getNumDocs()*(flagConfig.trainingcycles() +1) );
             VerbatimLogger.info((100*progress)+"% complete ...");
@@ -862,7 +691,7 @@ private void initializeRandomizationStartpoints()
 		}
 		}
   	    
-	    VerbatimLogger.info("Added "+qplus+" documents to queue, now carrying "+theQ.size());
+	    VerbatimLogger.info("\nAdded "+qplus+" documents to queue, now carrying "+theQ.size());
 		if (qplus == 0) return -1;
 		else return qplus;
    	
@@ -984,9 +813,17 @@ private void initializeRandomizationStartpoints()
     	
       }
       
-      VerbatimLogger.info("Time for cycle "+tc+" : "+((System.currentTimeMillis() - time) / (1000*60))  +" minutes");
-      VerbatimLogger.info("Processed "+pc.get()+" total predications (total on disk = "+luceneUtils.getNumDocs()+")");
+      int mp = flagConfig.mutablepredicatevectors() ? 1 : 0;
+      double num_updates = pc.get() * (1 + flagConfig.negsamples()) * (4 + 2*mp);
+      double lo = raw_loss.sumThenReset();
+      double ave_loss = lo / num_updates;
       
+      VerbatimLogger.info("\nTime for cycle "+tc+" : "+((System.currentTimeMillis() - time) / (1000*60))  +" minutes");
+      VerbatimLogger.info("\nSummed loss = "+lo);
+      VerbatimLogger.info("\nMean loss = "+ave_loss);
+      VerbatimLogger.info("\nProcessed "+pc.get()+" total predications (total on disk = "+luceneUtils.getNumDocs()+")");
+       
+  
       //normalization with each epoch if the vectors are not binary vectors
       if (!flagConfig.vectortype().equals(VectorType.BINARY) && !flagConfig.notnormalized)
       {
@@ -1060,20 +897,7 @@ private void initializeRandomizationStartpoints()
     		if (!flagConfig.notnormalized) nextVec.normalize();
     }
     
-    e = termVectors.getAllVectors();
-    while (e.hasMoreElements()) {
-    	
-    	Vector nextVec =  e.nextElement().getVector();
-    	   if (flagConfig.vectortype().equals(VectorType.BINARY))
-    	    	  ((BinaryVector) nextVec).tallyVotes();
-    	   else 
-    		if (!flagConfig.notnormalized) nextVec.normalize();
-    }
-    
-    VectorStoreWriter.writeVectors(
-            "espPerm_"+flagConfig.termvectorsfile(), flagConfig, termVectors);
-        
-   
+
     VectorStoreWriter.writeVectors(
         flagConfig.semanticvectorfile(), flagConfig, semanticItemVectors);
     
@@ -1095,18 +919,29 @@ private void initializeRandomizationStartpoints()
    * Main method for building ESP indexes.
    */
   public static void main(String[] args) throws IllegalArgumentException, IOException {
-    FlagConfig flagConfig = FlagConfig.getFlagConfig(args);
+    
+	String logString = "";
+	for (String argument : args)
+				logString = logString + argument+" ";  
+		
+	 FlagConfig flagConfig = FlagConfig.getFlagConfig(args);
     args = flagConfig.remainingArgs;
 
     if (flagConfig.luceneindexpath().isEmpty()) {
       throw (new IllegalArgumentException("-luceneindexpath argument must be provided."));
     }
 
-    VerbatimLogger.info("Building ESP model from index in: " + flagConfig.luceneindexpath() + "\n");
+    VerbatimLogger.info("Building ESP perm model from index in: " + flagConfig.luceneindexpath() + "\n");
     VerbatimLogger.info("Minimum frequency = " + flagConfig.minfrequency() + "\n");
     VerbatimLogger.info("Maximum frequency = " + flagConfig.maxfrequency() + "\n");
     VerbatimLogger.info("Number non-alphabet characters = " + flagConfig.maxnonalphabetchars() + "\n");
 
     createIncrementalESPVectors(flagConfig);
+    LocalDateTime now = LocalDateTime.now();  
+	String fileName = "log_"+now+".txt";
+	BufferedWriter logWriter = new BufferedWriter(new FileWriter(fileName));
+	logWriter.write(logString+"\n");  
+	logWriter.flush();
+	logWriter.close();
   }
 }
