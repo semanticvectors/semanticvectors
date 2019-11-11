@@ -350,8 +350,8 @@ public class ESPmegaperm {
     
     while((bytes = termsEnum.next()) != null) {
       Term term = new Term("predications", bytes);
-      total_predications += luceneUtils.getGlobalTermFreq(term);  
-    }
+      total_predications += luceneUtils.getGlobalTermFreq(term); 
+      }
     
     //precalculate probabilities for subsampling (need to iterate again once total term frequency known)
     if (flagConfig.samplingthreshold() > -1 && flagConfig.samplingthreshold() < 1) {
@@ -371,7 +371,7 @@ public class ESPmegaperm {
           double subFreq  	= luceneUtils.getGlobalTermFreq(new Term("subjects",termName.toString()));
           double obFreq  	= luceneUtils.getGlobalTermFreq(new Term("objects",termName.toString()));
           double globalFreq = (subFreq + obFreq) / (double) totalConceptCount;
-
+     
           if (globalFreq > flagConfig.samplingthreshold()) {
             double discount = 1; //(globalFreq - flagConfig.samplingthreshold()) / globalFreq;
             subsamplingProbabilities.put(termName.toString(), (discount - Math.sqrt(flagConfig.samplingthreshold() / globalFreq)));
@@ -574,7 +574,6 @@ private void processPredicationDocument(Document document, BLAS blas)
 	      String subsems 		= document.get("subject_semtype");
 	      String obsems			= document.get("object_semtype");
 	   
-	      boolean encode 	 = true;
 	      
 	      String[] subsemString = null;
 	      String[] obsemString = null;
@@ -592,15 +591,20 @@ private void processPredicationDocument(Document document, BLAS blas)
 	      String[] predicateString = predicates.split(" ");
 	      String[] predicationString = predications.split(" ");
 	      
-	       
+	     
 	      for (int dcnt=0; dcnt < predicationString.length; dcnt ++)
 	      {
+	    	  
+	    	  boolean encode 	 = true;
+	 	     
 	    	  
 	    	  String subject 	= subjectString[dcnt];
 	    	  String object 		= objectString[dcnt];
 	    	  String predicate 	= predicateString[dcnt];
 	    	  String predication = predicationString[dcnt];
 		  String subsem,obsem;
+		  
+		  
 		  
 		  if (subsemString != null)
 			  {
@@ -612,31 +616,36 @@ private void processPredicationDocument(Document document, BLAS blas)
 			  obsem = "universal";
 		  	}
 				  
+		  
+		  
 		  if (!(elementalItemVectors.containsVector(object)
 	          && elementalItemVectors.containsVector(subject)
 	          && permutationVectors.containsVector(predicate))) {
 	        logger.fine("skipping predication " + subject + " " + predicate + " " + object);
 	        encode = false;
 	      }
-	      
+		  
+		   
+		  
 	      //subsampling of predications
 	      int    predCount	= luceneUtils.getGlobalTermFreq(new Term(PREDICATION_FIELD,predication));
 	         
-	      double predFreq   =  (predCount / (double) total_predications);
+	       double predFreq   =  (predCount / (double) total_predications);
 	      
 	      
 	      if (predFreq > flagConfig.samplingthreshold()*0.01)
 	    	  if (random.nextDouble() <= ( 1 - Math.sqrt(flagConfig.samplingthreshold()*0.01) / predFreq))
-	    	  	encode = false;
-	         
+	    	  {
+	    		  encode = false;
+	    		  }  
 	      //subsampling of terms above some threshold
 	      if (this.subsamplingProbabilities != null && this.subsamplingProbabilities.contains(subject) && random.nextDouble() <= this.subsamplingProbabilities.get(subject))
 	       { encode = false;
-	    	 logger.fine("skipping predication " + object + " " + predicate + "-INV " + subject);
+	       	 logger.fine("skipping predication " + object + " " + predicate + "-INV " + subject);
 		    }  
 	       if (this.subsamplingProbabilities != null && this.subsamplingProbabilities.contains(object) && random.nextDouble() <= this.subsamplingProbabilities.get(object))
 	       { encode = false;
-	    	 logger.fine("skipping predication " + subject + " " + predicate + " " + object);
+	       logger.fine("skipping predication " + subject + " " + predicate + " " + object);
 		    }
 	      
 	       
@@ -644,12 +653,9 @@ private void processPredicationDocument(Document document, BLAS blas)
 		      {
 	      
 		   
-		    	       
-	    	  this.processPredication(subject, predicate, object, subsem, obsem, blas);
-	    	  this.processPredication(object, predicate+"-INV", subject, obsem, subsem, blas);
-	    	 		
-	    	  pc.incrementAndGet();
-	    	  
+		    	  this.processPredication(subject, predicate, object, subsem, obsem, blas);
+		    	  this.processPredication(object, predicate+"-INV", subject, obsem, subsem, blas);
+		    	  
 	      }
 	      
 	      
