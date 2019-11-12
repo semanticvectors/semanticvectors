@@ -659,7 +659,7 @@ private void processPredicationDocument(Document document, BLAS blas)
 	      }
 	      
 	      
-	   	  if (pc.get() > 0 && pc.get() % 10000 == 0) {
+	   	  if (pc.incrementAndGet() > 0 && pc.get() % 100000 == 0) {
             VerbatimLogger.info("Processed " + pc + " predications ... ");
             double progress 	= (tc*total_predications + pc.get()) / ((double) total_predications*(flagConfig.trainingcycles() +1) );
             VerbatimLogger.info((100*progress)+"% complete ...");
@@ -677,17 +677,17 @@ private void processPredicationDocument(Document document, BLAS blas)
 private void initializeRandomizationStartpoints()
 {
 	this.randomStartpoints = new ConcurrentLinkedQueue<Integer>();
-	int increments 		   = luceneUtils.getNumDocs() / 100;
-	boolean remainder 	   = luceneUtils.getNumDocs() % 100 > 0;
+	int increments 		   = luceneUtils.getNumDocs() / 1000;
+	boolean remainder 	   = luceneUtils.getNumDocs() % 1000 > 0;
 	
 	if (remainder) increments++;
 	
 	ArrayList<Integer> toRandomize = new ArrayList<Integer>();
 	
 	for (int x = 0; x < increments; x++)
-		toRandomize.add(x * 100000);
+		toRandomize.add(x * 1000);
 
-	Collections.shuffle(toRandomize);
+	//Collections.shuffle(toRandomize);
 	randomStartpoints.addAll(toRandomize);
 	
 }
