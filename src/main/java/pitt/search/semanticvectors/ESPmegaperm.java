@@ -711,15 +711,15 @@ private void processPredicationDocument(Document document, BLAS blas)
 private void initializeRandomizationStartpoints()
 {
 	this.randomStartpoints = new ConcurrentLinkedQueue<Integer>();
-	int increments 		   = luceneUtils.getNumDocs() / 1000;
-	boolean remainder 	   = luceneUtils.getNumDocs() % 1000 > 0;
+	int increments 		   = luceneUtils.getNumDocs() / 100;
+	boolean remainder 	   = luceneUtils.getNumDocs() % 100 > 0;
 	
 	if (remainder) increments++;
 	
 	ArrayList<Integer> toRandomize = new ArrayList<Integer>();
 	
 	for (int x = 0; x < increments; x++)
-		toRandomize.add(x * 1000);
+		toRandomize.add(x * 100);
 
 	//Collections.shuffle(toRandomize);
 	randomStartpoints.addAll(toRandomize);
@@ -744,12 +744,12 @@ private void initializeRandomizationStartpoints()
   {
 	 	  
 	 if (dc.get() >= luceneUtils.getNumDocs()) return -1; 
-	 if (theQ.size() > 1000) return 0;
+	 if (theQ.size() > 100) return 0;
 	 if (randomStartpoints.isEmpty()) return -1;
 	 
 	
  	 int qb = randomStartpoints.poll(); //the index number of the first predication-document to be drawn
- 	 int qe = qb + (1000); //the index number of the last predication-document to be drawn
+ 	 int qe = qb + (100); //the index number of the last predication-document to be drawn
  	 int qplus = 0; //the number of predication-documents added to the queue
      
  	
@@ -888,7 +888,7 @@ private void initializeRandomizationStartpoints()
       // Wait until all threads are finish
       while (!executor.isTerminated()) {
     	  
-    	  if (theQ.size() < 50000) 
+    	  if (theQ.size() < 500) 
     		  populateQueue();
     	
       }
