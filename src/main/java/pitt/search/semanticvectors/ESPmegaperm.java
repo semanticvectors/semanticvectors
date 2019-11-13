@@ -76,6 +76,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 
 /**
@@ -386,7 +387,40 @@ public class ESPmegaperm {
      
   }
 
-  /**
+  public ESPmegaperm(FlagConfig flagConfig, VectorStore elementalItemVectors, VectorStoreRAM semanticItemVectors,
+		VectorStoreRAM permutationVectors, String[] itemFields, int tc, long total_predications, double initial_alpha,
+		double alpha, double min_alpha, SigmoidTable sigmoidTable,
+		ConcurrentHashMap<String, ConcurrentSkipListMap<Double, String>> termDic,
+		ConcurrentHashMap<String, Double> totalPool, LuceneUtils luceneUtils, HashSet<String> addedConcepts,
+		AtomicInteger dc, AtomicInteger pc, ConcurrentLinkedQueue<Document> theQ,
+		ConcurrentLinkedQueue<Integer> randomStartpoints, ConcurrentHashMap<String, String> semtypes,
+		HashMap<Object, String> cuis, ConcurrentHashMap<String, Double> subsamplingProbabilities) {
+	super();
+	this.flagConfig = flagConfig;
+	this.elementalItemVectors = elementalItemVectors;
+	this.semanticItemVectors = semanticItemVectors;
+	this.permutationVectors = permutationVectors;
+	this.itemFields = itemFields;
+	this.tc = tc;
+	this.total_predications = total_predications;
+	this.initial_alpha = initial_alpha;
+	this.alpha = alpha;
+	this.min_alpha = min_alpha;
+	this.sigmoidTable = sigmoidTable;
+	this.termDic = termDic;
+	this.totalPool = totalPool;
+	this.luceneUtils = luceneUtils;
+	this.addedConcepts = addedConcepts;
+	this.dc = dc;
+	this.pc = pc;
+	this.theQ = theQ;
+	this.randomStartpoints = randomStartpoints;
+	this.semtypes = semtypes;
+	this.cuis = cuis;
+	this.subsamplingProbabilities = subsamplingProbabilities;
+}
+
+/**
    * Each TrainPredThred draws from the predication queue, and sends the predication for processing. 
    * TrainPredThreads operate in parallel
    * @author tcohen
@@ -710,12 +744,12 @@ private void initializeRandomizationStartpoints()
   {
 	 	  
 	 if (dc.get() >= luceneUtils.getNumDocs()) return -1; 
-	 if (theQ.size() > 100000) return 0;
+	 if (theQ.size() > 1000) return 0;
 	 if (randomStartpoints.isEmpty()) return -1;
 	 
 	
  	 int qb = randomStartpoints.poll(); //the index number of the first predication-document to be drawn
- 	 int qe = qb + (100000); //the index number of the last predication-document to be drawn
+ 	 int qe = qb + (1000); //the index number of the last predication-document to be drawn
  	 int qplus = 0; //the number of predication-documents added to the queue
      
  	
