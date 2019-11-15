@@ -528,7 +528,6 @@ private void processPredication(String subject, String predicate, String object,
       PermutationVector inversePermutation  = (PermutationVector) permutationVectors.getVector("_"+predicate);
 
       
-      
       if (!flagConfig.semtypesandcuis()) //if UMLS semantic types not available
       {
 		subsem = "universal";
@@ -540,7 +539,7 @@ private void processPredication(String subject, String predicate, String object,
       
       
       //get flagConfig.negsamples() negative samples as counterpoint to E(object)
-      while (objNegSamples.size() <= flagConfig.negsamples())
+      while (objNegSamples.size() < flagConfig.negsamples())
       {
     	  Vector objectsNegativeSample 	= null;
     	  int ocnt=0;
@@ -564,7 +563,9 @@ private void processPredication(String subject, String predicate, String object,
             	  if (duplicates.contains(testConcept)) continue;
               	  duplicates.add(testConcept);  
     	  if (!testConcept.equals(object)) // don't use the observed object as a negative sample
-    			  objectsNegativeSample =  elementalItemVectors.getVector(testConcept);
+    	  {
+    		  objectsNegativeSample =  elementalItemVectors.getVector(testConcept);
+    		   	  }
     	 	 
     	}
       	}

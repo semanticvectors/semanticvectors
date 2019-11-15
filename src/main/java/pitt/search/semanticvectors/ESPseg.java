@@ -628,7 +628,7 @@ private void processCompositePredication(String subject, ArrayList<String> predi
       
       
       //get flagConfig.negsamples() negative samples as counterpoint to E(object)
-      while (objNegSamples.size() <= flagConfig.negsamples())
+      while (objNegSamples.size() < flagConfig.negsamples())
       {
     	   
     	  Vector objectsNegativeSample 	= null;
