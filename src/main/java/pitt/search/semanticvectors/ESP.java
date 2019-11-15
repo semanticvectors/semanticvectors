@@ -469,7 +469,7 @@ private void processPredication(String subject, String predicate, String object,
       
       
       //get flagConfig.negsamples() negative samples as counterpoint to E(object)
-      while (objNegSamples.size() <= flagConfig.negsamples())
+      while (objNegSamples.size() < flagConfig.negsamples())
       {
     	  Vector objectsNegativeSample 	= null;
     	  int ocnt=0;
