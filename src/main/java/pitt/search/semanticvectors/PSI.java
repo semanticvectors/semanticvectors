@@ -55,10 +55,7 @@ import pitt.search.semanticvectors.vectors.VectorType;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Lock;
@@ -86,10 +83,12 @@ public class PSI {
 	private LuceneUtils luceneUtils;
 	private int[] predicatePermutation;
 
-	private ExecutorService es;
+	private BlockingExecutor es;
 	private Thread shutdownHook;
 	private volatile boolean interrupted = false;
 	private AtomicBoolean isCreationInterruptedByUser;
+
+	private final int BLOCKING_QUEUE_SIZE = Integer.parseInt(System.getProperty("graphdb.predication.max.generated.tasks", "10"));
 
 	public PSI(FlagConfig flagConfig) {
 		this(flagConfig, new AtomicBoolean(false));
@@ -138,6 +137,8 @@ public class PSI {
 
 		if (!interrupted) {
 			logger.info("Done with createIncrementalPSIVectors.");
+			// Should unregister shutdownHook (see GDB-4079)
+			Runtime.getRuntime().removeShutdownHook(shutdownHook);
 			return true;
 		} else {
 			return false;
@@ -300,10 +301,12 @@ public class PSI {
 		BytesRef bytes;
 
 		AtomicInteger pc = new AtomicInteger(0);
-		es = Executors.newFixedThreadPool(2);
-		Map<String, Lock> locks = new ConcurrentHashMap<>();
-		Map<String, Vector> bindVectorHash = Collections.synchronizedMap(new WeakHashMap<>());
-		Map<String, Vector> invBindVectorHash = Collections.synchronizedMap(new WeakHashMap<>());
+		// Following will ensure at most one maps resizing
+		final int MAPS_INITIAL_CAPACITY = (int) (0.5 * allTerms.getDocCount());
+		es = new BlockingExecutor(BLOCKING_QUEUE_SIZE, 2, 2, 0L, TimeUnit.MILLISECONDS);
+		Map<String, Lock> locks = new ConcurrentHashMap<>(MAPS_INITIAL_CAPACITY);
+		Map<String, Vector> bindVectorHash = Collections.synchronizedMap(new WeakHashMap<>(MAPS_INITIAL_CAPACITY));
+		Map<String, Vector> invBindVectorHash = Collections.synchronizedMap(new WeakHashMap<>(MAPS_INITIAL_CAPACITY));
 
 		while ((bytes = termsEnum.next()) != null) {
 			Term term = new Term(fieldName, bytes);
@@ -323,102 +326,106 @@ public class PSI {
 				continue;
 			}
 
-			es.submit(() -> {
-				if (interrupted || this.isCreationInterruptedByUser.get())
-					return;
-				Thread.currentThread().setName("psi-index-builder");
+			try {
+				es.execute(() -> {
+					if (interrupted || this.isCreationInterruptedByUser.get())
+						return;
+					Thread.currentThread().setName("psi-index-builder");
 
-				float sWeight = 1;
-				float oWeight = 1;
-				float pWeight = 1;
-				float predWeight = 1;
+					float sWeight = 1;
+					float oWeight = 1;
+					float pWeight = 1;
+					float predWeight = 1;
 
-				// Generate locks
-				String smaller, larger;
-				if (subject.compareTo(object) <= 0) {
-					smaller = subject;
-					larger = object;
-				} else {
-					smaller = object;
-					larger = subject;
-				}
-				Lock firstLock = locks.computeIfAbsent(smaller, v -> new ReentrantLock());
-				Lock secondLock = locks.computeIfAbsent(larger, v -> new ReentrantLock());
-
-				try {
-					firstLock.lock();
-					secondLock.lock();
-
-					// sWeight and oWeight are analogous to global weighting, a function of the number of times these concepts - and predicates - occur
-					// such that less frequent concepts and predicates will contribute more
-					predWeight = luceneUtils.getGlobalTermWeight(new Term(PREDICATE_FIELD, predicate));
-					sWeight = luceneUtils.getGlobalTermWeight(new Term(SUBJECT_FIELD, subject));
-					oWeight = luceneUtils.getGlobalTermWeight(new Term(OBJECT_FIELD, object));
-					// pWeight is analogous to local weighting, a function of the total number of times a predication occurs
-					// examples are -termweight sqrt (sqrt of total occurences), and -termweight logentropy (log of 1 + occurrences)
-					pWeight = luceneUtils.getLocalTermWeight(luceneUtils.getGlobalTermFreq(term));
-
-					// with -termweight sqrt we don't take global weighting of predicates into account to preserve a probabilistic interpretation
-					if (flagConfig.termweight().equals(TermWeight.SQRT)) predWeight = 0;
-
-					Vector subjectSemanticVector = semanticItemVectors.getVector(subject);
-					Vector objectSemanticVector = semanticItemVectors.getVector(object);
-					Vector subjectElementalVector = elementalItemVectors.getVector(subject);
-					Vector objectElementalVector = elementalItemVectors.getVector(object);
-					Vector predicateElementalVector = elementalPredicateVectors.getVector(predicate);
-					Vector predicateElementalVectorInv = elementalPredicateVectors.getVector(predicate + "-INV");
-
-					Vector objToAdd = bindVectorHash.computeIfAbsent(predicate + "_" + object, key -> {
-						Vector tmp = objectElementalVector.copy();
-						tmp.bind(predicateElementalVector);
-						return tmp;
-					});
-					subjectSemanticVector.superpose(objToAdd, pWeight * (oWeight + predWeight), null);
-					semanticItemVectors.updateVector(subject, subjectSemanticVector);
-
-					Vector subjToAdd = invBindVectorHash.computeIfAbsent(predicate + "_" + subject, key -> {
-						Vector tmp = subjectElementalVector.copy();
-						tmp.bind(predicateElementalVectorInv);
-						return tmp;
-					});
-					objectSemanticVector.superpose(subjToAdd, pWeight * (sWeight + predWeight), null);
-					semanticItemVectors.updateVector(object, objectSemanticVector);
-
-					if (flagConfig.trainingcycles() > 0) //for experiments with generating iterative predicate vectors
-					{
-						Vector predicateSemanticVector = semanticPredicateVectors.getVector(predicate);
-						Vector predicateSemanticVectorInv = semanticPredicateVectors.getVector(predicate + "-INV");
-						//construct permuted editions of subject and object vectors (so binding doesn't commute)
-						Vector permutedSubjectElementalVector = VectorFactory.createZeroVector(flagConfig.vectortype(), flagConfig.dimension());
-						Vector permutedObjectElementalVector = VectorFactory.createZeroVector(flagConfig.vectortype(), flagConfig.dimension());
-						permutedSubjectElementalVector.superpose(subjectElementalVector, 1, predicatePermutation);
-						permutedObjectElementalVector.superpose(objectElementalVector, 1, predicatePermutation);
-						permutedSubjectElementalVector.normalize();
-						permutedObjectElementalVector.normalize();
-
-						Vector predToAdd = subjectElementalVector.copy();
-						predToAdd.bind(permutedObjectElementalVector);
-						predicateSemanticVector.superpose(predToAdd, sWeight * oWeight, null);
-						semanticPredicateVectors.updateVector(predicate, predicateSemanticVector);
-
-						Vector predToAddInv = objectElementalVector.copy();
-						predToAddInv.bind(permutedSubjectElementalVector);
-						predicateSemanticVectorInv.superpose(predToAddInv, oWeight * sWeight, null);
-						semanticPredicateVectors.updateVector(predicate + "-INV", predicateSemanticVectorInv);
+					// Generate locks
+					String smaller, larger;
+					if (subject.compareTo(object) <= 0) {
+						smaller = subject;
+						larger = object;
+					} else {
+						smaller = object;
+						larger = subject;
 					}
-				} catch (Throwable e) {
-					logger.info(e.getMessage());
-				} finally {
-					secondLock.unlock();
-					firstLock.unlock();
-				}
+					Lock firstLock = locks.computeIfAbsent(smaller, v -> new ReentrantLock());
+					Lock secondLock = locks.computeIfAbsent(larger, v -> new ReentrantLock());
 
-				int currCnt = pc.incrementAndGet();
+					try {
+						firstLock.lock();
+						secondLock.lock();
 
-				if (currCnt % 100_000 == 0) {
-					logger.info("Processed " + currCnt + " unique predications ...");
-				}
-			});
+						// sWeight and oWeight are analogous to global weighting, a function of the number of times these concepts - and predicates - occur
+						// such that less frequent concepts and predicates will contribute more
+						predWeight = luceneUtils.getGlobalTermWeight(new Term(PREDICATE_FIELD, predicate));
+						sWeight = luceneUtils.getGlobalTermWeight(new Term(SUBJECT_FIELD, subject));
+						oWeight = luceneUtils.getGlobalTermWeight(new Term(OBJECT_FIELD, object));
+						// pWeight is analogous to local weighting, a function of the total number of times a predication occurs
+						// examples are -termweight sqrt (sqrt of total occurences), and -termweight logentropy (log of 1 + occurrences)
+						pWeight = luceneUtils.getLocalTermWeight(luceneUtils.getGlobalTermFreq(term));
+
+						// with -termweight sqrt we don't take global weighting of predicates into account to preserve a probabilistic interpretation
+						if (flagConfig.termweight().equals(TermWeight.SQRT)) predWeight = 0;
+
+						Vector subjectSemanticVector = semanticItemVectors.getVector(subject);
+						Vector objectSemanticVector = semanticItemVectors.getVector(object);
+						Vector subjectElementalVector = elementalItemVectors.getVector(subject);
+						Vector objectElementalVector = elementalItemVectors.getVector(object);
+						Vector predicateElementalVector = elementalPredicateVectors.getVector(predicate);
+						Vector predicateElementalVectorInv = elementalPredicateVectors.getVector(predicate + "-INV");
+
+						Vector objToAdd = bindVectorHash.computeIfAbsent(predicate + "_" + object, key -> {
+							Vector tmp = objectElementalVector.copy();
+							tmp.bind(predicateElementalVector);
+							return tmp;
+						});
+						subjectSemanticVector.superpose(objToAdd, pWeight * (oWeight + predWeight), null);
+						semanticItemVectors.updateVector(subject, subjectSemanticVector);
+
+						Vector subjToAdd = invBindVectorHash.computeIfAbsent(predicate + "_" + subject, key -> {
+							Vector tmp = subjectElementalVector.copy();
+							tmp.bind(predicateElementalVectorInv);
+							return tmp;
+						});
+						objectSemanticVector.superpose(subjToAdd, pWeight * (sWeight + predWeight), null);
+						semanticItemVectors.updateVector(object, objectSemanticVector);
+
+						if (flagConfig.trainingcycles() > 0) //for experiments with generating iterative predicate vectors
+						{
+							Vector predicateSemanticVector = semanticPredicateVectors.getVector(predicate);
+							Vector predicateSemanticVectorInv = semanticPredicateVectors.getVector(predicate + "-INV");
+							//construct permuted editions of subject and object vectors (so binding doesn't commute)
+							Vector permutedSubjectElementalVector = VectorFactory.createZeroVector(flagConfig.vectortype(), flagConfig.dimension());
+							Vector permutedObjectElementalVector = VectorFactory.createZeroVector(flagConfig.vectortype(), flagConfig.dimension());
+							permutedSubjectElementalVector.superpose(subjectElementalVector, 1, predicatePermutation);
+							permutedObjectElementalVector.superpose(objectElementalVector, 1, predicatePermutation);
+							permutedSubjectElementalVector.normalize();
+							permutedObjectElementalVector.normalize();
+
+							Vector predToAdd = subjectElementalVector.copy();
+							predToAdd.bind(permutedObjectElementalVector);
+							predicateSemanticVector.superpose(predToAdd, sWeight * oWeight, null);
+							semanticPredicateVectors.updateVector(predicate, predicateSemanticVector);
+
+							Vector predToAddInv = objectElementalVector.copy();
+							predToAddInv.bind(permutedSubjectElementalVector);
+							predicateSemanticVectorInv.superpose(predToAddInv, oWeight * sWeight, null);
+							semanticPredicateVectors.updateVector(predicate + "-INV", predicateSemanticVectorInv);
+						}
+					} catch (Throwable e) {
+						logger.info(e.getMessage());
+					} finally {
+						secondLock.unlock();
+						firstLock.unlock();
+					}
+
+					int currCnt = pc.incrementAndGet();
+
+					if (currCnt % 100_000 == 0) {
+						logger.info("Processed " + currCnt + " unique predications ...");
+					}
+				});
+			} catch (InterruptedException | RejectedExecutionException e) {
+				// Do nothing. If execution is aborted or interrupted will be handled later
+			}
 
 			if (this.isCreationInterruptedByUser.get()) {
 				shutdown();
@@ -427,11 +434,6 @@ public class PSI {
 		} // Finish iterating through predications.
 
 		es.shutdown();
-		try {
-			es.awaitTermination(7, TimeUnit.DAYS);
-		} catch (InterruptedException e) {
-			throw new IOException("Building index did not complete in 1 week");
-		}
 
 		if (!interrupted) {
 			// Normalize semantic vectors and write out.
@@ -457,22 +459,24 @@ public class PSI {
 		}
 	}
 
+	/**
+	 * This method is used only before throwing
+	 * QueryInterruptedException("Transaction was aborted by the user")
+	 * that's why we should unregister shutdownHook (see GDB-4079)
+	 */
 	protected void shutdown() {
 		logger.info("Shutting down PSI");
 		if (shutdownHook != null) {
 			try {
-				es.shutdownNow();
 				closeVectorStores();
-				Runtime.getRuntime().removeShutdownHook(shutdownHook);
+				es.shutdownNow();
 			} catch (IllegalStateException e) {
 				// ignore as the runtime is in shutdown state
+			} catch (InterruptedException e) {
+				throw new PluginException("Couldn't terminate process");
+			} finally {
+				Runtime.getRuntime().removeShutdownHook(shutdownHook);
 			}
-		}
-
-		try {
-			es.awaitTermination(30, TimeUnit.SECONDS);
-		} catch (InterruptedException e) {
-			throw new PluginException("Couldn't terminate process");
 		}
 	}
 
@@ -480,9 +484,12 @@ public class PSI {
 		shutdownHook = new Thread(() -> {
 			logger.info("Interrupting building index");
 			interrupted = true;
-			es.shutdownNow();
-
-			closeVectorStores();
+			try {
+				closeVectorStores();
+				es.shutdownNow();
+			} catch (InterruptedException e) {
+				throw new PluginException("Couldn't terminate process");
+			}
 		});
 		Runtime.getRuntime().addShutdownHook(shutdownHook);
 	}
