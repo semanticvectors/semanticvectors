@@ -88,7 +88,7 @@ public class PSI {
 	private volatile boolean interrupted = false;
 	private AtomicBoolean isCreationInterruptedByUser;
 
-	private final int BLOCKING_QUEUE_SIZE = Integer.parseInt(System.getProperty("graphdb.predication.max.generated.tasks", "5"));
+	private final int BLOCKING_QUEUE_SIZE = Integer.parseInt(System.getProperty("graphdb.predication.max.generated.tasks", "20"));
 
 	public PSI(FlagConfig flagConfig) {
 		this(flagConfig, new AtomicBoolean(false));
