@@ -424,7 +424,8 @@ public class PSI {
 					}
 				});
 			} catch (InterruptedException | RejectedExecutionException e) {
-				// Do nothing. If execution is aborted or interrupted will be handled later
+				// Log error message only. If execution is aborted or interrupted will be handled later
+				logger.info(e.getMessage());
 			}
 
 			if (this.isCreationInterruptedByUser.get()) {

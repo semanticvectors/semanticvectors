@@ -28,8 +28,8 @@ public final class BlockingExecutor {
 	}
 
 	private void execImpl (final Runnable command) throws InterruptedException {
-		semaphore.acquire();
 		try {
+			semaphore.acquireUninterruptibly();
 			executor.execute(() -> {
 				try {
 					command.run();
