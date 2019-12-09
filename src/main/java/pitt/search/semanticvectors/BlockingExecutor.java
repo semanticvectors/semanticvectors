@@ -27,9 +27,9 @@ public final class BlockingExecutor {
 		this.semaphore = new Semaphore(blockingQueueSize + maxPoolSize);
 	}
 
-	private void execImpl (final Runnable command) throws InterruptedException {
+	private void execImpl (final Runnable command) {
+		semaphore.acquireUninterruptibly();
 		try {
-			semaphore.acquireUninterruptibly();
 			executor.execute(() -> {
 				try {
 					command.run();
@@ -45,7 +45,7 @@ public final class BlockingExecutor {
 		}
 	}
 
-	public void execute (Runnable command) throws InterruptedException {
+	public void execute (Runnable command) {
 		execImpl(command);
 	}
 

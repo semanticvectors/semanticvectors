@@ -423,9 +423,9 @@ public class PSI {
 						logger.info("Processed " + currCnt + " unique predications ...");
 					}
 				});
-			} catch (InterruptedException | RejectedExecutionException e) {
-				// Log error message only. If execution is aborted or interrupted will be handled later
-				logger.info(e.getMessage());
+			} catch (RejectedExecutionException e) {
+				// Do nothing. If execution is aborted will be handled
+				// later and proper message will be shown to the user
 			}
 
 			if (this.isCreationInterruptedByUser.get()) {
