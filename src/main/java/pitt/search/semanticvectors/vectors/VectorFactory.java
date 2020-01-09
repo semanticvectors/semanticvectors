@@ -64,7 +64,6 @@ public class VectorFactory {
       case REAL:
         return new RealVector(dimension);
       case COMPLEX:
-        return new ComplexVector(dimension, Mode.POLAR_SPARSE);
       case COMPLEXFLAT:
         return new ComplexVector(dimension, Mode.POLAR_SPARSE);
       case PERMUTATION:

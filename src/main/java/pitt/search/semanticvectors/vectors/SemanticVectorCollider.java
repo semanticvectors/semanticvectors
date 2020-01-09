@@ -102,7 +102,7 @@ public class SemanticVectorCollider {
 			
 			
 				overlapscore += overlapWithRandom;
-				overlapScore.add(new Double(overlapWithRandom));
+				overlapScore.add(overlapWithRandom);
 				
 			
 			if (overlapWithRandom >= overlapWithOrigin) //version 2.0 based on Roger Schvaneveldt's Matlab edition: compare superposition:origin vs. superposition:random (this is different than the implementation in Wahle et al 2012, which compared origin:superposition vs. origin:random) 
@@ -114,7 +114,7 @@ public class SemanticVectorCollider {
 				
 				overlapcnt++;
 				overlaprank += x;
-				overlapRank.add(new Double(x));
+				overlapRank.add((double) x);
 				
 					
 				x = 999999999;
@@ -146,18 +146,15 @@ public class SemanticVectorCollider {
 		public static double calculateSTD(ArrayList<Double> values, double mean)
 		{
 			double std = 0;
-			
-			for (int x=0; x < values.size(); x++)
-			{
-				std += Math.pow(values.get(x).doubleValue() - mean,2);
-				
-				
+
+			for (Double value : values) {
+				std += Math.pow(value - mean, 2);
+
+
 			}
 			
 			std = std/(double) values.size()-1;
 			std = Math.sqrt(std);
 			return std;
 		}
-	
-	
 }

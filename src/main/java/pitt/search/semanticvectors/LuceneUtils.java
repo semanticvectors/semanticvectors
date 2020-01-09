@@ -45,6 +45,12 @@ import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 
+import gnu.trove.TCollections;
+import gnu.trove.impl.sync.TSynchronizedObjectFloatMap;
+import gnu.trove.impl.sync.TSynchronizedObjectIntMap;
+import gnu.trove.map.TObjectFloatMap;
+import gnu.trove.map.hash.TObjectFloatHashMap;
+import gnu.trove.map.hash.TObjectIntHashMap;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.BaseCompositeReader;
 import org.apache.lucene.index.LeafReader;
@@ -73,12 +79,14 @@ public class LuceneUtils {
   private FlagConfig flagConfig;
   private BaseCompositeReader<LeafReader> compositeReader;
   private LeafReader leafReader;
-  private ConcurrentHashMap<String, Float> termEntropy = new ConcurrentHashMap<String, Float>();
-  private ConcurrentHashMap<String, Float> termIDF = new ConcurrentHashMap<String, Float>();
-  private ConcurrentHashMap<String, Integer> termFreq = new ConcurrentHashMap<String, Integer>();
+  private TSynchronizedObjectFloatMap<String> termEntropy;
+  private TSynchronizedObjectFloatMap<String> termIDF;
+  private TSynchronizedObjectIntMap<String> termFreq;
   private boolean totalTermCountCaching = true;
   private TreeSet<String> stopwords = null;
   private TreeSet<String> startwords = null;
+
+  public static final double MAPS_INITIAL_CAPACITY_COEFFICIENT = 0.75;
 
   /**
    * Determines which term-weighting strategy to use in indexing, 
@@ -113,6 +121,10 @@ public class LuceneUtils {
 
     this.compositeReader = DirectoryReader.open(
         FSDirectory.open(FileSystems.getDefault().getPath(flagConfig.luceneindexpath())));
+    final int MAPS_INITIAL_CAPACITY = (int) (MAPS_INITIAL_CAPACITY_COEFFICIENT * getNumDocs());
+    termEntropy = (TSynchronizedObjectFloatMap<String>) TCollections.synchronizedMap(new TObjectFloatHashMap<String>(MAPS_INITIAL_CAPACITY));
+    termIDF = (TSynchronizedObjectFloatMap<String>) TCollections.synchronizedMap(new TObjectFloatHashMap<String>(MAPS_INITIAL_CAPACITY));
+    termFreq = (TSynchronizedObjectIntMap<String>) TCollections.synchronizedMap(new TObjectIntHashMap<String>(MAPS_INITIAL_CAPACITY));
     this.leafReader = SlowCompositeReaderWrapper.wrap(compositeReader);
     MultiFields.getFields(compositeReader);
     this.flagConfig = flagConfig;
@@ -278,12 +290,13 @@ public class LuceneUtils {
    */
   public int getGlobalTermFreq(Term term) {
     int tf = 0;
-    if (totalTermCountCaching && termFreq.containsKey(term.field()+"_"+term.text())) {
-      return termFreq.get(term.field()+"_"+term.text());
+    String generatedKey = term.field() + "_" + term.text();
+    if (totalTermCountCaching && termFreq.containsKey(generatedKey)) {
+      return termFreq.get(generatedKey);
     } else
       try {
         tf = (int) compositeReader.totalTermFreq(term);
-        termFreq.put(term.field()+"_"+term.text(), tf);
+        termFreq.put(generatedKey, tf);
       } catch (IOException e) {
         logger.info("Couldn't get term frequency for term " + term.text());
         return 1;
@@ -375,8 +388,9 @@ public class LuceneUtils {
    *  @param term the term whose IDF you would like
    */
   private float getIDF(Term term) {
-    if (termIDF.containsKey(term.field()+"_"+term.text())) {
-      return termIDF.get(term.field()+"_"+term.text());
+    String generatedKey = term.field() + "_" + term.text();
+    if (termIDF.containsKey(generatedKey)) {
+      return termIDF.get(generatedKey);
     } else {
       try {
         int freq = compositeReader.docFreq(term);
@@ -384,7 +398,7 @@ public class LuceneUtils {
           return 0;
         }
         float idf = (float) Math.log10(compositeReader.numDocs() / (float) freq);
-        termIDF.put(term.field()+"_"+term.text(), idf);
+        termIDF.put(generatedKey, idf);
         return idf;
       } catch (IOException e) {
         // Catches IOException from looking up doc frequency, never seen yet in practice.
@@ -407,8 +421,9 @@ public class LuceneUtils {
    * eliminate redundant calculation
    */
   private float getEntropy(Term term) {
-    if (termEntropy.containsKey(term.field()+"_"+term.text()))
-      return termEntropy.get(term.field()+"_"+term.text());
+    String generatedKey = term.field() + "_" + term.text();
+    if (termEntropy.containsKey(generatedKey))
+      return termEntropy.get(generatedKey);
     int gf = getGlobalTermFreq(term);
     double entropy = 0;
     try {
@@ -424,7 +439,7 @@ public class LuceneUtils {
     } catch (IOException e) {
       logger.info("Couldn't get term entropy for term " + term.text());
     }
-    termEntropy.put(term.field()+"_"+term.text(), 1 + (float) entropy);
+    termEntropy.put(generatedKey, 1 + (float) entropy);
     return (float) (1 + entropy);
   }
 
@@ -459,9 +474,10 @@ public class LuceneUtils {
       Term term, String[] desiredFields, int minFreq, int maxFreq, int maxNonAlphabet, int minTermLength) {
     // Field filter.
     boolean isDesiredField = false;
-    for (int i = 0; i < desiredFields.length; ++i) {
-      if (term.field().compareToIgnoreCase(desiredFields[i]) == 0) {
+    for (String desiredField : desiredFields) {
+      if (term.field().compareToIgnoreCase(desiredField) == 0) {
         isDesiredField = true;
+        break;
       }
     }
 
@@ -495,12 +511,7 @@ public class LuceneUtils {
 
     // Frequency filter.
     int termfreq = getGlobalTermFreq(term);
-    if (termfreq < minFreq | termfreq > maxFreq) {
-      return false;
-    }
-
-    // If we've passed each filter, return true.
-    return true;
+    return !(termfreq < minFreq | termfreq > maxFreq);
   }
 
   /**

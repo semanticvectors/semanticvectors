@@ -116,15 +116,11 @@ public class RealVector implements Vector {
     if (isSparse) {
       RealVector copy = new RealVector(dimension);
       copy.sparseOffsets = new short[sparseOffsets.length];
-      for (int i = 0; i < sparseOffsets.length; ++i) {
-        copy.sparseOffsets[i] = sparseOffsets[i];
-        }
+      System.arraycopy(sparseOffsets, 0, copy.sparseOffsets, 0, sparseOffsets.length);
       return copy;
     } else {
       float[] coordinatesCopy = new float[dimension];
-      for (int i = 0; i < dimension; ++i) {
-        coordinatesCopy[i] = coordinates[i];
-      }
+      System.arraycopy(coordinates, 0, coordinatesCopy, 0, dimension);
       return new RealVector(coordinatesCopy);
     }
   }
@@ -134,13 +130,12 @@ public class RealVector implements Vector {
     // TODO(widdows): Add heap location?
     if (isSparse) {
       debugString.append("  Sparse.  Offsets are:\n");
-      for (short sparseOffset : sparseOffsets) debugString.append(sparseOffset + " ");
-      debugString.append("\n");
+      for (short sparseOffset : sparseOffsets) debugString.append(sparseOffset).append(" ");
     } else {
       debugString.append("  Dense.  Coordinates are:\n");
-      for (float coordinate : coordinates) debugString.append(coordinate + " ");
-      debugString.append("\n");
+      for (float coordinate : coordinates) debugString.append(coordinate).append(" ");
     }
+    debugString.append("\n");
     return debugString.toString();
   }
 
@@ -326,7 +321,6 @@ public class RealVector implements Vector {
       return;
     case NORMALIZEDCONVOLUTION:
         bindWithConvolution(realOther,true);
-        return;
     }
   }
 
@@ -345,7 +339,6 @@ public class RealVector implements Vector {
     case CONVOLUTION:
     case NORMALIZEDCONVOLUTION:
       releaseWithConvolution(realOther);
-      return;
     }
   }
 
