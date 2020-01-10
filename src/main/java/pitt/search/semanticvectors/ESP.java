@@ -591,11 +591,11 @@ private void processPredicationDocument(Document document, BLAS blas)
 	    	  	encode = false;
 	         
 	      //subsampling of terms above some threshold
-	      if (this.subsamplingProbabilities != null && this.subsamplingProbabilities.contains(subject) && random.nextDouble() <= this.subsamplingProbabilities.get(subject))
+	      if (this.subsamplingProbabilities != null && this.subsamplingProbabilities.containsKey(subject) && random.nextDouble() <= this.subsamplingProbabilities.get(subject))
 	       { encode = false;
 	    	 logger.fine("skipping predication " + object + " " + predicate + "-INV " + subject);
 		    }  
-	       if (this.subsamplingProbabilities != null && this.subsamplingProbabilities.contains(object) && random.nextDouble() <= this.subsamplingProbabilities.get(object))
+	       if (this.subsamplingProbabilities != null && this.subsamplingProbabilities.containsKey(object) && random.nextDouble() <= this.subsamplingProbabilities.get(object))
 	       { encode = false;
 	    	 logger.fine("skipping predication " + subject + " " + predicate + " " + object);
 		    }
