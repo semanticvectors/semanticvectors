@@ -103,8 +103,7 @@ public class RealVectorUtils {
 
     DenseFloatMatrix1D coltResult = ((DenseFloatMatrix1D)(fft1.getRealPart()));
     float[] coordinates = coltResult.elements();
-    RealVector result = new RealVector(coordinates);
-    return result;
+    return new RealVector(coordinates);
   }
   
   /**

@@ -1,14 +1,16 @@
 package pitt.search.semanticvectors.collections;
 
 import com.ontotext.trree.io.ReadWriteFile;
+import gnu.trove.iterator.TObjectLongIterator;
+import gnu.trove.map.hash.TLongObjectHashMap;
+import gnu.trove.map.hash.TObjectLongHashMap;
+import pitt.search.semanticvectors.LuceneUtils;
 import pitt.search.semanticvectors.ObjectVector;
 import pitt.search.semanticvectors.vectors.Vector;
 
 import java.io.*;
 import java.nio.ByteBuffer;
 import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * VectorStore which uses {@link ReadWriteFile} to store the vectors
@@ -18,8 +20,8 @@ public class FileVectorStore implements ModifiableVectorStore {
 	private int bufferSizeInBytes;
 	private ReadWriteFile file;
 	private VectorBufferConverter converter;
-	private Map<String, Long> keyToPos;
-	private Map<Long, String> posToKey;
+	private TObjectLongHashMap<String> keyToPos;
+	private TLongObjectHashMap<String> posToKey;
 	private long size;
 	private boolean temp;
 
@@ -32,23 +34,26 @@ public class FileVectorStore implements ModifiableVectorStore {
 		this.file = new ReadWriteFile(bufferSizeInBytes, storageFile, false);
 		this.converter = converter;
 		this.temp = temp;
-		keyToPos = new HashMap<>();
-		posToKey = new HashMap<>();
+		final int MAPS_INITIAL_CAPACITY = (int) (LuceneUtils.MAPS_INITIAL_CAPACITY_COEFFICIENT * this.bufferSizeInBytes / 4);
+		keyToPos = new TObjectLongHashMap<>(MAPS_INITIAL_CAPACITY);
+		posToKey = new TLongObjectHashMap<>(MAPS_INITIAL_CAPACITY);
 		size = 0;
 
 		if (!temp && storageFile.exists() && storageFile.length() != 0) {
-			try {
-				restoreMaps();
-			} catch (IOException e) {
-				throw new RuntimeException(e);
-			}
+			restoreMaps();
 			size = keyToPos.size();
 		}
 	}
 
 	@Override
 	public void putVector(Object key, Vector vector) {
-		long currentPosition = keyToPos.computeIfAbsent((String) key, v -> size++);
+		long currentPosition;
+		if (keyToPos.containsKey(key)) {
+			currentPosition = keyToPos.get(key);
+		} else {
+			currentPosition = size;
+			keyToPos.put((String) key, size++);
+		}
 		posToKey.put(currentPosition, (String) key);
 
 		ByteBuffer byteBuffer = converter.writeToBuffer(vector);
@@ -62,9 +67,8 @@ public class FileVectorStore implements ModifiableVectorStore {
 		if (position != null) {
 			ByteBuffer byteBuffer = ByteBuffer.allocateDirect(bufferSizeInBytes);
 			file.read(byteBuffer, position * bufferSizeInBytes);
-			Vector vector = converter.readFromBuffer(byteBuffer);
 
-			return vector;
+			return converter.readFromBuffer(byteBuffer);
 		}
 
 		return null;
@@ -89,9 +93,8 @@ public class FileVectorStore implements ModifiableVectorStore {
 			public ObjectVector nextElement() {
 				ByteBuffer byteBuffer = ByteBuffer.allocateDirect(bufferSizeInBytes);
 				file.read(byteBuffer, currPos * bufferSizeInBytes);
-				Vector vector = converter.readFromBuffer(byteBuffer);
 
-				return new ObjectVector(posToKey.get(currPos++), vector);
+				return new ObjectVector(posToKey.get(currPos++), converter.readFromBuffer(byteBuffer));
 			}
 		};
 	}
@@ -129,30 +132,31 @@ public class FileVectorStore implements ModifiableVectorStore {
 		if (keyMap.exists())
 			keyMap.delete();
 
-		try (DataOutputStream dos = new DataOutputStream(new FileOutputStream(keyMap))) {
-			for (Map.Entry<String, Long> entry : keyToPos.entrySet()) {
-				dos.writeUTF(entry.getKey());
-				dos.writeLong(entry.getValue());
-			}
+		try (FileOutputStream fileOutputStream = new FileOutputStream(keyMap);
+			 ObjectOutputStream objectOutputStream = new ObjectOutputStream(fileOutputStream)) {
+			objectOutputStream.writeObject(keyToPos);
 		} catch (IOException e) {
 			throw new RuntimeException("Could not save keymap to file", e);
 		}
 	}
 
-	private void restoreMaps() throws IOException {
+	private void restoreMaps() {
 		String storageFileName = file.getFileIdentifier().getAbsolutePath();
 		File keyMap = new File(storageFileName + ".keymap");
 		if (!keyMap.exists())
 			throw new RuntimeException("KeyMap file does not exist! " + keyMap.getAbsolutePath());
 
-		try (FileInputStream fis = new FileInputStream(keyMap);
-			 DataInputStream dis = new DataInputStream(fis)) {
-			while (fis.getChannel().position() < fis.getChannel().size()) {
-				String key = dis.readUTF();
-				long position = dis.readLong();
-				keyToPos.put(key, position);
-				posToKey.put(position, key);
-			}
+		try (FileInputStream fileInputStream = new FileInputStream(keyMap);
+			 ObjectInputStream objectInputStream = new ObjectInputStream(fileInputStream)) {
+			keyToPos = (TObjectLongHashMap<String>) objectInputStream.readObject();
+		} catch (IOException | ClassNotFoundException e) {
+			throw new RuntimeException("Could not save keymap to file", e);
+		}
+
+		TObjectLongIterator<String> iterator = keyToPos.iterator();
+		while (iterator.hasNext()) {
+			iterator.advance();
+			posToKey.put(iterator.value(), iterator.key());
 		}
 	}
 }

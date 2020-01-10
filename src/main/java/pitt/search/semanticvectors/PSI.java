@@ -55,7 +55,8 @@ import pitt.search.semanticvectors.vectors.VectorType;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
-import java.util.concurrent.*;
+import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Lock;
@@ -302,9 +303,9 @@ public class PSI {
 
 		AtomicInteger pc = new AtomicInteger(0);
 		// Following will ensure at most one maps resizing
-		final int MAPS_INITIAL_CAPACITY = (int) (0.5 * allTerms.getDocCount());
+		final int MAPS_INITIAL_CAPACITY = (int) (LuceneUtils.MAPS_INITIAL_CAPACITY_COEFFICIENT * allTerms.getDocCount());
 		es = new BlockingExecutor(BLOCKING_QUEUE_SIZE, 2, 2, 0L, TimeUnit.MILLISECONDS);
-		Map<String, Lock> locks = new ConcurrentHashMap<>(MAPS_INITIAL_CAPACITY);
+		Map<String, Lock> locks = Collections.synchronizedMap(new WeakHashMap<>(MAPS_INITIAL_CAPACITY));
 		Map<String, Vector> bindVectorHash = Collections.synchronizedMap(new WeakHashMap<>(MAPS_INITIAL_CAPACITY));
 		Map<String, Vector> invBindVectorHash = Collections.synchronizedMap(new WeakHashMap<>(MAPS_INITIAL_CAPACITY));
 
@@ -372,7 +373,7 @@ public class PSI {
 						Vector predicateElementalVector = elementalPredicateVectors.getVector(predicate);
 						Vector predicateElementalVectorInv = elementalPredicateVectors.getVector(predicate + "-INV");
 
-						Vector objToAdd = bindVectorHash.computeIfAbsent(predicate + "_" + object, key -> {
+						Vector objToAdd = bindVectorHash.computeIfAbsent(generateKey(predicate, object), key -> {
 							Vector tmp = objectElementalVector.copy();
 							tmp.bind(predicateElementalVector);
 							return tmp;
@@ -380,7 +381,7 @@ public class PSI {
 						subjectSemanticVector.superpose(objToAdd, pWeight * (oWeight + predWeight), null);
 						semanticItemVectors.updateVector(subject, subjectSemanticVector);
 
-						Vector subjToAdd = invBindVectorHash.computeIfAbsent(predicate + "_" + subject, key -> {
+						Vector subjToAdd = invBindVectorHash.computeIfAbsent(generateKey(predicate, subject), key -> {
 							Vector tmp = subjectElementalVector.copy();
 							tmp.bind(predicateElementalVectorInv);
 							return tmp;
@@ -493,6 +494,10 @@ public class PSI {
 			}
 		});
 		Runtime.getRuntime().addShutdownHook(shutdownHook);
+	}
+
+	private String generateKey(String first, String second) {
+		return first + "_" + second;
 	}
 
 	private void closeVectorStores() {

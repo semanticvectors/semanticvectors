@@ -79,8 +79,8 @@ public class VectorUtils {
   public static double compareWithProjection(Vector testVector, ArrayList<Vector> vectors) {
 
     float score = 0;
-    for (int i = 0; i < vectors.size(); ++i) {
-      score += Math.pow(testVector.measureOverlap(vectors.get(i)), 2);
+    for (Vector vector : vectors) {
+      score += Math.pow(testVector.measureOverlap(vector), 2);
     }
     return (float) Math.sqrt(score);
 

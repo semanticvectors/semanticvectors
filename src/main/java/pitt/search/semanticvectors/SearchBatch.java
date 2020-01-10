@@ -287,32 +287,28 @@ public class SearchBatch {
       while (queryString != null) {
         ArrayList<String> queryTerms = new ArrayList<String>();
         qcnt++;
-        
-        if (!flagConfig.searchtype().equals(pitt.search.semanticvectors.Search.SearchType.ANALOGY))
-        { //have Lucene parse the query string, for consistency
-         StandardAnalyzer  analyzer = new StandardAnalyzer(new CharArraySet(new ArrayList<String>(), true));
-         TokenStream stream = analyzer.tokenStream(null, new StringReader(queryString));
-         CharTermAttribute cattr = stream.addAttribute(CharTermAttribute.class);
-         stream.reset();
 
-         //for each token in the query string
-         while (stream.incrementToken())
-         {
+        if (!flagConfig.searchtype().equals(pitt.search.semanticvectors.Search.SearchType.ANALOGY)) { //have Lucene parse the query string, for consistency
+          StandardAnalyzer analyzer = new StandardAnalyzer(new CharArraySet(new ArrayList<String>(), true));
+          TokenStream stream = analyzer.tokenStream(null, new StringReader(queryString));
+          CharTermAttribute cattr = stream.addAttribute(CharTermAttribute.class);
+          stream.reset();
 
-         String term = cattr.toString();
+          //for each token in the query string
+          while (stream.incrementToken()) {
 
-         if ((luceneUtils != null && !luceneUtils.stoplistContains(term)) || luceneUtils == null)
-         {
-         if (! flagConfig.matchcase()) term = term.toLowerCase();
-         queryTerms.add(term);
-         }
-         }
-         stream.end();
-         stream.close();
-         analyzer.close();
-        }
-        else
-        queryTerms.add(queryString);
+            String term = cattr.toString();
+
+            if (luceneUtils == null || !luceneUtils.stoplistContains(term)) {
+              if (!flagConfig.matchcase()) term = term.toLowerCase();
+              queryTerms.add(term);
+            }
+          }
+          stream.end();
+          stream.close();
+          analyzer.close();
+        } else
+          queryTerms.add(queryString);
 
         //transform to String[] array
         queryArgs = queryTerms.toArray(new String[0]);
