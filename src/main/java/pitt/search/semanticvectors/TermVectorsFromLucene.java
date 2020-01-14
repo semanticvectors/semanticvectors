@@ -96,6 +96,7 @@ public class TermVectorsFromLucene {
     TermVectorsFromLucene vectorStore = new TermVectorsFromLucene(flagConfig);
     vectorStore.elementalDocVectors = elementalDocVectors;
     vectorStore.createTermVectorsFromLuceneImpl();
+    vectorStore.luceneUtils.closeLuceneDir();
     return vectorStore;
   }
 

@@ -136,6 +136,9 @@ public class PSI {
 			VectorStoreUtils.renameEntityMapVectorsFile(flagConfig.semanticpredicatevectorfile(), flagConfig);
 		}
 
+		// Opened lucene directory should be closed
+		this.luceneUtils.closeLuceneDir();
+
 		if (!interrupted) {
 			logger.info("Done with createIncrementalPSIVectors.");
 			// Should unregister shutdownHook (see GDB-4079)
@@ -477,6 +480,7 @@ public class PSI {
 			} catch (InterruptedException e) {
 				throw new PluginException("Couldn't terminate process");
 			} finally {
+				this.luceneUtils.closeLuceneDir();
 				Runtime.getRuntime().removeShutdownHook(shutdownHook);
 			}
 		}

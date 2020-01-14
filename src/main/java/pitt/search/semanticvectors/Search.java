@@ -456,6 +456,9 @@ public class Search {
 		if (boundVecReader != null) {
 			boundVecReader.close();
 		}
+		if (luceneUtils != null) {
+			luceneUtils.closeLuceneDir();
+		}
 
 		logger.fine("Finished the compete search in : " + Duration.between(startSearch, Instant.now()).toMillis());
 		return results;
