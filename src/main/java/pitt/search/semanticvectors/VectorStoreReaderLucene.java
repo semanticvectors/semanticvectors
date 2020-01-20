@@ -40,6 +40,7 @@ import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.store.IOContext;
 import org.apache.lucene.store.IndexInput;
+import pitt.search.semanticvectors.lsh.DirectByteBufferCleaner;
 import pitt.search.semanticvectors.utils.VerbatimLogger;
 import pitt.search.semanticvectors.vectors.Vector;
 import pitt.search.semanticvectors.vectors.VectorFactory;
@@ -236,6 +237,8 @@ public class VectorStoreReaderLucene implements CloseableVectorStore {
       }
     } catch (IOException e) {
       logger.severe(e.getMessage());
+    } finally {
+      DirectByteBufferCleaner.closeDirectByteBuffer(buffer);
     }
     return null;
   }

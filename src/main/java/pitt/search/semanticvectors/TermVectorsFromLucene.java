@@ -184,6 +184,7 @@ public class TermVectorsFromLucene {
     TermVectorsFromLucene termVectors = new TermVectorsFromLucene(flagConfig);
     termVectors.luceneUtils = new LuceneUtils(flagConfig);
     termVectors.createTermBasedRRIVectorsImpl();
+    termVectors.luceneUtils.closeLuceneDir();
     return termVectors;
   }
 

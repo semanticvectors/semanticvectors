@@ -125,4 +125,12 @@ public class VectorStoreUtils {
 			throw new PluginException("Could not delete initial file");
 		}
 	}
+
+	public static void closeVectorStores(CloseableVectorStore... vectorStores) {
+		for (CloseableVectorStore vectorStore : vectorStores) {
+			if (vectorStore != null) {
+				vectorStore.close();
+			}
+		}
+	}
 }

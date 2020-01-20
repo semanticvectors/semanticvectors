@@ -447,15 +447,10 @@ public class Search {
 		// opened in runSearch but also needed in getSearchResultsVectors.
 		// Really there should be a global variable for indexformat (text
 		// or lucene), and general "openIndexes" and "closeIndexes" methods.
-		if (queryVecReader != null) {
-			queryVecReader.close();
-		}
-		if (searchVecReader != null) {
-			searchVecReader.close();
-		}
-		if (boundVecReader != null) {
-			boundVecReader.close();
-		}
+
+		VectorStoreUtils.closeVectorStores(queryVecReader, searchVecReader, boundVecReader,
+										   elementalVecReader, semanticVecReader, predicateVecReader);
+		// Lucene directory should be closed as well
 		if (luceneUtils != null) {
 			luceneUtils.closeLuceneDir();
 		}
@@ -483,7 +478,9 @@ public class Search {
 			Vector tmpVector = searchVecReader.getVector(term);
 			resultsList[i] = new ObjectVector(term, tmpVector);
 		}
-		searchVecReader.close();
+		if (searchVecReader != null) {
+			searchVecReader.close();
+		}
 		return resultsList;
 	}
 

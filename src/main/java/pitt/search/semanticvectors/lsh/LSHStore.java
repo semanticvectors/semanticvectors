@@ -63,6 +63,7 @@ public abstract class LSHStore {
 					if (iter.hasNext())
 						return true;
 					else {
+						DirectByteBufferCleaner.closeDirectByteBuffer(byteBuffer);
 						vecStore.close();
 						return false;
 					}

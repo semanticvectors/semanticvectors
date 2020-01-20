@@ -1,9 +1,7 @@
 package pitt.search.semanticvectors.lsh;
 
 import org.apache.lucene.store.IndexInput;
-import pitt.search.semanticvectors.FlagConfig;
-import pitt.search.semanticvectors.ObjectVector;
-import pitt.search.semanticvectors.VectorStoreReaderLucene;
+import pitt.search.semanticvectors.*;
 import pitt.search.semanticvectors.vectors.Vector;
 import pitt.search.semanticvectors.vectors.VectorFactory;
 
@@ -32,7 +30,10 @@ public class InMemoryLSHStore extends LSHStore {
 	@Override
 	public void initCache() throws IOException {
 		storeHash = new TreeMap<>();
-		try (IndexInput indexInput = new VectorStoreReaderLucene(vecStoreFile.getAbsolutePath(), flagConfig).getIndexInput()) {
+		VectorStoreReaderLucene vecStore = null;
+		try {
+			vecStore = new VectorStoreReaderLucene(vecStoreFile.getAbsolutePath(), flagConfig);
+			IndexInput indexInput = vecStore.getIndexInput();
 			indexInput.seek(0);
 			indexInput.readString();
 
@@ -45,6 +46,8 @@ public class InMemoryLSHStore extends LSHStore {
 				short hash = lsh.getHash(vector);
 				storeHash.computeIfAbsent(hash, h -> new LinkedList<>()).add(currentPosition);
 			}
+		} finally {
+			VectorStoreUtils.closeVectorStores(vecStore);
 		}
 	}
 
@@ -55,15 +58,18 @@ public class InMemoryLSHStore extends LSHStore {
 		}
 
 		VectorStoreReaderLucene vecStore = new VectorStoreReaderLucene(vecStoreFile.getAbsolutePath(), flagConfig);
-		short[] potentialHashes = lsh.getSimilarHashes(vector);
-		Set<Long> allVecPositions = new HashSet<>();
-		for (short potentialHash : potentialHashes) {
-			if (storeHash.containsKey(potentialHash))
-				allVecPositions.addAll(storeHash.get(potentialHash));
+		try {
+			short[] potentialHashes = lsh.getSimilarHashes(vector);
+			Set<Long> allVecPositions = new HashSet<>();
+			for (short potentialHash : potentialHashes) {
+				if (storeHash.containsKey(potentialHash))
+					allVecPositions.addAll(storeHash.get(potentialHash));
+			}
+			Iterator<Long> iter = allVecPositions.iterator();
+			return getObjectVectorEnum(iter, vecStore, flagConfig);
+		} finally {
+			vecStore.close();
 		}
-		Iterator<Long> iter = allVecPositions.iterator();
-
-		return getObjectVectorEnum(iter, vecStore, flagConfig);
 	}
 
 }

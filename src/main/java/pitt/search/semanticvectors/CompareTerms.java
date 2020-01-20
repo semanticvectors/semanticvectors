@@ -111,83 +111,68 @@ public class CompareTerms{
       throw new IllegalArgumentException();
     }
     CloseableVectorStore vecReader =null, elementalVecReader=null, semanticVecReader=null, predicateVecReader=null;
-    if (flagConfig.searchtype().equals(SearchType.BOUNDPRODUCT) || flagConfig.searchtype().equals(SearchType.BOUNDMINIMUM) || flagConfig.searchtype().equals(SearchType.INTERSECTION) || flagConfig.searchtype().equals(SearchType.BOUNDPRODUCTSUBSPACE))
-    {
-    	 elementalVecReader = VectorStoreReader.openVectorStore(flagConfig.elementalvectorfile(), flagConfig);
-    	 semanticVecReader  = VectorStoreReader.openVectorStore(flagConfig.semanticvectorfile(), flagConfig);
-    	 predicateVecReader = VectorStoreReader.openVectorStore(flagConfig.elementalpredicatevectorfile(), flagConfig);
-    	
-    }
-    else if (flagConfig.elementalmethod() == ElementalGenerationMethod.ORTHOGRAPHIC) {
-      vecReader = new VectorStoreOrthographical(flagConfig);
-    } else {
-      vecReader = VectorStoreReader.openVectorStore(flagConfig.queryvectorfile(), flagConfig);
-      VerbatimLogger.info("Opened query vector store from file: " + flagConfig.queryvectorfile() + "\n");
-      if (!flagConfig.luceneindexpath().isEmpty()) {
-        try {
-          luceneUtils = new LuceneUtils(flagConfig);
-        } catch (IOException e) {
-          VerbatimLogger.info("Couldn't open Lucene index at " + flagConfig.luceneindexpath());
-        }
-      }
-      if (luceneUtils == null) {
-        VerbatimLogger.info("No Lucene index for query term weighting, "
-            + "so all query terms will have same weight.\n");
-      }
-    }
+    Vector vec1 = null, vec2 = null;
+    try {
+		if (flagConfig.searchtype().equals(SearchType.BOUNDPRODUCT) || flagConfig.searchtype().equals(SearchType.BOUNDMINIMUM) || flagConfig.searchtype().equals(SearchType.INTERSECTION) || flagConfig.searchtype().equals(SearchType.BOUNDPRODUCTSUBSPACE)) {
+			elementalVecReader = VectorStoreReader.openVectorStore(flagConfig.elementalvectorfile(), flagConfig);
+			semanticVecReader = VectorStoreReader.openVectorStore(flagConfig.semanticvectorfile(), flagConfig);
+			predicateVecReader = VectorStoreReader.openVectorStore(flagConfig.elementalpredicatevectorfile(), flagConfig);
 
-    Vector vec1=null, vec2=null;
-    
-    if (flagConfig.searchtype().equals(SearchType.BOUNDPRODUCT))
-    {
-    	vec1 = CompoundVectorBuilder.getBoundProductQueryVectorFromString(
-    	        flagConfig, elementalVecReader, semanticVecReader, predicateVecReader, luceneUtils, args[0]);
-    	vec2 = CompoundVectorBuilder.getBoundProductQueryVectorFromString(
-    	    	flagConfig, elementalVecReader, semanticVecReader, predicateVecReader, luceneUtils, args[1]);
-        	
-    	elementalVecReader.close();
-    	semanticVecReader.close();
-    	predicateVecReader.close();
-    } else  if (flagConfig.searchtype().equals(SearchType.BOUNDPRODUCTSUBSPACE))
-    {
-    	ArrayList<Vector> vecs1 = CompoundVectorBuilder.getBoundProductQuerySubspaceFromString(
-    	        flagConfig, elementalVecReader, semanticVecReader, predicateVecReader, args[0]);
-    	vec2 = CompoundVectorBuilder.getBoundProductQueryVectorFromString(
-    	    	flagConfig, elementalVecReader, semanticVecReader, predicateVecReader, luceneUtils, args[1]);
-        	
-    	elementalVecReader.close();
-    	semanticVecReader.close();
-    	predicateVecReader.close();
+		} else if (flagConfig.elementalmethod() == ElementalGenerationMethod.ORTHOGRAPHIC) {
+			vecReader = new VectorStoreOrthographical(flagConfig);
+		} else {
+			vecReader = VectorStoreReader.openVectorStore(flagConfig.queryvectorfile(), flagConfig);
+			VerbatimLogger.info("Opened query vector store from file: " + flagConfig.queryvectorfile() + "\n");
+			if (!flagConfig.luceneindexpath().isEmpty()) {
+				try {
+					luceneUtils = new LuceneUtils(flagConfig);
+				} catch (IOException e) {
+					VerbatimLogger.info("Couldn't open Lucene index at " + flagConfig.luceneindexpath());
+				}
+			}
+			if (luceneUtils == null) {
+				VerbatimLogger.info("No Lucene index for query term weighting, "
+						+ "so all query terms will have same weight.\n");
+			}
+		}
 
-    	return VectorUtils.compareWithProjection(vec2, vecs1);
-    	
-    }
-    else  if (flagConfig.searchtype().equals(SearchType.INTERSECTION))
-    {
-    	
-    	vec1 = CompoundVectorBuilder.getBoundProductQueryIntersectionFromString(
-    	    	flagConfig, elementalVecReader, semanticVecReader, predicateVecReader, luceneUtils, args[0]);
-        	
-    	vec2 = CompoundVectorBuilder.getBoundProductQueryIntersectionFromString(
-    	    	flagConfig, elementalVecReader, semanticVecReader, predicateVecReader, luceneUtils, args[1]);
-        	
-    	elementalVecReader.close();
-    	semanticVecReader.close();
-    	predicateVecReader.close();
+		if (flagConfig.searchtype().equals(SearchType.BOUNDPRODUCT)) {
+			vec1 = CompoundVectorBuilder.getBoundProductQueryVectorFromString(
+					flagConfig, elementalVecReader, semanticVecReader, predicateVecReader, luceneUtils, args[0]);
+			vec2 = CompoundVectorBuilder.getBoundProductQueryVectorFromString(
+					flagConfig, elementalVecReader, semanticVecReader, predicateVecReader, luceneUtils, args[1]);
+		} else if (flagConfig.searchtype().equals(SearchType.BOUNDPRODUCTSUBSPACE)) {
+			ArrayList<Vector> vecs1 = CompoundVectorBuilder.getBoundProductQuerySubspaceFromString(
+					flagConfig, elementalVecReader, semanticVecReader, predicateVecReader, args[0]);
+			vec2 = CompoundVectorBuilder.getBoundProductQueryVectorFromString(
+					flagConfig, elementalVecReader, semanticVecReader, predicateVecReader, luceneUtils, args[1]);
 
-    	return vec1.measureOverlap(vec2);
-    	
-    }
-    else {
-    vec1 = CompoundVectorBuilder.getQueryVectorFromString(
-        vecReader, luceneUtils, flagConfig, args[0]);
-    vec2 = CompoundVectorBuilder.getQueryVectorFromString(
-        vecReader, luceneUtils, flagConfig, args[1]);
-    
-    vecReader.close();
-    }
-    
-  
+			return VectorUtils.compareWithProjection(vec2, vecs1);
+
+		} else if (flagConfig.searchtype().equals(SearchType.INTERSECTION)) {
+
+			vec1 = CompoundVectorBuilder.getBoundProductQueryIntersectionFromString(
+					flagConfig, elementalVecReader, semanticVecReader, predicateVecReader, luceneUtils, args[0]);
+
+			vec2 = CompoundVectorBuilder.getBoundProductQueryIntersectionFromString(
+					flagConfig, elementalVecReader, semanticVecReader, predicateVecReader, luceneUtils, args[1]);
+
+			return vec1.measureOverlap(vec2);
+
+		} else {
+			vec1 = CompoundVectorBuilder.getQueryVectorFromString(
+					vecReader, luceneUtils, flagConfig, args[0]);
+			vec2 = CompoundVectorBuilder.getQueryVectorFromString(
+					vecReader, luceneUtils, flagConfig, args[1]);
+		}
+
+	} finally {
+		VectorStoreUtils.closeVectorStores(elementalVecReader, semanticVecReader, predicateVecReader, vecReader);
+
+		if (luceneUtils != null) {
+			luceneUtils.closeLuceneDir();
+		}
+	}
     
     return vec1.measureOverlap(vec2);
   }

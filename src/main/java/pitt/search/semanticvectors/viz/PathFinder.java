@@ -190,21 +190,34 @@ public class PathFinder {
           || flagConfig.elementalvectorfile().equals("elementalvectors")
           || flagConfig.semanticvectorfile().equals("semanticvectors"))
         PathFinder.writeResultsPathfinderGraphJson(flagConfig, searchResults);
-      else
-      {
-        VectorStoreRAM elementalVectors = new VectorStoreRAM(flagConfig);
-        elementalVectors.initFromFile(flagConfig.elementalvectorfile());
-        VectorStoreRAM semanticVectors = new VectorStoreRAM(flagConfig);
-        semanticVectors.initFromFile(flagConfig.semanticvectorfile());
-        VectorStoreRAM predicateVectors = new VectorStoreRAM(flagConfig);
-        predicateVectors.initFromFile(flagConfig.elementalpredicatevectorfile());
+      else {
+		  VectorStoreRAM elementalVectors = new VectorStoreRAM(flagConfig);
+		  elementalVectors.initFromFile(flagConfig.elementalvectorfile());
+		  VectorStoreRAM semanticVectors = new VectorStoreRAM(flagConfig);
+		  semanticVectors.initFromFile(flagConfig.semanticvectorfile());
+		  VectorStoreRAM predicateVectors = new VectorStoreRAM(flagConfig);
+		  predicateVectors.initFromFile(flagConfig.elementalpredicatevectorfile());
 
-        PathFinder.writeResultsPathfinderGraphJson(flagConfig, searchResults,
-            VectorStoreReader.openVectorStore(flagConfig.semanticvectorfile(), flagConfig),
-            VectorStoreReader.openVectorStore(flagConfig.elementalvectorfile(), flagConfig),
-            VectorStoreReader.openVectorStore(flagConfig.boundvectorfile(), flagConfig),
-            new LuceneUtils(flagConfig));
-      }
+		  CloseableVectorStore semanticVecReader = null;
+		  CloseableVectorStore elementalVecReader = null;
+		  CloseableVectorStore boundVecReader = null;
+		  LuceneUtils luceneUtils = null;
+
+		  try {
+			  semanticVecReader = VectorStoreReader.openVectorStore(flagConfig.semanticvectorfile(), flagConfig);
+			  elementalVecReader = VectorStoreReader.openVectorStore(flagConfig.elementalvectorfile(), flagConfig);
+			  boundVecReader = VectorStoreReader.openVectorStore(flagConfig.boundvectorfile(), flagConfig);
+			  luceneUtils = new LuceneUtils(flagConfig);
+
+			  PathFinder.writeResultsPathfinderGraphJson(flagConfig, searchResults, semanticVecReader,
+					  									elementalVecReader, boundVecReader, luceneUtils);
+		  } finally {
+			  VectorStoreUtils.closeVectorStores(semanticVecReader, boundVecReader, elementalVecReader);
+			  if (luceneUtils != null) {
+				  luceneUtils.closeLuceneDir();
+			  }
+		  }
+	  }
     }
 
 
