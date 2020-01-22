@@ -68,7 +68,7 @@ public class InMemoryLSHStore extends LSHStore {
 			Iterator<Long> iter = allVecPositions.iterator();
 			return getObjectVectorEnum(iter, vecStore, flagConfig);
 		} finally {
-			vecStore.close();
+			VectorStoreUtils.closeVectorStores(vecStore);
 		}
 	}
 
