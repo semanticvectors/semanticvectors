@@ -5,6 +5,7 @@ import org.apache.lucene.store.IndexInput;
 import pitt.search.semanticvectors.FlagConfig;
 import pitt.search.semanticvectors.ObjectVector;
 import pitt.search.semanticvectors.VectorStoreReaderLucene;
+import pitt.search.semanticvectors.VectorStoreUtils;
 import pitt.search.semanticvectors.vectors.Vector;
 import pitt.search.semanticvectors.vectors.VectorFactory;
 
@@ -63,7 +64,8 @@ public abstract class LSHStore {
 					if (iter.hasNext())
 						return true;
 					else {
-						vecStore.close();
+						DirectByteBufferCleaner.closeDirectByteBuffer(byteBuffer);
+						VectorStoreUtils.closeVectorStores(vecStore);
 						return false;
 					}
 				}
@@ -94,7 +96,7 @@ public abstract class LSHStore {
 					if (iter.hasNext())
 						return true;
 					else {
-						vecStore.close();
+						VectorStoreUtils.closeVectorStores(vecStore);
 						return false;
 					}
 				}

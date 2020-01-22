@@ -34,10 +34,7 @@
  **/
 package pitt.search.semanticvectors.utils;
 
-import pitt.search.semanticvectors.FlagConfig;
-import pitt.search.semanticvectors.SearchResult;
-import pitt.search.semanticvectors.VectorSearcher;
-import pitt.search.semanticvectors.VectorStoreReader;
+import pitt.search.semanticvectors.*;
 import pitt.search.semanticvectors.vectors.Vector;
 import pitt.search.semanticvectors.vectors.VectorFactory;
 import pitt.search.semanticvectors.vectors.ZeroVectorException;
@@ -62,11 +59,15 @@ public class PsiUtils {
     VerbatimLogger.info("Printing predicate results.");
     Vector queryVector = VectorFactory.createZeroVector(flagConfig.vectortype(), flagConfig.dimension());
     VectorSearcher.VectorSearcherBoundProduct predicateFinder;
+
+    CloseableVectorStore semanticVecReader = null;
+    CloseableVectorStore boundVecReader = null;
     try {
-      predicateFinder = new VectorSearcher.VectorSearcherBoundProduct(
-          VectorStoreReader.openVectorStore(flagConfig.semanticvectorfile(), flagConfig),
-          VectorStoreReader.openVectorStore(flagConfig.boundvectorfile(), flagConfig),
-          null, flagConfig, queryVector);
+      semanticVecReader = VectorStoreReader.openVectorStore(flagConfig.semanticvectorfile(), flagConfig);
+      boundVecReader = VectorStoreReader.openVectorStore(flagConfig.boundvectorfile(), flagConfig);
+
+      predicateFinder = new VectorSearcher.VectorSearcherBoundProduct(semanticVecReader, boundVecReader,
+              null, flagConfig, queryVector);
       List<SearchResult> bestPredicate = predicateFinder.getNearestNeighbors(1);
       if (bestPredicate.size() > 0) {
         String pred = bestPredicate.get(0).getObjectVector().getObject().toString();
@@ -75,6 +76,8 @@ public class PsiUtils {
     } catch (ZeroVectorException e) {
       // TODO Auto-generated catch block
       e.printStackTrace();
+    } finally {
+      VectorStoreUtils.closeVectorStores(semanticVecReader, boundVecReader);
     }
   }
 }

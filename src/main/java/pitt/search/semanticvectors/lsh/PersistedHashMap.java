@@ -1,5 +1,8 @@
 package pitt.search.semanticvectors.lsh;
 
+import sun.misc.Cleaner;
+import sun.nio.ch.DirectBuffer;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.MappedByteBuffer;
@@ -22,7 +25,9 @@ public class PersistedHashMap {
 
 	public void init() throws IOException {
 		if (cacheFile.exists() && cacheFile.length() != 0) {
-			mbb = FileChannel.open(cacheFile.toPath()).map(FileChannel.MapMode.READ_ONLY, 0, cacheFile.length());
+			try (FileChannel fileChannel = FileChannel.open(cacheFile.toPath())) {
+				mbb = fileChannel.map(FileChannel.MapMode.READ_ONLY, 0, cacheFile.length());
+			}
 		}
 	}
 
@@ -30,20 +35,23 @@ public class PersistedHashMap {
 		long size = calculateSize(map);
 
 		if (!cacheFile.exists() || cacheFile.length() == 0) {
-			FileChannel fileChannel = FileChannel.open(cacheFile.toPath(), StandardOpenOption.READ, StandardOpenOption.WRITE, StandardOpenOption.CREATE);
-			MappedByteBuffer wmbb = fileChannel.map(FileChannel.MapMode.READ_WRITE, 0, size);
+			try (FileChannel fileChannel = FileChannel.open(cacheFile.toPath(), StandardOpenOption.READ, StandardOpenOption.WRITE, StandardOpenOption.CREATE)) {
+				MappedByteBuffer wmbb = fileChannel.map(FileChannel.MapMode.READ_WRITE, 0, size);
 
-			writeHeader(wmbb, map);
-			writeData(wmbb, map);
+				writeHeader(wmbb, map);
+				writeData(wmbb, map);
 
-			wmbb.clear();
-			fileChannel.close();
+				wmbb.clear();
+				DirectByteBufferCleaner.closeDirectByteBuffer(wmbb);
+			}
 		} else {
 			if (size != cacheFile.length())
 				throw new IOException("The file does not match the map length");
 		}
 
-		mbb = FileChannel.open(cacheFile.toPath()).map(FileChannel.MapMode.READ_ONLY, 0, size);
+		try (FileChannel fileChannel = FileChannel.open(cacheFile.toPath())) {
+			mbb = fileChannel.map(FileChannel.MapMode.READ_ONLY, 0, size);
+		}
 	}
 
 	public LongIterator get(short key) {
@@ -80,6 +88,7 @@ public class PersistedHashMap {
 
 	public void close() {
 		mbb.clear();
+		DirectByteBufferCleaner.closeDirectByteBuffer(mbb);
 	}
 
 	public List<Short> keys() {

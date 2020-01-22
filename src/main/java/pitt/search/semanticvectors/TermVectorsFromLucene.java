@@ -96,6 +96,7 @@ public class TermVectorsFromLucene {
     TermVectorsFromLucene vectorStore = new TermVectorsFromLucene(flagConfig);
     vectorStore.elementalDocVectors = elementalDocVectors;
     vectorStore.createTermVectorsFromLuceneImpl();
+    vectorStore.luceneUtils.closeLuceneDir();
     return vectorStore;
   }
 
@@ -183,6 +184,7 @@ public class TermVectorsFromLucene {
     TermVectorsFromLucene termVectors = new TermVectorsFromLucene(flagConfig);
     termVectors.luceneUtils = new LuceneUtils(flagConfig);
     termVectors.createTermBasedRRIVectorsImpl();
+    termVectors.luceneUtils.closeLuceneDir();
     return termVectors;
   }
 

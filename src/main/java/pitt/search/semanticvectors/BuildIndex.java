@@ -180,6 +180,8 @@ public class BuildIndex {
 		} catch (IOException e) {
 			logger.warning(e.getMessage());
 			throw e;
+		} finally {
+			luceneUtils.closeLuceneDir();
 		}
 
 		return true;

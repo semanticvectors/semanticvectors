@@ -136,6 +136,11 @@ public class PSI {
 			VectorStoreUtils.renameEntityMapVectorsFile(flagConfig.semanticpredicatevectorfile(), flagConfig);
 		}
 
+		// After successful build opened stores should be closed
+		closeVectorStores();
+		// Opened lucene directory should be closed
+		this.luceneUtils.closeLuceneDir();
+
 		if (!interrupted) {
 			logger.info("Done with createIncrementalPSIVectors.");
 			// Should unregister shutdownHook (see GDB-4079)
@@ -173,7 +178,7 @@ public class PSI {
 				throw new PluginException("Specified input index does not exist: " + inputIndexName);
 			}
 
-			pitt.search.semanticvectors.CloseableVectorStore tmpStore;
+			pitt.search.semanticvectors.CloseableVectorStore tmpStore = null;
 			File[] docvectors = inputDir.listFiles(pathname -> pathname.getName().startsWith("docvectors"));
 			if (docvectors.length == 0) {
 				throw new PluginException("Could not find a docvector file in the specified path: " + inputDir.getAbsolutePath());
@@ -193,21 +198,25 @@ public class PSI {
 
 				FlagConfig config = FlagConfig.getFlagConfig(new String[]{"-indexfileformat", format.toString()});
 
-				tmpStore = VectorStoreReader.openVectorStore(docvector.getAbsolutePath(), config);
+				try {
+					tmpStore = VectorStoreReader.openVectorStore(docvector.getAbsolutePath(), config);
 
-				Enumeration<ObjectVector> allVectors = tmpStore.getAllVectors();
-				if (allVectors.hasMoreElements()) {
-					Vector sample = allVectors.nextElement().getVector();
-					if (sample.getVectorType() != VectorType.REAL)
-						throw new PluginException("Please build the literal index with REAL vectors!");
-					config.setDimension(sample.getDimension());
-				}
+					Enumeration<ObjectVector> allVectors = tmpStore.getAllVectors();
+					if (allVectors.hasMoreElements()) {
+						Vector sample = allVectors.nextElement().getVector();
+						if (sample.getVectorType() != VectorType.REAL)
+							throw new PluginException("Please build the literal index with REAL vectors!");
+						config.setDimension(sample.getDimension());
+					}
 
-				inputStore = VectorStoreFactory.getVectorStore(config);
-				allVectors = tmpStore.getAllVectors();
-				while (allVectors.hasMoreElements()) {
-					ObjectVector vector = allVectors.nextElement();
-					inputStore.putVector(vector.getObject(), vector.getVector());
+					inputStore = VectorStoreFactory.getVectorStore(config);
+					allVectors = tmpStore.getAllVectors();
+					while (allVectors.hasMoreElements()) {
+						ObjectVector vector = allVectors.nextElement();
+						inputStore.putVector(vector.getObject(), vector.getVector());
+					}
+				} finally {
+					VectorStoreUtils.closeVectorStores(tmpStore);
 				}
 			}
 		}
@@ -285,6 +294,9 @@ public class PSI {
 			if (flagConfig.trainingcycles() > 0)
 				semanticPredicateVectors.putVector(term.text().trim() + "-INV", VectorFactory.createZeroVector(
 						flagConfig.vectortype(), flagConfig.dimension()));
+		}
+		if (inputStore != null) {
+			inputStore.close();
 		}
 	}
 
@@ -477,6 +489,7 @@ public class PSI {
 			} catch (InterruptedException e) {
 				throw new PluginException("Couldn't terminate process");
 			} finally {
+				this.luceneUtils.closeLuceneDir();
 				Runtime.getRuntime().removeShutdownHook(shutdownHook);
 			}
 		}

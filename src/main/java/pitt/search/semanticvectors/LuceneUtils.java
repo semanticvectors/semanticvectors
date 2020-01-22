@@ -79,6 +79,7 @@ public class LuceneUtils {
   private FlagConfig flagConfig;
   private BaseCompositeReader<LeafReader> compositeReader;
   private LeafReader leafReader;
+  private FSDirectory fsDirectory;
   private TSynchronizedObjectFloatMap<String> termEntropy;
   private TSynchronizedObjectFloatMap<String> termIDF;
   private TSynchronizedObjectIntMap<String> termFreq;
@@ -119,8 +120,8 @@ public class LuceneUtils {
           "-luceneindexpath is a required argument for initializing LuceneUtils instance.");
     }
 
-    this.compositeReader = DirectoryReader.open(
-        FSDirectory.open(FileSystems.getDefault().getPath(flagConfig.luceneindexpath())));
+    this.fsDirectory = FSDirectory.open(FileSystems.getDefault().getPath(flagConfig.luceneindexpath()));
+    this.compositeReader = DirectoryReader.open(fsDirectory);
     final int MAPS_INITIAL_CAPACITY = (int) (MAPS_INITIAL_CAPACITY_COEFFICIENT * getNumDocs());
     termEntropy = (TSynchronizedObjectFloatMap<String>) TCollections.synchronizedMap(new TObjectFloatHashMap<String>(MAPS_INITIAL_CAPACITY));
     termIDF = (TSynchronizedObjectFloatMap<String>) TCollections.synchronizedMap(new TObjectFloatHashMap<String>(MAPS_INITIAL_CAPACITY));
@@ -539,5 +540,18 @@ public class LuceneUtils {
       }
     }
     return termFilter(term, desiredFields, minFreq, maxFreq, maxNonAlphabet, minTermLength);
+  }
+
+  /**
+   * Closes lucene index directory
+   */
+  public void closeLuceneDir() {
+    try {
+      leafReader.close();
+      compositeReader.close();
+      fsDirectory.close();
+    } catch (IOException e) {
+      logger.severe("Could not close lucene index dir");
+    }
   }
 }

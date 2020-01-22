@@ -196,6 +196,8 @@ public class IncrementalTermVectors implements VectorStore {
     if (docVectorsInputStream != null) {
       docVectorsInputStream.close();
     }
+
+    fsDirectory.close();
   }
 
   // Basic VectorStore interface methods implemented through termVectors.
