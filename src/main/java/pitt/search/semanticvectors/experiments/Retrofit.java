@@ -84,8 +84,8 @@ public class Retrofit {
 					if (relationships.length <= 1) continue;
 					
 						
-					retroVectors.removeVector(key);
-					retroVectors.putVector(key, VectorFactory.createZeroVector(flagConfig.vectortype(), flagConfig.dimension()));
+					//retroVectors.removeVector(key);
+					//retroVectors.putVector(key, VectorFactory.createZeroVector(flagConfig.vectortype(), flagConfig.dimension()));
 					
 					int relcnt = 0;
 					
