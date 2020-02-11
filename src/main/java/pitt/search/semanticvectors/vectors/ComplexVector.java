@@ -297,7 +297,7 @@ public class ComplexVector implements Vector {
     for (int d = 0; d < coordinates.length; d++) {
       coordinates[d] = (float) (random.nextFloat() - 0.5) / (float) coordinates.length;
     }
-    return randomVector;
+   return randomVector;
   }
   
   @Override
@@ -520,7 +520,7 @@ public class ComplexVector implements Vector {
         cartesianToDensePolar();
         return; 
       case HERMITIAN:
-    	 cartesianToDensePolar();
+    	  cartesianToDensePolar();
     	 return;
     }
   }
@@ -631,6 +631,7 @@ public class ComplexVector implements Vector {
       otherNorms[q] = othernorm;
     }
     toDensePolar();
+    
     ComplexVector otherCopy = other.copy();
     otherCopy.toDensePolar();
     short[] otherAngles = otherCopy.getPhaseAngles();
@@ -651,6 +652,7 @@ public class ComplexVector implements Vector {
     }
 
     toCartesian();
+    opMode = Mode.HERMITIAN;
     double newNorm = 0;
     for (int q = 0; q < dimension; q++) {
       this.coordinates[q * 2] *= (norms[q] * otherNorms[q]);
@@ -658,6 +660,7 @@ public class ComplexVector implements Vector {
     }
     normalizeHermitian();
 
+ 
 
   }
 

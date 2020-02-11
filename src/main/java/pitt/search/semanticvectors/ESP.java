@@ -51,6 +51,8 @@ import pitt.search.semanticvectors.utils.Bobcat;
 import pitt.search.semanticvectors.utils.SigmoidTable;
 import pitt.search.semanticvectors.utils.VerbatimLogger;
 import pitt.search.semanticvectors.vectors.BinaryVector;
+import pitt.search.semanticvectors.vectors.ComplexVector;
+import pitt.search.semanticvectors.vectors.ComplexVector.Mode;
 import pitt.search.semanticvectors.vectors.Vector;
 import pitt.search.semanticvectors.vectors.VectorFactory;
 import pitt.search.semanticvectors.vectors.VectorType;
@@ -134,7 +136,7 @@ public class ESP {
     random = new Random();
     incrementalESPVectors.flagConfig = flagConfig;
     incrementalESPVectors.initialize();
-
+ 
     VerbatimLogger.info("Performing first round of ESP training ...");
     incrementalESPVectors.trainIncrementalESPVectors();
 
@@ -209,7 +211,9 @@ public class ESP {
           if (!elementalItemVectors.containsVector(term.text()))
           {
         	  if (flagConfig.initialtermvectors().isEmpty()) 
-        		  elementalItemVectors.getVector(term.text());  // Causes vector to be created.
+        	    elementalItemVectors.getVector(term.text());  // Causes vector to be created.
+        	  
+        	 
         	  else //pretraining
         	  {
         		  if (flagConfig.elementalmethod().equals(ElementalGenerationMethod.CONTENTHASH))
@@ -241,8 +245,9 @@ public class ESP {
           cuis.put(term.text(), cui);
 
           if (!semanticItemVectors.containsVector(term.text()))
-          semanticItemVectors.putVector(term.text(), VectorFactory.generateRandomVector(
+                  	  semanticItemVectors.putVector(term.text(), VectorFactory.generateRandomVector(
                       flagConfig.vectortype(), flagConfig.dimension(), flagConfig.seedlength(), random));    
+        	  
           
           }
           else
@@ -295,7 +300,7 @@ public class ESP {
           continue;
         
       elementalPredicateVectors.getVector(term.text().trim());
-   
+      
       // Add inverse vector for the predicates.
       elementalPredicateVectors.getVector(term.text().trim() + "-INV");
       
@@ -503,6 +508,7 @@ private void processPredication(String subject, String predicate, String object,
       elementalBoundProduct.bind(objectElementalVector);          //eg. E(TREATS)*E(schizophrenia)
       copyOfSubjectSemanticVector.release(predicateElementalVector);  //e.g. S(haloperidol)/E(TREATS) ?= E(schizophrenia)
 
+      
       //to train predicate vector
       Vector copyOfElementalVector = null;
       
@@ -848,7 +854,8 @@ private void initializeRandomizationStartpoints()
 	FlagConfig flagConfig = FlagConfig.getFlagConfig(args);
     args = flagConfig.remainingArgs;
 
-    
+    if (flagConfig.vectortype().equals(VectorType.COMPLEX))
+    		ComplexVector.setDominantMode(Mode.HERMITIAN);
     
     if (flagConfig.luceneindexpath().isEmpty()) {
       throw (new IllegalArgumentException("-luceneindexpath argument must be provided."));
