@@ -62,12 +62,14 @@ import org.apache.lucene.util.BytesRef;
 import org.netlib.blas.BLAS;
 
 import pitt.search.semanticvectors.ElementalVectorStore;
+import pitt.search.semanticvectors.ElementalVectorStore.ElementalGenerationMethod;
 import pitt.search.semanticvectors.FlagConfig;
 import pitt.search.semanticvectors.LuceneUtils;
 import pitt.search.semanticvectors.ObjectVector;
 import pitt.search.semanticvectors.VectorStore;
 import pitt.search.semanticvectors.VectorStoreRAM;
 import pitt.search.semanticvectors.VectorStoreWriter;
+import pitt.search.semanticvectors.utils.Bobcat;
 import pitt.search.semanticvectors.utils.SigmoidTable;
 import pitt.search.semanticvectors.utils.VerbatimLogger;
 import pitt.search.semanticvectors.vectors.Vector;
@@ -630,6 +632,8 @@ public class InNoutEmbeddings implements VectorStore {
         if (flagConfig.encodingmethod().equals(pitt.search.semanticvectors.TermTermVectorsFromLucene.EncodingMethod.EMBEDDINGS)) {
             totalPool += Math.pow(luceneUtils.getGlobalTermFreq(new Term(fieldName,term.text())), .75);
             termDic.put(totalPool, term.text());
+            if (flagConfig.elementalmethod() == ElementalGenerationMethod.CONTENTHASH)
+            		random.setSeed(Bobcat.asLong("input"+term.text()));
             termVector = VectorFactory.generateRandomVector(flagConfig.vectortype(), flagConfig.dimension(), flagConfig.seedlength(), random);
         } else termVector = VectorFactory.createZeroVector(flagConfig.vectortype(), flagConfig.dimension());
         
