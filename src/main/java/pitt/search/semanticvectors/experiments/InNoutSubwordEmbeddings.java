@@ -561,7 +561,6 @@ public class InNoutSubwordEmbeddings implements VectorStore {
 	            	         	  {
 	            	            	   	   
 	            	                   String outputTerm = localTerms.get(y)+"<";
-		            	               System.out.println(outputTerm);
 		            	               
 		            	               contextTerms.add(outputTerm);
 	            	            	   	   ArrayList<String> subWords = 
@@ -590,7 +589,8 @@ public class InNoutSubwordEmbeddings implements VectorStore {
 	              	               //these terms (and hence their context vectors)
 	              	               //are drawn with a probability of (global occurrence)^0.75, as recommended
 	              	               //by Mikolov and other authors
-	              	              
+	              	           
+	            	               
 	            	               while (contextVectors.size() <= flagConfig.negsamples) {
 	              	                 Vector randomTerm = null;
 	              	                 double max = totalPool; //total (non unique) term count
@@ -601,8 +601,34 @@ public class InNoutSubwordEmbeddings implements VectorStore {
 	              	                 	  String testTerm = termDic.ceilingEntry(test).getValue();
 	              	                   		if (!localTerms.contains(testTerm) && testTerm.startsWith(">")) //if the term is not in the document
 	              	                   		{ randomTerm = indexVectors.getVector(testTerm);
-	              	                   		  contextVectors.add(randomTerm);
-	              	                			contextLabels.add(0);}
+	              	                   		
+	              	                   	 if (flagConfig.subword_embeddings())
+	   	            	         	  {
+	   	            	            	   	   
+	   	            	                   String outputTerm = testTerm;
+	   		            	               contextTerms.add(outputTerm);
+	   	            	            	   	   ArrayList<String> subWords = 
+	   	            	            	   			subwordEmbeddingVectors.getComponentNgrams(outputTerm);
+	   	            	         		  
+	   	            	            	   	   Vector toAdd = VectorFactory.createZeroVector(flagConfig.vectortype(), flagConfig.dimension());  
+	          	            	   			   toAdd.superpose(randomTerm,1 / (subWords.size()+1),null);
+	   	            	             
+	          	            	   			   for (String subword:subWords)
+	   	            	         			  toAdd.superpose(subwordEmbeddingVectors.getVector(subword,false), 1 / (subWords.size()+1), null);  //if set to true, will subsample subwords
+	   	            	         		
+	   	            	         		 //add the evolving document vector for the context
+	   		            	               contextVectors.add(toAdd);
+	   		            	               contextLabels.add(0);
+	   		            	               
+	   	            	            	  }
+	              	                   	 else
+	              	                   	 {
+	              	                   		contextVectors.add(randomTerm);
+	              	                			contextLabels.add(0);
+	              	                   	 }
+	              	                   		
+	              	                   		
+	              	                   		}
 	              	                   }
 	              	                   	}
 	              	             }
@@ -616,6 +642,7 @@ public class InNoutSubwordEmbeddings implements VectorStore {
 	            	               {
 	            	            	     ArrayList<Double> errors = processEmbeddings(localinputvectors[x], contextVectors, contextLabels, alpha,blas);
 	            	            	     int ind = 0;
+	            	            	     
 	            	            	     for (String outputTerm:contextTerms)
 	            	            	     {
 	            	            	    	   double error = errors.get(ind);
