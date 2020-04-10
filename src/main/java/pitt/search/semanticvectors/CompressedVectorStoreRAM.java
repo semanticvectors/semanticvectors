@@ -139,9 +139,8 @@ public class CompressedVectorStoreRAM  {
 	  {
 		  ArrayList<String> outgoingNgrams = new ArrayList<String>();
 		  String toDecompose = "<"+incomingString+">";
-
-		 
-		  for (int ngram_length = 3; ngram_length <= 6; ngram_length++)
+		  
+		  for (int ngram_length = flagConfig.minimum_ngram_length(); ngram_length <= flagConfig.maximum_ngram_length(); ngram_length++)
 			  for (int j=0; j <= (toDecompose.length() - ngram_length); j++)
 				  {
 				  	String toAdd = toDecompose.substring(j,j+ngram_length);
@@ -198,12 +197,12 @@ public class CompressedVectorStoreRAM  {
 		  
 		  System.out.println(System.currentTimeMillis()-time);
 		  
-		  /**
+		  
 		  for (String subword:cvs.getComponentNgrams("testing"))
 		  { System.out.println(subword);
-			System.out.println(cvs.getVector(subword));
+			System.out.println(cvs.getVector(subword,false));
 		  }
-		  **/
+		  
 	  }
 	  
 }
