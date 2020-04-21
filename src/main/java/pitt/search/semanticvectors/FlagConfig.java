@@ -133,6 +133,12 @@ public class FlagConfig {
    */
   public boolean balanced_subwords() { return balanced_subwords; }
   
+  public boolean write_subwordembeddings = false;
+  /** 
+   * If true write out subword embeddings
+   */
+  public boolean write_subwordembeddings() { return write_subwordembeddings; }
+  
   
   
   public boolean exactwindowpositions = false;
