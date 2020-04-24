@@ -562,16 +562,15 @@ public class InNoutSubwordEmbeddings implements VectorStore {
 	            	         	  {
 	            	            	   	   
 	            	                   String outputTerm = localTerms.get(y)+"<";
-		            	               
-		            	               contextTerms.add(outputTerm);
+		            	              contextTerms.add(outputTerm);
 	            	            	   	   ArrayList<String> subWords = 
 	            	            	   			subwordEmbeddingVectors.getComponentNgrams(outputTerm);
 	            	         		  
 	            	            	   	   Vector toAdd = VectorFactory.createZeroVector(flagConfig.vectortype(), flagConfig.dimension());  
-       	            	   			   toAdd.superpose(localoutputvectors[y],1 / (subWords.size()+1),null);
+       	            	   			   toAdd.superpose(localoutputvectors[y],1 / (double) (subWords.size()+1),null);
 	            	             
        	            	   			   for (String subword:subWords)
-	            	         			  toAdd.superpose(subwordEmbeddingVectors.getVector(subword,false), 1 / (subWords.size()+1), null);  //if set to true, will subsample subwords
+	            	         			  toAdd.superpose(subwordEmbeddingVectors.getVector(subword,false), 1 / (double) (subWords.size()+1), null);  //if set to true, will subsample subwords
 	            	         		
 	            	         		 //add the evolving document vector for the context
 		            	               contextVectors.add(toAdd);
@@ -609,13 +608,13 @@ public class InNoutSubwordEmbeddings implements VectorStore {
 	   	            	                   String outputTerm = testTerm;
 	   		            	               contextTerms.add(outputTerm);
 	   	            	            	   	   ArrayList<String> subWords = 
-	   	            	            	   			subwordEmbeddingVectors.getComponentNgrams(outputTerm);
+	   	            	            	   			subwordEmbeddingVectors.getComponentNgrams(outputTerm+"<");
 	   	            	         		  
 	   	            	            	   	   Vector toAdd = VectorFactory.createZeroVector(flagConfig.vectortype(), flagConfig.dimension());  
-	          	            	   			   toAdd.superpose(randomTerm,1 / (subWords.size()+1),null);
-	   	            	             
-	          	            	   			   for (String subword:subWords)
-	   	            	         			  toAdd.superpose(subwordEmbeddingVectors.getVector(subword,false), 1 / (subWords.size()+1), null);  //if set to true, will subsample subwords
+	          	            	   		   toAdd.superpose(randomTerm,1 / (double) (subWords.size()+1),null);
+	          	            	   		
+	          	            	   			for (String subword:subWords)
+	   	            	         			toAdd.superpose(subwordEmbeddingVectors.getVector(subword,false), 1 / (double) (subWords.size()+1), null);  //if set to true, will subsample subwords
 	   	            	         		
 	   	            	         		 //add the evolving document vector for the context
 	   		            	               contextVectors.add(toAdd);
@@ -651,10 +650,10 @@ public class InNoutSubwordEmbeddings implements VectorStore {
 	            	            	    	   ArrayList<String> subWords = 
 	   	            	            	   			subwordEmbeddingVectors.getComponentNgrams(outputTerm);
 	   	            	         		  
-	   	            	            	   localoutputvectors[y].superpose(localinputvectors[x],error*(1 / (subWords.size()+1)),null);
+	   	            	            	   localoutputvectors[y].superpose(localinputvectors[x],error*(1 / (double) (subWords.size()+1)),null);
 	   	            	             
 	   	            	            	   for (String subword:subWords)
-	   	            	         			   subwordEmbeddingVectors.getVector(subword,false).superpose(localinputvectors[x], error*(1 / (subWords.size()+1)), null);  //if set to true, will subsample subwords
+	   	            	         			   subwordEmbeddingVectors.getVector(subword,false).superpose(localinputvectors[x], error*(1 / (double) (subWords.size()+1)), null);  //if set to true, will subsample subwords
 	   	            	         	
 	            	            	    	 
 	            	            	     }
