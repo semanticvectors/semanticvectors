@@ -307,21 +307,18 @@ public class ESPseg {
           continue;
         
         String componentTerm = term.text(); //+" "+term.text().replaceAll("_", " ");
-       
-        		elementalPredicateVectors.getVector(componentTerm.trim());
+        elementalPredicateVectors.getVector(componentTerm.trim());
    
         		// Add inverse vector for the predicates.
-        		elementalPredicateVectors.getVector(componentTerm.trim() + "-INV");
+        	elementalPredicateVectors.getVector(componentTerm.trim() + "-INV");
       	
         		 double predFreq  	= luceneUtils.getGlobalDocFreq(new Term("predicate",componentTerm.toString()));
                  
         		 double globalFreq = (predFreq) / (double) predCounter;
-
-                 if (globalFreq > flagConfig.samplingthreshold()) {
+        		     if (globalFreq > flagConfig.samplingthreshold()) {
                    double discount = 1; //(globalFreq - flagConfig.samplingthreshold()) / globalFreq;
-                   predsamplingProbabilities.put(componentTerm.toString(), (discount - Math.sqrt(flagConfig.samplingthreshold() / globalFreq)));
-                   //VerbatimLogger.info(globalFreq+" "+term.text()+" "+subsamplingProbabilities.get(fieldName+":"+bytes.utf8ToString()));
-                 }
+                   predsamplingProbabilities.put(componentTerm.toString(), (discount - Math.sqrt((flagConfig.samplingthreshold()) / globalFreq)));
+                     }
         		
       // Output predicate counter.
       predCounter++;
@@ -677,19 +674,15 @@ private void processCompositePredication(String subject, ArrayList<String> predi
      //commenting out the next line stops the bleeding
      semanticVector.superpose(predicateBoundProduct, alpha*shiftToward, null); //sim (S(haloperidol), E(TREATS)*E(schizophrenia) \approx sim(S(haloperidol)/E(TREATS), E(schizophrenia))
 	
-     
-     
      shiftToward = shiftToward(semanticBoundProduct,elementalVector,flagConfig, blas);
      elementalVector.superpose(semanticBoundProduct, alpha*shiftToward, null); 
 
-   
-     
      //train predicate vector too
      if (flagConfig.mutablepredicatevectors()) 
      {
     	 	shiftToward = shiftToward(unboundPredicateVectorCopy,subjectObjectVector,flagConfig, blas);
     	 	for (Vector predVector:predicateElementalVectors)
-    	 		predVector.superpose(subjectObjectVector, alpha*shiftToward, null);
+    	 		predVector.superpose(subjectObjectVector, alpha*shiftToward / (double) predicateElementalVectors.size(), null);
      }
 	 
      //negative samples
@@ -700,13 +693,14 @@ private void processCompositePredication(String subject, ArrayList<String> predi
    	    
    	  	for (String predicate:predicates)
    	  	{
+   	  		((BinaryVector) elementalPredicateVectors.getVector(predicate)).tallyVotes();
    	  		currentPredicateVector.superpose(elementalPredicateVectors.getVector(predicate),1 ,null);
    	  	}
    	  	currentPredicateVector.normalize();
   
     	 	Vector currentSemanticVector
     	 			= semanticVector.copy();
-    	 			
+    	 		   currentSemanticVector.normalize();
     	 			Vector negativeSubjectObjectVector=null;
     	 			
     	 			if (flagConfig.mutablepredicatevectors())
@@ -733,7 +727,7 @@ private void processCompositePredication(String subject, ArrayList<String> predi
 	   		{
 	   			shiftAway   = shiftAway(currentPredicateVector,negativeSubjectObjectVector, flagConfig, blas);
 	   			for (Vector predVector:predicateElementalVectors)
-	   				predVector.superpose(negativeSubjectObjectVector, alpha*shiftAway, null);
+	   				predVector.superpose(negativeSubjectObjectVector, alpha*shiftAway / (double) predicateElementalVectors.size(), null);
 		 }
 		 }
 	 
@@ -776,12 +770,12 @@ private void processPredicationDocument(Document document, BLAS blas)
     }**/
 	      
 	      //subsampling of predications
-	      int    predCount	= luceneUtils.getGlobalTermFreq(new Term(PREDICATION_FIELD,predication));
-	         
-	      double predFreq   =  (predCount / (double) luceneUtils.getNumDocs());
-	      if (predFreq > flagConfig.samplingthreshold()*0.01)
-	    	  if (random.nextDouble() <= ( 1 - Math.sqrt(flagConfig.samplingthreshold()*0.01) / predFreq))
-	    	  	encode = false;
+	      //int    predCount	= luceneUtils.getGlobalTermFreq(new Term(PREDICATION_FIELD,predication));
+	      //   
+	      //double predFreq   =  (predCount / (double) luceneUtils.getNumDocs());
+	      //if (predFreq > flagConfig.samplingthreshold())
+	    	  //if (random.nextDouble() <= ( 1 - Math.sqrt(flagConfig.samplingthreshold()*0.01) / predFreq))
+	    	  //	encode = false;
 	         
 	      //subsampling of terms above some threshold
 	      if (this.subsamplingProbabilities != null && this.subsamplingProbabilities.containsKey(subject) && random.nextDouble() <= this.subsamplingProbabilities.get(subject))
@@ -805,8 +799,14 @@ private void processPredicationDocument(Document document, BLAS blas)
 	 
 	    	  for (String pred:predicates)
 	    	  if (elementalPredicateVectors.containsVector(pred))	
-	    	  if (!(this.predsamplingProbabilities != null && this.predsamplingProbabilities.contains(pred) && random.nextDouble() <= this.subsamplingProbabilities.get(pred)))
-	   	    {	
+	    	  
+	    		if (this.predsamplingProbabilities != null && this.predsamplingProbabilities.containsKey(pred) && random.nextDouble() <= this.predsamplingProbabilities.get(pred))
+		{
+			//System.out.println(pred+"\t"+predsamplingProbabilities.get(pred));
+	    	 //subsampled
+		}	    	  
+		else
+	    	  {	
 	    		  predicateA.add(pred); 
 	    		  invPredicateA.add(pred+"-INV");
 	    	  	}
