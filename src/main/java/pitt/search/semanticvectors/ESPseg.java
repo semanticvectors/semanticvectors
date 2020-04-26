@@ -581,6 +581,7 @@ private void processCompositePredication(String subject, ArrayList<String> predi
 	  for (String predicate:predicates)
 	  {
 		  allPreds += predicate+" ";
+		  ((BinaryVector) elementalPredicateVectors.getVector(predicate)).tallyVotes();
 		  predicateBoundProduct.superpose(elementalPredicateVectors.getVector(predicate),1 ,null);
 		  predicateElementalVectors.add(elementalPredicateVectors.getVector(predicate));
 	  }
