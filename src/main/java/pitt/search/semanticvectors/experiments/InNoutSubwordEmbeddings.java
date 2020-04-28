@@ -420,8 +420,8 @@ public class InNoutSubwordEmbeddings implements VectorStore {
     	scalarProduct = VectorUtils.scalarProduct(embeddingVector, duplicateContextVec, flagConfig, blas);
         
     	
-      if (Math.abs(scalarProduct) > MAX_EXP) 
-    	  {counter++; continue;} //skipping cases with outsize scalar products, as per prior implementations - may avoid numerically unstable term vectors down the line
+      //if (Math.abs(scalarProduct) > MAX_EXP) 
+    	  //{counter++; continue;} //skipping cases with outsize scalar products, as per prior implementations - may avoid numerically unstable term vectors down the line
     	
       if (!flagConfig.vectortype().equals(VectorType.BINARY)) //sigmoid function
   	  {
@@ -645,16 +645,23 @@ public class InNoutSubwordEmbeddings implements VectorStore {
 	            	            	     
 	            	            	     for (String outputTerm:contextTerms)
 	            	            	     {
-	            	            	    	   double error = errors.get(ind);
-	            	            	    	   ind++;
-	            	            	    	   ArrayList<String> subWords = 
-	   	            	            	   			subwordEmbeddingVectors.getComponentNgrams(outputTerm);
-	   	            	         		  
-	   	            	            	   localoutputvectors[y].superpose(localinputvectors[x],error*(1 / (double) (subWords.size()+1)),null);
-	   	            	             
-	   	            	            	   for (String subword:subWords)
-	   	            	         			   subwordEmbeddingVectors.getVector(subword,false).superpose(localinputvectors[x], error*(1 / (double) (subWords.size()+1)), null);  //if set to true, will subsample subwords
-	   	            	         	
+	            	            	    	   try {
+	            	            	    	 	double error = errors.get(ind);
+	            	            	    	 	ind++;
+		            	            	    	   ArrayList<String> subWords = 
+		   	            	            	   			subwordEmbeddingVectors.getComponentNgrams(outputTerm);
+		   	            	         		  
+		   	            	            	   localoutputvectors[y].superpose(localinputvectors[x],error*(1 / (double) (subWords.size()+1)),null);
+		   	            	             
+		   	            	            	   for (String subword:subWords)
+		   	            	         			   subwordEmbeddingVectors.getVector(subword,false).superpose(localinputvectors[x], error*(1 / (double) (subWords.size()+1)), null);  //if set to true, will subsample subwords
+		   	            	         	
+	            	            	    	   }
+	            	            	    	   catch (Exception e)
+	            	            	    	   {
+	            	            	    		   System.out.println(errors.size()+"\t"+outputTerm);
+	            	            	    	   }
+	            	            	    	 	
 	            	            	    	 
 	            	            	     }
 	            	               
