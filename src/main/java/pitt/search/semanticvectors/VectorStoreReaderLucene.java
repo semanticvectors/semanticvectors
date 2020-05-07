@@ -219,7 +219,10 @@ public class VectorStoreReaderLucene implements CloseableVectorStore {
     ByteBuffer buffer = ByteBuffer.allocateDirect(Long.BYTES);
     int testIdx = (start + end) / 2;
     try {
-      map.position(testIdx * Long.BYTES).read(buffer);
+      // Secondary bottom of the recursion, if channel has reached end of stream
+      if (map.position(testIdx * Long.BYTES).read(buffer) == -1) {
+        return null;
+      }
       buffer.flip();
       getIndexInput().seek(buffer.getLong());
 
