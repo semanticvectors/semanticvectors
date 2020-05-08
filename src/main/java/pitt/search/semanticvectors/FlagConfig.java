@@ -101,6 +101,10 @@ public class FlagConfig {
     this.makeFlagsCompatible();
   }
 
+  private boolean smoothESPlabels  = false; 
+  /** Smooth ESP labels during training **/
+  public boolean smoothESPlabels() { return smoothESPlabels; }
+  
   private RealBindMethod realbindmethod = RealBindMethod.CONVOLUTION; 
   /** The binding method used for real vectors, see {@link RealVector#BIND_METHOD}. */
   public RealBindMethod realbindmethod() { return realbindmethod; }

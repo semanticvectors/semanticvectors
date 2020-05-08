@@ -108,6 +108,8 @@ public class ESP {
   private double  alpha		   = 0.025;
   private double min_alpha = 0.0001;
   private SigmoidTable sigmoidTable = new SigmoidTable(MAX_EXP,1000);
+  private double posLabel = 1;
+  private double negLabel = 0;
   
   private ConcurrentHashMap<String,ConcurrentSkipListMap<Double, String>> termDic;
   private ConcurrentHashMap<String,Double> totalPool; //total pool of terms probabilities for negative sampling corpus
@@ -126,6 +128,8 @@ public class ESP {
 
   
   private ESP(FlagConfig flagConfig) {
+	  
+	  
 	 };
 
   /**
@@ -340,7 +344,15 @@ public class ESP {
       VerbatimLogger.info("\n");
       if (subsamplingProbabilities !=null && subsamplingProbabilities.size() > 0)
         VerbatimLogger.info("Selected for subsampling: " + subsamplingProbabilities.size() + " terms.\n");
-    } 
+    }
+    
+    if (flagConfig.smoothESPlabels())
+	  {
+    		VerbatimLogger.info("Label smoothing activated");
+		  posLabel = 0.9;
+		  negLabel = 1 / ((double) elementalItemVectors.getNumVectors());
+	  }
+    
     
   }
 
@@ -408,9 +420,9 @@ public double shiftAway(Vector v1, Vector v2, FlagConfig flagConfig, BLAS blas)
 	double loss;
 	
 	if (!flagConfig.vectortype().equals(VectorType.BINARY))
-		loss = -sigmoid(VectorUtils.scalarProduct(v1, v2, flagConfig, blas));
+		loss = negLabel-sigmoid(VectorUtils.scalarProduct(v1, v2, flagConfig, blas));
 	else
-		 loss = -100*Math.max(VectorUtils.scalarProduct(v1, v2, flagConfig, blas),0);
+		 loss = 100*negLabel-100*Math.max(VectorUtils.scalarProduct(v1, v2, flagConfig, blas),0);
 		
 	raw_loss.add(Math.abs(loss));
 	return loss;
@@ -430,11 +442,11 @@ public double shiftAway(Vector v1, Vector v2, FlagConfig flagConfig, BLAS blas)
 public double shiftToward(Vector v1, Vector v2, FlagConfig flagConfig, BLAS blas)
 {
 		double loss;
-	
+		
 		if (!flagConfig.vectortype().equals(VectorType.BINARY))
-			loss = 1-sigmoid(VectorUtils.scalarProduct(v1, v2, flagConfig, blas));
+			loss = posLabel-sigmoid(VectorUtils.scalarProduct(v1, v2, flagConfig, blas));
 		else
-			 loss = 100-100*Math.max(VectorUtils.scalarProduct(v1, v2, flagConfig, blas),0);
+			 loss = posLabel*100-100*Math.max(VectorUtils.scalarProduct(v1, v2, flagConfig, blas),0);
 			
 		raw_loss.add(Math.abs(loss));
 		return loss;
