@@ -349,8 +349,8 @@ public class ESP {
     if (flagConfig.smoothESPlabels())
 	  {
     		VerbatimLogger.info("Label smoothing activated");
-		  posLabel = 0.95;
-		  negLabel = 0.05;
+		  posLabel = 0.9;
+		  negLabel = 0.1 / (double) elementalItemVectors.getNumVectors();
 	  }
     
     
