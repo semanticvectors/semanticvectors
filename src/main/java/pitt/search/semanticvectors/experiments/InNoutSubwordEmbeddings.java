@@ -193,22 +193,19 @@ public class InNoutSubwordEmbeddings implements VectorStore {
 	   		  ObjectVector nextObjectVector = d.nextElement();
 			  ArrayList<String> subwordStrings = this.subwordEmbeddingVectors.getComponentNgrams(nextObjectVector.getObject().toString());
 			 
-			  //used in the EARP paper: weight of each subword (ngram) == weight of original word
-			  float weightReduction = 1 / ((float) subwordStrings.size()+1);
+			  float wordWeight = 1 / ((float) subwordStrings.size()+1);
+			  if (flagConfig.balanced_subwords()) wordWeight = 0.5f; 
+			  
+			  float subwordWeight = (1-wordWeight) / ((float) subwordStrings.size());
 			  Vector wordVec = VectorFactory.createZeroVector(flagConfig.vectortype(), flagConfig.dimension());
-			 
-			 //if flagConfig.balanced_subwords(), combined weight of all subwords (ngrams) == weight of original word
-			 if (flagConfig.balanced_subwords()) weightReduction = 1; 
-			 
-			 wordVec.superpose(nextObjectVector.getVector(), weightReduction, null);
-			 if (flagConfig.balanced_subwords()) weightReduction = 1 / ((float) subwordStrings.size()); 
-			 
-			 
+			  
+			  wordVec.superpose(nextObjectVector.getVector(), wordWeight, null);
+			  
 			  for (String subword: subwordStrings)
 			  { 
 				  Vector subwordVector = subwordEmbeddingVectors.getVector(subword, false);
 				 // nextObjectVector.getVector().superpose(subwordVector, weightReduction,null);
-				  wordVec.superpose(subwordVector, weightReduction,null);
+				  wordVec.superpose(subwordVector, subwordWeight,null);
 				  
 			 }
 			  
@@ -563,14 +560,19 @@ public class InNoutSubwordEmbeddings implements VectorStore {
 	            	            	   	   
 	            	                   String outputTerm = localTerms.get(y);
 		            	               contextTerms.add(outputTerm);
-	            	            	   	   ArrayList<String> subWords = 
+	            	            	   	   ArrayList<String> subwordStrings = 
 	            	            	   			subwordEmbeddingVectors.getComponentNgrams(outputTerm);
 	            	         		  
-	            	            	   	   Vector toAdd = VectorFactory.createZeroVector(flagConfig.vectortype(), flagConfig.dimension());  
-       	            	   			   toAdd.superpose(localoutputvectors[y],1 / (double) (subWords.size()+1),null);
+	            	            	   	 float wordWeight = 1 / ((float) subwordStrings.size()+1);
+	            	       			  if (flagConfig.balanced_subwords()) wordWeight = 0.5f; 
+	            	       			  
+	            	       			  float subwordWeight = (1-wordWeight) / ((float) subwordStrings.size());
+	            	       			  
+	            	       			  Vector toAdd = VectorFactory.createZeroVector(flagConfig.vectortype(), flagConfig.dimension());  
+       	            	   			   toAdd.superpose(localoutputvectors[y], wordWeight,null);
 	            	             
-       	            	   			   for (String subword:subWords)
-	            	         			  toAdd.superpose(subwordEmbeddingVectors.getVector(subword,false), 1 / (double) (subWords.size()+1), null);  //if set to true, will subsample subwords
+       	            	   			   for (String subword:subwordStrings)
+	            	         			  toAdd.superpose(subwordEmbeddingVectors.getVector(subword,false), subwordWeight, null);  //if set to true, will subsample subwords
 	            	         		
 	            	         		 //add the evolving document vector for the context
 		            	               contextVectors.add(toAdd);
@@ -610,11 +612,16 @@ public class InNoutSubwordEmbeddings implements VectorStore {
 	   	            	            	   	   ArrayList<String> subWords = 
 	   	            	            	   			subwordEmbeddingVectors.getComponentNgrams(negSampleTerm);
 	   	            	         		  
-	   	            	            	   	   Vector toAdd = VectorFactory.createZeroVector(flagConfig.vectortype(), flagConfig.dimension());  
-	          	            	   		   toAdd.superpose(negsampleVector,1 / (double) (subWords.size()+1),null);
+	   	            	            	    float wordWeight = 1 / ((float) subWords.size()+1);
+	   	            	   			  if (flagConfig.balanced_subwords()) wordWeight = 0.5f; 
+	   	            	   			  
+	   	            	   			  float subwordWeight = (1-wordWeight) / ((float) subWords.size());
+	   	            	   			  
+	   	            	   			  Vector toAdd = VectorFactory.createZeroVector(flagConfig.vectortype(), flagConfig.dimension());  
+	          	            	      toAdd.superpose(negsampleVector,wordWeight,null);
 	          	            	   		
 	          	            	   			for (String subword:subWords)
-	   	            	         			toAdd.superpose(subwordEmbeddingVectors.getVector(subword,false), 1 / (double) (subWords.size()+1), null);  //if set to true, will subsample subwords
+	   	            	         			toAdd.superpose(subwordEmbeddingVectors.getVector(subword,false), subwordWeight, null);  //if set to true, will subsample subwords
 	   	            	         		
 	   	            	         		 //add the evolving document vector for the context
 	   		            	               contextVectors.add(toAdd);
@@ -650,10 +657,17 @@ public class InNoutSubwordEmbeddings implements VectorStore {
 	            	            	    	 	ind++;
 		            	            	    	   ArrayList<String> subWords = 
 		   	            	            	   			subwordEmbeddingVectors.getComponentNgrams(outputTerm);
-		   	            	         	localoutputvectors[y].superpose(localinputvectors[x],(alpha*error)  / ((double) (subWords.size()+1)),null);
+		   	            	         	
+		            	            	    	   float wordWeight = 1 / ((float) subWords.size()+1);
+		            	            		   if (flagConfig.balanced_subwords()) wordWeight = 0.5f; 
+		            	            				  
+		            	            			float subwordWeight = (1-wordWeight) / ((float) subWords.size());
+		            	            				
+		            	            	    	   
+		            	            	    	   localoutputvectors[y].superpose(localinputvectors[x],wordWeight*alpha*error,null);
 		   	            	             
 		   	            	            	  for (String subword:subWords)
-		   	            	         			  subwordEmbeddingVectors.getVector(subword,false).superpose(localinputvectors[x], (alpha*error) / ((double) (subWords.size()+1)), null);  //if set to true, will subsample subwords
+		   	            	         			  subwordEmbeddingVectors.getVector(subword,false).superpose(localinputvectors[x], subwordWeight*alpha*error,null);  //if set to true, will subsample subwords
 		   	            	         	
 	            	            	    	   }
 	            	            	    	   catch (Exception e)
