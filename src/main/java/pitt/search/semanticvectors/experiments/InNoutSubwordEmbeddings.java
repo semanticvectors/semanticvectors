@@ -401,7 +401,7 @@ public class InNoutSubwordEmbeddings implements VectorStore {
   
   private ArrayList<Double> processEmbeddings(
       Vector embeddingVector, ArrayList<Vector> contextVectors,
-      ArrayList<Integer> contextLabels, double learningRate, BLAS blas) {
+      ArrayList<Integer> contextLabels, double learningRate, BLAS blas, ArrayList<Float> contextWordWeights) {
 	  int counter = 0;
 
 	  ArrayList<Double> errors = new ArrayList<Double>();
@@ -415,7 +415,11 @@ public class InNoutSubwordEmbeddings implements VectorStore {
     	
     	Vector duplicateContextVec 	 = contextVec.copy();
     	scalarProduct = VectorUtils.scalarProduct(embeddingVector, duplicateContextVec, flagConfig, blas);
-    //if (Math.abs(scalarProduct) > MAX_EXP) 
+    	float wordWeight = 1;
+    	if (contextWordWeights != null)
+    		wordWeight = contextWordWeights.get(counter);
+        
+    	//if (Math.abs(scalarProduct) > MAX_EXP) 
     	 //{counter++; continue;} //skipping cases with outsize scalar products, as per prior implementations - may avoid numerically unstable term vectors down the line
     	
     //	if (scalarProduct > 1000)
@@ -437,10 +441,9 @@ public class InNoutSubwordEmbeddings implements VectorStore {
      	  }
       
       errors.add(error);
-      
       //update the context vector and embedding vector, respectively
       //VectorUtils.superposeInPlace(embeddingVector, contextVec, flagConfig, blas, learningRate * error);
-      VectorUtils.superposeInPlace(duplicateContextVec, embeddingVector, flagConfig, blas, learningRate * error);
+      VectorUtils.superposeInPlace(duplicateContextVec, embeddingVector, flagConfig, blas, learningRate * error * wordWeight);
       
     }
     return errors;
@@ -548,6 +551,7 @@ public class InNoutSubwordEmbeddings implements VectorStore {
 	            	  	  ArrayList<Vector> contextVectors = new ArrayList<Vector>();
 	        	            ArrayList<Integer> contextLabels = new ArrayList<Integer>();
 	        	            ArrayList<String> contextTerms = new ArrayList<String>();
+	        	            ArrayList<Float> contextWordWeights = new ArrayList<Float>();
 	        	            
 	        	                
 	            	if (localinputvectors[x] != null && localoutputvectors[y] != null) //predictors start with underscore, outcomes do not
@@ -565,6 +569,8 @@ public class InNoutSubwordEmbeddings implements VectorStore {
 	            	         		  
 	            	            	   	 float wordWeight = 1 / ((float) subwordStrings.size()+1);
 	            	       			  if (flagConfig.balanced_subwords()) wordWeight = 0.5f; 
+	            	       			  
+	            	       			  contextWordWeights.add(wordWeight);
 	            	       			  
 	            	       			  float subwordWeight = (1-wordWeight) / ((float) subwordStrings.size());
 	            	       			  
@@ -625,7 +631,8 @@ public class InNoutSubwordEmbeddings implements VectorStore {
 	   	            	         		
 	   	            	         		 //add the evolving document vector for the context
 	   		            	               contextVectors.add(toAdd);
-	   		            	               contextLabels.add(0);
+	   		            	               contextWordWeights.add(wordWeight);
+		            	       			   contextLabels.add(0);
 	   		            	               
 	   	            	            	  }
 	              	                   	 else
@@ -647,7 +654,7 @@ public class InNoutSubwordEmbeddings implements VectorStore {
 	            	              // System.out.print(sigmoidTable.sigmoid(VectorUtils.scalarProduct(contextVectors.get(0),embeddingDocVector,flagConfig, blas))+": ");
 	            	               if (flagConfig.subword_embeddings())
 	            	               {
-	            	            	     ArrayList<Double> errors = processEmbeddings(localinputvectors[x], contextVectors, contextLabels, alpha,blas);
+	            	            	     ArrayList<Double> errors = processEmbeddings(localinputvectors[x], contextVectors, contextLabels, alpha,blas, contextWordWeights);
 	            	            	     int ind = 0;
 	            	            	     
 	            	            	     for (String outputTerm:contextTerms)
@@ -658,9 +665,9 @@ public class InNoutSubwordEmbeddings implements VectorStore {
 		            	            	    	   ArrayList<String> subWords = 
 		   	            	            	   			subwordEmbeddingVectors.getComponentNgrams(outputTerm);
 		   	            	         	
-		            	            	    	   float wordWeight = 1 / ((float) subWords.size()+1);
-		            	            		   if (flagConfig.balanced_subwords()) wordWeight = 0.5f; 
-		            	            				  
+		            	            	   	    float wordWeight = 1 / ((float) subWords.size()+1);
+		  	   	            	   			  if (flagConfig.balanced_subwords()) wordWeight = 0.5f; 
+		  	   	            	   			  
 		            	            			float subwordWeight = (1-wordWeight) / ((float) subWords.size());
 		            	            				
 		            	            	    	   
@@ -680,7 +687,7 @@ public class InNoutSubwordEmbeddings implements VectorStore {
 	            	               
 	            	               }
 	            	               else    
-	            	               processEmbeddings(localinputvectors[x],contextVectors,contextLabels, alpha, blas);
+	            	               processEmbeddings(localinputvectors[x],contextVectors,contextLabels, alpha, blas, null);
 	            	             //  System.out.print(sigmoidTable.sigmoid(VectorUtils.scalarProduct(contextVectors.get(0),embeddingDocVector,flagConfig, blas))+"\n");
 	   	              	        
 
