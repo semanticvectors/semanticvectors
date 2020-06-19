@@ -1,6 +1,7 @@
 package pitt.search.semanticvectors;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Random;
 
 import pitt.search.semanticvectors.utils.VerbatimLogger;
@@ -24,6 +25,7 @@ public class CompressedVectorStoreRAM  {
 	private Random random;
 	private FlagConfig flagConfig;
 	private Vector[] vectorTable;
+	private HashSet<String>[] termTable;
 	long[] observationCounts;
 	long totalCounts;
 	
@@ -34,6 +36,7 @@ public class CompressedVectorStoreRAM  {
 		this.flagConfig = flagConfig;
 		observationCounts = new long[maxVectors];
 		vectorTable = new Vector[maxVectors];
+		termTable = new HashSet[maxVectors];
 	}
 	
 	/**
@@ -100,7 +103,7 @@ public class CompressedVectorStoreRAM  {
 		totalCounts++;
 		
 		//the hashed key has been seen before - a vector exists
-		if (vectorTable[hashedKey] != null)	
+		if (vectorTable[hashedKey] != null )	
 		{
 			if (subSample)
 			{
@@ -109,11 +112,14 @@ public class CompressedVectorStoreRAM  {
 			if (subsamp > 0 && random.nextDouble() <= subsamp)
 				return null;
 			}
+			termTable[hashedKey].add(desiredObject);
 			return vectorTable[hashedKey];
 		} //previously unseen hash (and therefore previously unseen key)
 		else {
 	      Vector toBeAdded = VectorFactory.generateRandomVector(flagConfig.vectortype(), flagConfig.dimension(), flagConfig.seedlength, random);
 	       vectorTable[hashedKey] = toBeAdded;
+	       termTable[hashedKey] = new HashSet<String>();
+	       termTable[hashedKey].add(desiredObject);
 	      return toBeAdded;
 	    }
 	  }
@@ -164,7 +170,10 @@ public class CompressedVectorStoreRAM  {
 		  {
 			  if (vectorTable[q] != null)
 			  {
-				  vectorStore.putVector(""+q, vectorTable[q]);
+				  String outString = "";
+				  for (Object term : termTable[q].toArray())
+					  outString=outString+term+":";
+				  vectorStore.putVector(""+outString, vectorTable[q]);
 			  }
 		  }
 		   return vectorStore;
@@ -180,7 +189,8 @@ public class CompressedVectorStoreRAM  {
 	  {
 		  FlagConfig flagConfig = FlagConfig.parseFlagsFromString("-dimension 100 -seedlength 100");
 		  CompressedVectorStoreRAM cvs = new CompressedVectorStoreRAM(flagConfig);
-		 
+		  System.out.println(cvs.getHashedKey(args[0]));
+		  System.exit(0);
 		 
 		 // for (int i=0; i < 10; i++)
 			//  System.out.println(cvs.getHashedKey("incontrovertible"));
