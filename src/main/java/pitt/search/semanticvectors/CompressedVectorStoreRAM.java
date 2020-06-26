@@ -112,7 +112,13 @@ public class CompressedVectorStoreRAM  {
 			if (subsamp > 0 && random.nextDouble() <= subsamp)
 				return null;
 			}
-			termTable[hashedKey].add(desiredObject);
+			try{
+					termTable[hashedKey].add(desiredObject);
+			   }
+			catch(Exception e)
+			{
+				System.err.println("Probable concurrency issue");
+			}
 			return vectorTable[hashedKey];
 		} //previously unseen hash (and therefore previously unseen key)
 		else {

@@ -440,7 +440,8 @@ public class InNoutSubwordEmbeddings implements VectorStore {
       
       errors.add(error);
       //update the context vector and embedding vector, respectively
-      //VectorUtils.superposeInPlace(embeddingVector, contextVec, flagConfig, blas, learningRate * error);
+      if (! flagConfig.subword_embeddings())
+    	  	VectorUtils.superposeInPlace(embeddingVector, contextVec, flagConfig, blas, learningRate * error);
       VectorUtils.superposeInPlace(duplicateContextVec, embeddingVector, flagConfig, blas, learningRate * error);
       
     }
@@ -604,7 +605,8 @@ public class InNoutSubwordEmbeddings implements VectorStore {
 	              	                   if (termDic.ceilingEntry(test) != null) {
 	              	                 	  String testTerm = termDic.ceilingEntry(test).getValue();
 	              	                   		if (!localTerms.contains(testTerm) && testTerm.startsWith(">")) //if the term is not in the document
-	              	                   		{ negsampleVector = indexVectors.getVector(testTerm);
+	              	                   		{ 
+	              	                   			negsampleVector = indexVectors.getVector(testTerm);
 	              	                   		
 	              	                   	 if (flagConfig.subword_embeddings())
 	   	            	         	  {
@@ -637,10 +639,10 @@ public class InNoutSubwordEmbeddings implements VectorStore {
 	              	                   	 }
 	              	                   		
 	              	                   		
-	              	                   		}
-	              	                   }
-	              	                   	}
-	              	             }
+	              	                   		} //it has an output weight and isn't the positive example
+	              	                   } //we have drawn a word that exists
+	              	                   	} //until suitable negative sample found
+	              	             } //enough negative samples acquired
 	        	            	  
 	            	              
 	            	             
@@ -649,7 +651,7 @@ public class InNoutSubwordEmbeddings implements VectorStore {
 	            	              // System.out.print(sigmoidTable.sigmoid(VectorUtils.scalarProduct(contextVectors.get(0),embeddingDocVector,flagConfig, blas))+": ");
 	            	               if (flagConfig.subword_embeddings())
 	            	               {
-	            	            	   	 Vector originalVec = localinputvectors[x].copy();
+	            	            	   	 Vector originalVec = localinputvectors[x].copy(); //retain for updates
 	            	            	     ArrayList<Double> errors = processEmbeddings(localinputvectors[x], contextVectors, contextLabels, alpha,blas);
 	            	            	     int ind = 0;
 	            	            	     
@@ -661,15 +663,17 @@ public class InNoutSubwordEmbeddings implements VectorStore {
 	            	            	    	 	ArrayList<String> subWords = 
 		   	            	            	   			subwordEmbeddingVectors.getComponentNgrams(outputTerm);
 		   	            	         	
-		            	            	   	    float wordWeight = 1 / ((float) subWords.size()+1);
-		  	   	            	   			  if (flagConfig.balanced_subwords()) wordWeight = 0.5f; 
+		            	            	   	float wordWeight = 1 / ((float) subWords.size()+1);
+		  	   	            	   			 if (flagConfig.balanced_subwords()) wordWeight = 0.5f; 
 		  	   	            	   			  
-		            	            			float subwordWeight = (1-wordWeight) / ((float) subWords.size());
-		            	            			localoutputvectors[y].superpose(originalVec,wordWeight*alpha*error,null);
-		   	            	             
+		            	            		float subwordWeight = (1-wordWeight) / ((float) subWords.size());
+		            	            			//localoutputvectors[y].superpose(originalVec,wordWeight*alpha*error,null);
+		            	            			this.indexVectors.getVector(outputTerm).superpose(originalVec,wordWeight*alpha*error,null);
+		            	            			
 		   	            	            	  for (String subword:subWords)
 		   	            	         			  subwordEmbeddingVectors.getVector(subword,false).superpose(originalVec, subwordWeight*alpha*error,null);  //if set to true, will subsample subwords
-		   	            	         	
+		   	            	         		  
+		   	            	           
 	            	            	    	   }
 	            	            	    	   catch (Exception e)
 	            	            	    	   {
