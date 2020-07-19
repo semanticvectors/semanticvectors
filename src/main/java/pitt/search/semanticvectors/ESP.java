@@ -488,7 +488,7 @@ private void processPredication(String subject, String predicate, String object,
       //get flagConfig.negsamples() negative samples as counterpoint to E(object)
       if (flagConfig.negsamples() >= elementalItemVectors.getNumVectors())
       {
-    	  	//exhaustive negative sampling
+    	    //exhaustive negative sampling
     	    Enumeration<ObjectVector> ovs =  elementalItemVectors.getAllVectors();
     	  	while (ovs.hasMoreElements())
     	  	{
@@ -499,11 +499,16 @@ private void processPredication(String subject, String predicate, String object,
     	  			continue;
     	  			
     	  		//check predicate is not a positive training example
-    	  		if (luceneUtils.getGlobalDocFreq(new Term("predication",subject+predicate+obj)) == 0)
+    	  		String checkExists = subject+predicate+obj;
+    	  		if (predicate.endsWith("-INV"))
+    	  			checkExists = obj+predicate.replace("-INV", "")+subject;
+    	  		
+    	  		if (luceneUtils.getGlobalDocFreq(new Term("predication",checkExists)) == 0)
     	  			{
     	  				objNegSamples.add(ov.getVector());
     	  				//System.out.println("negsamp "+subject+predicate+obj);
     	  			}
+    	  	
     	  		//else System.out.println("Rejected "+subject+predicate+obj);
     	  	}
     	    //System.out.println("Added "+objNegSamples.size()+" negative samples"+" for total terms: "+elementalItemVectors.getNumVectors()); 
