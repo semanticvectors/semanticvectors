@@ -116,6 +116,7 @@ public class ESP {
 
   private LuceneUtils luceneUtils;
   private HashSet<String> addedConcepts;
+  private HashSet<String> observedPredications = new HashSet<String>(); //used with exhaustive negatives to reduce I/O
   private static Random random;
   private java.util.concurrent.atomic.AtomicInteger dc = new java.util.concurrent.atomic.AtomicInteger(0);
   private java.util.concurrent.atomic.AtomicInteger pc = new java.util.concurrent.atomic.AtomicInteger(0);
@@ -488,6 +489,13 @@ private void processPredication(String subject, String predicate, String object,
       //get flagConfig.negsamples() negative samples as counterpoint to E(object)
       if (flagConfig.negsamples() >= elementalItemVectors.getNumVectors())
       {
+    	  
+    	  
+    	  	String doesExist = subject+predicate+object;
+	  		if (predicate.endsWith("-INV"))
+	  			doesExist = object+predicate.replace("-INV", "")+subject;
+	  	observedPredications.add(doesExist);
+    	  
     	    //exhaustive negative sampling
     	    Enumeration<ObjectVector> ovs =  elementalItemVectors.getAllVectors();
     	  	while (ovs.hasMoreElements())
@@ -503,7 +511,7 @@ private void processPredication(String subject, String predicate, String object,
     	  		if (predicate.endsWith("-INV"))
     	  			checkExists = obj+predicate.replace("-INV", "")+subject;
     	  		
-    	  		if (luceneUtils.getGlobalDocFreq(new Term("predication",checkExists)) == 0)
+    	  		if (!observedPredications.contains(checkExists) || luceneUtils.getGlobalDocFreq(new Term("predication",checkExists)) == 0)
     	  			{
     	  				objNegSamples.add(ov.getVector());
     	  				//System.out.println("negsamp "+subject+predicate+obj);
