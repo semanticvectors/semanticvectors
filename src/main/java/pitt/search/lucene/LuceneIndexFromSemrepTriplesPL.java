@@ -39,9 +39,9 @@ import java.nio.file.Path;
  * 
  * 
  */
-public class LuceneIndexFromSemrepTriples {
+public class LuceneIndexFromSemrepTriplesPL {
 
-    private LuceneIndexFromSemrepTriples() {}
+    private LuceneIndexFromSemrepTriplesPL() {}
     //static final File INDEX_DIR = new File("predication_index");
     static Path INDEX_DIR =  FileSystems.getDefault().getPath("predication_index");
 
@@ -111,25 +111,29 @@ public class LuceneIndexFromSemrepTriples {
 		    continue;
 		}
 
-		String subject = theTokenizer.nextToken().trim().toLowerCase().replaceAll(" ", "_").replaceAll("\\|\\|\\|.*", "");
-		String subject_CUI = theTokenizer.nextToken().trim().toLowerCase().replaceAll(" ", "_");
+		String[] subject = theTokenizer.nextToken().trim().toLowerCase().replaceAll(" ", "_").split("\\|");
+		String[] subject_CUI = theTokenizer.nextToken().trim().toLowerCase().replaceAll(" ", "_").split("\\|");
 		String subject_semtype = theTokenizer.nextToken().trim().toLowerCase().replaceAll(" ", "_");
         
 		String predicate = theTokenizer.nextToken().trim().toUpperCase().replaceAll(" ", "_");
-		String object = theTokenizer.nextToken().trim().toLowerCase().replaceAll(" ", "_").replaceAll("\\|\\|\\|.*", "");
-		String object_CUI = theTokenizer.nextToken().trim().toLowerCase().replaceAll(" ", "_");
+		String[] object = theTokenizer.nextToken().trim().toLowerCase().replaceAll(" ", "_").split("\\|");
+		String[] object_CUI = theTokenizer.nextToken().trim().toLowerCase().split("\\|");
 		String object_semtype = theTokenizer.nextToken().trim().toLowerCase().replaceAll(" ", "_");
         
 		String PMID = theTokenizer.nextToken();
 		String source = theTokenizer.nextToken();
         
 		Document doc = new Document();
-		doc.add(new TextField("subject", subject, Field.Store.YES));
-		doc.add(new TextField("subject_CUI", subject_CUI, Field.Store.YES));
+		
+		for (int si = 0; si < subject.length; si++)
+		for (int oi = 0; oi < object.length; oi++)
+		{
+		doc.add(new TextField("subject", subject[si], Field.Store.YES));
+		doc.add(new TextField("subject_CUI", subject_CUI[si], Field.Store.YES));
 		doc.add(new TextField("subject_semtype", subject_semtype, Field.Store.YES));
 		doc.add(new TextField("predicate", predicate, Field.Store.YES));
-		doc.add(new TextField("object", object, Field.Store.YES));
-		doc.add(new TextField("object_CUI", object_CUI, Field.Store.YES));
+		doc.add(new TextField("object", object[oi], Field.Store.YES));
+		doc.add(new TextField("object_CUI", object_CUI[oi], Field.Store.YES));
 		doc.add(new TextField("object_semtype", object_semtype, Field.Store.YES));
 		doc.add(new TextField("predication",subject+predicate+object, Field.Store.NO));
 		doc.add(new TextField("PMID",PMID, Field.Store.YES));
@@ -146,7 +150,9 @@ public class LuceneIndexFromSemrepTriples {
 		Field contentsField = new Field("source", source, ft);
 		doc.add(contentsField);
           
+		
 		fsWriter.addDocument(doc);
+		}
 	    }
 	    catch (Exception e) {
 		System.out.println(lineIn);
