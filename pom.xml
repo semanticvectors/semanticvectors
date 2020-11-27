@@ -15,14 +15,6 @@
         </license>
     </licenses>
 
-    <parent>
-        <!-- Enables deployment of snapshots and releases to Sonatype maven central
-            repo -->
-        <groupId>org.sonatype.oss</groupId>
-        <artifactId>oss-parent</artifactId>
-        <version>7</version>
-    </parent>
-
     <distributionManagement>
         <repository>
             <id>internal</id>
