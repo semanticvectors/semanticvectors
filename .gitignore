@@ -236,3 +236,6 @@ pip-log.txt
 #Mr Developer
 .mr.developer.cfg
 .idea/uiDesigner.xml
+
+# Files created by running the tests
+*.bin.map

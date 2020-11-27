@@ -35,11 +35,12 @@
             <url>${snapshots.repo}</url>
         </snapshotRepository>
     </distributionManagement>
-    <!--<scm>-->
-        <!--<url>https://github.com/semanticvectors/semanticvectors/tags/semanticvectors-5.10</url>-->
-        <!--<connection>scm:git:https://github.com/semanticvectors/semanticvectors.git</connection>-->
-        <!--<developerConnection>scm:git:https://github.com/semanticvectors/semanticvectors.git</developerConnection>-->
-    <!--</scm>-->
+    <scm>
+        <connection>scm:git:git@github.com:Ontotext-AD/semanticvectors.git</connection>
+        <developerConnection>scm:git:git@github.com:Ontotext-AD/semanticvectors.git</developerConnection>
+        <url>https://github.com/Ontotext-AD/semanticvectors</url>
+        <tag>HEAD</tag>
+    </scm>
 
     <properties>
         <graphdb.version>8.8.0-RC2</graphdb.version>
@@ -47,8 +48,6 @@
         <snapshots.repo>http://maven.ontotext.com/content/repositories/owlim-snapshots</snapshots.repo>
 
         <luceneversion>6.6.0</luceneversion>
-        <!-- Override using "mvn install -DskipTests=false". -->
-        <skipTests>true</skipTests>
         <attachDependencySources>false</attachDependencySources>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
@@ -221,6 +220,8 @@
                     <!-- "mvn deploy -DcreateShadedJar" will upload shaded jar in our maven repository -->
                     <name>createShadedJar</name>
                 </property>
+                <!-- Ontotext: we always want this active -->
+                <activeByDefault>true</activeByDefault>
             </activation>
             <build>
                 <plugins>
