@@ -4,7 +4,7 @@
     <groupId>pitt.search</groupId>
     <artifactId>semanticvectors</artifactId>
     <!-- Change this to x.y-SNAPSHOT to run mvn release:prepare -->
-    <version>5.10-onto-SNAPSHOT</version>
+    <version>5.10.3-onto-TR2</version>
     <url>https://github.com/semanticvectors/semanticvectors</url>
 
     <licenses>
@@ -31,7 +31,7 @@
         <connection>scm:git:git@github.com:Ontotext-AD/semanticvectors.git</connection>
         <developerConnection>scm:git:git@github.com:Ontotext-AD/semanticvectors.git</developerConnection>
         <url>https://github.com/Ontotext-AD/semanticvectors</url>
-        <tag>HEAD</tag>
+        <tag>semanticvectors-5.10.3-onto-TR2</tag>
     </scm>
 
     <properties>
