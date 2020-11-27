@@ -188,10 +188,11 @@
         <profile>
             <id>release-sign-artifacts</id>
             <activation>
-                <property>
-                    <name>performRelease</name>
-                    <value>true</value>
-                </property>
+                <!-- Ontotext: we don't sign artifacts on release -->
+<!--                <property>-->
+<!--                    <name>performRelease</name>-->
+<!--                    <value>true</value>-->
+<!--                </property>-->
             </activation>
             <build>
                 <plugins>
