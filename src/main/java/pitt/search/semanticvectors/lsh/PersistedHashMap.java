@@ -1,8 +1,5 @@
 package pitt.search.semanticvectors.lsh;
 
-import sun.misc.Cleaner;
-import sun.nio.ch.DirectBuffer;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.MappedByteBuffer;
